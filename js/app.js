@@ -16,6 +16,8 @@
   let notesMode = 'preview';
 
   const save = () => Store.save(state);
+  const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let popId = null; // partie qui vient d'être maîtrisée : sa pastille fait un petit « pop »
   const subjectById = (id) => state.subjects.find((s) => s.id === id);
   const STATUS = {
     todo: { label: 'À apprendre' },
@@ -41,12 +43,27 @@
   }
   prefersDark.addEventListener('change', applyTheme);
 
+  let shownXP = state.xp;
   function renderXP(bump) {
     const lvl = Math.floor(state.xp / 100) + 1;
     $('#xpLevel').textContent = `Niv. ${lvl}`;
     $('#xpFill').style.transform = `scaleX(${(state.xp % 100) / 100})`;
-    $('#xpNum').textContent = `${fmt.format(state.xp)} XP`;
+    // Compteur qui défile jusqu'à la nouvelle valeur (moment rare : gain d'XP)
+    const from = shownXP, to = state.xp;
+    shownXP = to;
+    if (!bump || reducedMotion() || from === to) { $('#xpNum').textContent = `${fmt.format(to)} XP`; }
+    else {
+      const t0 = performance.now();
+      const step = (t) => {
+        const k = Math.min(1, (t - t0) / 600);
+        const e = 1 - Math.pow(1 - k, 3);
+        $('#xpNum').textContent = `${fmt.format(Math.round(from + (to - from) * e))} XP`;
+        if (k < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    }
     if (bump) { const x = $('#xp'); x.classList.remove('bump'); void x.offsetWidth; x.classList.add('bump'); }
+    window.Mascot && Mascot.setLevel(lvl);
   }
   function setStatus(node, status, origin) {
     const prev = node.status;
@@ -54,6 +71,8 @@
     if (status === 'done' && prev !== 'done') {
       const lvlBefore = Math.floor(state.xp / 100);
       state.xp += 10;
+      popId = node.id;
+      if (Math.floor(state.xp / 100) === lvlBefore) Mascot.react('done');
       renderXP(true);
       const r = origin && origin.getBoundingClientRect ? origin.getBoundingClientRect() : null;
       FX.confetti(r ? r.left + r.width / 2 : undefined, r ? r.top : undefined, 40);
@@ -88,13 +107,29 @@
 
   /* ---------- Rendu ---------- */
   function render(prev = {}) {
-    // Une seule transition d'entrée, et seulement quand on change d'écran (pas à chaque clic dans l'arbre)
+    // Transition seulement quand on change d'écran ou d'onglet (pas à chaque clic dans l'arbre)
     const bigChange = prev.name !== view.name || prev.id !== view.id;
-    if (view.name === 'home') renderHome();
-    else renderSubject(bigChange);
-    if (bigChange) {
-      app.classList.remove('enter'); void app.offsetWidth; app.classList.add('enter');
-      window.scrollTo({ top: 0 });
+    const modeChange = !bigChange && prev.mode !== view.mode;
+    const paint = () => {
+      if (view.name === 'home') renderHome();
+      else renderSubject(bigChange);
+      if (bigChange) { app.classList.remove('enter'); void app.offsetWidth; app.classList.add('enter'); window.scrollTo({ top: 0 }); }
+      afterPaint();
+    };
+    if ((bigChange || modeChange) && document.startViewTransition && !reducedMotion() && prev.name) {
+      document.documentElement.dataset.vt = bigChange ? 'page' : (['fiche', 'carte', 'revision'].indexOf(view.mode) > ['fiche', 'carte', 'revision'].indexOf(prev.mode) ? 'forward' : 'back');
+      const vt = document.startViewTransition(paint);
+      vt.finished.finally(() => { delete document.documentElement.dataset.vt; });
+    } else paint();
+  }
+
+  // Petits effets après chaque rendu
+  function afterPaint() {
+    if (popId) {
+      $$(`.row[data-node="${popId}"] .dot, .seg[aria-pressed="true"].st-done, .sub-card[data-id="${popId}"] .sdot`).forEach((el) => {
+        el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
+      });
+      popId = null;
     }
   }
 
@@ -264,7 +299,7 @@
             ${hasKids ? `<span class="count num">${n.children.length}</span>` : ''}
             <button class="add" data-act="add-child" data-id="${n.id}" aria-label="Ajouter une sous-partie à « ${esc(n.title)} »">${ic('plus')}</button>
           </div>
-          ${hasKids ? `<ul role="group" class="${open ? '' : 'closed'}">${n.children.map((c) => li(c, depth + 1)).join('')}</ul>` : ''}
+          ${hasKids ? `<div class="kids ${open ? '' : 'closed'}" ${open ? '' : 'inert'}><ul role="group">${n.children.map((c) => li(c, depth + 1)).join('')}</ul></div>` : ''}
         </li>`;
     };
     const kids = s.root.children.map((c) => li(c, 0)).join('');
@@ -333,7 +368,7 @@
           ${node.children.length ? `<div class="sub-grid">
             ${node.children.map((c, i) => {
               const cs = stats(c);
-              return `<a class="sub-card" href="${link(s.id, c.id)}" style="--i:${i}">
+              return `<a class="sub-card" data-id="${c.id}" href="${link(s.id, c.id)}" style="--i:${i}">
                 <span class="sdot st-${c.status}" aria-hidden="true"></span>
                 <b>${esc(c.title)}</b>
                 <small>${c.children.length ? `${plural(c.children.length, 'sous-partie', 'sous-parties')}, ${cs.pct} %` : STATUS[c.status].label}</small>
@@ -556,6 +591,7 @@
         save();
         closeModal();
         FX.toast('Sujet créé', 'success');
+        Mascot.react('created');
         go(link(s.id, s.root.id));
       };
     });
@@ -633,6 +669,7 @@
             ${[['auto', 'Automatique (comme le système)'], ['light', 'Clair'], ['dark', 'Sombre']].map(([v, l]) => `<option value="${v}" ${st.theme === v ? 'selected' : ''}>${l}</option>`).join('')}
           </select>
         </div>
+        <label class="check switch-row"><input type="checkbox" id="mascotOn" ${st.mascot !== false ? 'checked' : ''} /> Afficher Pousse, la mascotte</label>
         <div class="field">
           <label for="apiKey">Clé API Claude <span class="optional">facultatif</span></label>
           <input id="apiKey" name="api-key" type="password" autocomplete="off" spellcheck="false" placeholder="sk-ant-…" value="${esc(st.apiKey || '')}" />
@@ -659,6 +696,8 @@
       $('#setForm', el).onsubmit = (e) => {
         e.preventDefault();
         st.theme = $('#theme', el).value;
+        st.mascot = $('#mascotOn', el).checked;
+        Mascot.setEnabled(st.mascot);
         st.apiKey = $('#apiKey', el).value.trim();
         st.model = $('#model', el).value;
         applyTheme(); save(); closeModal(); FX.toast('Réglages enregistrés', 'success');
@@ -758,6 +797,7 @@
       e.style.transform = `scaleX(${Math.max(0.05, p)})`;
       e.parentElement.setAttribute('aria-valuenow', Math.round(p * 100));
     };
+    Mascot.react('reading');
     try {
       let tree;
       if (mode === 'ai') {
@@ -771,9 +811,11 @@
         tree = res.tree;
       }
       setPct(1);
+      Mascot.react('imported');
       previewImport(normalize(tree), into);
     } catch (err) {
       console.error(err);
+      Mascot.react('stop-reading');
       const msg = err && err.status === 401 ? 'La clé API est refusée. Vérifie-la dans les réglages.' : (err && err.message) || 'Erreur inconnue.';
       $('#modalBody').innerHTML = `
         <div class="loading">
@@ -865,8 +907,16 @@
         e.stopPropagation();
         const f = find(s.root, t.dataset.id);
         f.node.collapsed = !f.node.collapsed; save();
-        const sc = $('#tree').scrollTop; renderTree(); $('#tree').scrollTop = sc;
-        const again = $(`.row[data-node="${t.dataset.id}"] .caret`); again && again.focus();
+        // On bascule les classes au lieu de tout redessiner : l'ouverture et la fermeture restent animées
+        const li = t.closest('li'); const kids = li && li.querySelector(':scope > .kids');
+        if (kids && !treeFilter.trim()) {
+          const open = !f.node.collapsed;
+          kids.classList.toggle('closed', !open);
+          if (open) kids.removeAttribute('inert'); else kids.setAttribute('inert', '');
+          t.classList.toggle('open', open);
+          t.setAttribute('aria-label', open ? 'Replier' : 'Déplier');
+          li.setAttribute('aria-expanded', open);
+        } else { const sc = $('#tree').scrollTop; renderTree(); $('#tree').scrollTop = sc; }
         break;
       }
       case 'cycle': {
@@ -890,7 +940,7 @@
         const n = currentNode().node;
         n.keyPoints.push('');
         save(); renderFiche();
-        const items = $$('.kp-text'); items[items.length - 1].focus();
+        const items = $$('.kp-text'); items[items.length - 1].closest('li').classList.add('new'); items[items.length - 1].focus();
         break;
       }
       case 'del-kp': currentNode().node.keyPoints.splice(+t.dataset.i, 1); save(); renderFiche(); break;
@@ -929,14 +979,29 @@
   }
 
   function answer(ok, origin) {
-    if (!review || review.i >= review.cards.length) return;
+    if (!review || review.busy || review.i >= review.cards.length) return;
     const s = subjectById(view.id);
     const f = find(s.root, review.cards[review.i]);
     if (f) setStatus(f.node, ok ? 'done' : 'doing', origin);
+    if (!ok) Mascot.react('again');
     if (ok) review.known++; else review.again++;
     review.i++; review.flipped = false;
-    renderReview(); renderTree(); refreshProgress();
-    const fl = $('.flip'); fl && fl.focus();
+    const next = () => {
+      review.busy = false;
+      renderReview(); renderTree(); refreshProgress();
+      if (review.i >= review.cards.length) Mascot.react('finished');
+      const fl = $('.flip');
+      if (fl) { fl.classList.add('card-in'); fl.focus(); }
+    };
+    const card = $('.flip');
+    if (card && !reducedMotion()) {
+      review.busy = true;
+      const dir = ok ? 1 : -1;
+      card.animate([
+        { transform: 'translateX(0) rotate(0deg)', opacity: 1 },
+        { transform: `translateX(${dir * 70}%) rotate(${dir * 9}deg)`, opacity: 0 },
+      ], { duration: 240, easing: 'cubic-bezier(0.4, 0, 1, 1)', fill: 'forwards' }).finished.then(next);
+    } else next();
   }
 
   function refreshProgress() {
@@ -1055,6 +1120,43 @@
     if (e.target.closest('#toggleTree')) { pane.classList.toggle('open'); return; }
     if (pane.classList.contains('open') && !e.target.closest('#treePane')) pane.classList.remove('open');
   }, true);
+
+  if (matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    app.addEventListener('pointermove', (e) => {
+      const card = e.target.closest && e.target.closest('.featured, .subject-card');
+      if (!card) return;
+      const r = card.getBoundingClientRect();
+      card.style.setProperty('--mx', `${e.clientX - r.left}px`);
+      card.style.setProperty('--my', `${e.clientY - r.top}px`);
+    }, { passive: true });
+  }
+
+  /* Fond : léger effet de profondeur qui suit la souris, uniquement pendant le mouvement */
+  (function parallax() {
+    const layer = $('.bg-par');
+    if (!layer || !matchMedia('(pointer: fine)').matches) return;
+    let tx = 0, ty = 0, x = 0, y = 0, running = false;
+    const tick = () => {
+      x += (tx - x) * 0.06; y += (ty - y) * 0.06;
+      layer.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`;
+      if (Math.abs(tx - x) > 0.1 || Math.abs(ty - y) > 0.1) requestAnimationFrame(tick); else running = false;
+    };
+    window.addEventListener('pointermove', (e) => {
+      if (reducedMotion()) return;
+      tx = (e.clientX / innerWidth - 0.5) * -36; ty = (e.clientY / innerHeight - 0.5) * -28;
+      if (!running) { running = true; requestAnimationFrame(tick); }
+    }, { passive: true });
+  })();
+  document.addEventListener('visibilitychange', () => document.documentElement.classList.toggle('tab-hidden', document.hidden));
+
+  Mascot.init({
+    enabled: state.settings.mascot !== false,
+    level: Math.floor(state.xp / 100) + 1,
+    onHide: () => {
+      state.settings.mascot = false; save(); Mascot.setEnabled(false);
+      FX.toast('Pousse est partie se reposer. Tu peux la faire revenir dans les réglages.');
+    },
+  });
 
   window.addEventListener('hashchange', route);
   applyTheme();
