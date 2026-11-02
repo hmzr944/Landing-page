@@ -84,5 +84,66 @@ Règles :
     return tree;
   }
 
-  window.AI = { structure };
+  /* Recherche d'un sujet de programme (module d'apprentissage).
+     Claude cherche sur le web (outil web_search), puis construit le module : notions, points clés,
+     exercices et sources. Garde-fous pédagogiques : pas d'ancrage ni de moyen mnémotechnique
+     (c'est à l'étudiant de les produire), des questions plutôt que des résumés à relire. */
+  const RESEARCH_SYSTEM = `Tu prépares un module d'apprentissage pour un étudiant qui révise un programme d'examen.
+Tu reçois un sujet du programme (et le contexte du cours). Cherche sur le web des sources fiables (manuels, universités, encyclopédies, sites institutionnels), puis construis le module.
+Règles :
+- 3 à 6 notions qui découpent le sujet, de la plus fondamentale à la plus avancée. Une notion = une idée.
+- Pour chaque notion : "notes" courtes et exactes (4 à 8 lignes, markdown simple, ==surligné== pour l'essentiel), 2 à 4 "keyPoints" (définitions, formules, dates, règles), et des "exercises" seulement si le sujet se pratique (calculs, méthodes, cas).
+- "overview" : 3 phrases maximum qui situent le sujet et disent pourquoi il compte.
+- "sources" : les pages réellement consultées, avec titre et URL.
+- Ne rédige ni image mentale, ni exemple personnel, ni moyen mnémotechnique : l'étudiant les écrit lui-même, c'est ce qui l'aide à retenir.
+- Titres courts, sans numérotation. Rédige en français.
+Réponds à la fin par UN SEUL bloc JSON, sans texte après, de la forme :
+{"overview":"…","notions":[{"title":"…","notes":"…","keyPoints":["…"],"exercises":[{"q":"…","a":"…"}]}],"sources":[{"title":"…","url":"…"}]}`;
+
+  function lastJson(text) {
+    const fenced = [...text.matchAll(/```(?:json)?\s*([\s\S]*?)```/g)].map((m) => m[1]);
+    const cands = fenced.length ? fenced.reverse() : [text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1)];
+    for (const c of cands) { try { return JSON.parse(c); } catch (e) { /* suivant */ } }
+    throw new Error('Réponse illisible de Claude, réessaie.');
+  }
+
+  async function researchTopic(topic, context, apiKey, model, onStatus) {
+    onStatus && onStatus('Chargement du client Claude…');
+    const { default: Anthropic } = await import(SDK_URL);
+    const client = new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
+    const messages = [{ role: 'user', content: `Sujet du programme : « ${topic} »\nCours : « ${context} »\nPrépare le module.` }];
+    let msg = null;
+    const found = new Map();
+    // Les outils serveur peuvent mettre le tour en pause (pause_turn) : on relance, 4 fois au plus
+    for (let round = 0; round < 4; round++) {
+      onStatus && onStatus(round ? 'Claude continue ses recherches…' : 'Claude cherche des sources fiables…');
+      const stream = client.beta.messages.stream({
+        model: model || 'claude-opus-5-5',
+        max_tokens: 32000,
+        betas: ['server-side-fallback-2026-07-01'],
+        fallbacks: 'default',
+        output_config: { effort: 'medium' },
+        system: RESEARCH_SYSTEM,
+        tools: [{ type: 'web_search_20260209', name: 'web_search', max_uses: 6 }],
+        messages,
+      });
+      stream.on('text', () => onStatus && onStatus('Claude construit ton module…'));
+      msg = await stream.finalMessage();
+      for (const b of msg.content) {
+        if (b.type === 'web_search_tool_result' && Array.isArray(b.content)) b.content.forEach((r) => r.url && found.set(r.url, r.title || r.url));
+      }
+      if (msg.stop_reason !== 'pause_turn') break;
+      messages.push({ role: 'assistant', content: msg.content });
+    }
+    if (msg.stop_reason === 'refusal') throw new Error('Claude a refusé de traiter ce sujet.');
+    if (msg.stop_reason === 'max_tokens') throw new Error('Le module est trop long : essaie avec un sujet plus précis.');
+    const text = msg.content.filter((b) => b.type === 'text').map((b) => b.text).join('');
+    const data = lastJson(text);
+    // Sources : celles citées par Claude, complétées par les pages réellement consultées
+    const sources = (Array.isArray(data.sources) ? data.sources : []).filter((x) => x && /^https?:/.test(x.url));
+    for (const [url, title] of found) if (sources.length < 6 && !sources.some((x) => x.url === url)) sources.push({ title, url });
+    return { overview: String(data.overview || ''), notions: Array.isArray(data.notions) ? data.notions : [], sources: sources.slice(0, 8) };
+  }
+
+  window.AI = { structure, researchTopic };
 })();

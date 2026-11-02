@@ -349,7 +349,9 @@
           ${node.children.length ? ring(st.pct) : ''}
         </div>
 
+        ${isModule(s, node) ? modulePanel(s, node) : ''}
         ${memoryLine(s, node, isRoot)}
+        ${isRoot && s.program ? programPanel(s) : ''}
 
 
 
@@ -460,6 +462,235 @@
   ];
   const explainPrompt = (node) => EXPLAIN_PROMPTS[[...node.id].reduce((a, c) => a + c.charCodeAt(0), 0) % EXPLAIN_PROMPTS.length];
 
+  /* =========================================================
+     Parcours de modules : un programme (liste de sujets) devient une suite de modules,
+     chacun suivi avec la même méthode en 5 étapes, étalés jusqu'à l'examen.
+     1. Ce que je sais déjà (prétest)   2. Découvrir (sources, recherche)   3. Découper en notions
+     4. Ancrer (image, exemple, pourquoi)   5. Me tester (révision espacée)
+     ========================================================= */
+  const MOD_STEPS = [
+    ['pretest', 'Ce que tu sais déjà'],
+    ['learn', 'Découvrir'],
+    ['split', 'Découper'],
+    ['anchor', 'Ancrer'],
+    ['test', 'Te tester'],
+  ];
+  const isModule = (s, node) => !!(s && s.program && node.module);
+  function moduleSteps(node) {
+    const m = node.module || {};
+    let anchored = !!node.explain.trim(), tested = false;
+    walk(node, (n) => { if (n !== node && n.explain.trim()) anchored = true; if (n.srs) tested = true; });
+    return {
+      pretest: (m.pretest || '').trim().length >= 10 || !!m.skipPretest,
+      learn: !!m.learned || node.notes.trim().length > 80 || node.keyPoints.length >= 2,
+      split: node.children.length >= 2,
+      anchor: anchored,
+      test: tested,
+    };
+  }
+  const moduleProgress = (node) => Object.values(moduleSteps(node)).filter(Boolean).length;
+  function dayLabel(date) {
+    if (!date) return '';
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const d = Math.round((new Date(date + 'T00:00') - today) / SRS.DAY);
+    return d === 0 ? 'Aujourd’hui' : d === 1 ? 'Demain' : d === -1 ? 'Hier' : d < 0 ? `En retard de ${-d} jours` : `Dans ${d} jours`;
+  }
+  const isoDay = (t) => SRS.dayKey(t);
+
+  // Répartit les modules jusqu'à l'examen, en gardant la fin pour les révisions globales
+  function scheduleModules(s) {
+    const mods = s.root.children.filter((c) => c.module);
+    if (!mods.length) return;
+    const start = new Date(); start.setHours(0, 0, 0, 0);
+    let span;
+    if (s.examDate) {
+      const days = Math.max(1, Math.round((new Date(s.examDate + 'T00:00') - start) / SRS.DAY));
+      span = Math.max(1, Math.floor(days * 0.8)); // 20 % du temps gardé pour réviser l'ensemble
+    } else span = mods.length * (s.program.rhythm || 2);
+    const todo = mods.filter((m) => moduleProgress(m) < 5);
+    todo.forEach((m, i) => { m.module.date = isoDay(start.getTime() + Math.floor((i * span) / todo.length) * SRS.DAY); });
+  }
+
+  function makeProgram(title, topics, opts) {
+    const s = makeSubject(title, { color: opts.color, icon: opts.icon });
+    s.program = { rhythm: opts.rhythm || 2, createdAt: Date.now() };
+    s.examDate = opts.examDate || null;
+    let last = null;
+    topics.forEach((t) => {
+      if (t.depth > 0 && last) { last.children.push(makeNode(t.title)); return; }
+      last = makeNode(t.title, { module: { pretest: '', learned: false, sources: [], date: null } });
+      s.root.children.push(last);
+    });
+    s.root.notes = 'Ce sujet est un parcours : chaque grande partie est un module à suivre en 5 étapes. Arbor les a répartis jusqu’à ton examen.';
+    scheduleModules(s);
+    return s;
+  }
+
+  function programModal(topics, title) {
+    const sel = { color: PALETTE[state.subjects.length % PALETTE.length], icon: 'book-open' };
+    const text = topics.map((t) => `${t.depth ? '  ' : ''}${t.title}`).join('\n');
+    openModal(`
+      <h2 id="modalTitle">Créer un parcours de modules</h2>
+      <p class="modal-lede">Chaque sujet de la liste devient un module. Arbor les répartit jusqu’à ton examen et te guide en 5 étapes pour chacun, même s’il n’y a pas de contenu dans le document.</p>
+      <form id="pgForm" class="form">
+        <div class="field">
+          <label for="pgTitle">Nom du parcours</label>
+          <input id="pgTitle" autocomplete="off" value="${esc(title || 'Mon programme')}" />
+        </div>
+        <div class="field">
+          <label for="pgTopics">Sujets du programme</label>
+          <textarea id="pgTopics" rows="8">${esc(text)}</textarea>
+          <p class="hint">Un sujet par ligne. Indente une ligne pour en faire une notion du sujet au-dessus. Retire ce qui n’est pas un sujet à réviser.</p>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="pgExam">Date d’examen <span class="optional">facultatif</span></label>
+            <input id="pgExam" type="date" />
+          </div>
+          <div class="field">
+            <label for="pgRhythm">Sans date : un module</label>
+            <select id="pgRhythm"><option value="1">par jour</option><option value="2" selected>tous les 2 jours</option><option value="3">tous les 3 jours</option><option value="7">par semaine</option></select>
+          </div>
+        </div>
+        ${pickers(sel.color, sel.icon)}
+        <div class="row-btns end"><button type="button" class="btn ghost" data-close>Annuler</button><button class="btn">${ic('path')}Créer le parcours</button></div>
+      </form>`, (el) => {
+      bindPickers(el, sel);
+      $('[data-close]', el).onclick = closeModal;
+      $('#pgForm', el).onsubmit = (e) => {
+        e.preventDefault();
+        const lines = $('#pgTopics', el).value.split(/\r?\n/).filter((l) => l.trim());
+        const list = lines.map((l) => ({ title: Store.cleanTitle(l.trim().replace(/^([-*•+]|\d+[.)])\s+/, '')), depth: /^\s+/.test(l) ? 1 : 0 })).filter((t) => t.title);
+        if (!list.some((t) => !t.depth)) { FX.toast('Ajoute au moins un sujet, sans indentation.', 'error'); return; }
+        const s = makeProgram($('#pgTitle', el).value.trim() || 'Mon programme', list, { ...sel, examDate: $('#pgExam', el).value || null, rhythm: +$('#pgRhythm', el).value });
+        state.subjects.push(s);
+        save(); closeModal();
+        Mascot.react('created');
+        FX.toast(`${plural(s.root.children.length, 'module créé', 'modules créés')}`, 'success');
+        go(link(s.id, s.root.id));
+      };
+    });
+  }
+
+  // Liens de recherche quand on n'a pas de clé API (ou en complément)
+  function researchLinks(topic, s) {
+    const q = encodeURIComponent(topic);
+    const qc = encodeURIComponent(`${topic} ${s.title}`);
+    return [
+      ['Wikipédia', `https://fr.wikipedia.org/w/index.php?search=${q}`, 'book-open-text'],
+      ['Khan Academy', `https://fr.khanacademy.org/search?page_search_query=${q}`, 'graduation-cap'],
+      ['Vidéos de cours', `https://www.youtube.com/results?search_query=${encodeURIComponent(topic + ' cours')}`, 'play-circle'],
+      ['Cours en PDF', `https://www.google.com/search?q=${encodeURIComponent(topic + ' cours pdf')}`, 'file-pdf'],
+      ['Articles scientifiques', `https://scholar.google.com/scholar?q=${qc}`, 'books'],
+    ];
+  }
+
+  function modulePanel(s, node) {
+    const st = moduleSteps(node);
+    const m = node.module;
+    const current = MOD_STEPS.find(([k]) => !st[k]);
+    const step = current ? current[0] : null;
+    const hasKey = !!state.settings.apiKey;
+    const body = {
+      pretest: () => `
+        <p>Avant de lire quoi que ce soit : qu’est-ce que tu sais déjà sur « ${esc(node.title)} » ? Écris tout ce qui te vient, même flou ou faux. Cet essai prépare ta mémoire à retenir la suite.</p>
+        <textarea class="notes-input" id="modulePretest" rows="3" placeholder="Ce que j’en sais, ce que j’imagine…">${esc(m.pretest || '')}</textarea>
+        <div class="row-btns"><button class="btn sm" data-act="mod-pretest-done">${ic('check')}C’est noté</button><button class="btn ghost sm" data-act="mod-skip-pretest">Je n’en sais rien, passer</button></div>`,
+      learn: () => `
+        <p>Découvre le sujet${hasKey ? ' : Arbor peut chercher des sources fiables et préparer les notions, ou tu peux chercher toi-même.' : ' avec ces recherches toutes prêtes. Note l’essentiel dans la fiche, avec tes mots.'}</p>
+        ${hasKey ? `<button class="btn" data-act="mod-research">${ic('magnifying-glass')}Arbor cherche pour toi</button>` : ''}
+        <div class="research-links">${researchLinks(node.title, s).map(([l, u, i]) => `<a class="chip-link" href="${u}" target="_blank" rel="noopener">${ic(i)}${l}</a>`).join('')}</div>
+        <button class="btn ghost sm" data-act="mod-learned">${ic('check')}J’ai lu et pris mes notes</button>`,
+      split: () => `
+        <p>Découpe « ${esc(node.title)} » en 3 à 5 notions, une idée chacune. Faire ce découpage toi-même t’aide à organiser ce que tu sais.</p>
+        <button class="btn" data-act="bulk-add" data-id="${node.id}">${ic('tree-structure')}Découper en notions</button>`,
+      anchor: () => `
+        <p>Ancre au moins une notion : une image, un exemple concret, ou pourquoi c’est vrai. C’est l’étape qui fait le plus de différence pour retenir.</p>
+        <button class="btn" data-act="focus-explain">${ic('anchor-simple')}Ancrer ce module</button>`,
+      test: () => `
+        <p>Teste-toi sur ce module. Ensuite, Arbor te le reproposera au bon moment, mélangé avec les autres.</p>
+        <a class="btn" href="${link(s.id, node.id, 'revision')}">${ic('play', true)}Me tester sur ce module</a>`,
+    };
+    return `
+      <section class="module-panel" aria-label="Parcours du module">
+        <div class="mp-head">
+          <span class="mp-title">${step ? `Étape ${MOD_STEPS.findIndex(([k]) => k === step) + 1} sur 5 : ${current[1]}` : 'Module terminé'}</span>
+          ${m.date ? `<span class="chip">${ic('calendar-blank')}${dayLabel(m.date)}</span>` : ''}
+        </div>
+        <ol class="mp-steps">${MOD_STEPS.map(([k, l]) => `<li class="${st[k] ? 'done' : k === step ? 'current' : ''}"><span class="mp-dot" aria-hidden="true">${st[k] ? ic('check', true) : ''}</span><span>${l}</span></li>`).join('')}</ol>
+        ${step ? `<div class="mp-body">${body[step]()}</div>` : `<div class="mp-body"><p>Les 5 étapes sont faites. Ce module revient maintenant dans ta révision du jour, au moment où tu risques de l’oublier.</p></div>`}
+        ${m.sources && m.sources.length ? `<details class="mp-sources"><summary>Sources (${m.sources.length})</summary><ul>${m.sources.map((x) => `<li><a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title || x.url)}</a></li>`).join('')}</ul></details>` : ''}
+        ${m.pretest && st.pretest && step !== 'pretest' ? `<details class="mp-sources"><summary>Ce que tu pensais savoir avant</summary><p class="mp-pretest">${esc(m.pretest)}</p></details>` : ''}
+      </section>`;
+  }
+
+  // Vue d'ensemble d'un parcours : la frise des modules
+  function programPanel(s) {
+    const mods = s.root.children.filter((c) => c.module);
+    const done = mods.filter((mm) => moduleProgress(mm) === 5).length;
+    return `
+      <section class="sec program">
+        <div class="sec-head"><h2>Ton parcours <span class="muted num">${done}/${mods.length}</span></h2>
+          <button class="btn ghost sm" data-act="reschedule">${ic('calendar-blank')}Recalculer les dates</button>
+        </div>
+        <ol class="timeline">
+          ${mods.map((mm) => {
+            const p = moduleProgress(mm);
+            const today = mm.module.date && mm.module.date <= SRS.dayKey() && p < 5;
+            return `<li class="${p === 5 ? 'done' : today ? 'now' : ''}">
+              <a href="${link(s.id, mm.id)}">
+                <span class="tl-date">${p === 5 ? 'Terminé' : dayLabel(mm.module.date)}</span>
+                <span class="tl-title">${esc(mm.title)}</span>
+                <span class="tl-steps" aria-label="${p} étapes sur 5">${MOD_STEPS.map((_, i) => `<i class="${i < p ? 'on' : ''}"></i>`).join('')}</span>
+              </a>
+            </li>`;
+          }).join('')}
+        </ol>
+      </section>`;
+  }
+
+  // Module du jour (accueil)
+  function moduleLine() {
+    const today = SRS.dayKey();
+    for (const s of state.subjects) {
+      if (!s.program) continue;
+      const mm = s.root.children.find((c) => c.module && c.module.date && c.module.date <= today && moduleProgress(c) < 5);
+      if (mm) {
+        const step = MOD_STEPS.find(([k]) => !moduleSteps(mm)[k]);
+        return `<a class="exam-line" href="${link(s.id, mm.id)}" style="--c:${s.color}">
+          <span class="tile sm" style="--c:${s.color}">${ic('path', true)}</span>
+          <span><b>Module du jour : ${esc(mm.title)}</b>. Prochaine étape : ${step[1].toLowerCase()}.</span>
+        </a>`;
+      }
+    }
+    return '';
+  }
+
+  async function researchModule(s, node) {
+    openModal(`
+      <div class="loading">
+        <h2 id="modalTitle">Arbor cherche pour toi…</h2>
+        <p class="modal-lede" id="ldMsg">« ${esc(node.title)} »</p>
+        <div class="skeleton" aria-hidden="true"><span style="--w:60%"></span><span style="--w:45%;--d:1"></span><span style="--w:52%;--d:1"></span><span style="--w:38%;--d:2"></span></div>
+      </div>`);
+    Mascot.react('reading');
+    try {
+      const r = await AI.researchTopic(node.title, s.title, state.settings.apiKey, state.settings.model, (m) => { const e = $('#ldMsg'); if (e) e.textContent = m; });
+      if (r.overview && !node.notes.trim()) node.notes = r.overview;
+      r.notions.forEach((n) => node.children.push(normalize(n)));
+      node.module.sources = r.sources;
+      node.module.researched = true;
+      node.collapsed = false;
+      touch(); Mascot.react('imported'); closeModal(); render(view);
+      FX.toast(`${plural(r.notions.length, 'notion préparée', 'notions préparées')}, avec ${plural(r.sources.length, 'source', 'sources')}. Lis-les, puis ancre-les avec tes mots.`, 'success', 5200);
+    } catch (err) {
+      console.error(err);
+      Mascot.react('stop-reading');
+      const msg = err && err.status === 401 ? 'La clé API est refusée. Vérifie-la dans les réglages.' : (err && err.message) || 'Erreur inconnue.';
+      $('#modalBody').innerHTML = `<div class="loading"><span class="tile big danger-tile">${ic('warning-circle', true)}</span><h2 id="modalTitle">Recherche impossible</h2><p class="modal-lede">${esc(msg)} Tu peux utiliser les liens de recherche à la place.</p></div>`;
+    }
+  }
+
   function memoryLine(s, node, isRoot) {
     if (isRoot && node.children.length) {
       const ov = overview({ type: 'node', sid: s.id, nid: node.id });
@@ -539,8 +770,12 @@
   // Cartes d'un sujet (ou d'une branche) : dues, nouvelles, et le reste
   function collect(s, base, now) {
     const due = [], fresh = [], other = [];
+    // Parcours : un module n'entre en révision qu'après l'étape « Découvrir » (on ne teste pas du vide)
+    const locked = new Set();
+    if (s.program) s.root.children.forEach((m) => { if (m.module && !moduleSteps(m).learn) walk(m, (x) => { if (!x.srs) locked.add(x.id); }); });
     walk(base, (n, d) => {
       if (d === 0 && base.children.length) return;
+      if (locked.has(n.id)) return;
       if (!n.srs) fresh.push(n);
       else if (SRS.isDue(n.srs, now)) due.push(n);
       else other.push(n);
@@ -1154,6 +1389,7 @@
             ${n > 5 ? `<button class="btn ghost big" data-act="quick-start">${ic('lightning')}Juste 2 minutes</button>` : `<button class="btn ghost big" data-act="focus-open">${ic('timer')}Focus ${state.settings.focusMin} min</button>`}
           </div>
           ${planLine()}
+          ${moduleLine()}
           ${examLine()}
           <a class="method-link" href="#/methode">${ic('lightbulb')}Pourquoi cette méthode marche</a>
         </div>
@@ -1238,6 +1474,10 @@
         text: 'On oublie vite, puis de moins en moins vite à chaque rappel réussi. Réviser juste avant d’oublier renforce le souvenir avec le moins d’effort possible.',
         arbor: 'L’algorithme FSRS calcule pour chaque partie le moment où ta mémoire passe sous 90 %, et la remet dans ta révision du jour.',
         src: [['FSRS, algorithme open source', 'https://github.com/open-spaced-repetition'], ['Dunlosky et al. (2013)', 'https://www.psychologicalscience.org/journals/pspi/1529100612453266/']], level: 'Très solide' },
+      { icon: 'path', title: 'Un programme devient un parcours',
+        text: 'Quand on n’a qu’une liste de sujets, le risque est de tout repousser puis de bachoter. Étaler l’apprentissage sur la durée, et tester ce qu’on sait avant de lire, sont deux des effets les mieux établis.',
+        arbor: 'Importe un programme : chaque sujet devient un module, réparti jusqu’à ton examen, avec 5 étapes : ce que tu sais déjà, découvrir (recherches toutes prêtes, ou Claude qui cherche des sources), découper, ancrer, te tester.',
+        src: [['Dunlosky et al. (2013)', 'https://www.psychologicalscience.org/journals/pspi/1529100612453266/'], ['Revue sur l’effet de prétest (2022)', 'https://link.springer.com/article/10.3758/s13421-022-01392-1']], level: 'Solide' },
       { icon: 'pencil-simple-line', title: 'Essayer de répondre, même faux, aide',
         text: 'Tenter une réponse avant de voir la correction améliore la mémorisation, même quand la tentative est fausse. Condition : voir la bonne réponse juste après.',
         arbor: 'Tu écris ta réponse avant de retourner la carte. Et sur une partie jamais révisée, Arbor te propose de deviner les points clés avant de les lire.',
@@ -1504,6 +1744,7 @@
           <label for="nsPlan">Plan rapide <span class="optional">facultatif</span></label>
           <textarea id="nsPlan" name="plan" rows="6" placeholder="Les causes&#10;  Crise financière&#10;  Idées des Lumières&#10;Les grandes étapes…"></textarea>
           <p class="hint">Une ligne par partie. Indente une ligne pour en faire une sous-partie.</p>
+          <label class="check"><input type="checkbox" id="nsProgram" /> C’est un programme d’examen : faire de chaque partie un module à suivre en 5 étapes</label>
         </div>
         <div class="row-btns end"><button type="button" class="btn ghost" data-close>Annuler</button><button class="btn">${ic('plus')}Créer le sujet</button></div>
       </form>`, (el) => {
@@ -1514,6 +1755,11 @@
         const title = $('#nsTitle', el).value.trim() || 'Nouveau sujet';
         const s = makeSubject(title, sel);
         s.root.children = parseOutline($('#nsPlan', el).value);
+        if ($('#nsProgram', el).checked && s.root.children.length) {
+          s.program = { rhythm: 2, createdAt: Date.now() };
+          s.root.children.forEach((c) => { c.module = { pretest: '', learned: false, sources: [], date: null }; });
+          scheduleModules(s);
+        }
         state.subjects.push(s);
         save();
         closeModal();
@@ -1558,6 +1804,7 @@
         s.root.title = s.title;
         s.color = sel.color; s.icon = sel.icon;
         s.examDate = $('#esExam', el).value || null;
+        if (s.program) scheduleModules(s);
         s.updatedAt = Date.now();
         save(); closeModal(); render(view); FX.toast('Sujet enregistré', 'success');
       };
@@ -1680,7 +1927,12 @@
       const data = JSON.parse(await file.text());
       const list = Array.isArray(data.subjects) ? data.subjects : data.root ? [data] : [];
       if (!list.length) throw new Error('format');
-      list.forEach((s) => state.subjects.push(makeSubject(s.title || 'Sujet importé', { color: s.color, icon: s.icon, emoji: s.emoji, root: normalize(s.root) })));
+      list.forEach((s) => {
+        const ns = makeSubject(s.title || 'Sujet importé', { color: s.color, icon: s.icon, emoji: s.emoji, root: normalize(s.root) });
+        if (s.program) ns.program = s.program;
+        if (s.examDate) ns.examDate = s.examDate;
+        state.subjects.push(ns);
+      });
       if (typeof data.xp === 'number') state.xp = Math.max(state.xp, data.xp);
       save(); closeModal(); renderXP(); go('#/');
       FX.toast(`${plural(list.length, 'sujet importé', 'sujets importés')}`, 'success');
@@ -1714,6 +1966,7 @@
             <span><b>Analyse par Claude</b><small>${hasKey ? 'Résumés et points clés rédigés, découpage plus fin.' : 'Ajoute ta clé API dans les réglages pour l’activer.'}</small></span></label>
         </div>
       </fieldset>
+      <label class="check"><input type="checkbox" id="asProgram" /> C’est un programme ou une liste de sujets : en faire un parcours de modules</label>
       ${inSubject ? `<label class="check"><input type="checkbox" id="intoCurrent" /> Ajouter dans la partie ouverte au lieu de créer un nouveau sujet</label>` : ''}
       <div class="row-btns end"><button class="btn" id="pdfGo" disabled>${ic('magic-wand')}Analyser le PDF</button></div>`, (el) => {
       const drop = $('#drop', el);
@@ -1732,7 +1985,7 @@
       $('#pdfGo', el).onclick = () => {
         const mode = $('input[name=mode]:checked', el).value;
         const into = inSubject && $('#intoCurrent', el) && $('#intoCurrent', el).checked;
-        runPdf(pdfFile, mode, into);
+        runPdf(pdfFile, $('#asProgram', el).checked ? 'program' : mode, into);
       };
     });
   }
@@ -1757,6 +2010,12 @@
     Mascot.react('reading');
     try {
       let tree;
+      if (mode === 'program') {
+        const res = await PdfImport.analyze(file, (p) => { setPct(p); setMsg(`Lecture des pages… ${Math.round(p * 100)} %`); });
+        Mascot.react('imported');
+        programModal(res.topics, res.title);
+        return;
+      }
       if (mode === 'ai') {
         let fake = 0.05;
         const t = setInterval(() => { fake = Math.min(0.92, fake + (0.95 - fake) * 0.04); setPct(fake); }, 400);
@@ -1766,6 +2025,7 @@
         const res = await PdfImport.analyze(file, (p) => { setPct(p * 0.9); setMsg(`Lecture des pages… ${Math.round(p * 100)} %`); });
         setMsg('Classement des informations…');
         tree = res.tree;
+        if (res.isProgramme && !into) { Mascot.react('stop-reading'); return programChoice(res); }
       }
       setPct(1);
       Mascot.react('imported');
@@ -1783,6 +2043,20 @@
         </div>`;
       $('#retry').onclick = pdfModal;
     }
+  }
+
+  // Le PDF ressemble à une liste de sujets : on propose le parcours
+  function programChoice(res) {
+    $('#modalBody').innerHTML = `
+      <h2 id="modalTitle">Ce PDF ressemble à un programme</h2>
+      <p class="modal-lede">Arbor y voit ${plural(res.topics.filter((t) => !t.depth).length, 'sujet', 'sujets')}, mais peu de contenu rédigé. Tu peux en faire un parcours : un module par sujet, avec une méthode en 5 étapes et des recherches toutes prêtes.</p>
+      <ul class="topic-preview">${res.topics.slice(0, 8).map((t) => `<li class="${t.depth ? 'sub' : ''}">${esc(t.title)}</li>`).join('')}${res.topics.length > 8 ? `<li class="more">et ${res.topics.length - 8} de plus</li>` : ''}</ul>
+      <div class="row-btns end">
+        <button class="btn ghost" id="asCourse">L’importer comme un cours</button>
+        <button class="btn" id="asProg">${ic('path')}Créer un parcours de modules</button>
+      </div>`;
+    $('#asProg').onclick = () => programModal(res.topics, res.title);
+    $('#asCourse').onclick = () => previewImport(normalize(res.tree), false);
   }
 
   function previewImport(root, into) {
@@ -1907,6 +2181,11 @@
       case 'quick-start': buildSession({ type: 'all' }); study.queue = study.queue.slice(0, 5); study.quick = true; preparePrompt(); go('#/reviser'); break;
       case 'plan-edit': planModal(); break;
       case 'reveal': reveal(); break;
+      case 'mod-pretest-done': { const n = currentNode().node; const v = ($('#modulePretest') || {}).value || ''; if (v.trim().length < 10) { FX.toast('Écris au moins une phrase, même approximative.', 'error'); break; } n.module.pretest = v; gainXP(3); touch(); renderFiche(); break; }
+      case 'mod-skip-pretest': { const n = currentNode().node; n.module.skipPretest = true; touch(); renderFiche(); break; }
+      case 'mod-learned': { const n = currentNode().node; n.module.learned = true; gainXP(3); touch(); renderFiche(); break; }
+      case 'mod-research': { const c = currentNode(); researchModule(subjectById(view.id), c.node); break; }
+      case 'reschedule': { const sj = subjectById(view.id); scheduleModules(sj); touch(); renderFiche(); FX.toast('Dates recalculées jusqu’à ton examen.', 'success'); break; }
       case 'anchor': {
         const a = ANCHORS.find((x) => x[0] === t.dataset.k); const ta = $('#explainInput');
         if (a && ta) { ta.value = (ta.value.trim() ? ta.value.trimEnd() + '\n' : '') + a[2]; ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); currentNode().node.explain = ta.value; autoGrow(ta); save(); }
@@ -1940,6 +2219,7 @@
     const t = e.target;
     if (t.id === 'typed' && study) { study.typed = t.value; return; }
     if (t.id === 'anchorNow' && study) { study.anchor = t.value; return; }
+    if (t.id === 'modulePretest') { const c = currentNode(); if (c && c.node.module) { c.node.module.pretest = t.value; save(); } return; }
     if (t.dataset && t.dataset.check !== undefined && study) { study.checks[+t.dataset.check] = t.checked; refreshSuggestion(); return; }
     if (t.id === 'treeSearch') { treeFilter = t.value; renderTree(); return; }
     const cur = view.name === 'subject' && currentNode();

@@ -204,7 +204,44 @@
     if (raw.length < 3) throw new Error('Aucun texte lisible : le PDF est sans doute scanné (image).');
     const lines = cleanLines(raw, pdf.numPages);
     const title = file.name.replace(/\.pdf$/i, '').replace(/[_-]+/g, ' ');
-    return { tree: build(lines, title), pages: pdf.numPages };
+    const prog = programme(lines);
+    return { tree: build(lines, title), pages: pdf.numPages, title: prog.docTitle || title, topics: prog.topics, isProgramme: prog.isProgramme };
+  }
+
+  /* Programme ou sommaire : une liste de sujets sans vrai contenu.
+     On repère les lignes courtes (titres, puces, numéros) et on regarde la part de vraies phrases. */
+  const SKIP = /^(programme|sommaire|table des mati[eè]res|plan|contenu|objectifs?|sujets?( à réviser)?|chapitres?|page \d+|\d+)$/i;
+  function programme(lines) {
+    const body = bodySize(lines);
+    // Texte rédigé : lignes d'au moins 9 mots qui ne sont pas des éléments de liste (les PDF coupent les phrases en lignes)
+    const LISTITEM = /^\s*([•●▪◦‣\-–*✓➢►□☐]|\d{1,2}(\.\d{1,2}){0,3}[.)]|[IVXLC]{1,6}[.)]|[A-H][.)])\s+/;
+    const prose = lines.filter((l) => l.text.split(/\s+/).length >= 9 && !LISTITEM.test(l.text)).reduce((a, l) => a + l.text.length, 0);
+    const total = lines.reduce((a, l) => a + l.text.length, 0) || 1;
+    const topics = [];
+    const seen = new Set();
+    // Si le document contient une vraie liste (numéros ou puces), on ne garde qu'elle
+    const LIST = /^\s*([•●▪◦‣\-–*✓➢►□☐]|\d{1,2}(\.\d{1,2}){0,3}[.)]?|[IVXLC]{1,6}[.)]|[A-H][.)])\s+\S/;
+    const listy = lines.filter((l) => LIST.test(l.text) && l.text.length <= 120);
+    const source = listy.length >= 3 ? listy : lines;
+    // Titre du document : la plus grande ligne de la première page
+    const first = lines.filter((l) => l.page === 1);
+    const big = first.length ? first.reduce((a, b) => (b.size > a.size ? b : a)) : null;
+    const docTitle = big && big.size >= body * 1.3 ? big.text : null;
+    for (const l of source) {
+      if (docTitle && l.text === docTitle) continue;
+      let t = l.text.replace(/^\s*[•●▪◦‣\-–*✓➢►□☐]\s*/, '').trim();
+      t = t.replace(/^((\d{1,2}(\.\d{1,2}){0,3})|[IVXLC]{1,6}|[A-H])[.)\-–]?\s+/, '').replace(/\s*\.{3,}\s*\d+$/, '').replace(/[.;:,]$/, '').trim();
+      if (t.length < 3 || t.length > 110 || SKIP.test(t)) continue;
+      if (/[.!?:]$/.test(l.text) && t.split(' ').length > 6 && !LIST.test(l.text)) continue;
+      const depth = /^\s*\d{1,2}\.\d/.test(l.text) || (l.size < body * 1.05 && !l.bold && /^\s*[•●▪◦‣\-–*]/.test(l.text) && topics.length) ? 1 : 0;
+      const key = t.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      topics.push({ title: t.charAt(0).toUpperCase() + t.slice(1), depth });
+    }
+    // Peu de phrases rédigées et plusieurs lignes courtes : c'est une liste de sujets
+    const isProgramme = topics.length >= 3 && prose / total < 0.35;
+    return { topics: topics.slice(0, 80), isProgramme, docTitle };
   }
 
   window.PdfImport = { analyze };
