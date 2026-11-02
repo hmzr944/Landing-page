@@ -1,332 +1,56 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
 <head>
- <meta charset="UTF-8">
- <meta name="viewport" content="width=device-width, initial-scale=1.0">
- <title>LumiWatch - Montre Connectée Anti-Distraction</title>
- <meta name="description" content="LumiWatch, la montre connectée minimaliste qui vous aide à réduire les distractions numériques et retrouver votre focus.">
- <link rel="stylesheet" href="styles.css">
- <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
- <link href="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.css" rel="stylesheet">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Arbor · Apprendre en arborescence</title>
+  <meta name="description" content="Découpe n'importe quel sujet en une arborescence de petites parties, prends des notes, importe un PDF et révise en t'amusant." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌳</text></svg>" />
 </head>
 <body>
- <!-- En-tête de la page -->
- <header class="en-tete">
- <nav class="navigation-principale">
- <div class="conteneur-navigation">
- <!-- Logo LumiWatch -->
- <div class="logo-lumiwatch">
- <svg width="40" height="40" viewBox="0 0 40 40" class="icone-logo">
- <circle cx="20" cy="20" r="18" fill="none" stroke="#667eea" stroke-width="2"/>
- <circle cx="20" cy="20" r="12" fill="#667eea" opacity="0.1"/>
- <circle cx="20" cy="20" r="3" fill="#667eea"/>
- <line x1="20" y1="8" x2="20" y2="12" stroke="#667eea" stroke-width="2"/>
- <line x1="32" y1="20" x2="28" y2="20" stroke="#667eea" stroke-width="2"/>
- </svg>
- <span class="nom-marque">LumiWatch</span>
- </div>
- 
- <!-- Menu de navigation -->
- <ul class="menu-navigation">
- <li><a href="#fonctionnalites" class="lien-navigation">Fonctionnalités</a></li>
- <li><a href="#avis-clients" class="lien-navigation">Avis</a></li>
- <li><a href="#newsletter" class="lien-navigation">Newsletter</a></li>
- <li><a href="#contact" class="lien-navigation">Contact</a></li>
- </ul>
- </div>
- </nav>
- </header>
+  <div class="bg" aria-hidden="true"><span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span></div>
 
- <!-- Section principale de présentation -->
- <main class="contenu-principal">
- <section class="section-presentation">
- <div class="conteneur-presentation">
- <div class="texte-presentation">
- <h1 class="titre-principal">
- Retrouvez votre <span class="mot-accent">focus</span><br>
- avec LumiWatch
- </h1>
- <p class="sous-titre-principal">
- La montre connectée minimaliste qui vous aide à réduire les distractions 
- numériques et maximiser votre productivité au quotidien.
- </p>
- <div class="boutons-action-principale">
- <button class="bouton-precommande-principal">
- <i data-feather="watch"></i>
- Précommander maintenant
- </button>
- <a href="#fonctionnalites" class="bouton-en-savoir-plus">
- En savoir plus
- </a>
- </div>
- </div>
- 
- <!-- Illustration de la montre -->
- <div class="illustration-montre">
- <div class="montre-mockup">
- <div class="ecran-montre">
- <div class="interface-montre">
- <div class="heure-affichage">14:30</div>
- <div class="indicateur-focus"></div>
- <div class="notifications-reduites">
- <span class="point-notification"></span>
- <span class="texte-notification">2 notifications en attente</span>
- </div>
- </div>
- </div>
- <div class="bracelet-montre"></div>
- </div>
- </div>
- </div>
- </section>
+  <header class="topbar">
+    <button class="brand" id="homeBtn" title="Accueil">
+      <span class="brand-logo">🌳</span><span class="brand-name">Arbor</span>
+    </button>
+    <div class="topbar-actions">
+      <div class="xp" id="xp" title="Points d'expérience gagnés en maîtrisant des parties">
+        <span class="xp-level" id="xpLevel">Niv. 1</span>
+        <span class="xp-bar"><span id="xpFill"></span></span>
+        <span class="xp-num" id="xpNum">0 XP</span>
+      </div>
+      <button class="btn ghost" id="importPdfBtn"><span>📄</span><span class="hide-sm">Importer un PDF</span></button>
+      <button class="icon-btn" id="themeBtn" title="Changer de thème">🌓</button>
+      <button class="icon-btn" id="settingsBtn" title="Réglages">⚙️</button>
+    </div>
+  </header>
 
- <!-- Section des fonctionnalités -->
- <section id="fonctionnalites" class="section-fonctionnalites">
- <div class="conteneur-fonctionnalites">
- <h2 class="titre-section">Fonctionnalités intelligentes</h2>
- <p class="description-section">
- Conçue pour les professionnels du numérique qui souhaitent reprendre le contrôle de leur attention
- </p>
- 
- <div class="grille-fonctionnalites">
- <!-- Fonctionnalité 1 -->
- <article class="carte-fonctionnalite">
- <div class="icone-fonctionnalite">
- <i data-feather="bell-off"></i>
- </div>
- <h3 class="titre-fonctionnalite">Mode Focus Intelligent</h3>
- <p class="description-fonctionnalite">
- Filtrage automatique des notifications non-essentielles pendant vos 
- périodes de travail intense. Seules les urgences passent.
- </p>
- </article>
- 
- <!-- Fonctionnalité 2 -->
- <article class="carte-fonctionnalite">
- <div class="icone-fonctionnalite">
- <i data-feather="activity"></i>
- </div>
- <h3 class="titre-fonctionnalite">Suivi du Temps d'Écran</h3>
- <p class="description-fonctionnalite">
- Analysez votre usage numérique avec des statistiques détaillées 
- et des recommandations personnalisées pour optimiser votre productivité.
- </p>
- </article>
- 
- <!-- Fonctionnalité 3 -->
- <article class="carte-fonctionnalite">
- <div class="icone-fonctionnalite">
- <i data-feather="clock"></i>
- </div>
- <h3 class="titre-fonctionnalite">Rappels Mindfulness</h3>
- <p class="description-fonctionnalite">
- Vibrations douces pour vous rappeler de faire des pauses régulières 
- et maintenir un équilibre entre travail et bien-être.
- </p>
- </article>
- </div>
- </div>
- </section>
+  <main id="app"></main>
 
- <!-- Section des témoignages -->
- <section id="avis-clients" class="section-temoignages">
- <div class="conteneur-temoignages">
- <h2 class="titre-section">Ce que disent nos utilisateurs</h2>
- 
- <div class="grille-temoignages">
- <!-- Témoignage 1 -->
- <blockquote class="carte-temoignage">
- <div class="contenu-temoignage">
- <p class="texte-temoignage">
- "LumiWatch m'a aidé à réduire mes distractions de 70%. 
- Je suis enfin capable de me concentrer sur mes projets 
- sans être interrompu constamment."
- </p>
- </div>
- <footer class="auteur-temoignage">
- <div class="avatar-auteur">
- <div class="initiales-avatar">SM</div>
- </div>
- <div class="infos-auteur">
- <cite class="nom-auteur">Sophie Martin</cite>
- <span class="poste-auteur">Développeuse Frontend</span>
- </div>
- </footer>
- </blockquote>
- 
- <!-- Témoignage 2 -->
- <blockquote class="carte-temoignage">
- <div class="contenu-temoignage">
- <p class="texte-temoignage">
- "En tant que freelance, gérer mon temps est crucial. 
- LumiWatch me donne la discipline nécessaire pour 
- rester productif toute la journée."
- </p>
- </div>
- <footer class="auteur-temoignage">
- <div class="avatar-auteur">
- <div class="initiales-avatar">JD</div>
- </div>
- <div class="infos-auteur">
- <cite class="nom-auteur">Julien Dubois</cite>
- <span class="poste-auteur">Designer UX/UI</span>
- </div>
- </footer>
- </blockquote>
- 
- <!-- Témoignage 3 -->
- <blockquote class="carte-temoignage">
- <div class="contenu-temoignage">
- <p class="texte-temoignage">
- "Mes études sont devenues beaucoup plus efficaces. 
- Le mode focus m'aide à étudier sans être tentée 
- par les réseaux sociaux."
- </p>
- </div>
- <footer class="auteur-temoignage">
- <div class="avatar-auteur">
- <div class="initiales-avatar">AL</div>
- </div>
- <div class="infos-auteur">
- <cite class="nom-auteur">Amélie Leclerc</cite>
- <span class="poste-auteur">Étudiante en Informatique</span>
- </div>
- </footer>
- </blockquote>
- </div>
- </div>
- </section>
+  <!-- Modale générique -->
+  <div class="modal-backdrop" id="modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true">
+      <button class="icon-btn modal-close" id="modalClose" title="Fermer">✕</button>
+      <div id="modalBody"></div>
+    </div>
+  </div>
 
- <!-- Section d'appel à l'action -->
- <section class="section-appel-action">
- <div class="conteneur-appel-action">
- <div class="contenu-appel-action">
- <h2 class="titre-appel-action">Prêt à transformer votre productivité ?</h2>
- <p class="description-appel-action">
- Rejoignez les milliers de professionnels qui ont déjà repris le contrôle 
- de leur attention avec LumiWatch.
- </p>
- <div class="prix-produit">
- <span class="prix-barre">299€</span>
- <span class="prix-actuel">249€</span>
- <span class="badge-reduction">Précommande -17%</span>
- </div>
- <button class="bouton-precommande-cta">
- <i data-feather="shopping-cart"></i>
- Précommander maintenant
- </button>
- <p class="garantie-texte">
- <i data-feather="shield"></i>
- Garantie satisfait ou remboursé 30 jours
- </p>
- </div>
- </div>
- </section>
+  <div class="toasts" id="toasts"></div>
+  <canvas id="confetti" aria-hidden="true"></canvas>
+  <input type="file" id="pdfInput" accept="application/pdf" hidden />
+  <input type="file" id="jsonInput" accept="application/json" hidden />
 
- <!-- Section newsletter -->
- <section id="newsletter" class="section-newsletter">
- <div class="conteneur-newsletter">
- <div class="contenu-newsletter">
- <h2 class="titre-newsletter">Restez informé</h2>
- <p class="description-newsletter">
- Recevez les dernières actualités sur LumiWatch et nos conseils 
- pour améliorer votre productivité.
- </p>
- 
- <form class="formulaire-newsletter" id="formulaire-inscription">
- <div class="groupe-saisie">
- <input 
- type="email" 
- class="champ-email" 
- placeholder="Votre adresse email"
- required
- id="email-newsletter"
- >
- <button type="submit" class="bouton-inscription">
- <i data-feather="send"></i>
- S'inscrire
- </button>
- </div>
- <div class="message-confirmation" id="message-confirmation"></div>
- </form>
- </div>
- </div>
- </section>
- </main>
-
- <!-- Pied de page -->
- <footer id="contact" class="pied-de-page">
- <div class="conteneur-pied-de-page">
- <div class="grille-pied-de-page">
- <!-- Informations de contact -->
- <div class="colonne-contact">
- <div class="logo-pied-de-page">
- <svg width="32" height="32" viewBox="0 0 40 40" class="icone-logo">
- <circle cx="20" cy="20" r="18" fill="none" stroke="#667eea" stroke-width="2"/>
- <circle cx="20" cy="20" r="12" fill="#667eea" opacity="0.1"/>
- <circle cx="20" cy="20" r="3" fill="#667eea"/>
- <line x1="20" y1="8" x2="20" y2="12" stroke="#667eea" stroke-width="2"/>
- <line x1="32" y1="20" x2="28" y2="20" stroke="#667eea" stroke-width="2"/>
- </svg>
- <span class="nom-marque-pied">LumiWatch</span>
- </div>
- <p class="description-entreprise">
- La montre connectée qui redéfinit votre relation avec la technologie.
- </p>
- </div>
- 
- <!-- Liens de contact -->
- <div class="colonne-liens">
- <h3 class="titre-colonne">Contact</h3>
- <ul class="liste-contact">
- <li class="element-contact">
- <i data-feather="mail"></i>
- <a href="mailto:contact@lumiwatch.com">contact@lumiwatch.com</a>
- </li>
- <li class="element-contact">
- <i data-feather="phone"></i>
- <a href="tel:+33123456789">01 23 45 67 89</a>
- </li>
- <li class="element-contact">
- <i data-feather="map-pin"></i>
- <span>Paris, France</span>
- </li>
- </ul>
- </div>
-
- <div class="colonne-reseaux">
- <h3 class="titre-colonne">Suivez-nous</h3>
- <div class="liens-reseaux-sociaux">
- <a href="#" class="lien-reseau-social" aria-label="Twitter">
- <i data-feather="twitter"></i>
- </a>
- <a href="#" class="lien-reseau-social" aria-label="LinkedIn">
- <i data-feather="linkedin"></i>
- </a>
- <a href="#" class="lien-reseau-social" aria-label="Instagram">
- <i data-feather="instagram"></i>
- </a>
- <a href="#" class="lien-reseau-social" aria-label="YouTube">
- <i data-feather="youtube"></i>
- </a>
- </div>
- </div>
- </div>
- 
- <!-- Copyright -->
- <div class="barre-copyright">
- <p class="texte-copyright">
- © 2025 LumiWatch. Tous droits réservés.
- </p>
- <div class="liens-legaux">
- <a href="#" class="lien-legal">Mentions légales</a>
- <a href="#" class="lien-legal">Confidentialité</a>
- <a href="#" class="lien-legal">CGV</a>
- </div>
- </div>
- </div>
- </footer>
- <script src="https://unpkg.com/feather-icons"></script>
- <script src="script.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/markdown.js"></script>
+  <script src="js/fx.js"></script>
+  <script src="js/pdf-import.js"></script>
+  <script src="js/ai.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>
