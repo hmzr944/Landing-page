@@ -29,12 +29,30 @@ La page **Méthode** de l'application détaille chaque point avec ses sources et
 - **Deviner avant de lire** : sur une partie jamais révisée, les points clés restent floutés tant que tu n'as pas essayé de les deviner (effet de prétest).
 - **Découvrir dans l'ordre, réviser en mélangeant** : les nouvelles parties arrivent dans l'ordre du cours, sujet par sujet ; seules les révisions sont mélangées, car l'entrelacement aide sur la durée mais gêne la première découverte.
 
+### Pour celles et ceux qui ont du mal à se concentrer (TDAH, attention)
+
+Études récentes (2023 à 2026), et ce qu'Arbor en fait. Les preuves restent minces pour les étudiants avec un TDAH ; la page Méthode indique le niveau de preuve de chaque point.
+
+| Ce que montre la recherche | Ce que fait Arbor |
+|---|---|
+| Se tester aide aussi les étudiants avec un TDAH, mais ils l'utilisent moins seuls ([Minear et al., 2023](https://pmc.ncbi.nlm.nih.gov/articles/PMC10397724/)) | Arbor pilote la session : un bouton, les cartes arrivent au bon moment |
+| Le point faible est la première mémorisation : moins de stratégies « profondes » ([même étude](https://pmc.ncbi.nlm.nih.gov/articles/PMC10397724/)) | « Ancre-la » : image, exemple, lien, pourquoi, phrase à soi ; ancrage demandé à la première révision |
+| Réciter un ensemble tient mieux que section par section ; rappel moins organisé avec un TDAH ([2023](https://pmc.ncbi.nlm.nih.gov/articles/PMC10715433/)) | Carte « Rappel de la branche » : retrouver les sous-parties dans l'ordre |
+| Démarrer est le principal obstacle ([2026](https://link.springer.com/article/10.1186/s40359-026-04221-1)) ; les plans « quand… alors… » aident ([642 tests, 2024](https://kops.uni-konstanz.de/handle/123456789/69905)) | « Juste 2 minutes » (5 cartes), plan quotidien avec rappel dans l'agenda (.ics) |
+| Réapprendre jusqu'à réussir rend les souvenirs durables ([Rawson et Dunlosky, 2022](https://journals.sagepub.com/doi/full/10.1177/09637214221100484)) | Une carte oubliée revient dans la session jusqu'à être retrouvée |
+| Mélanger les types d'exercices : 61 % contre 38 % un mois plus tard ([Rohrer et al.](https://Www.Gwern.net/doc/psychology/spaced-repetition/2019-rohrer.pdf)) | Exercices avec méthode dans chaque fiche, mélangés en révision |
+| Une IA qui donne les réponses fait perdre 17 % une fois retirée ; avec garde-fous, non ([Bastani et al., PNAS 2025](https://papers.ssrn.com/abstract=4895486)) | Indices progressifs qui ne donnent pas la réponse et plafonnent la note ; l'IA n'écrit pas tes ancrages |
+| On se note mal soi-même | Plus de « Maîtrisé » manuel : tu coches ce que tu as retrouvé, Arbor propose la note, le statut vient de la mémoire mesurée |
+| La ludification a un effet faible sur la motivation ([2024](https://repository.hku.hk/handle/10722/348034)) | XP pour l'effort, pas pour cliquer « Bien » ; mode calme sans confettis ni mouvement |
+| Travailler en présence de quelqu'un : données préliminaires ([2025](https://arxiv.org/abs/2509.12153)) | Pendant le Focus, Pousse lit en silence à côté de toi |
+
 ## Fonctionnalités
 
 - **Aujourd'hui** : les cartes à revoir et les nouvelles cartes du jour, l'objectif quotidien, la série et l'activité de la semaine.
-- **Révision du jour** : tous les sujets sont mélangés (entrelacement). Pour chaque carte, tu écris ta réponse, tu indiques ta confiance, tu vois la correction, puis tu choisis Oublié, Difficile, Bien ou Facile. L'intervalle avant le prochain passage s'affiche sous chaque bouton. Raccourcis clavier : Entrée et 1 à 4. Sur mobile, glisse la carte à droite ou à gauche.
+- **Révision du jour** : tous les sujets sont mélangés (entrelacement). Quatre types de questions : phrase à compléter, rappel libre, rappel de la branche, exercice. Tu écris ta réponse, tu peux demander un indice, tu indiques ta confiance, tu vois la correction et tu coches ce que tu avais retrouvé ; Arbor propose une note (Oublié, Difficile, Bien ou Facile) que tu peux changer. L'intervalle avant le prochain passage s'affiche sous chaque bouton. Raccourcis clavier : Entrée et 1 à 4. Sur mobile, glisse la carte à droite ou à gauche.
 - **Sujets en arbre** : parties et sous-parties à profondeur illimitée, glisser-déposer, plan collé.
-- **Fiche par partie** : jauge de mémoire (probabilité de t'en souvenir maintenant), points clés, notes en markdown, « Explique-le simplement », bouton pour réviser cette partie.
+- **Fiche par partie** : jauge de mémoire (probabilité de t'en souvenir maintenant), points clés, notes en markdown, « Ancre-la dans ta mémoire », exercices avec méthode, bouton pour réviser cette partie. Le statut (à apprendre, en cours, maîtrisé) se calcule à partir de la mémoire mesurée.
+- **Plan et examen** : plan quotidien « quand… alors… » avec rappel dans l'agenda, date d'examen par sujet avec le nombre de nouvelles parties à voir chaque jour, démarrage « Juste 2 minutes », mode calme.
 - **Import PDF** : analyse locale, ou par Claude avec ta clé API.
 - **Carte mentale** de chaque sujet.
 - **Focus** : minuteur de concentration (15 à 50 minutes) avec pauses fixes, son et notification à la fin, et une pastille visible partout.

@@ -65,6 +65,7 @@
   let pos = null; // position libre après un lancer : { x, y } (coin haut-gauche, en px)
   let petDist = 0, petT = 0, petCool = 0;
   let thirstSaid = false;
+  let calm = false; // mode calme : pas d'occupations spontanées ni de bavardage
 
   const markup = `
     <div class="mascot-bubble" id="mascotBubble" aria-hidden="true"></div>
@@ -100,6 +101,12 @@
             <path class="m-torso" fill="url(#mBody)" d="M60 46 C84 46 96 62 95 82 C94 102 80 110 60 110 C40 110 26 102 25 82 C24 62 36 46 60 46 Z"/>
             <ellipse cx="60" cy="96" rx="22" ry="10" fill="#B9F5C7" opacity=".35"/>
             <path d="M40 58 C46 52 54 50 60 50" stroke="#fff" stroke-opacity=".45" stroke-width="3" stroke-linecap="round" fill="none"/>
+            <g class="m-book">
+              <path d="M34 86 L60 90 L60 106 L34 102 Z" fill="#FFFFFF" stroke="#C9CED8" stroke-width="1.2"/>
+              <path d="M86 86 L60 90 L60 106 L86 102 Z" fill="#F4F6FA" stroke="#C9CED8" stroke-width="1.2"/>
+              <path d="M38 92 L55 94.5 M38 96 L55 98.5 M65 94.5 L82 92 M65 98.5 L82 96" stroke="#AEB4C0" stroke-width="1.2" stroke-linecap="round"/>
+              <path class="m-page" d="M60 90 L82 87 L82 103 L60 106 Z" fill="#FFFFFF" stroke="#C9CED8" stroke-width="1.2"/>
+            </g>
             <g class="m-band">
               <path d="M29 66 C44 58 76 58 91 66 L90 72 C75 64 45 64 30 72 Z" fill="#E5484D"/>
               <path d="M88 66 L100 60 L97 69 Z M88 68 L101 72 L94 75 Z" fill="#E5484D"/>
@@ -367,7 +374,7 @@
   function scheduleAntic() {
     clearTimeout(anticTimer);
     anticTimer = setTimeout(() => {
-      if (enabled && !document.hidden && state === 'idle' && !focusOn && !reduced()) rand([dance, helicopter, lookAround, yawn, hop, peek])();
+      if (enabled && !document.hidden && state === 'idle' && !focusOn && !calm && !reduced()) rand([dance, helicopter, lookAround, yawn, hop, peek])();
       scheduleAntic();
     }, 9000 + Math.random() * 11000);
   }
@@ -444,7 +451,7 @@
 
   /* ---------- Bulle ---------- */
   function say(text, ms = 3200, force) {
-    if (!enabled || !text || (focusOn && !force)) return;
+    if (!enabled || !text || ((focusOn || calm) && !force)) return;
     bubble.textContent = text;
     bubble.classList.remove('show');
     void bubble.offsetWidth;
@@ -532,6 +539,7 @@
 
   function react(type) {
     if (!root || !enabled) return;
+    if (calm && !['levelup', 'goal', 'finished', 'focusdone', 'imported'].includes(type)) { activity(); return; }
     activity();
     switch (type) {
       case 'hello': wave(); hop(0.5); moodFor('happy', 1200); say(rand(LINES.hello), 3800); break;
@@ -565,10 +573,12 @@
     if (!root || on === focusOn) return;
     focusOn = on;
     root.classList.toggle('focus', on);
-    if (on) { say(rand(LINES.focus), 2600, true); setMood('flat'); }
+    if (on) { say('Je travaille avec toi. On se concentre !', 2600, true); setMood('flat'); }
     else setMood('smile');
     resetIdle();
   }
 
-  window.Mascot = { init, react, say: (t, ms) => say(t, ms, true), setLevel, setEnabled, setThirst, setFocus };
+  function setCalm(on) { calm = on; if (root) root.classList.toggle('calm', on); }
+
+  window.Mascot = { init, react, say: (t, ms) => say(t, ms, true), setLevel, setEnabled, setThirst, setFocus, setCalm };
 })();

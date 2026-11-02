@@ -42,6 +42,10 @@
     $('#themeBtn').setAttribute('aria-label', dark ? 'Passer en thème clair' : 'Passer en thème sombre');
   }
   prefersDark.addEventListener('change', applyTheme);
+  function applyCalm() {
+    document.documentElement.classList.toggle('calm', !!state.settings.calm);
+    window.Mascot && Mascot.setCalm && Mascot.setCalm(!!state.settings.calm);
+  }
 
   let shownXP = state.xp;
   function renderXP(bump) {
@@ -65,6 +69,7 @@
     if (bump) { const x = $('#xp'); x.classList.remove('bump'); void x.offsetWidth; x.classList.add('bump'); }
     window.Mascot && Mascot.setLevel(lvl);
   }
+  const derivedStatus = (n) => (!n.srs ? 'todo' : n.srs.s >= 21 ? 'done' : 'doing');
   function setStatus(node, status, origin) {
     const prev = node.status;
     node.status = status;
@@ -111,7 +116,8 @@
     // Transition seulement quand on change d'écran ou d'onglet (pas à chaque clic dans l'arbre)
     const bigChange = prev.name !== view.name || prev.id !== view.id;
     const modeChange = !bigChange && prev.mode !== view.mode;
-    const paint = () => {
+    const paint = () => { try { paintNow(); } catch (err) { console.error(err); throw err; } };
+    const paintNow = () => {
       if (view.name === 'home') renderHome();
       else if (view.name === 'study') renderGlobalStudy();
       else if (view.name === 'method') renderMethod();
@@ -232,6 +238,7 @@
               <h3><a href="${link(s.id, s.root.id)}" class="stretched">${esc(s.title)}</a></h3>
               <div class="card-foot">
                 ${bar(st.pct)}
+                ${s.examDate ? `<span class="chip exam-chip">${ic('flag-checkered')}Examen le ${new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short' }).format(new Date(s.examDate + 'T00:00'))}</span>` : ''}
                 <span class="meta">${plural(st.total, 'partie', 'parties')}, ${st.pct} % maîtrisé${memAvg(s) !== null ? `, mémoire ${memAvg(s)} %` : ''}</span>
               </div>
             </article>`;
@@ -306,7 +313,7 @@
         <li role="treeitem" ${hasKids ? `aria-expanded="${open}"` : ''} style="--d:${depth}">
           <div class="row ${active ? 'active' : ''} st-${n.status}" draggable="true" data-node="${n.id}">
             <button class="caret ${hasKids ? '' : 'none'} ${open ? 'open' : ''}" data-act="toggle" data-id="${n.id}" tabindex="${hasKids ? 0 : -1}" aria-label="${open ? 'Replier' : 'Déplier'}">${ic('caret-right')}</button>
-            <button class="dot" data-act="cycle" data-id="${n.id}" aria-label="Statut : ${STATUS[n.status].label}. Changer"></button>
+            <span class="dot" role="img" aria-label="${STATUS[n.status].label}"></span>
             <a class="label" href="${link(s.id, n.id, mode)}" ${active ? 'aria-current="page"' : ''}>${esc(n.title)}</a>
             ${SRS.isDue(n.srs) ? '<span class="due-dot" title="À revoir"></span>' : ''}
             ${hasKids ? `<span class="count num">${n.children.length}</span>` : ''}
@@ -344,9 +351,7 @@
 
         ${memoryLine(s, node, isRoot)}
 
-        ${isRoot && node.children.length ? '' : `<div class="status-seg" role="group" aria-label="Statut">
-          ${Object.entries(STATUS).map(([k, v]) => `<button class="seg st-${k}" data-act="status" data-st="${k}" aria-pressed="${node.status === k}"><span class="sdot st-${k}" aria-hidden="true"></span>${v.label}</button>`).join('')}
-        </div>`}
+
 
         <section class="sec">
           <div class="sec-head"><h2>Points clés</h2><button class="btn ghost sm" data-act="add-kp">${ic('plus')}Ajouter</button></div>
@@ -378,10 +383,29 @@
         </section>
 
         <section class="sec">
-          <div class="sec-head"><h2>Explique-le simplement</h2></div>
-          <p class="explain-prompt">${explainPrompt(node)}</p>
-          <textarea class="notes-input explain-input" id="explainInput" rows="3" aria-label="Ton explication" placeholder="Avec tes mots, comme à un ami…">${esc(node.explain)}</textarea>
-          <p class="hint">S’expliquer une notion aide à la comprendre. Ton explication apparaît au dos de la carte de révision.</p>
+          <div class="sec-head"><h2>Ancre-la dans ta mémoire</h2></div>
+          <p class="explain-prompt">Une notion s’oublie moins quand on lui donne du sens. Choisis une façon de l’ancrer :</p>
+          <div class="anchor-chips" role="group" aria-label="Façons d’ancrer cette notion">
+            ${ANCHORS.map(([k, label]) => `<button class="chip-btn" data-act="anchor" data-k="${k}">${label}</button>`).join('')}
+          </div>
+          <textarea class="notes-input explain-input" id="explainInput" rows="3" aria-label="Ton ancrage" placeholder="${esc(explainPrompt(node))}">${esc(node.explain)}</textarea>
+          <p class="hint">Ce que tu écris ici apparaît au dos de la carte de révision.</p>
+        </section>
+
+        <section class="sec">
+          <div class="sec-head"><h2>Exercices <span class="muted num">${(node.exercises || []).length}</span></h2>
+            <button class="btn ghost sm" data-act="add-ex">${ic('plus')}Ajouter un exercice</button>
+          </div>
+          ${(node.exercises || []).length ? `<ol class="ex-list">
+            ${node.exercises.map((e) => `
+              <li class="ex-item" data-ex="${e.id}">
+                <label class="sr-only" for="exq-${e.id}">Énoncé</label>
+                <textarea class="ex-q" id="exq-${e.id}" data-exf="q" rows="2" placeholder="Énoncé de l’exercice…">${esc(e.q)}</textarea>
+                <label class="ex-label" for="exa-${e.id}">Méthode et solution</label>
+                <textarea class="ex-a" id="exa-${e.id}" data-exf="a" rows="2" placeholder="Les étapes, puis le résultat…">${esc(e.a)}</textarea>
+                <button class="icon-btn sm ex-del" data-act="del-ex" aria-label="Supprimer cet exercice">${ic('trash')}</button>
+              </li>`).join('')}
+          </ol>` : '<p class="hint-empty">Pour les maths, la physique ou la compta : ajoute des exercices avec leur méthode. En révision, ils reviennent mélangés avec ceux des autres parties, ce qui t’entraîne à reconnaître quelle méthode utiliser.</p>'}
         </section>
 
         <section class="sec">
@@ -414,6 +438,7 @@
       </article>`;
     autoGrow($('#titleInput'));
     autoGrow($('#explainInput'));
+    $$('.ex-q, .ex-a').forEach(autoGrow);
     const ni = $('#notesInput');
     if (ni) { autoGrow(ni); ni.focus(); ni.setSelectionRange(ni.value.length, ni.value.length); }
   }
@@ -423,6 +448,15 @@
     'Pourquoi est-ce vrai ? D’où ça vient ?',
     'À quoi ça se relie dans ce que tu sais déjà ?',
     'Quel exemple concret pourrais-tu donner ?',
+  ];
+  // Stratégies d'encodage profond (image, sens, phrase personnelle) : celles qui manquaient
+  // aux étudiants avec un TDAH non traité dans l'étude de 2023, et que le test seul ne compense pas.
+  const ANCHORS = [
+    ['image', 'Une image mentale', 'Je l’imagine comme… '],
+    ['example', 'Un exemple concret', 'Par exemple, … '],
+    ['link', 'Un lien avec ce que je sais', 'Ça ressemble à… parce que… '],
+    ['why', 'Pourquoi c’est vrai', 'C’est vrai parce que… '],
+    ['own', 'Une phrase à moi', 'En une phrase : '],
   ];
   const explainPrompt = (node) => EXPLAIN_PROMPTS[[...node.id].reduce((a, c) => a + c.charCodeAt(0), 0) % EXPLAIN_PROMPTS.length];
 
@@ -564,20 +598,70 @@
     const f = s && find(s.root, q.nid);
     return f ? { s, node: f.node } : null;
   }
+  /* Choix de la question. Recherche (2023) : chez les étudiants avec un TDAH, réciter un ensemble
+     de mémoire aide plus, à 2 jours, que réciter section par section, et leur rappel est moins bien
+     organisé. D'où la carte « branche » : retrouver les sous-parties dans l'ordre, l'arbre servant de structure. */
   function preparePrompt() {
     const c = currentCard();
-    study.phase = 'ask'; study.typed = ''; study.conf = null; study.prompt = { type: 'recall' };
+    Object.assign(study, { phase: 'ask', typed: '', conf: null, hints: 0, checks: [], anchor: '', prompt: { type: 'recall' } });
     if (!c) return;
-    // Sources de phrases à compléter : points clés et passages surlignés (==…==) des notes.
-    // Surligner seul aide peu (Dunlosky 2013) ; transformer le surlignage en question, si.
-    const kps = c.node.keyPoints.filter((k) => k.trim().length > 12);
-    const hl = highlights(c.node.notes);
+    const n = c.node;
+    const ex = (n.exercises || []).filter((e) => e.q.trim());
+    if (ex.length && Math.random() < 0.6) { study.prompt = { type: 'exercise', ex: ex[Math.floor(Math.random() * ex.length)] }; return; }
+    if (n.children.length >= 2 && Math.random() < 0.55) { study.prompt = { type: 'branch' }; return; }
+    const kps = n.keyPoints.filter((k) => k.trim().length > 12);
+    const hl = highlights(n.notes);
     const pool = hl.length && (Math.random() < 0.5 || !kps.length) ? hl : kps;
-    if (pool.length && Math.random() < 0.7) {
-      const src = pool[Math.floor(Math.random() * pool.length)];
-      const cl = makeCloze(src);
+    if (pool.length && Math.random() < 0.6) {
+      const cl = makeCloze(pool[Math.floor(Math.random() * pool.length)]);
       if (cl) study.prompt = { type: 'cloze', fromHighlight: pool === hl, ...cl };
     }
+  }
+
+  // Éléments à cocher au verso : ce que l'étudiant devait retrouver
+  function checklistItems(p, node) {
+    if (p.type === 'branch') return node.children.map((c) => c.title);
+    if (p.type === 'recall') return node.keyPoints.filter((k) => k.trim()).map((k) => k.replace(/\*\*|==/g, ''));
+    return [];
+  }
+
+  /* Indices progressifs : ils aident à retrouver sans donner la réponse.
+     Recherche (PNAS 2025) : une IA qui donne les réponses fait baisser les résultats de 17 % une fois retirée ;
+     avec des garde-fous, non. Même principe ici : un indice met sur la piste, et plafonne la note proposée. */
+  function hintText(p, node, level) {
+    const words = (t, k) => t.replace(/\*\*|==/g, '').split(/\s+/).slice(0, k).join(' ') + '…';
+    if (p.type === 'cloze') {
+      const a = p.answer;
+      return level === 1 ? `Commence par « ${a[0]} », ${a.length} lettres.` : `« ${a.slice(0, Math.ceil(a.length / 2))}… »`;
+    }
+    if (p.type === 'branch') {
+      const ch = node.children;
+      return level === 1 ? `${plural(ch.length, 'sous-partie', 'sous-parties')}, qui commencent par : ${ch.map((c) => `« ${c.title[0]} »`).join(', ')}.`
+        : ch.map((c) => words(c.title, 1)).join(' · ');
+    }
+    if (p.type === 'exercise') {
+      const first = (p.ex.a || '').split(/\n|\. /)[0];
+      return first ? `Piste : ${words(first, level === 1 ? 4 : 9)}` : 'Relis l’énoncé et note ce qu’on te demande vraiment.';
+    }
+    const kps = node.keyPoints.filter((k) => k.trim());
+    if (!kps.length) return level === 1 ? 'Pense à la définition, puis à un exemple.' : 'À quoi ça sert, et pourquoi c’est vrai ?';
+    return level === 1 ? `${plural(kps.length, 'idée', 'idées')} à retrouver, qui commencent par : ${kps.map((k) => `« ${words(k, 1).replace('…', '')} »`).join(', ')}.`
+      : kps.map((k) => words(k, 3)).join(' · ');
+  }
+
+  // Note proposée à partir de ce qui a été vraiment retrouvé (au lieu d'une impression)
+  function suggestedGrade(p, node) {
+    let g = null;
+    if (p.type === 'cloze') { if (study.typed) g = normTxt(study.typed) === normTxt(p.answer) ? 3 : 1; }
+    else {
+      const items = checklistItems(p, node);
+      if (items.length) {
+        const r = study.checks.filter(Boolean).length / items.length;
+        g = r < 0.34 ? 1 : r < 0.75 ? 2 : 3;
+      }
+    }
+    if (g && study.hints && g > 2) g = 2; // un indice utilisé : au mieux « Difficile »
+    return g;
   }
 
   function studyPane() { return $('#paneBody'); }
@@ -607,6 +691,20 @@
     const typedOk = p.type === 'cloze' && study.typed && normTxt(study.typed) === normTxt(p.answer);
     const intervals = SRS.preview(node.srs);
     const isNew = !node.srs;
+    const items = checklistItems(p, node);
+    const sug = show ? suggestedGrade(p, node) : null;
+    const KIND = {
+      cloze: [p.fromHighlight ? 'highlighter-circle' : 'text-aa', p.fromHighlight ? 'Tiré de ton surlignage' : 'Complète la phrase'],
+      recall: ['brain', 'Rappel libre'],
+      branch: ['tree-structure', 'Rappel de la branche'],
+      exercise: ['pencil-simple-line', 'Exercice'],
+    }[p.type];
+    const front = {
+      cloze: () => `<p class="cloze">${esc(p.before)}<span class="blank ${show ? 'filled' : ''}">${show ? esc(p.answer) : '…'}</span>${esc(p.after)}</p>`,
+      recall: () => `<h2 class="q-title">${esc(node.title)}</h2>${show ? '' : '<p class="muted">Récite ce que tu sais sur cette partie, sans regarder. Écrire, même approximativement, aide à retenir.</p>'}`,
+      branch: () => `<h2 class="q-title">${esc(node.title)}</h2>${show ? '' : `<p class="muted">Retrouve ses ${plural(node.children.length, 'sous-partie', 'sous-parties')}, dans l’ordre. Reconstruire la structure aide à organiser ce que tu sais.</p>`}`,
+      exercise: () => `<h2 class="q-title small">${esc(node.title)}</h2><div class="exercise-q md">${MD.render(p.type === 'exercise' ? p.ex.q : '')}</div>${show ? '' : '<p class="muted">Résous-le avant de regarder la méthode, sur papier ou ici.</p>'}`,
+    }[p.type]();
     pane.innerHTML = `
       <div class="study">
         <div class="review-progress">
@@ -619,29 +717,35 @@
             <span class="sc-path">${esc([s.title, ...path].join(' › '))}</span>
             ${isNew ? '<span class="chip new-chip">Nouvelle</span>' : `<span class="chip" title="Probabilité de t’en souvenir maintenant">Mémoire ${Math.round(SRS.retrievability(node.srs) * 100)} %</span>`}
           </header>
-          ${p.type === 'cloze'
-            ? `<p class="q-kind">${ic(p.fromHighlight ? 'highlighter-circle' : 'text-aa')}${p.fromHighlight ? 'Tiré de ton surlignage' : 'Complète la phrase'}</p>
-               <p class="cloze">${esc(p.before)}<span class="blank ${show ? 'filled' : ''}">${show ? esc(p.answer) : '…'}</span>${esc(p.after)}</p>`
-            : `<p class="q-kind">${ic('brain')}Rappel libre</p>
-               <h2 class="q-title">${esc(node.title)}</h2>
-               <p class="muted">${show ? '' : 'Récite tout ce que tu sais sur cette partie, sans regarder. Écrire, même approximativement, aide à retenir.'}</p>`}
+          <p class="q-kind">${ic(KIND[0])}${KIND[1]}</p>
+          ${front}
+          ${study.hints ? `<div class="hints">${[1, 2].slice(0, study.hints).map((l) => `<p>${ic('lightbulb', true)}${esc(hintText(p, node, l))}</p>`).join('')}</div>` : ''}
           ${show ? `
             ${study.typed ? `<div class="your-answer ${p.type === 'cloze' ? (typedOk ? 'ok' : 'ko') : ''}">
               <small>${p.type === 'cloze' ? (typedOk ? `${ic('check-circle', true)}Bonne réponse` : `${ic('x-circle', true)}Ta réponse`) : 'Ta réponse'}</small>
               <p>${esc(study.typed)}</p></div>` : ''}
             <div class="answer">
-              ${p.type === 'cloze' ? `<p class="answer-title">${esc(node.title)}</p>` : ''}
-              ${node.keyPoints.length ? `<ul class="kps-back">${node.keyPoints.map((k) => `<li>${MD.render(k).replace(/^<p>|<\/p>$/g, '')}</li>`).join('')}</ul>` : ''}
-              ${node.explain.trim() ? `<div class="explain-back"><small>${ic('chat-circle-text')}Ton explication</small>${MD.render(node.explain)}</div>` : ''}
-              ${isLeech(node) ? `<div class="leech-tip">${ic('warning-circle', true)}<p>Tu as oublié cette partie ${node.srs.lapses} fois. Elle est peut-être trop grosse : <a href="${link(s.id, node.id)}">découpe-la en sous-parties</a> ou explique-la avec tes mots.</p></div>` : ''}
+              ${p.type === 'exercise' ? `<div class="exercise-a"><small>Méthode et solution</small><div class="md">${MD.render(p.ex.a || '_Pas encore de solution : ajoute-la dans la fiche._')}</div></div>` : ''}
+              ${items.length ? `
+                <fieldset class="checklist">
+                  <legend>Coche ce que tu avais retrouvé</legend>
+                  ${items.map((t, i) => `<label class="check-item"><input type="checkbox" data-check="${i}" ${study.checks[i] ? 'checked' : ''} /><span>${p.type === 'branch' ? esc(t) : MD.render(t).replace(/^<p>|<\/p>$/g, '')}</span></label>`).join('')}
+                </fieldset>`
+                : p.type === 'cloze' && node.keyPoints.length ? `<p class="answer-title">${esc(node.title)}</p><ul class="kps-back">${node.keyPoints.map((k) => `<li>${MD.render(k).replace(/^<p>|<\/p>$/g, '')}</li>`).join('')}</ul>` : ''}
+              ${node.explain.trim() ? `<div class="explain-back"><small>${ic('anchor-simple')}Ton ancrage</small>${MD.render(node.explain)}</div>` : ''}
+              ${isLeech(node) ? `<div class="leech-tip">${ic('warning-circle', true)}<p>Tu as oublié cette partie ${node.srs.lapses} fois. Elle est peut-être trop grosse : <a href="${link(s.id, node.id)}">découpe-la en sous-parties</a> ou ancre-la avec une image ou un exemple.</p></div>` : ''}
+              ${isNew && !node.explain.trim() ? `<div class="anchor-now">
+                  <label for="anchorNow">${ic('anchor-simple')}Ancre-la avant de passer : une image, un exemple, ou une phrase à toi</label>
+                  <input id="anchorNow" class="answer-input" autocomplete="off" placeholder="Ex. : comme une usine qui fabrique du sucre avec la lumière…" value="${esc(study.anchor)}" />
+                </div>` : ''}
               ${node.notes.trim() ? `<details class="notes-more"><summary>Voir les notes</summary><div class="md">${MD.render(node.notes)}</div></details>` : ''}
-              ${!node.keyPoints.length && !node.notes.trim() && !node.explain.trim() ? `<p class="muted">Cette partie n’a pas encore de contenu. Ajoute des points clés dans sa fiche pour des révisions plus précises.</p>` : ''}
+              ${!items.length && p.type === 'recall' && !node.notes.trim() && !node.explain.trim() ? `<p class="muted">Cette partie n’a pas encore de points clés. Ajoute-en dans sa fiche : tu pourras cocher ce que tu as retrouvé.</p>` : ''}
             </div>
             <div class="grade-wrap">
-              <p class="grade-q">Comment ça s’est passé ?</p>
+              <p class="grade-q" id="gradeQ">${sug ? `Arbor propose <b>${['', 'Oublié', 'Difficile', 'Bien', 'Facile'][sug]}</b>${study.hints ? ' (tu as pris un indice)' : ''}. Tu peux choisir autre chose.` : 'Comment ça s’est passé ?'}</p>
               <div class="grades" role="group" aria-label="Évaluer ta réponse">
                 ${[['1', 'Oublié', 'again'], ['2', 'Difficile', 'hard'], ['3', 'Bien', 'good'], ['4', 'Facile', 'easy']].map(([g, l, cls], i) =>
-                  `<button class="grade ${cls}" data-act="grade" data-g="${g}"><b>${l}</b><small>${intervals[i]}</small><kbd>${g}</kbd></button>`).join('')}
+                  `<button class="grade ${cls} ${sug === +g ? 'suggested' : ''}" data-act="grade" data-g="${g}"><b>${l}</b><small>${intervals[i]}</small><kbd>${g}</kbd></button>`).join('')}
               </div>
               <p class="hint swipe-hint">Glisse la carte : à droite pour Bien, à gauche pour Oublié.</p>
             </div>`
@@ -649,17 +753,29 @@
             <label class="sr-only" for="typed">Ta réponse</label>
             ${p.type === 'cloze'
               ? `<input id="typed" class="answer-input" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Le mot manquant…" value="${esc(study.typed)}" />`
-              : `<textarea id="typed" class="answer-input" rows="3" placeholder="Ce dont tu te souviens…">${esc(study.typed)}</textarea>`}
+              : `<textarea id="typed" class="answer-input" rows="3" placeholder="${p.type === 'branch' ? 'Une sous-partie par ligne…' : p.type === 'exercise' ? 'Ta démarche et ton résultat…' : 'Ce dont tu te souviens…'}">${esc(study.typed)}</textarea>`}
             <div class="conf" role="group" aria-label="Ta confiance avant de voir la réponse">
               <span class="conf-label">Ta confiance</span>
               ${[['unsure', 'Pas sûr'], ['mid', 'Plutôt sûr'], ['sure', 'Certain']].map(([k, l]) => `<button class="chip-btn" data-act="conf" data-c="${k}" aria-pressed="${study.conf === k}">${l}</button>`).join('')}
             </div>
-            <button class="btn big reveal" data-act="reveal">${ic('eye')}Voir la réponse<kbd>Entrée</kbd></button>`}
+            <div class="row-btns ask-actions">
+              ${study.hints < 2 ? `<button class="btn ghost" data-act="hint">${ic('lightbulb')}${study.hints ? 'Un autre indice' : 'Un indice'}</button>` : ''}
+              <button class="btn big reveal" data-act="reveal">${ic('eye')}Voir la réponse<kbd>Entrée</kbd></button>
+            </div>`}
         </article>
       </div>`;
     const t = $('#typed');
     if (t && matchMedia('(pointer: fine)').matches) t.focus();
     if (show) bindSwipe($('#studyCard'));
+  }
+
+  // Mise à jour de la note proposée quand on coche, sans tout redessiner
+  function refreshSuggestion() {
+    const c = currentCard(); if (!c) return;
+    const sug = suggestedGrade(study.prompt, c.node);
+    $$('.grade').forEach((b) => b.classList.toggle('suggested', +b.dataset.g === sug));
+    const q = $('#gradeQ');
+    if (q) q.innerHTML = sug ? `Arbor propose <b>${['', 'Oublié', 'Difficile', 'Bien', 'Facile'][sug]}</b>${study.hints ? ' (tu as pris un indice)' : ''}. Tu peux choisir autre chose.` : 'Comment ça s’est passé ?';
   }
 
   function renderSummary() {
@@ -679,7 +795,8 @@
     pane.innerHTML = `
       <div class="review-start summary">
         <span class="tile big">${ic('trophy', true)}</span>
-        <h2>Session terminée</h2>
+        <h2>${study.quick ? 'C’était facile, non ?' : 'Session terminée'}</h2>
+        ${study.quick ? '<p class="muted">Le plus dur, c’est de commencer. Tu peux t’arrêter là, ou continuer sur ta lancée.</p>' : ''}
         <div class="score">
           <div><b class="num txt-ok">${ok}</b><span>retrouvées</span></div>
           <div><b class="num txt-warn">${again}</b><span>oubliées</span></div>
@@ -691,7 +808,7 @@
           <p>${ic('calendar-check')}${tomorrow ? `${plural(tomorrow, 'carte reviendra', 'cartes reviendront')} d’ici demain.` : 'Rien de prévu demain : profite !'}</p>
         </div>
         <div class="row-btns center">
-          <button class="btn" data-act="study-start">${ic('arrow-counter-clockwise')}Nouvelle session</button>
+          <button class="btn" data-act="study-start">${ic('arrow-counter-clockwise')}${study.quick ? 'Continuer' : 'Nouvelle session'}</button>
           <a class="btn ghost" href="#/">${ic('house')}Accueil</a>
         </div>
       </div>`;
@@ -743,21 +860,27 @@
       state.stats.calib[study.conf] = [k[0] + (g >= 3 ? 1 : 0), k[1] + 1];
     }
     study.res[g - 1]++;
-    // Statut visible : « maîtrisé » quand la mémoire tient au moins 3 semaines
-    if (g === 1) { if (node.status !== 'doing') { node.status = 'doing'; } }
-    else if (node.srs.s >= 21 && node.status !== 'done') setStatus(node, 'done', origin);
-    else if (node.status === 'todo') node.status = 'doing';
+    // Le statut n'est plus déclaré à la main : « Maîtrisé » quand la mémoire mesurée tient au moins 3 semaines.
+    // (S'auto-déclarer « maîtrisé » est précisément l'illusion de maîtrise que la recherche décrit.)
+    const st = derivedStatus(node);
+    if (st === 'done' && node.status !== 'done') setStatus(node, 'done', origin);
+    else node.status = st;
+    // Ancrage écrit sur une nouvelle carte : gardé comme explication
+    const anchor = ($('#anchorNow') && $('#anchorNow').value.trim()) || study.anchor;
+    if (anchor && !node.explain.trim()) { node.explain = anchor; gainXP(3); }
+    if (study.hints) state.stats.hints = (state.stats.hints || 0) + study.hints;
     gainXP(2);
     if (td.reviews === state.settings.dailyGoal) {
       FX.toast('Objectif du jour atteint !', 'success');
       FX.confetti(undefined, undefined, 140);
       Mascot.react('goal');
     } else if (g === 1 && study.conf !== 'sure' && Math.random() < 0.5) Mascot.react('again');
-    // « Oublié » : la carte revient un peu plus loin dans la session (2 fois au maximum)
+    // Réapprentissage successif (Rawson et Dunlosky) : une carte oubliée revient plus loin dans la session
+    // jusqu'à être retrouvée, 3 fois au plus pour ne pas décourager.
     if (g === 1) {
       const key = node.id;
       study.requeued[key] = (study.requeued[key] || 0) + 1;
-      if (study.requeued[key] <= 2) study.queue.splice(Math.min(study.queue.length, study.i + 4), 0, study.queue[study.i]);
+      if (study.requeued[key] <= 3) study.queue.splice(Math.min(study.queue.length, study.i + 4), 0, study.queue[study.i]);
     }
     save();
     updateBadges();
@@ -907,6 +1030,98 @@
       </section>`;
   }
 
+  /* ----- Démarrer, planifier, viser une date -----
+     Recherche : la difficulté à démarrer est le facteur le plus lié à la procrastination (2026) ;
+     les plans « quand… alors… » augmentent l'atteinte des objectifs (méta-analyse de 642 tests, 2024). */
+  const PLAN_CUES = ['je rentre de cours', 'je finis de manger le midi', 'je m’assois dans le bus ou le train', 'je me suis brossé les dents le soir', 'je pose mon sac après le travail'];
+  function planLine() {
+    const p = state.settings.plan;
+    if (!p) return `<button class="plan-line empty" data-act="plan-edit">${ic('calendar-plus')}<span>Décide quand tu révises : un plan « quand… alors… » aide à s’y tenir.</span></button>`;
+    return `<button class="plan-line" data-act="plan-edit">${ic('calendar-check')}<span>Quand ${esc(p.cue)}, je révise ${p.n} cartes${p.time ? ` (vers ${esc(p.time)})` : ''}.</span><small>Modifier</small></button>`;
+  }
+  function examLine() {
+    const now = new Date(); now.setHours(0, 0, 0, 0);
+    const exams = state.subjects.filter((s) => s.examDate).map((s) => ({ s, days: Math.round((new Date(s.examDate + 'T00:00') - now) / SRS.DAY) })).filter((e) => e.days >= 0).sort((a, b) => a.days - b.days);
+    if (!exams.length) return '';
+    const { s, days } = exams[0];
+    let fresh = 0; walk(s.root, (n, d) => { if (!(d === 0 && s.root.children.length) && !n.srs) fresh++; });
+    const perDay = days ? Math.ceil(fresh / days) : fresh;
+    return `<a class="exam-line" href="${link(s.id, s.root.id, 'revision')}" style="--c:${s.color}">
+      <span class="tile sm" style="--c:${s.color}">${ic('flag-checkered', true)}</span>
+      <span><b>${esc(s.title)}</b> : examen ${days === 0 ? 'aujourd’hui' : days === 1 ? 'demain' : `dans ${days} jours`}.
+      ${fresh ? `${plural(fresh, 'partie jamais vue', 'parties jamais vues')} : vise ${plural(perDay, 'nouvelle par jour', 'nouvelles par jour')}.` : 'Tout a été vu au moins une fois : continue les révisions.'}</span>
+    </a>`;
+  }
+  function planModal() {
+    const p = state.settings.plan || { cue: PLAN_CUES[0], n: 10, time: '18:30' };
+    const custom = !PLAN_CUES.includes(p.cue);
+    openModal(`
+      <h2 id="modalTitle">Ton plan de révision</h2>
+      <p class="modal-lede">Relier la révision à un moment précis de ta journée la rend presque automatique. Choisis un moment que tu vis vraiment tous les jours.</p>
+      <form id="planForm" class="form">
+        <div class="field">
+          <label for="planCue">Quand…</label>
+          <select id="planCue">${PLAN_CUES.map((c) => `<option ${c === p.cue ? 'selected' : ''}>${c}</option>`).join('')}<option value="__custom" ${custom ? 'selected' : ''}>Autre moment…</option></select>
+          <input id="planCustom" ${custom ? '' : 'hidden'} autocomplete="off" placeholder="je sors de la salle de sport…" value="${custom ? esc(p.cue) : ''}" />
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="planN">…je révise</label>
+            <select id="planN">${[5, 10, 15, 20, 30].map((v) => `<option value="${v}" ${p.n === v ? 'selected' : ''}>${v} cartes</option>`).join('')}</select>
+          </div>
+          <div class="field">
+            <label for="planTime">Vers quelle heure</label>
+            <input id="planTime" type="time" value="${esc(p.time || '')}" />
+          </div>
+        </div>
+        <p class="hint">Astuce : commence petit. 5 cartes tenues chaque jour valent mieux que 30 abandonnées au bout de trois jours.</p>
+        <div class="row-btns spread">
+          ${state.settings.plan ? `<button type="button" class="btn ghost" id="planIcs">${ic('calendar-plus')}Ajouter à mon agenda</button>` : '<span></span>'}
+          <span class="row-btns">${state.settings.plan ? '<button type="button" class="btn danger" id="planDel">Supprimer</button>' : ''}<button class="btn">Enregistrer le plan</button></span>
+        </div>
+      </form>`, (el) => {
+      $('#planCue', el).onchange = (e) => { $('#planCustom', el).hidden = e.target.value !== '__custom'; if (!$('#planCustom', el).hidden) $('#planCustom', el).focus(); };
+      const ics = $('#planIcs', el); if (ics) ics.onclick = () => downloadIcs(state.settings.plan);
+      const del = $('#planDel', el); if (del) del.onclick = () => { state.settings.plan = null; save(); closeModal(); render(view); };
+      $('#planForm', el).onsubmit = (e) => {
+        e.preventDefault();
+        const cueSel = $('#planCue', el).value;
+        const cue = cueSel === '__custom' ? ($('#planCustom', el).value.trim() || PLAN_CUES[0]) : cueSel;
+        state.settings.plan = { cue, n: +$('#planN', el).value, time: $('#planTime', el).value };
+        save(); closeModal(); render(view);
+        FX.toast('Plan enregistré. Ajoute-le à ton agenda pour recevoir un rappel.', 'success', 4200);
+      };
+    });
+  }
+  // Rappel quotidien dans l'agenda du téléphone (fichier .ics) : fonctionne même app fermée
+  function downloadIcs(p) {
+    if (!p) return;
+    const [h, m] = (p.time || '18:30').split(':').map(Number);
+    const d = new Date(); d.setHours(h, m, 0, 0);
+    const pad = (x) => String(x).padStart(2, '0');
+    const stamp = (t) => `${t.getFullYear()}${pad(t.getMonth() + 1)}${pad(t.getDate())}T${pad(t.getHours())}${pad(t.getMinutes())}00`;
+    const end = new Date(d.getTime() + 15 * 60000);
+    const url = location.href.split('#')[0] + '#/reviser';
+    const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Arbor//FR', 'BEGIN:VEVENT', `UID:arbor-plan-${Date.now()}@arbor`, `DTSTAMP:${stamp(new Date())}`,
+      `DTSTART:${stamp(d)}`, `DTEND:${stamp(end)}`, 'RRULE:FREQ=DAILY', `SUMMARY:Arbor : ${p.n} cartes`, `DESCRIPTION:Quand ${p.cue}\, je révise ${p.n} cartes. ${url}`, `URL:${url}`,
+      'BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${p.n} cartes avec Arbor`, 'TRIGGER:PT0M', 'END:VALARM', 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([ics], { type: 'text/calendar' }));
+    a.download = 'arbor-rappel.ics'; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+  // Si l'app est ouverte à l'heure du plan : petit rappel
+  setInterval(() => {
+    const p = state.settings.plan; if (!p || !p.time) return;
+    const now = new Date(); const hm = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    const key = SRS.dayKey();
+    if (hm === p.time && state.settings.planToast !== key) {
+      state.settings.planToast = key; save();
+      Mascot.say(`C’est l’heure de ton plan : ${p.n} cartes !`, 5000);
+      FX.toast(`C’est l’heure : ${p.n} cartes, et c’est fini.`, 'info', 5000);
+    }
+  }, 30000);
+
   function greeting() {
     const h = new Date().getHours();
     return h < 5 ? 'Bonsoir' : h < 12 ? 'Bonjour' : h < 18 ? 'Bon après-midi' : 'Bonsoir';
@@ -936,8 +1151,10 @@
             : 'Crée un sujet ou importe un PDF : chaque partie deviendra une carte de révision.'}</p>
           <div class="row-btns">
             ${n ? `<a class="btn big" href="#/reviser">${ic('play', true)}Commencer la révision</a>` : `<button class="btn big" data-act="new-subject">${ic('plus')}Nouveau sujet</button>`}
-            <button class="btn ghost big" data-act="focus-open">${ic('timer')}Focus ${state.settings.focusMin} min</button>
+            ${n > 5 ? `<button class="btn ghost big" data-act="quick-start">${ic('lightning')}Juste 2 minutes</button>` : `<button class="btn ghost big" data-act="focus-open">${ic('timer')}Focus ${state.settings.focusMin} min</button>`}
           </div>
+          ${planLine()}
+          ${examLine()}
           <a class="method-link" href="#/methode">${ic('lightbulb')}Pourquoi cette méthode marche</a>
         </div>
         <div class="today-stats">
@@ -957,6 +1174,52 @@
           </div>
         </div>
       </section>`;
+  }
+
+  // Études récentes (2023 à 2026) sur l'attention, la mise en route et l'IA
+  function adhdItems() {
+    return [
+      { icon: 'check-circle', title: 'Se tester marche aussi avec un TDAH',
+        text: 'Dans une étude de 2023, se tester a aidé les étudiants avec un TDAH autant que les autres. Mais une autre étude montre qu’ils l’utilisent moins quand ils organisent seuls leurs révisions.',
+        arbor: 'Arbor prend le pilotage : un seul bouton pour démarrer, les cartes arrivent toutes seules, dans le bon ordre et au bon moment.',
+        src: [['Minear et al. (2023)', 'https://pmc.ncbi.nlm.nih.gov/articles/PMC10397724/'], ['Étude sur les définitions de cours (2020)', 'https://www.sciencedirect.com/science/article/abs/pii/S0959475219305092']], level: 'Solide, petits échantillons' },
+      { icon: 'anchor-simple', title: 'Le point faible, c’est la première mémorisation',
+        text: 'Dans la même étude, les étudiants avec un TDAH sans traitement utilisaient beaucoup moins de stratégies « profondes » (image mentale, sens, phrase personnelle). Se tester ne compensait pas ce manque.',
+        arbor: 'Chaque fiche propose de l’ancrer : une image, un exemple, un lien, un « pourquoi ». À la première révision d’une partie, Arbor te demande une phrase d’ancrage.',
+        src: [['Minear et al. (2023)', 'https://pmc.ncbi.nlm.nih.gov/articles/PMC10397724/']], level: 'Solide, à confirmer' },
+      { icon: 'tree-structure', title: 'Réciter un ensemble, dans l’ordre',
+        text: 'Chez 72 étudiants, réciter un texte entier de mémoire a mieux tenu deux jours plus tard que le réciter section par section. Le rappel des étudiants avec un TDAH était moins bien organisé.',
+        arbor: 'La carte « Rappel de la branche » te demande de retrouver toutes les sous-parties d’une partie, dans l’ordre. L’arbre sert de structure à ta mémoire.',
+        src: [['Étude sur le rappel libre (2023)', 'https://pmc.ncbi.nlm.nih.gov/articles/PMC10715433/']], level: 'Une étude' },
+      { icon: 'play', title: 'Le plus dur, c’est de commencer',
+        text: 'Une étude de 2026 montre que la difficulté à démarrer est le facteur le plus lié à la procrastination. Les plans « quand… alors… » augmentent nettement l’atteinte des objectifs, surtout s’ils sont précis.',
+        arbor: 'Le bouton « Juste 2 minutes » lance 5 cartes. Ton plan relie la révision à un moment de ta journée, avec un rappel dans ton agenda.',
+        src: [['Procrastination et fonctions exécutives (2026)', 'https://link.springer.com/article/10.1186/s40359-026-04221-1'], ['Méta-analyse de 642 tests (2024)', 'https://kops.uni-konstanz.de/handle/123456789/69905']], level: 'Solide' },
+      { icon: 'calendar-check', title: 'Réapprendre jusqu’à réussir',
+        text: 'Retrouver une notion jusqu’à la réussir, puis la retrouver à nouveau lors de séances espacées, donne des souvenirs durables en conditions réelles de cours.',
+        arbor: 'Une carte oubliée revient plus loin dans la même session jusqu’à ce que tu la retrouves, puis l’algorithme l’espace.',
+        src: [['Rawson et Dunlosky (2022)', 'https://journals.sagepub.com/doi/full/10.1177/09637214221100484']], level: 'Solide' },
+      { icon: 'shuffle', title: 'Pour les exercices : mélanger les types',
+        text: 'Dans un essai sur 787 élèves, mélanger les types d’exercices de maths a donné 61 % de réussite un mois plus tard, contre 38 % en les faisant par blocs.',
+        arbor: 'Ajoute des exercices avec leur méthode dans tes fiches : en révision, ils reviennent mélangés avec ceux des autres parties.',
+        src: [['Rohrer et al. (2020)', 'https://Www.Gwern.net/doc/psychology/spaced-repetition/2019-rohrer.pdf']], level: 'Très solide' },
+      { icon: 'robot', title: 'Une IA qui donne les réponses fait moins bien apprendre',
+        text: 'Des lycéens ayant eu ChatGPT en libre accès ont fait 17 % de moins à l’examen, une fois l’outil retiré. Avec un tuteur à garde-fous, la perte a disparu. Un tuteur IA bien structuré peut même doubler les progrès.',
+        arbor: 'Les indices mettent sur la piste sans donner la réponse, et baissent la note proposée. L’IA d’import structure ton cours mais ne rédige pas tes ancrages à ta place.',
+        src: [['Bastani et al., PNAS (2025)', 'https://papers.ssrn.com/abstract=4895486'], ['Kestin et al. (2025)', 'https://michellemillerphd.substack.com/p/r3-37-july-15-2025-how-do-tutoring']], level: 'Solide' },
+      { icon: 'scales', title: 'Tu te notes moins bien que tu ne le crois',
+        text: 'S’auto-évaluer est peu fiable : on prend la familiarité pour du savoir. Une note trop généreuse espace trop la carte, et on l’oublie.',
+        arbor: 'Plus de bouton « Maîtrisé » à cliquer. Tu coches ce que tu avais vraiment retrouvé, Arbor propose la note, et le statut vient de ta mémoire mesurée.',
+        src: [['Recherche sur les jugements d’apprentissage', 'https://pmc.ncbi.nlm.nih.gov/articles/PMC2836879']], level: 'Solide' },
+      { icon: 'game-controller', title: 'Les points et les badges motivent un peu, pas plus',
+        text: 'Une méta-analyse de 2024 trouve un effet faible de la ludification sur la motivation (g = 0,26), moins stable que sur les résultats.',
+        arbor: 'L’XP récompense l’effort (réviser, ancrer, se concentrer), pas le fait de cliquer « Bien ». Le mode calme coupe les confettis et fige le décor si le mouvement te distrait.',
+        src: [['Méta-analyse 2024', 'https://repository.hku.hk/handle/10722/348034']], level: 'Modéré' },
+      { icon: 'users-three', title: 'Travailler « avec quelqu’un »',
+        text: 'Le body doubling, travailler en présence de quelqu’un, est très utilisé par les personnes avec un TDAH. Les premières données (12 participants, 2025) vont dans le bon sens, sans preuve solide pour l’instant.',
+        arbor: 'Pendant le Focus, Pousse lit en silence à côté de toi. Une petite présence, sans notification.',
+        src: [['Étude préliminaire (2025)', 'https://arxiv.org/abs/2509.12153']], level: 'Préliminaire' },
+    ];
   }
 
   /* ----- Page « La méthode » : ce que dit la recherche, et ce qu'Arbor en fait ----- */
@@ -1005,6 +1268,20 @@
         </header>
         <ol class="method-list">
           ${items.map((it, i) => `
+            <li class="method-item" style="--i:${i}">
+              <span class="tile">${ic(it.icon, true)}</span>
+              <div>
+                <div class="mi-head"><h2>${it.title}</h2><span class="chip level">${it.level}</span></div>
+                <p>${it.text}</p>
+                <p class="mi-arbor">${ic('tree', true)}<span>${it.arbor}</span></p>
+                <p class="mi-src">Sources : ${it.src.map(([l, u]) => `<a href="${u}" target="_blank" rel="noopener">${l}</a>`).join(', ')}</p>
+              </div>
+            </li>`).join('')}
+        </ol>
+        <h2 class="method-sub">Si l’attention est ton point faible</h2>
+        <p class="lede method-sub-lede">TDAH diagnostiqué ou simple difficulté à rester concentré : voici ce que les études récentes montrent, et ce qu’Arbor en fait. Les preuves sont encore minces pour les étudiants avec un TDAH ; on le dit quand c’est le cas.</p>
+        <ol class="method-list">
+          ${adhdItems().map((it, i) => `
             <li class="method-item" style="--i:${i}">
               <span class="tile">${ic(it.icon, true)}</span>
               <div>
@@ -1258,6 +1535,11 @@
           <input id="esTitle" name="title" autocomplete="off" value="${esc(s.title)}" />
         </div>
         ${pickers(sel.color, sel.icon)}
+        <div class="field">
+          <label for="esExam">Date d’examen <span class="optional">facultatif</span></label>
+          <input id="esExam" type="date" value="${esc(s.examDate || '')}" />
+          <p class="hint">Arbor te dira combien de nouvelles parties voir chaque jour pour être prêt.</p>
+        </div>
         <div class="row-btns spread">
           <button type="button" class="btn danger" id="esDel">${ic('trash')}Supprimer</button>
           <span class="row-btns"><button type="button" class="btn ghost" id="esExport">${ic('download-simple')}Exporter</button><button class="btn">Enregistrer</button></span>
@@ -1275,6 +1557,7 @@
         s.title = $('#esTitle', el).value.trim() || s.title;
         s.root.title = s.title;
         s.color = sel.color; s.icon = sel.icon;
+        s.examDate = $('#esExam', el).value || null;
         s.updatedAt = Date.now();
         save(); closeModal(); render(view); FX.toast('Sujet enregistré', 'success');
       };
@@ -1329,6 +1612,7 @@
             <select id="newPerDay">${[5, 10, 20, 30].map((v) => `<option value="${v}" ${st.newPerDay === v ? 'selected' : ''}>${v}</option>`).join('')}</select>
           </div>
         </div>
+        <label class="check switch-row"><input type="checkbox" id="calmOn" ${st.calm ? 'checked' : ''} /> Mode calme : moins de mouvement, pas de confettis, mascotte silencieuse</label>
         <label class="check switch-row"><input type="checkbox" id="mascotOn" ${st.mascot !== false ? 'checked' : ''} /> Afficher Pousse, la mascotte</label>
         <div class="field">
           <label for="apiKey">Clé API Claude <span class="optional">facultatif</span></label>
@@ -1359,6 +1643,8 @@
         e.preventDefault();
         st.theme = $('#theme', el).value;
         st.mascot = $('#mascotOn', el).checked;
+        st.calm = $('#calmOn', el).checked;
+        applyCalm();
         st.dailyGoal = +$('#dailyGoal', el).value;
         st.newPerDay = +$('#newPerDay', el).value;
         Mascot.setEnabled(st.mascot);
@@ -1590,23 +1876,8 @@
         } else { const sc = $('#tree').scrollTop; renderTree(); $('#tree').scrollTop = sc; }
         break;
       }
-      case 'cycle': {
-        e.stopPropagation();
-        const f = find(s.root, t.dataset.id);
-        const order = ['todo', 'doing', 'done'];
-        setStatus(f.node, order[(order.indexOf(f.node.status) + 1) % 3], t);
-        render(view);
-        const again = $(`.row[data-node="${t.dataset.id}"] .dot`); again && again.focus();
-        break;
-      }
       case 'add-child': e.stopPropagation(); addChild(t.dataset.id); break;
       case 'bulk-add': bulkAddModal(t.dataset.id); break;
-      case 'status': {
-        const st = t.dataset.st;
-        setStatus(currentNode().node, st, t); render(view);
-        const again = $(`.seg[data-st="${st}"]`); again && again.focus();
-        break;
-      }
       case 'add-kp': {
         const n = currentNode().node;
         n.keyPoints.push('');
@@ -1633,7 +1904,17 @@
       }
       case 'export-subject': exportJSON(s, s.title); break;
       case 'study-start': startStudy(t.dataset.cram === '1'); break;
+      case 'quick-start': buildSession({ type: 'all' }); study.queue = study.queue.slice(0, 5); study.quick = true; preparePrompt(); go('#/reviser'); break;
+      case 'plan-edit': planModal(); break;
       case 'reveal': reveal(); break;
+      case 'anchor': {
+        const a = ANCHORS.find((x) => x[0] === t.dataset.k); const ta = $('#explainInput');
+        if (a && ta) { ta.value = (ta.value.trim() ? ta.value.trimEnd() + '\n' : '') + a[2]; ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); currentNode().node.explain = ta.value; autoGrow(ta); save(); }
+        break;
+      }
+      case 'add-ex': { const n = currentNode().node; n.exercises = n.exercises || []; n.exercises.push({ id: Store.uid(), q: '', a: '' }); save(); renderFiche(); const qs = $$('.ex-q'); qs[qs.length - 1].focus(); break; }
+      case 'del-ex': { const n = currentNode().node; const id = t.closest('[data-ex]').dataset.ex; n.exercises = n.exercises.filter((e) => e.id !== id); save(); renderFiche(); break; }
+      case 'hint': { const t2 = $('#typed'); if (t2) study.typed = t2.value; study.hints = Math.min(2, study.hints + 1); renderStudy(); break; }
       case 'conf': study.conf = study.conf === t.dataset.c ? null : t.dataset.c; $$('[data-act="conf"]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.c === study.conf)); break;
       case 'grade': grade(+t.dataset.g, t); break;
       case 'focus-open': focusModal(); break;
@@ -1658,6 +1939,8 @@
   document.addEventListener('input', (e) => {
     const t = e.target;
     if (t.id === 'typed' && study) { study.typed = t.value; return; }
+    if (t.id === 'anchorNow' && study) { study.anchor = t.value; return; }
+    if (t.dataset && t.dataset.check !== undefined && study) { study.checks[+t.dataset.check] = t.checked; refreshSuggestion(); return; }
     if (t.id === 'treeSearch') { treeFilter = t.value; renderTree(); return; }
     const cur = view.name === 'subject' && currentNode();
     if (!cur) return;
@@ -1670,6 +1953,9 @@
       const lbl = $(`.row[data-node="${cur.node.id}"] .label`);
       if (lbl && cur.node.id !== s.root.id) lbl.textContent = v;
       touch();
+    } else if (t.dataset && t.dataset.exf) {
+      const ex = (cur.node.exercises || []).find((e) => e.id === t.closest('[data-ex]').dataset.ex);
+      if (ex) { ex[t.dataset.exf] = t.value; autoGrow(t); touch(); }
     } else if (t.id === 'explainInput') {
       autoGrow(t);
       cur.node.explain = t.value;
@@ -1805,6 +2091,7 @@
   $('#focusPill').onclick = focusModal;
   window.addEventListener('hashchange', route);
   applyTheme();
+  applyCalm();
   renderXP();
   route();
   renderFocusUI();

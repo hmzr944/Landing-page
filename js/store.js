@@ -10,7 +10,7 @@
   const OLD_COLORS = { '#7c5cff': '#3451D1', '#ff5c8a': '#C2255C', '#ffb020': '#C2550A', '#22c55e': '#0B7F75', '#06b6d4': '#0369A1', '#f97316': '#C2550A', '#e879f9': '#9333B8', '#3b82f6': '#3451D1' };
   const OLD_EMOJIS = { '🧠': 'brain', '📚': 'book-open', '🧪': 'flask', '🌍': 'globe-hemisphere-west', '⚙️': 'code', '🎨': 'palette', '🧬': 'heartbeat', '📐': 'calculator', '💡': 'brain', '🏛️': 'bank', '🎵': 'music-notes', '💻': 'code', '⚖️': 'scales', '🩺': 'heartbeat', '📈': 'chart-line-up', '🪐': 'planet', '🌱': 'leaf' };
 
-  const DEFAULT_SETTINGS = { theme: 'auto', apiKey: '', model: 'claude-opus-5-5', mascot: true, dailyGoal: 15, newPerDay: 10, focusMin: 25, breakMin: 5 };
+  const DEFAULT_SETTINGS = { theme: 'auto', apiKey: '', model: 'claude-opus-5-5', mascot: true, dailyGoal: 15, newPerDay: 10, focusMin: 25, breakMin: 5, calm: false, plan: null };
   const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
   function makeNode(title = 'Nouvelle partie', extra = {}) {
@@ -20,6 +20,7 @@
       notes: '',
       explain: '',
       keyPoints: [],
+      exercises: [], // { id, q, a } : énoncé et méthode/solution
       srs: null, // répétition espacée : { s, d, last, due, reps, lapses }
       status: 'todo', // todo | doing | done
       collapsed: false,
@@ -47,6 +48,7 @@
     const n = makeNode(cleanTitle(node.title || 'Sans titre').slice(0, 160), {
       notes: String(node.notes || ''),
       explain: String(node.explain || ''),
+      exercises: Array.isArray(node.exercises) ? node.exercises.filter((e) => e && e.q).map((e) => ({ id: uid(), q: String(e.q), a: String(e.a || '') })) : [],
       srs: node.srs && typeof node.srs.s === 'number' ? node.srs : null,
       keyPoints: Array.isArray(node.keyPoints) ? node.keyPoints.map(String).filter(Boolean) : [],
       status: ['todo', 'doing', 'done'].includes(node.status) ? node.status : 'todo',
@@ -61,21 +63,20 @@
     const a = makeNode('Découper le sujet', {
       notes: "Commence large, puis découpe jusqu’à obtenir des morceaux digestes : une idée par feuille.",
       keyPoints: ['Une feuille = une seule idée', 'Pas plus de 5 à 7 enfants par partie'],
-      status: 'done',
     });
     a.children.push(
-      makeNode('Les grandes parties', { keyPoints: ['Les chapitres du cours'], status: 'done' }),
-      makeNode('Les sous-catégories', { keyPoints: ['Les notions à l’intérieur de chaque chapitre'], status: 'doing' })
+      makeNode('Les grandes parties', { keyPoints: ['Les chapitres du cours'] }),
+      makeNode('Les sous-catégories', { keyPoints: ['Les notions à l’intérieur de chaque chapitre'] })
     );
     const b = makeNode('Prendre des notes', {
       notes: "Les notes acceptent un **markdown** simple :\n\n# Titre\n- liste\n**gras**, *italique*, ==surligné==, `code`",
       keyPoints: ['Reformule avec tes mots', 'Surligne avec ==texte=='],
-      status: 'doing',
     });
     const c = makeNode('Importer un PDF', {
       notes: "Le bouton Importer un PDF analyse le document (titres, définitions, points importants) et construit un cours structuré. Avec une clé API Claude (Réglages), l’analyse est encore plus fine.",
       keyPoints: ['Les titres deviennent des parties', 'Les définitions deviennent des points clés'],
     });
+    a.exercises = [{ id: uid(), q: 'Découpe le sujet « Les volcans » en 3 à 5 grandes parties.', a: 'Une idée par partie, du plus général au plus précis. Par exemple : formation, types de volcans, éruptions, risques et prévention.' }];
     const d = makeNode('Réviser', {
       notes: 'Le mode révision transforme chaque partie en carte. Retourne-la, puis dis si tu la maîtrises : tu gagnes de l’XP !',
       keyPoints: ['Je maîtrise → statut « Maîtrisé » + XP', 'À revoir → statut « En cours »'],
@@ -105,6 +106,9 @@
                 const now = Date.now();
                 n.srs = { s: 7, d: 5, last: now - 2 * 86400000, due: now + (2 + Math.random() * 4) * 86400000, reps: 1, lapses: 0 };
               }
+              if (!Array.isArray(n.exercises)) n.exercises = [];
+              // Statut calculé à partir de la mémoire mesurée, plus jamais déclaré à la main
+              n.status = !n.srs ? 'todo' : n.srs.s >= 21 ? 'done' : 'doing';
             });
           });
           data.xp = data.xp || 0;

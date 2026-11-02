@@ -1169,3 +1169,69 @@ h2, h3, .sec-head h2, .home-head h2, .mi-head h2, .subject-card h3, .back-title,
 /* Titres de section sans icône décorative ; points clés sans numéros (ce n'est pas une suite) */
 .sec-head h2 { font-size: var(--t-md); gap: var(--s2); }
 .kp-dot { flex: none; width: 8px; height: 8px; margin-top: 9px; border-radius: 50%; background: var(--doing); }
+
+
+/* Pousse travaille avec toi pendant le Focus (présence silencieuse, page qui se tourne lentement) */
+.m-book { opacity: 0; transition: opacity 300ms ease; }
+.mascot.focus .m-book { opacity: 1; }
+.mascot.focus .m-arm { opacity: 0; }
+.mascot.focus .m-pupil { transform: translate(0, 3px) !important; }
+.m-page { transform-box: view-box; transform-origin: 60px 98px; }
+.mascot.focus .m-page { animation: page-turn 9s ease-in-out infinite; }
+@keyframes page-turn { 0%, 80%, 100% { transform: scaleX(1); } 88% { transform: scaleX(-1); } }
+
+/* Mode calme : moins de mouvement pour les attentions fragiles */
+.calm .blob, .calm .m-leaves, .calm .m-body, .calm .streak-stat.on .flame i { animation-play-state: paused !important; }
+.calm .bg-par { transform: none !important; }
+
+/* =========================================================
+   Révision : indices, liste à cocher, note proposée, ancrage, exercices
+   ========================================================= */
+.ask-actions { justify-content: space-between; }
+.ask-actions .reveal { flex: 1; }
+.hints { display: flex; flex-direction: column; gap: var(--s2); }
+.hints p { display: flex; gap: var(--s2); align-items: flex-start; padding: var(--s2) var(--s3); border-radius: var(--r-ctl); background: color-mix(in oklab, var(--doing) 10%, transparent); color: var(--text-2); font-size: var(--t-sm); animation: kp-in 220ms var(--ease-out); }
+.hints i { color: var(--doing); margin-top: 3px; }
+.checklist { display: flex; flex-direction: column; gap: var(--s2); }
+.checklist legend { font-size: var(--t-sm); color: var(--text-3); margin-bottom: var(--s2); }
+.check-item { display: flex; gap: var(--s3); align-items: flex-start; min-height: 44px; padding: var(--s3) var(--s4); border-radius: 12px; border: 1px solid var(--line); background: var(--surface); cursor: pointer; transition: background-color var(--d-fast) ease, border-color var(--d-fast) ease; }
+.check-item input { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--done); flex: none; }
+.check-item:has(input:checked) { background: color-mix(in oklab, var(--done) 10%, var(--surface)); border-color: color-mix(in oklab, var(--done) 45%, var(--line)); }
+.check-item:has(input:focus-visible) { box-shadow: var(--ring); }
+.grade.suggested { border-width: 2px; border-color: currentColor; box-shadow: var(--shadow-1); }
+.grade.again.suggested { color: var(--danger); background: color-mix(in oklab, var(--danger) 8%, var(--surface)); }
+.grade.hard.suggested { color: var(--doing); background: color-mix(in oklab, var(--doing) 8%, var(--surface)); }
+.grade.good.suggested { color: var(--done); background: color-mix(in oklab, var(--done) 8%, var(--surface)); }
+.grade.easy.suggested { color: var(--accent-ink); background: color-mix(in oklab, var(--accent) 8%, var(--surface)); }
+.grade.suggested small { color: inherit; opacity: 0.8; }
+.anchor-now { display: flex; flex-direction: column; gap: var(--s2); padding: var(--s3) var(--s4); border-radius: 12px; background: var(--accent-soft); }
+.anchor-now label { display: inline-flex; align-items: center; gap: var(--s2); font-size: var(--t-sm); color: var(--text-2); }
+.anchor-now i { color: var(--accent-ink); }
+.q-title.small { font-size: var(--t-md); color: var(--text-2); }
+.exercise-q { font-size: var(--t-md); line-height: 1.6; padding: var(--s3) var(--s4); border-left: 3px solid var(--accent); background: color-mix(in oklab, var(--surface-2) 60%, transparent); border-radius: 0 12px 12px 0; }
+.exercise-a { padding: var(--s3) var(--s4); border-radius: 12px; background: color-mix(in oklab, var(--done) 9%, transparent); }
+.exercise-a small { display: block; color: var(--done); font-size: var(--t-xs); font-weight: 500; margin-bottom: 4px; }
+
+/* Fiche : ancrage et exercices */
+.anchor-chips { display: flex; flex-wrap: wrap; gap: var(--s2); margin-bottom: var(--s3); }
+.ex-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--s3); counter-reset: none; }
+.ex-item { position: relative; display: flex; flex-direction: column; gap: var(--s2); padding: var(--s4); padding-right: 52px; border-radius: var(--r-ctl); border: 1px solid var(--line); background: var(--surface); }
+.ex-item textarea { width: 100%; resize: none; overflow: hidden; border: 1px solid transparent; border-radius: 8px; background: transparent; padding: var(--s2); outline: none; line-height: 1.55; transition: border-color var(--d-fast) ease, background-color var(--d-fast) ease; }
+.ex-item textarea:focus { border-color: var(--accent); background: var(--bg); }
+.ex-q { font-weight: 500; }
+.ex-label { font-size: var(--t-xs); color: var(--text-3); padding-left: var(--s2); }
+.ex-del { position: absolute; top: var(--s3); right: var(--s3); }
+
+/* Accueil : plan et examen */
+.plan-line, .exam-line { display: flex; align-items: center; gap: var(--s3); width: 100%; text-align: left; padding: var(--s3) var(--s4); border-radius: 12px; border: 1px solid var(--line); background: color-mix(in oklab, var(--surface) 70%, transparent); font-size: var(--t-sm); color: var(--text-2); transition: border-color var(--d-fast) ease, background-color var(--d-fast) ease; }
+.plan-line i { color: var(--accent-ink); font-size: 1.2rem; }
+.plan-line span { flex: 1; }
+.plan-line small { color: var(--text-3); }
+.plan-line.empty { border-style: dashed; }
+.exam-line b { color: var(--text); font-weight: 500; }
+@media (hover: hover) and (pointer: fine) { .plan-line:hover, .exam-line:hover { border-color: var(--accent); } }
+.exam-chip { align-self: flex-start; background: color-mix(in oklab, var(--c) 12%, transparent); color: var(--text-2); }
+.card-foot .exam-chip { margin-bottom: 2px; }
+#planCustom { margin-top: var(--s2); }
+.method-sub { font-size: var(--t-xl); font-weight: 700; margin: var(--s12) 0 var(--s2); }
+.method-sub-lede { margin-bottom: var(--s5); max-width: 65ch; }

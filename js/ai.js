@@ -9,8 +9,12 @@
       title: { type: 'string' },
       notes: { type: 'string' },
       keyPoints: { type: 'array', items: { type: 'string' } },
+      exercises: {
+        type: 'array',
+        items: { type: 'object', additionalProperties: false, required: ['q', 'a'], properties: { q: { type: 'string' }, a: { type: 'string' } } },
+      },
     };
-    const required = ['title', 'notes', 'keyPoints'];
+    const required = ['title', 'notes', 'keyPoints', 'exercises'];
     if (depth > 0) {
       properties.children = { type: 'array', items: nodeSchema(depth - 1) };
       required.push('children');
@@ -27,6 +31,8 @@ Règles :
 - 3 à 7 enfants par partie quand le contenu le permet.
 - "notes" : explication claire et fidèle au document, en markdown simple (listes "- ", **gras**, ==surligné== pour l'essentiel). Pas d'invention.
 - "keyPoints" : 2 à 5 phrases courtes à retenir (définitions, formules, dates, règles).
+- "exercises" : seulement si le document contient des exercices, des calculs ou des méthodes à appliquer. "q" = un énoncé, "a" = les étapes de la méthode puis le résultat. Sinon, liste vide.
+- Ne rédige pas d'explication personnelle ni de moyen mnémotechnique : c'est à l'étudiant de le faire, c'est ce qui l'aide à retenir.
 - Rédige dans la langue du document.`;
 
   function toBase64(buf) {
