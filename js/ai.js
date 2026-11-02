@@ -22,6 +22,8 @@
 Règles :
 - La racine porte le titre du cours ; ses enfants sont les grandes parties, puis des sous-catégories de plus en plus fines (jusqu'à 4 niveaux).
 - Chaque feuille = une seule notion, assez petite pour être apprise en une fois.
+- Titres courts qui nomment le contenu, en minuscules sauf la première lettre, sans numérotation (pas de « 1. », « 2.1 », « I. »).
+- Pas de gras décoratif : réserve **gras** aux termes à retenir.
 - 3 à 7 enfants par partie quand le contenu le permet.
 - "notes" : explication claire et fidèle au document, en markdown simple (listes "- ", **gras**, ==surligné== pour l'essentiel). Pas d'invention.
 - "keyPoints" : 2 à 5 phrases courtes à retenir (définitions, formules, dates, règles).

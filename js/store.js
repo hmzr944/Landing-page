@@ -37,8 +37,14 @@
   }
 
   /* Normalise un arbre venant d'un import (PDF, IA, JSON) */
+  const NUMBERING = /^\s*(?:(?:chapitre|partie|section|leçon)\s+)?(?:\d{1,2}(?:\.\d{1,2})*[.)]|\d{1,2}(?:\.\d{1,2})+|[IVXLC]{1,5}[.)]|[A-H][.)])\s+(?=\S)/i;
+  const cleanTitle = (t) => {
+    const out = String(t || '').replace(NUMBERING, '').trim();
+    return out ? out.charAt(0).toUpperCase() + out.slice(1) : String(t || '').trim();
+  };
+
   function normalize(node) {
-    const n = makeNode(String(node.title || 'Sans titre').slice(0, 160), {
+    const n = makeNode(cleanTitle(node.title || 'Sans titre').slice(0, 160), {
       notes: String(node.notes || ''),
       explain: String(node.explain || ''),
       srs: node.srs && typeof node.srs.s === 'number' ? node.srs : null,
@@ -51,9 +57,9 @@
 
   function demoSubject() {
     const s = makeSubject('Découvrir Arbor', { icon: 'leaf', color: '#3451D1' });
-    s.root.notes = "Bienvenue ! Un **sujet** est un arbre : chaque partie peut contenir des **sous-parties**.\n\n- Clique sur une partie dans l’arbre pour l’ouvrir\n- Ajoute des notes, des points clés, change son statut\n- Glisse-dépose une partie sur une autre pour la ranger dedans\n- Lance le mode **Révision** pour t’entraîner en cartes";
-    const a = makeNode('1. Découper le sujet', {
-      notes: "Commence large, puis découpe jusqu’à obtenir des morceaux **digestes** (une idée = une feuille).",
+    s.root.notes = "Bienvenue ! Un sujet est un arbre : chaque partie peut contenir des sous-parties, de plus en plus petites, jusqu’à ce que chacune tienne en une idée.\n\n- Clique sur une partie dans l’arbre pour l’ouvrir\n- Ajoute des notes et des points clés\n- Glisse une partie sur une autre pour la ranger dedans\n- Révise chaque jour les cartes que te propose Arbor";
+    const a = makeNode('Découper le sujet', {
+      notes: "Commence large, puis découpe jusqu’à obtenir des morceaux digestes : une idée par feuille.",
       keyPoints: ['Une feuille = une seule idée', 'Pas plus de 5 à 7 enfants par partie'],
       status: 'done',
     });
@@ -61,16 +67,16 @@
       makeNode('Les grandes parties', { keyPoints: ['Les chapitres du cours'], status: 'done' }),
       makeNode('Les sous-catégories', { keyPoints: ['Les notions à l’intérieur de chaque chapitre'], status: 'doing' })
     );
-    const b = makeNode('2. Prendre des notes', {
+    const b = makeNode('Prendre des notes', {
       notes: "Les notes acceptent un **markdown** simple :\n\n# Titre\n- liste\n**gras**, *italique*, ==surligné==, `code`",
       keyPoints: ['Reformule avec tes mots', 'Surligne avec ==texte=='],
       status: 'doing',
     });
-    const c = makeNode('3. Importer un PDF', {
-      notes: "Le bouton **Importer un PDF** analyse le document (titres, définitions, points importants) et construit un cours structuré. Avec une clé API Claude (Réglages), l’analyse est encore plus fine.",
+    const c = makeNode('Importer un PDF', {
+      notes: "Le bouton Importer un PDF analyse le document (titres, définitions, points importants) et construit un cours structuré. Avec une clé API Claude (Réglages), l’analyse est encore plus fine.",
       keyPoints: ['Les titres deviennent des parties', 'Les définitions deviennent des points clés'],
     });
-    const d = makeNode('4. Réviser', {
+    const d = makeNode('Réviser', {
       notes: 'Le mode révision transforme chaque partie en carte. Retourne-la, puis dis si tu la maîtrises : tu gagnes de l’XP !',
       keyPoints: ['Je maîtrise → statut « Maîtrisé » + XP', 'À revoir → statut « En cours »'],
     });
@@ -91,7 +97,8 @@
             s.color = OLD_COLORS[s.color] || s.color;
             delete s.emoji;
             // Anciennes parties marquées « maîtrisées » : on leur donne une mémoire de départ
-            walk(s.root, (n) => {
+            walk(s.root, (n, depth) => {
+              if (depth > 0) n.title = cleanTitle(n.title);
               if (n.explain === undefined) n.explain = '';
               if (n.srs === undefined) n.srs = null;
               if (!n.srs && n.status === 'done') {
@@ -151,5 +158,5 @@
     return found;
   }
 
-  window.Store = { PALETTE, ICONS, uid, makeNode, makeSubject, normalize, load, save, walk, find, pathTo, stats, isDescendant };
+  window.Store = { cleanTitle, PALETTE, ICONS, uid, makeNode, makeSubject, normalize, load, save, walk, find, pathTo, stats, isDescendant };
 })();

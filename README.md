@@ -48,9 +48,10 @@ La page **Méthode** de l'application détaille chaque point avec ses sources et
 
 ## Design
 
-Le design applique les skills de [skills.sh](https://skills.sh) : `frontend-design` (Anthropic), `design-taste-frontend` (taste-skill), `ui-ux-pro-max`, `emil-design-eng`, `review-animations`, `find-animation-opportunities`, `improve-animations` et `animation-performance` (Emil Kowalski), `web-design-guidelines` (Vercel), `motion-background` et `svg-animation` (iart-ai), `svg-logo-designer`, `page-mascot` et `microinteractions`.
+Le design applique les skills de [skills.sh](https://skills.sh) : `frontend-design` (Anthropic), `design-taste-frontend` (taste-skill), `ui-ux-pro-max`, `emil-design-eng`, `review-animations`, `find-animation-opportunities`, `improve-animations` et `animation-performance` (Emil Kowalski), `web-design-guidelines` (Vercel), `motion-background` et `svg-animation` (iart-ai), `svg-logo-designer`, `page-mascot`, `microinteractions`, `better-typography` (titres, graisses), `ux-writing` et `humanizer` (textes).
 
-- **Typographie** : [Satoshi](https://www.fontshare.com/fonts/satoshi) pour les titres et les chiffres, [Chillax](https://www.fontshare.com/fonts/chillax) pour les textes (polices Fontshare), avec une échelle de 1,25.
+- **Typographie** : [Satoshi](https://www.fontshare.com/fonts/satoshi) pour les titres et les chiffres, [Chillax](https://www.fontshare.com/fonts/chillax) pour les textes (polices Fontshare), avec une échelle de 1,25. Deux graisses par police : Satoshi 700 pour les titres de page et 500 pour les titres de section ; Chillax 400 pour le texte et 500 pour les boutons. La hiérarchie passe par la taille, pas par le gras.
+- **Textes** : titres sans numérotation (« 1. », « 2.1 » sont retirés, y compris à l'import d'un PDF), sans icône décorative, en minuscules sauf la première lettre ; boutons de la forme « verbe + objet » ; gras réservé aux termes à retenir.
 - **Couleurs** : fond neutre froid. Chaque sujet a sa propre couleur, qui teinte toute sa vue. Les couleurs des statuts sont réservées (gris, ambre, vert).
 - **Logo** : une marque vectorielle abstraite, faite de trois feuilles translucides qui se superposent et se déploient en éventail.
 - **Icônes** : [Phosphor](https://phosphoricons.com), sans emoji en guise d'icône.

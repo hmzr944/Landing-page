@@ -201,7 +201,7 @@
                 <span class="tile" style="--c:${first.color}">${ic(first.icon, true)}</span>
                 <button class="icon-btn sm" data-act="edit-subject" data-id="${first.id}" aria-label="Modifier « ${esc(first.title)} »">${ic('pencil-simple')}</button>
               </div>
-              <p class="kicker">Reprendre là où tu t’es arrêté</p>
+              <p class="kicker">Ton dernier sujet</p>
               <h2><a href="${link(first.id, first.root.id)}" class="stretched">${esc(first.title)}</a></h2>
               <div class="featured-progress">
                 ${bar(fs.pct)}
@@ -349,21 +349,21 @@
         </div>`}
 
         <section class="sec">
-          <div class="sec-head"><h2>${ic('star', true)}Points clés</h2><button class="btn ghost sm" data-act="add-kp">${ic('plus')}Ajouter</button></div>
+          <div class="sec-head"><h2>Points clés</h2><button class="btn ghost sm" data-act="add-kp">${ic('plus')}Ajouter</button></div>
           ${node.keyPoints.length && !node.srs && !pretestSeen.has(node.id) ? `<div class="pretest-cover">
               <p>${ic('lightbulb', true)}<span><b>Essaie d’abord de deviner.</b> Avant de lire, demande-toi ce que seraient les ${plural(node.keyPoints.length, 'point clé', 'points clés')}. Même faux, cet essai aide à retenir la réponse.</span></p>
               <button class="btn sm" data-act="pretest-reveal" data-id="${node.id}">${ic('eye')}Révéler les points clés</button>
             </div>` : ''}
           ${node.keyPoints.length ? `<ol class="kps ${!node.srs && !pretestSeen.has(node.id) ? 'pretest' : ''}" id="kps">
             ${node.keyPoints.map((k, i) => `
-              <li><span class="kp-n num" aria-hidden="true">${i + 1}</span>
+              <li><span class="kp-dot" aria-hidden="true"></span>
                 <div class="kp-text" contenteditable="true" role="textbox" aria-label="Point clé ${i + 1}" data-kp="${i}">${esc(k)}</div>
                 <button class="icon-btn sm" data-act="del-kp" data-i="${i}" aria-label="Supprimer le point clé ${i + 1}">${ic('x')}</button></li>`).join('')}
           </ol>` : '<p class="hint-empty">Les idées à retenir absolument. Elles s’affichent au dos des cartes de révision.</p>'}
         </section>
 
         <section class="sec">
-          <div class="sec-head"><h2>${ic('note-pencil')}Notes</h2>
+          <div class="sec-head"><h2>Notes</h2>
             <div class="mini-seg" role="group" aria-label="Mode des notes">
               <button data-act="notes-mode" data-m="preview" aria-pressed="${notesMode === 'preview'}">Aperçu</button>
               <button data-act="notes-mode" data-m="edit" aria-pressed="${notesMode === 'edit'}">Éditer</button>
@@ -378,14 +378,14 @@
         </section>
 
         <section class="sec">
-          <div class="sec-head"><h2>${ic('chat-circle-text')}Explique-le simplement</h2></div>
+          <div class="sec-head"><h2>Explique-le simplement</h2></div>
           <p class="explain-prompt">${explainPrompt(node)}</p>
           <textarea class="notes-input explain-input" id="explainInput" rows="3" aria-label="Ton explication" placeholder="Avec tes mots, comme à un ami…">${esc(node.explain)}</textarea>
           <p class="hint">S’expliquer une notion aide à la comprendre. Ton explication apparaît au dos de la carte de révision.</p>
         </section>
 
         <section class="sec">
-          <div class="sec-head"><h2>${ic('tree-structure')}Sous-parties <span class="muted num">${node.children.length}</span></h2>
+          <div class="sec-head"><h2>Sous-parties <span class="muted num">${node.children.length}</span></h2>
             <div class="row-btns">
               <button class="btn ghost sm" data-act="bulk-add" data-id="${node.id}">${ic('list-bullets')}Coller un plan</button>
               <button class="btn sm" data-act="add-child" data-id="${node.id}">${ic('plus')}Sous-partie</button>
@@ -929,9 +929,8 @@
     return `
       <section class="today" aria-labelledby="todayTitle">
         <div class="today-main">
-          <p class="kicker">${greeting()}</p>
           <h1 id="todayTitle">${n ? `${plural(n, 'carte t’attend', 'cartes t’attendent')}` : ov.total ? 'Ta mémoire est à jour' : 'Prêt à commencer ?'}</h1>
-          <p class="lede">${n
+          <p class="lede">${greeting()}. ${n
             ? `${ov.due ? `${plural(ov.due, 'partie à revoir', 'parties à revoir')} avant de l’oublier` : 'Aucune partie en danger'}${ov.newToday ? `, ${plural(ov.newToday, 'nouvelle à découvrir', 'nouvelles à découvrir')}` : ''}. Compte environ ${Math.max(2, Math.round(n * 0.4))} minutes.`
             : ov.total ? `Prochaine révision ${nextDue ? new Intl.RelativeTimeFormat('fr-FR', { numeric: 'auto' }).format(Math.max(1, Math.round((nextDue - Date.now()) / SRS.DAY)), 'day') : 'bientôt'}. Profites-en pour approfondir une fiche ou ajouter des parties.`
             : 'Crée un sujet ou importe un PDF : chaque partie deviendra une carte de révision.'}</p>
