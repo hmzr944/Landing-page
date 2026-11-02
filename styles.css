@@ -1,6 +1,6 @@
 /* =========================================================
    Arbor : design tokens
-   Une seule famille (Plus Jakarta Sans), fond neutre froid,
+   Satoshi pour les titres, Chillax pour les textes (Fontshare), fond neutre froid,
    couleur d'accent = couleur du sujet ouvert, statuts sémantiques.
    Rayons : contrôles 10px, panneaux 16px, puces et pastilles en pilule.
    ========================================================= */
@@ -26,7 +26,8 @@
   --highlight: color-mix(in oklab, #F5B70A 42%, transparent);
 
   /* Typographie : échelle 1.25 */
-  --font: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font: 'Chillax', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Satoshi', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --t-xs: 0.75rem;
   --t-sm: 0.875rem;
   --t-base: 1rem;
@@ -1100,3 +1101,51 @@ html:not([data-vt]) #app.enter > * { animation: enter 260ms var(--ease-out) both
   .tree-pane { top: 52px; bottom: 44px; }
   .today-main { padding: var(--s5); }
 }
+
+
+/* =========================================================
+   Typographie : Satoshi pour les titres et les chiffres, Chillax pour les textes
+   ========================================================= */
+h1, h2, h3, .brand-name, .title-input, .q-title, .cloze, .back-title, .answer-title,
+.stat b, .score b, .fr-time, .xp-level, .ring span, .insight-card b, .today-main h1,
+.mi-head h2, .empty-state h1, .featured h2, .subject-card h3, .grade b, .kp-n {
+  font-family: var(--font-display);
+}
+h1, h2, .title-input, .q-title { letter-spacing: -0.025em; }
+.brand-name { font-weight: 900; letter-spacing: -0.03em; }
+body { letter-spacing: 0.005em; }
+.md, .lede, .method-item p { line-height: 1.7; }
+
+/* =========================================================
+   Ce que tes révisions révèlent
+   ========================================================= */
+.insight-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--s4); margin: calc(var(--s12) * -1 + var(--s4)) 0 var(--s12); }
+.insight-card { display: flex; gap: var(--s3); align-items: flex-start; padding: var(--s4) var(--s5); border-radius: var(--r-panel); border: 1px solid var(--line); background: color-mix(in oklab, var(--surface) 80%, transparent); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+.insight-card b { display: block; font-size: var(--t-md); }
+.insight-card p { color: var(--text-2); font-size: var(--t-sm); margin-top: 2px; }
+.insight-card.warn .tile { --c: var(--doing); }
+.insight-card.good .tile { --c: var(--done); }
+.insight-card.weak .tile { --c: var(--danger); }
+.insight-card ul { list-style: none; margin: var(--s2) 0 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.insight-card li { display: flex; align-items: center; justify-content: space-between; gap: var(--s2); min-height: 32px; }
+.insight-card li a { display: inline-flex; align-items: center; gap: var(--s2); font-weight: 500; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.insight-card li small { color: var(--text-3); font-size: var(--t-xs); white-space: nowrap; }
+@media (hover: hover) and (pointer: fine) { .insight-card li a:hover { color: var(--accent-ink); } }
+
+/* Partie difficile (souvent oubliée) */
+.leech { display: flex; gap: var(--s3); align-items: flex-start; margin: calc(var(--s2) * -1) 0 var(--s4); padding: var(--s4); border-radius: var(--r-ctl); background: color-mix(in oklab, var(--danger) 8%, var(--surface)); border: 1px solid color-mix(in oklab, var(--danger) 30%, transparent); }
+.leech > i { color: var(--danger); font-size: 1.3rem; margin-top: 2px; }
+.leech p { color: var(--text-2); font-size: var(--t-sm); margin: 2px 0 var(--s3); }
+.leech-tip { display: flex; gap: var(--s2); align-items: flex-start; padding: var(--s3) var(--s4); border-radius: 12px; background: color-mix(in oklab, var(--danger) 8%, transparent); font-size: var(--t-sm); color: var(--text-2); }
+.leech-tip i { color: var(--danger); margin-top: 3px; }
+.leech-tip a { color: var(--accent-ink); text-decoration: underline; text-underline-offset: 2px; }
+
+/* Prétest : deviner avant de lire */
+.kps.pretest { filter: blur(7px); user-select: none; pointer-events: none; opacity: 0.6; }
+.kps { transition: filter 360ms var(--ease-out), opacity 360ms ease; }
+.pretest-cover { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); flex-wrap: wrap; margin-bottom: var(--s3); padding: var(--s4); border-radius: var(--r-ctl); background: color-mix(in oklab, var(--doing) 10%, var(--surface)); border: 1px solid color-mix(in oklab, var(--doing) 30%, transparent); }
+.pretest-cover p { display: flex; gap: var(--s2); align-items: flex-start; font-size: var(--t-sm); color: var(--text-2); flex: 1 1 260px; }
+.pretest-cover i { color: var(--doing); margin-top: 3px; }
+.hl-hint { display: flex; align-items: center; gap: var(--s2); }
+.hl-hint i { color: var(--doing); }
+@media (max-width: 640px) { .insight-row { margin-top: calc(var(--s12) * -1 + var(--s3)); } }

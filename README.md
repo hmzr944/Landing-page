@@ -18,6 +18,17 @@ La plupart des étudiants relisent et surlignent. Ça donne l'impression d'appre
 
 La page **Méthode** de l'application détaille chaque point avec ses sources et son niveau de preuve.
 
+### Ce qu'Arbor fait de tes propres données de révision
+
+- **Fiabilité de ta confiance** : le pourcentage de bonnes réponses quand tu te dis « certain ». Sous 80 %, Arbor te prévient que tu te surestimes.
+- **Illusion de maîtrise** : quand tu te dis certain puis oublies, la partie est notée et la mascotte te le signale.
+- **Points faibles** : les parties les plus souvent oubliées, ou crues sues à tort, s'affichent sur l'accueil.
+- **Parties difficiles** : une partie oubliée 3 fois est signalée dans sa fiche, avec deux remèdes : la découper en sous-parties, ou l'expliquer avec tes mots.
+- **Mémoire moyenne par sujet**, calculée à partir de la probabilité de rappel de chaque partie.
+- **Le surlignage devient des questions** : chaque passage `==surligné==` de tes notes peut être tiré en phrase à compléter pendant les révisions.
+- **Deviner avant de lire** : sur une partie jamais révisée, les points clés restent floutés tant que tu n'as pas essayé de les deviner (effet de prétest).
+- **Découvrir dans l'ordre, réviser en mélangeant** : les nouvelles parties arrivent dans l'ordre du cours, sujet par sujet ; seules les révisions sont mélangées, car l'entrelacement aide sur la durée mais gêne la première découverte.
+
 ## Fonctionnalités
 
 - **Aujourd'hui** : les cartes à revoir et les nouvelles cartes du jour, l'objectif quotidien, la série et l'activité de la semaine.
@@ -39,7 +50,7 @@ La page **Méthode** de l'application détaille chaque point avec ses sources et
 
 Le design applique les skills de [skills.sh](https://skills.sh) : `frontend-design` (Anthropic), `design-taste-frontend` (taste-skill), `ui-ux-pro-max`, `emil-design-eng`, `review-animations`, `find-animation-opportunities`, `improve-animations` et `animation-performance` (Emil Kowalski), `web-design-guidelines` (Vercel), `motion-background` et `svg-animation` (iart-ai), `svg-logo-designer`, `page-mascot` et `microinteractions`.
 
-- **Typographie** : une seule famille, Plus Jakarta Sans, avec une échelle de 1,25.
+- **Typographie** : [Satoshi](https://www.fontshare.com/fonts/satoshi) pour les titres et les chiffres, [Chillax](https://www.fontshare.com/fonts/chillax) pour les textes (polices Fontshare), avec une échelle de 1,25.
 - **Couleurs** : fond neutre froid. Chaque sujet a sa propre couleur, qui teinte toute sa vue. Les couleurs des statuts sont réservées (gris, ambre, vert).
 - **Logo** : une marque vectorielle abstraite, faite de trois feuilles translucides qui se superposent et se déploient en éventail.
 - **Icônes** : [Phosphor](https://phosphoricons.com), sans emoji en guise d'icône.

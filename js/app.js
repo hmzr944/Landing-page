@@ -13,6 +13,7 @@
   let view = { name: 'home' };
   let treeFilter = '';
   let notesMode = 'preview';
+  const pretestSeen = new Set(); // parties dont on a déjà révélé les points clés pendant cette visite
 
   const save = () => Store.save(state);
   const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -122,7 +123,10 @@
     if ((bigChange || modeChange) && document.startViewTransition && !reducedMotion() && prev.name) {
       document.documentElement.dataset.vt = bigChange ? 'page' : (['fiche', 'carte', 'revision'].indexOf(view.mode) > ['fiche', 'carte', 'revision'].indexOf(prev.mode) ? 'forward' : 'back');
       const vt = document.startViewTransition(paint);
-      vt.finished.finally(() => { delete document.documentElement.dataset.vt; });
+      // Une transition interrompue par une autre navigation est normale : on ignore son rejet
+      vt.ready.catch(() => {});
+      vt.updateCallbackDone.catch(() => {});
+      vt.finished.catch(() => {}).then(() => { delete document.documentElement.dataset.vt; });
     } else paint();
   }
 
@@ -178,6 +182,7 @@
     app.innerHTML = `
       <section class="home">
         ${todayPanel()}
+        ${weakPanel()}
         <header class="home-head">
           <div>
             <h2>Tes sujets</h2>
@@ -227,7 +232,7 @@
               <h3><a href="${link(s.id, s.root.id)}" class="stretched">${esc(s.title)}</a></h3>
               <div class="card-foot">
                 ${bar(st.pct)}
-                <span class="meta">${plural(st.total, 'partie', 'parties')}, ${st.pct} % maîtrisé</span>
+                <span class="meta">${plural(st.total, 'partie', 'parties')}, ${st.pct} % maîtrisé${memAvg(s) !== null ? `, mémoire ${memAvg(s)} %` : ''}</span>
               </div>
             </article>`;
           }).join('')}
@@ -345,7 +350,11 @@
 
         <section class="sec">
           <div class="sec-head"><h2>${ic('star', true)}Points clés</h2><button class="btn ghost sm" data-act="add-kp">${ic('plus')}Ajouter</button></div>
-          ${node.keyPoints.length ? `<ol class="kps" id="kps">
+          ${node.keyPoints.length && !node.srs && !pretestSeen.has(node.id) ? `<div class="pretest-cover">
+              <p>${ic('lightbulb', true)}<span><b>Essaie d’abord de deviner.</b> Avant de lire, demande-toi ce que seraient les ${plural(node.keyPoints.length, 'point clé', 'points clés')}. Même faux, cet essai aide à retenir la réponse.</span></p>
+              <button class="btn sm" data-act="pretest-reveal" data-id="${node.id}">${ic('eye')}Révéler les points clés</button>
+            </div>` : ''}
+          ${node.keyPoints.length ? `<ol class="kps ${!node.srs && !pretestSeen.has(node.id) ? 'pretest' : ''}" id="kps">
             ${node.keyPoints.map((k, i) => `
               <li><span class="kp-n num" aria-hidden="true">${i + 1}</span>
                 <div class="kp-text" contenteditable="true" role="textbox" aria-label="Point clé ${i + 1}" data-kp="${i}">${esc(k)}</div>
@@ -362,9 +371,9 @@
           </div>
           ${notesMode === 'edit'
             ? `<textarea class="notes-input" id="notesInput" aria-label="Notes" placeholder="Écris tes notes…">${esc(node.notes)}</textarea>
-               <p class="hint">**gras**, *italique*, ==surligné==, \`code\`, - liste, # titre</p>`
+               <p class="hint">**gras**, *italique*, ==surligné==, \`code\`, - liste, # titre. Chaque passage ==surligné== devient une question de révision.</p>`
             : node.notes.trim()
-              ? `<div class="md notes-view">${MD.render(node.notes)}</div>`
+              ? `<div class="md notes-view">${MD.render(node.notes)}</div>${highlights(node.notes).length ? `<p class="hint hl-hint">${ic('highlighter-circle')}${plural(highlights(node.notes).length, 'passage surligné deviendra', 'passages surlignés deviendront')} des questions de révision.</p>` : ''}`
               : `<button class="notes-empty" data-act="notes-mode" data-m="edit">${ic('pencil-simple')}Écrire des notes pour cette partie</button>`}
         </section>
 
@@ -427,11 +436,16 @@
     if (r === null) return `<div class="memory"><span class="mem-text">${ic('sparkle')}Jamais révisée</span><a class="btn ghost sm" href="${link(s.id, node.id, 'revision')}">${ic('play', true)}Réviser cette partie</a></div>`;
     const pct = Math.round(r * 100);
     const days = Math.round((node.srs.due - Date.now()) / SRS.DAY);
+    const leech = isLeech(node) ? `<div class="leech">
+        ${ic('warning-circle', true)}
+        <div><b>Partie difficile pour toi</b><p>Oubliée ${node.srs.lapses} fois${node.srs.illusions ? `, dont ${node.srs.illusions} fois alors que tu te disais certain` : ''}. Une partie trop grosse s’oublie plus vite : découpe-la en idées plus petites, ou explique-la avec tes mots.</p>
+        <div class="row-btns"><button class="btn sm" data-act="bulk-add" data-id="${node.id}">${ic('tree-structure')}Découper en sous-parties</button><button class="btn ghost sm" data-act="focus-explain">${ic('chat-circle-text')}L’expliquer</button></div></div>
+      </div>` : '';
     const when = node.srs.due <= Date.now() ? 'à revoir maintenant' : days <= 0 ? 'prochaine révision aujourd’hui' : `prochaine révision dans ${plural(days, 'jour', 'jours')}`;
     return `<div class="memory">
       <span class="mem-text">${ic('brain')}Mémoire <b class="num">${pct} %</b><span class="mem-bar" aria-hidden="true"><span style="transform:scaleX(${r})" class="${pct < 85 ? 'low' : ''}"></span></span><span class="muted">${when}</span></span>
       <a class="btn ghost sm" href="${link(s.id, node.id, 'revision')}">${ic('play', true)}Réviser cette partie</a>
-    </div>`;
+    </div>${leech}`;
   }
 
   function autoGrow(el) {
@@ -467,6 +481,9 @@
   let study = null;
   const STOP = new Set(('les des une un le la de du et en est sont pour par dans sur avec que qui pas plus ce cette ces son sa ses leur leurs aux au ou il elle ils elles on nous vous mais donc car comme tout tous toute toutes être avoir fait faire peut entre lors très aussi ainsi alors elle elles celui celle dont même autre autres the and for with that this from are was have').split(' '));
   const normTxt = (t) => String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+
+  const highlights = (notes) => [...String(notes || '').matchAll(/==([^=\n]{12,220})==/g)].map((m) => m[1].trim());
+  const isLeech = (n) => n.srs && n.srs.lapses >= 3;
 
   function makeCloze(kp) {
     const plain = kp.replace(/\*\*/g, '').replace(/==/g, '');
@@ -526,8 +543,15 @@
       }
       return out;
     };
+    // Recherche : l'entrelacement aide sur la durée mais gêne la première découverte.
+    // Donc : révisions mélangées entre sujets, nouvelles parties dans l'ordre du cours, sujet par sujet.
+    const inOrder = (key, limit) => {
+      const out = [];
+      for (const l of ov.lists) for (const n of l[key]) { if (out.length >= limit) return out; out.push({ sid: l.s.id, nid: n.id }); }
+      return out;
+    };
     let queue = pick('due', 300);
-    queue = scope.cram ? queue.concat(pick('fresh', 300), pick('other', 300)) : queue.concat(pick('fresh', ov.newToday));
+    queue = scope.cram ? queue.concat(inOrder('fresh', 300), pick('other', 300)) : queue.concat(inOrder('fresh', ov.newToday));
     study = { scope, queue: queue.slice(0, 60), i: 0, phase: 'ask', prompt: null, typed: '', conf: null, res: [0, 0, 0, 0], requeued: {}, total: 0 };
     preparePrompt();
   }
@@ -544,10 +568,15 @@
     const c = currentCard();
     study.phase = 'ask'; study.typed = ''; study.conf = null; study.prompt = { type: 'recall' };
     if (!c) return;
+    // Sources de phrases à compléter : points clés et passages surlignés (==…==) des notes.
+    // Surligner seul aide peu (Dunlosky 2013) ; transformer le surlignage en question, si.
     const kps = c.node.keyPoints.filter((k) => k.trim().length > 12);
-    if (kps.length && Math.random() < 0.65) {
-      const cl = makeCloze(kps[Math.floor(Math.random() * kps.length)]);
-      if (cl) study.prompt = { type: 'cloze', ...cl };
+    const hl = highlights(c.node.notes);
+    const pool = hl.length && (Math.random() < 0.5 || !kps.length) ? hl : kps;
+    if (pool.length && Math.random() < 0.7) {
+      const src = pool[Math.floor(Math.random() * pool.length)];
+      const cl = makeCloze(src);
+      if (cl) study.prompt = { type: 'cloze', fromHighlight: pool === hl, ...cl };
     }
   }
 
@@ -591,7 +620,7 @@
             ${isNew ? '<span class="chip new-chip">Nouvelle</span>' : `<span class="chip" title="Probabilité de t’en souvenir maintenant">Mémoire ${Math.round(SRS.retrievability(node.srs) * 100)} %</span>`}
           </header>
           ${p.type === 'cloze'
-            ? `<p class="q-kind">${ic('text-aa')}Complète la phrase</p>
+            ? `<p class="q-kind">${ic(p.fromHighlight ? 'highlighter-circle' : 'text-aa')}${p.fromHighlight ? 'Tiré de ton surlignage' : 'Complète la phrase'}</p>
                <p class="cloze">${esc(p.before)}<span class="blank ${show ? 'filled' : ''}">${show ? esc(p.answer) : '…'}</span>${esc(p.after)}</p>`
             : `<p class="q-kind">${ic('brain')}Rappel libre</p>
                <h2 class="q-title">${esc(node.title)}</h2>
@@ -604,6 +633,7 @@
               ${p.type === 'cloze' ? `<p class="answer-title">${esc(node.title)}</p>` : ''}
               ${node.keyPoints.length ? `<ul class="kps-back">${node.keyPoints.map((k) => `<li>${MD.render(k).replace(/^<p>|<\/p>$/g, '')}</li>`).join('')}</ul>` : ''}
               ${node.explain.trim() ? `<div class="explain-back"><small>${ic('chat-circle-text')}Ton explication</small>${MD.render(node.explain)}</div>` : ''}
+              ${isLeech(node) ? `<div class="leech-tip">${ic('warning-circle', true)}<p>Tu as oublié cette partie ${node.srs.lapses} fois. Elle est peut-être trop grosse : <a href="${link(s.id, node.id)}">découpe-la en sous-parties</a> ou explique-la avec tes mots.</p></div>` : ''}
               ${node.notes.trim() ? `<details class="notes-more"><summary>Voir les notes</summary><div class="md">${MD.render(node.notes)}</div></details>` : ''}
               ${!node.keyPoints.length && !node.notes.trim() && !node.explain.trim() ? `<p class="muted">Cette partie n’a pas encore de contenu. Ajoute des points clés dans sa fiche pour des révisions plus précises.</p>` : ''}
             </div>
@@ -693,7 +723,15 @@
     if (!c || study.phase !== 'show' || study.busy) return;
     const { s, node } = c;
     const wasNew = !node.srs;
+    const prevSrs = node.srs || {};
     node.srs = SRS.schedule(node.srs, g);
+    // Illusion de maîtrise : « certain » puis oublié. On le compte pour te le montrer.
+    node.srs.illusions = (prevSrs.illusions || 0) + (study.conf === 'sure' && g === 1 ? 1 : 0);
+    if (study.conf === 'sure' && g === 1) {
+      state.stats.illusions = (state.stats.illusions || 0) + 1;
+      Mascot.say('Tu étais certain… c’est l’illusion de maîtrise. Elle revient très vite, tu verras.', 3600);
+    }
+    if (g === 1 && node.srs.lapses === 3) FX.toast(`« ${node.title} » est une partie difficile pour toi. Découpe-la en sous-parties dans sa fiche.`, 'info', 5200);
     s.updatedAt = Date.now();
     const td = SRS.today(state.stats);
     td.reviews++;
@@ -714,7 +752,7 @@
       FX.toast('Objectif du jour atteint !', 'success');
       FX.confetti(undefined, undefined, 140);
       Mascot.react('goal');
-    } else if (g === 1 && Math.random() < 0.5) Mascot.react('again');
+    } else if (g === 1 && study.conf !== 'sure' && Math.random() < 0.5) Mascot.react('again');
     // « Oublié » : la carte revient un peu plus loin dans la session (2 fois au maximum)
     if (g === 1) {
       const key = node.id;
@@ -833,6 +871,42 @@
     Mascot.setThirst && Mascot.setThirst(ov.due);
   }
 
+  // Mémoire moyenne d'un sujet : moyenne des probabilités de rappel des parties déjà révisées
+  function memAvg(s) {
+    const rs = [];
+    walk(s.root, (n) => { const r = SRS.retrievability(n.srs); if (r !== null) rs.push(r); });
+    return rs.length ? Math.round((rs.reduce((a, b) => a + b, 0) / rs.length) * 100) : null;
+  }
+  // Points faibles : parties souvent oubliées ou crues sues à tort
+  function weakSpots() {
+    const out = [];
+    state.subjects.forEach((s) => walk(s.root, (n) => {
+      if (!n.srs) return;
+      const score = (n.srs.lapses || 0) * 2 + (n.srs.illusions || 0) * 3 + (1 - SRS.retrievability(n.srs)) * 2;
+      if ((n.srs.lapses || 0) >= 2 || (n.srs.illusions || 0) >= 1) out.push({ s, n, score });
+    }));
+    return out.sort((a, b) => b.score - a.score).slice(0, 3);
+  }
+  function weakPanel() {
+    const w = weakSpots();
+    const cal = (state.stats.calib && state.stats.calib.sure) || [0, 0];
+    const calPct = cal[1] >= 5 ? Math.round((cal[0] / cal[1]) * 100) : null;
+    if (!w.length && calPct === null) return '';
+    return `
+      <section class="insight-row" aria-label="Ce que tes révisions révèlent">
+        ${calPct !== null ? `<div class="insight-card ${calPct < 80 ? 'warn' : 'good'}">
+          <span class="tile sm">${ic('scales', true)}</span>
+          <div><b>${calPct} %</b><p>de bonnes réponses quand tu te dis « certain ». ${calPct < 80 ? 'Attention à l’impression de déjà-vu : vérifie-toi plus souvent.' : 'Ta confiance est fiable, bravo.'}</p></div>
+        </div>` : ''}
+        ${w.length ? `<div class="insight-card weak">
+          <span class="tile sm">${ic('warning-circle', true)}</span>
+          <div><b>Tes points faibles</b>
+            <ul>${w.map(({ s, n }) => `<li><a href="${link(s.id, n.id)}"><span class="sdot" style="background:${s.color};box-shadow:none" aria-hidden="true"></span>${esc(n.title)}</a><small>${n.srs.lapses ? `oubliée ${n.srs.lapses}×` : ''}${n.srs.illusions ? `${n.srs.lapses ? ', ' : ''}crue sue ${n.srs.illusions}×` : ''}</small></li>`).join('')}</ul>
+          </div>
+        </div>` : ''}
+      </section>`;
+  }
+
   function greeting() {
     const h = new Date().getHours();
     return h < 5 ? 'Bonsoir' : h < 12 ? 'Bonjour' : h < 18 ? 'Bon après-midi' : 'Bonsoir';
@@ -896,7 +970,7 @@
         src: [['Karpicke, Butler et Roediger (2009)', 'https://bpb-us-e2.wpmucdn.com/sites.wustl.edu/dist/8/805/files/2026/06/Karpicke-et-al.-2009-Metacognitive-strategies-in-student-learning-Do-students-practise-retrieval-when-they-study-on-thei.pdf']], level: 'Solide' },
       { icon: 'brain', title: 'Se tester est la technique la plus efficace',
         text: 'Une grande revue de dix techniques d’étude classe deux méthodes « très utiles » : se tester et espacer ses révisions. Relire, surligner et résumer arrivent en bas du classement.',
-        arbor: 'Chaque partie devient une carte : rappel libre ou phrase à compléter tirée de tes points clés.',
+        arbor: 'Chaque partie devient une carte : rappel libre ou phrase à compléter tirée de tes points clés. Et tes passages surlignés deviennent des questions : le surlignage, peu efficace seul, se transforme en test.',
         src: [['Dunlosky et al. (2013)', 'https://www.psychologicalscience.org/journals/pspi/1529100612453266/']], level: 'Très solide' },
       { icon: 'calendar-check', title: 'Espacer bat le bachotage',
         text: 'On oublie vite, puis de moins en moins vite à chaque rappel réussi. Réviser juste avant d’oublier renforce le souvenir avec le moins d’effort possible.',
@@ -904,7 +978,7 @@
         src: [['FSRS, algorithme open source', 'https://github.com/open-spaced-repetition'], ['Dunlosky et al. (2013)', 'https://www.psychologicalscience.org/journals/pspi/1529100612453266/']], level: 'Très solide' },
       { icon: 'pencil-simple-line', title: 'Essayer de répondre, même faux, aide',
         text: 'Tenter une réponse avant de voir la correction améliore la mémorisation, même quand la tentative est fausse. Condition : voir la bonne réponse juste après.',
-        arbor: 'Tu écris ta réponse avant de retourner la carte, puis tu la compares à la correction.',
+        arbor: 'Tu écris ta réponse avant de retourner la carte. Et sur une partie jamais révisée, Arbor te propose de deviner les points clés avant de les lire.',
         src: [['Revue sur l’effet de prétest (2022)', 'https://link.springer.com/article/10.3758/s13421-022-01392-1']], level: 'Solide' },
       { icon: 'chat-circle-text', title: 'S’expliquer avec ses mots',
         text: 'Se demander « pourquoi est-ce vrai ? » et s’expliquer une notion améliore la compréhension, avec un effet modéré.',
@@ -912,11 +986,11 @@
         src: [['Dunlosky et al. (2013)', 'https://www.psychologicalscience.org/journals/pspi/1529100612453266/'], ['Synthèse sur l’auto-explication', 'https://www.structural-learning.com/research-briefings/ask-why-and-how']], level: 'Modéré' },
       { icon: 'shuffle', title: 'Mélanger les sujets',
         text: 'Alterner les sujets rend la révision plus difficile sur le moment, mais aide à retenir plus tard. L’effet varie selon la matière.',
-        arbor: 'La révision du jour mélange tes sujets ; la révision d’un seul sujet reste possible.',
+        arbor: 'Les nouvelles parties arrivent dans l’ordre du cours, sujet par sujet ; les révisions, elles, sont mélangées entre tes sujets.',
         src: [['Dunlosky et al. (2013)', 'https://www.psychologicalscience.org/journals/pspi/1529100612453266/']], level: 'Modéré' },
       { icon: 'scales', title: 'Savoir ce qu’on sait vraiment',
         text: 'Nos jugements de « je le sais » sont souvent mal calibrés. Se tester donne des indices bien plus fiables que l’impression de familiarité.',
-        arbor: 'Tu indiques ta confiance avant de répondre ; Arbor te montre si tu te surestimes.',
+        arbor: 'Tu indiques ta confiance avant de répondre. Arbor calcule la fiabilité de tes « certain », repère les parties que tu croyais savoir, et te les montre dans tes points faibles.',
         src: [['Recherche sur les jugements d’apprentissage', 'https://pmc.ncbi.nlm.nih.gov/articles/PMC2836879']], level: 'Solide' },
       { icon: 'device-mobile-slash', title: 'Le téléphone et la procrastination',
         text: 'Plusieurs études récentes relient la distraction par le smartphone à la procrastination et à l’anxiété scolaire. Ce sont surtout des corrélations, mais le lien revient souvent.',
@@ -1564,6 +1638,8 @@
       case 'conf': study.conf = study.conf === t.dataset.c ? null : t.dataset.c; $$('[data-act="conf"]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.c === study.conf)); break;
       case 'grade': grade(+t.dataset.g, t); break;
       case 'focus-open': focusModal(); break;
+      case 'focus-explain': { const ex = $('#explainInput'); if (ex) { ex.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'center' }); ex.focus({ preventScroll: true }); } break; }
+      case 'pretest-reveal': pretestSeen.add(t.dataset.id); $('#kps') && $('#kps').classList.remove('pretest'); t.closest('.pretest-cover').remove(); break;
       case 'focus-toggle': if (focus.running) focusPause(); else focusStart(); break;
       case 'focus-reset': focusReset(); break;
     }
