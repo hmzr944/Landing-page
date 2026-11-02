@@ -50,7 +50,8 @@
       explain: String(node.explain || ''),
       exercises: Array.isArray(node.exercises) ? node.exercises.filter((e) => e && e.q).map((e) => ({ id: uid(), q: String(e.q), a: String(e.a || '') })) : [],
       srs: node.srs && typeof node.srs.s === 'number' ? node.srs : null,
-      ...(node.module && typeof node.module === 'object' ? { module: { pretest: String(node.module.pretest || ''), learned: !!node.module.learned, sources: Array.isArray(node.module.sources) ? node.module.sources : [], date: node.module.date || null } } : {}),
+      ...(node.course && typeof node.course === 'object' ? { course: { from: String(node.course.from || ''), sources: Array.isArray(node.course.sources) ? node.course.sources : [] } } : {}),
+      ...(node.module && typeof node.module === 'object' ? { module: { pretest: String(node.module.pretest || ''), learned: !!node.module.learned, generated: !!node.module.generated, sources: Array.isArray(node.module.sources) ? node.module.sources : [], date: node.module.date || null } } : {}),
       keyPoints: Array.isArray(node.keyPoints) ? node.keyPoints.map(String).filter(Boolean) : [],
       status: ['todo', 'doing', 'done'].includes(node.status) ? node.status : 'todo',
     });

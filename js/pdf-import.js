@@ -244,5 +244,12 @@
     return { topics: topics.slice(0, 80), isProgramme, docTitle };
   }
 
-  window.PdfImport = { analyze };
+  // Phrases importantes d'un texte (définitions, règles, mots-clés), dans leur ordre d'origine
+  function keySentences(text, n = 3) {
+    const sentences = splitSentences(text).filter((x) => x.length >= 40 && x.length <= 260);
+    return sentences.map((x, i) => ({ x, i, score: scoreSentence(x, []) + (i === 0 ? 1.5 : 0) }))
+      .sort((a, b) => b.score - a.score).slice(0, n).sort((a, b) => a.i - b.i).map((o) => o.x);
+  }
+
+  window.PdfImport = { analyze, keySentences, splitSentences };
 })();

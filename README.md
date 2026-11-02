@@ -52,7 +52,7 @@ La page **Méthode** de l'application détaille chaque point avec ses sources et
 - **Révision du jour** : tous les sujets sont mélangés (entrelacement). Quatre types de questions : phrase à compléter, rappel libre, rappel de la branche, exercice. Tu écris ta réponse, tu peux demander un indice, tu indiques ta confiance, tu vois la correction et tu coches ce que tu avais retrouvé ; Arbor propose une note (Oublié, Difficile, Bien ou Facile) que tu peux changer. L'intervalle avant le prochain passage s'affiche sous chaque bouton. Raccourcis clavier : Entrée et 1 à 4. Sur mobile, glisse la carte à droite ou à gauche.
 - **Sujets en arbre** : parties et sous-parties à profondeur illimitée, glisser-déposer, plan collé.
 - **Fiche par partie** : jauge de mémoire (probabilité de t'en souvenir maintenant), points clés, notes en markdown, « Ancre-la dans ta mémoire », exercices avec méthode, bouton pour réviser cette partie. Le statut (à apprendre, en cours, maîtrisé) se calcule à partir de la mémoire mesurée.
-- **Parcours de modules** : importe un programme ou une liste de sujets (PDF, ou plan collé) et Arbor crée un module par sujet, réparti jusqu'à ton examen (20 % du temps gardé pour réviser l'ensemble). Chaque module suit 5 étapes : ce que tu sais déjà (prétest), découvrir (liens de recherche prêts, ou Claude qui cherche sur le web et prépare les notions avec leurs sources), découper en notions, ancrer, te tester. Un module n'entre en révision qu'une fois découvert. Le « module du jour » s'affiche sur l'accueil.
+- **Parcours de modules** : importe un programme ou une liste de sujets (PDF, ou plan collé) et Arbor crée un module par sujet, réparti jusqu'à ton examen (20 % du temps gardé pour réviser l'ensemble). Arbor **rédige le cours de chaque sujet** à partir de son seul titre : gratuitement à partir de l'article Wikipédia en français le plus pertinent (introduction, notions par section, points clés, source citée, licence CC BY-SA), ou avec Claude qui cherche sur le web et rédige un cours avec exemples, exercices corrigés et sources. Le bouton « Rédiger le cours » existe aussi sur n'importe quelle partie vide. Chaque module suit 5 étapes : ce que tu sais déjà (prétest, le cours reste flouté avant), lire le cours, découper en notions, ancrer, te tester. Un module n'entre en révision qu'une fois découvert. Le « module du jour » s'affiche sur l'accueil.
 - **Plan et examen** : plan quotidien « quand… alors… » avec rappel dans l'agenda, date d'examen par sujet avec le nombre de nouvelles parties à voir chaque jour, démarrage « Juste 2 minutes », mode calme.
 - **Import PDF** : analyse locale, ou par Claude avec ta clé API.
 - **Carte mentale** de chaque sujet.
@@ -93,7 +93,8 @@ Pour l'avoir en ligne, active **GitHub Pages** (Settings → Pages → branche `
 | `js/store.js` | Modèle de données, sauvegarde, outils d'arbre |
 | `js/app.js` | Interface : accueil, arbre, fiche, carte, révision, modales |
 | `js/pdf-import.js` | Analyse locale des PDF (avec pdf.js) |
-| `js/ai.js` | Structuration d'un PDF par Claude (optionnelle) |
+| `js/ai.js` | Structuration d'un PDF et rédaction de cours par Claude (optionnelles) |
+| `js/course.js` | Rédaction d'un cours à partir d'un sujet, via Wikipédia |
 | `js/markdown.js` | Rendu markdown minimal |
 | `js/fx.js` | Confettis et notifications |
 | `js/mascot.js` | Pousse, la mascotte animée (SVG) |

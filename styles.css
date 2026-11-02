@@ -1283,3 +1283,23 @@ h2, h3, .sec-head h2, .home-head h2, .mi-head h2, .subject-card h3, .back-title,
   .mp-steps li span:last-child { font-size: 10px; }
   .module-panel { padding: var(--s4); }
 }
+
+/* =========================================================
+   Le cours (rédigé à partir d'un sujet)
+   ========================================================= */
+.write-course { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); flex-wrap: wrap; padding: var(--s4) var(--s5); border-radius: var(--r-panel); border: 1px dashed color-mix(in oklab, var(--accent) 45%, var(--line)); background: var(--accent-soft); }
+.write-course p { color: var(--text-2); flex: 1 1 260px; }
+.course-body { display: flex; flex-direction: column; gap: var(--s5); transition: filter 360ms var(--ease-out), opacity 360ms ease; }
+.course-body.pretest { filter: blur(6px); opacity: 0.55; pointer-events: none; user-select: none; }
+.course-part { padding: var(--s5); border-radius: var(--r-panel); background: color-mix(in oklab, var(--surface) 88%, transparent); border: 1px solid var(--line); }
+.course-part h3 { font-size: var(--t-lg); margin-bottom: var(--s3); }
+.course-part h3 a { transition: color var(--d-fast) ease; }
+@media (hover: hover) and (pointer: fine) { .course-part h3 a:hover { color: var(--accent-ink); } }
+.course-part .md h3, .course-part .md h4, .course-part .md h5 { font-size: var(--t-md); }
+.course-keys { margin-top: var(--s4); padding: var(--s3) var(--s4); border-radius: var(--r-ctl); background: color-mix(in oklab, var(--doing) 9%, transparent); border-left: 3px solid var(--doing); }
+.course-keys small { display: block; font-size: var(--t-xs); color: var(--doing); font-weight: 500; margin-bottom: 4px; }
+.course-keys ul { margin: 0; padding-left: 1.1em; display: flex; flex-direction: column; gap: 4px; font-size: var(--t-sm); }
+.course-src { margin-top: var(--s4); font-size: var(--t-xs); color: var(--text-3); }
+.course-src a { color: var(--accent-ink); text-decoration: underline; text-underline-offset: 2px; }
+.md em { color: var(--text-3); }
+@media (max-width: 640px) { .course-part { padding: var(--s4); } }

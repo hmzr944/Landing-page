@@ -1,10 +1,10 @@
 /* Service worker d'Arbor : l'application fonctionne hors connexion.
    Fichiers de l'app : réseau d'abord (pour les mises à jour), cache en secours.
    Bibliothèques des CDN (polices Fontshare, icônes, pdf.js) : cache d'abord. */
-const VERSION = 'arbor-v5';
+const VERSION = 'arbor-v6';
 const SHELL = [
   './', './index.html', './styles.css', './manifest.webmanifest',
-  './js/srs.js', './js/store.js', './js/markdown.js', './js/fx.js', './js/pdf-import.js', './js/ai.js',
+  './js/srs.js', './js/store.js', './js/markdown.js', './js/fx.js', './js/pdf-import.js', './js/ai.js', './js/course.js',
   './js/mascot.js', './js/pwa.js', './js/app.js',
   './icons/icon-192.png', './icons/icon-512.png',
 ];
@@ -20,7 +20,7 @@ self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
-  if (url.hostname === 'api.anthropic.com' || url.hostname === 'esm.sh') return; // jamais en cache
+  if (url.hostname === 'api.anthropic.com' || url.hostname === 'esm.sh' || url.hostname.endsWith('wikipedia.org')) return; // jamais en cache
   if (CDN.includes(url.hostname)) {
     e.respondWith(caches.match(req).then((hit) => hit || fetch(req).then((res) => {
       if (res.ok || res.type === 'opaque') { const copy = res.clone(); caches.open(VERSION).then((c) => c.put(req, copy)); }

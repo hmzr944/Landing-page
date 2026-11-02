@@ -384,6 +384,8 @@
               : `<button class="notes-empty" data-act="notes-mode" data-m="edit">${ic('pencil-simple')}Écrire des notes pour cette partie</button>`}
         </section>
 
+        ${courseSection(s, node, isRoot)}
+
         <section class="sec">
           <div class="sec-head"><h2>Ancre-la dans ta mémoire</h2></div>
           <p class="explain-prompt">Une notion s’oublie moins quand on lui donne du sens. Choisis une façon de l’ancrer :</p>
@@ -482,7 +484,7 @@
     walk(node, (n) => { if (n !== node && n.explain.trim()) anchored = true; if (n.srs) tested = true; });
     return {
       pretest: (m.pretest || '').trim().length >= 10 || !!m.skipPretest,
-      learn: !!m.learned || node.notes.trim().length > 80 || node.keyPoints.length >= 2,
+      learn: !!m.learned || (!m.generated && (node.notes.trim().length > 80 || node.keyPoints.length >= 2)),
       split: node.children.length >= 2,
       anchor: anchored,
       test: tested,
@@ -552,6 +554,7 @@
             <select id="pgRhythm"><option value="1">par jour</option><option value="2" selected>tous les 2 jours</option><option value="3">tous les 3 jours</option><option value="7">par semaine</option></select>
           </div>
         </div>
+        <label class="check"><input type="checkbox" id="pgWrite" checked /> Rédiger le cours de chaque sujet (${state.settings.apiKey ? 'Claude cherche et rédige' : 'à partir de Wikipédia, gratuitement'})</label>
         ${pickers(sel.color, sel.icon)}
         <div class="row-btns end"><button type="button" class="btn ghost" data-close>Annuler</button><button class="btn">${ic('path')}Créer le parcours</button></div>
       </form>`, (el) => {
@@ -564,10 +567,13 @@
         if (!list.some((t) => !t.depth)) { FX.toast('Ajoute au moins un sujet, sans indentation.', 'error'); return; }
         const s = makeProgram($('#pgTitle', el).value.trim() || 'Mon programme', list, { ...sel, examDate: $('#pgExam', el).value || null, rhythm: +$('#pgRhythm', el).value });
         state.subjects.push(s);
-        save(); closeModal();
+        save();
+        const write = $('#pgWrite', el).checked;
+        closeModal();
         Mascot.react('created');
-        FX.toast(`${plural(s.root.children.length, 'module créé', 'modules créés')}`, 'success');
         go(link(s.id, s.root.id));
+        if (write) setTimeout(async () => { await writeCourses(s, s.root.children.filter((c) => c.module)); render(view); }, 250);
+        else FX.toast(`${plural(s.root.children.length, 'module créé', 'modules créés')}`, 'success');
       };
     });
   }
@@ -596,9 +602,11 @@
         <p>Avant de lire quoi que ce soit : qu’est-ce que tu sais déjà sur « ${esc(node.title)} » ? Écris tout ce qui te vient, même flou ou faux. Cet essai prépare ta mémoire à retenir la suite.</p>
         <textarea class="notes-input" id="modulePretest" rows="3" placeholder="Ce que j’en sais, ce que j’imagine…">${esc(m.pretest || '')}</textarea>
         <div class="row-btns"><button class="btn sm" data-act="mod-pretest-done">${ic('check')}C’est noté</button><button class="btn ghost sm" data-act="mod-skip-pretest">Je n’en sais rien, passer</button></div>`,
-      learn: () => `
-        <p>Découvre le sujet${hasKey ? ' : Arbor peut chercher des sources fiables et préparer les notions, ou tu peux chercher toi-même.' : ' avec ces recherches toutes prêtes. Note l’essentiel dans la fiche, avec tes mots.'}</p>
-        ${hasKey ? `<button class="btn" data-act="mod-research">${ic('magnifying-glass')}Arbor cherche pour toi</button>` : ''}
+      learn: () => m.generated ? `
+        <p>Ton cours est prêt juste en dessous : ${plural(node.children.length, 'notion', 'notions')}. Lis-le en entier, à ton rythme. Compare avec ce que tu pensais savoir.</p>
+        <div class="row-btns"><a class="btn" href="#course" data-act="goto-course">${ic('book-open-text')}Lire le cours</a><button class="btn ghost" data-act="mod-learned">${ic('check')}J’ai lu le cours</button></div>` : `
+        <p>Arbor peut rédiger le cours de « ${esc(node.title)} » ${hasKey ? 'avec Claude, qui cherche des sources fiables' : 'à partir de Wikipédia'}. Tu peux aussi chercher toi-même.</p>
+        <button class="btn" data-act="write-course">${ic('book-open-text')}Rédiger le cours</button>
         <div class="research-links">${researchLinks(node.title, s).map(([l, u, i]) => `<a class="chip-link" href="${u}" target="_blank" rel="noopener">${ic(i)}${l}</a>`).join('')}</div>
         <button class="btn ghost sm" data-act="mod-learned">${ic('check')}J’ai lu et pris mes notes</button>`,
       split: () => `
@@ -666,6 +674,70 @@
     return '';
   }
 
+  /* Rédiger le cours d'une partie à partir de son titre.
+     Si la partie a déjà des sous-parties (ex. notions listées dans le programme), chacune reçoit son cours. */
+  async function fetchCourse(topic, context, onStatus) {
+    if (state.settings.apiKey) {
+      const r = await AI.researchTopic(topic, context, state.settings.apiKey, state.settings.model, onStatus);
+      return { ...r, from: 'claude' };
+    }
+    return Course.fromWikipedia(topic, context);
+  }
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  async function writeCourse(s, node, onStatus) {
+    const ctx = node === s.root ? '' : s.title;
+    if (node.children.length) {
+      let n = 0;
+      for (const ch of node.children) {
+        if (ch.notes.trim()) continue;
+        onStatus && onStatus(`« ${ch.title} »`);
+        const r = await fetchCourse(ch.title, node.title, onStatus);
+        ch.notes = [r.overview, ...r.notions.slice(0, 4).map((x) => `### ${x.title}\n${x.notes}`)].filter(Boolean).join('\n\n');
+        ch.keyPoints = r.notions.flatMap((x) => x.keyPoints || []).slice(0, 4);
+        ch.exercises = (ch.exercises || []).concat(r.notions.flatMap((x) => (x.exercises || []).map((e) => ({ id: Store.uid(), q: String(e.q || ''), a: String(e.a || '') }))).slice(0, 3));
+        ch.course = { from: r.from, sources: r.sources };
+        n++;
+        if (r.from === 'wikipedia') await wait(700); // rester poli avec Wikipédia
+      }
+      if (node.module) node.module.generated = true;
+      return n;
+    }
+    onStatus && onStatus(`« ${node.title} »`);
+    const r = await fetchCourse(node.title, ctx, onStatus);
+    if (r.overview && !node.notes.trim()) node.notes = r.overview;
+    r.notions.forEach((x) => node.children.push(normalize(x)));
+    node.course = { from: r.from, sources: r.sources };
+    node.collapsed = false;
+    if (node.module) { node.module.sources = r.sources; node.module.generated = true; }
+    return r.notions.length;
+  }
+
+  // Plusieurs cours à la suite, avec une progression visible
+  async function writeCourses(s, nodes) {
+    openModal(`
+      <div class="loading">
+        <h2 id="modalTitle">Arbor rédige ton cours…</h2>
+        <p class="modal-lede" id="ldMsg">${state.settings.apiKey ? 'Claude cherche des sources fiables et rédige chaque module.' : 'Arbor cherche l’article de référence de chaque sujet et le transforme en cours.'}</p>
+        <div class="bar big" role="progressbar" aria-label="Progression" aria-valuemin="0" aria-valuemax="100"><span id="ldBar" style="transform:scaleX(.03)"></span></div>
+        <p class="hint" id="ldCount">0 / ${nodes.length}</p>
+      </div>`);
+    Mascot.react('reading');
+    const failed = [];
+    for (let i = 0; i < nodes.length; i++) {
+      const node = nodes[i];
+      const msg = (m) => { const e = $('#ldMsg'); if (e) e.textContent = `${node.title} : ${m}`; };
+      try { await writeCourse(s, node, msg); } catch (err) { console.warn(err.message); failed.push(node.title); }
+      const b = $('#ldBar'); if (b) b.style.transform = `scaleX(${(i + 1) / nodes.length})`;
+      const c = $('#ldCount'); if (c) c.textContent = `${i + 1} / ${nodes.length}`;
+      save();
+    }
+    Mascot.react('imported');
+    closeModal();
+    const ok = nodes.length - failed.length;
+    FX.toast(failed.length ? `${plural(ok, 'cours rédigé', 'cours rédigés')}. Pas trouvé : ${failed.slice(0, 3).join(', ')}${failed.length > 3 ? '…' : ''}. Complète-les à la main.` : `${plural(ok, 'cours rédigé', 'cours rédigés')}. Bonne lecture !`, failed.length ? 'info' : 'success', 6000);
+    return failed;
+  }
+
   async function researchModule(s, node) {
     openModal(`
       <div class="loading">
@@ -689,6 +761,36 @@
       const msg = err && err.status === 401 ? 'La clé API est refusée. Vérifie-la dans les réglages.' : (err && err.message) || 'Erreur inconnue.';
       $('#modalBody').innerHTML = `<div class="loading"><span class="tile big danger-tile">${ic('warning-circle', true)}</span><h2 id="modalTitle">Recherche impossible</h2><p class="modal-lede">${esc(msg)} Tu peux utiliser les liens de recherche à la place.</p></div>`;
     }
+  }
+
+  // Le cours, lisible d'une traite : introduction, puis chaque notion avec ses points clés
+  function courseSection(s, node, isRoot) {
+    const withNotes = node.children.filter((c) => c.notes.trim());
+    if (!withNotes.length) {
+      if (isRoot && s.program) {
+        const missing = s.root.children.filter((c) => c.module && !c.module.generated && !c.children.some((x) => x.notes.trim())).length;
+        return missing ? `<section class="sec write-course"><p>${plural(missing, 'module n’a', 'modules n’ont')} pas encore de cours.</p><button class="btn" data-act="write-all">${ic('book-open-text')}Rédiger les cours manquants</button></section>` : '';
+      }
+      if (isRoot || node.notes.trim().length > 80) return '';
+      return `<section class="sec write-course"><p>Cette partie est vide. Arbor peut en rédiger le cours à partir de son titre, ${state.settings.apiKey ? 'avec Claude et des sources fiables' : 'à partir de Wikipédia'}.</p><button class="btn" data-act="write-course">${ic('book-open-text')}Rédiger le cours</button></section>`;
+    }
+    const pre = node.module && !moduleSteps(node).pretest && !pretestSeen.has(node.id + ':course');
+    const sources = [...((node.course && node.course.sources) || []), ...((node.module && node.module.sources) || []), ...withNotes.flatMap((c) => (c.course && c.course.sources) || [])]
+      .filter((x, i, a) => x && x.url && a.findIndex((y) => y.url === x.url) === i);
+    return `
+      <section class="sec course" id="course">
+        <div class="sec-head"><h2>Le cours</h2><span class="muted">${plural(withNotes.length, 'notion', 'notions')}</span></div>
+        ${pre ? `<div class="pretest-cover"><p>${ic('lightbulb', true)}<span><b>Avant de lire :</b> écris en haut ce que tu sais déjà sur ce sujet. Même faux, cet essai t’aidera à retenir le cours.</span></p><button class="btn ghost sm" data-act="course-reveal" data-id="${node.id}">Lire quand même</button></div>` : ''}
+        <div class="course-body ${pre ? 'pretest' : ''}">
+          ${withNotes.map((c) => `
+            <article class="course-part">
+              <h3><a href="${link(s.id, c.id)}">${esc(c.title)}</a></h3>
+              <div class="md">${MD.render(c.notes)}</div>
+              ${c.keyPoints.length ? `<div class="course-keys"><small>À retenir</small><ul>${c.keyPoints.map((k) => `<li>${MD.render(k).replace(/^<p>|<\/p>$/g, '')}</li>`).join('')}</ul></div>` : ''}
+            </article>`).join('')}
+        </div>
+        ${sources.length ? `<p class="course-src">Sources : ${sources.map((x) => `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title || x.url)}</a>`).join(', ')}</p>` : ''}
+      </section>`;
   }
 
   function memoryLine(s, node, isRoot) {
@@ -1476,7 +1578,7 @@
         src: [['FSRS, algorithme open source', 'https://github.com/open-spaced-repetition'], ['Dunlosky et al. (2013)', 'https://www.psychologicalscience.org/journals/pspi/1529100612453266/']], level: 'Très solide' },
       { icon: 'path', title: 'Un programme devient un parcours',
         text: 'Quand on n’a qu’une liste de sujets, le risque est de tout repousser puis de bachoter. Étaler l’apprentissage sur la durée, et tester ce qu’on sait avant de lire, sont deux des effets les mieux établis.',
-        arbor: 'Importe un programme : chaque sujet devient un module, réparti jusqu’à ton examen, avec 5 étapes : ce que tu sais déjà, découvrir (recherches toutes prêtes, ou Claude qui cherche des sources), découper, ancrer, te tester.',
+        arbor: 'Importe un programme : chaque sujet devient un module, réparti jusqu’à ton examen, et Arbor en rédige le cours (à partir de Wikipédia, ou avec Claude qui cherche des sources). Avant de le lire, tu écris ce que tu sais déjà ; ensuite tu ancres et tu te testes.',
         src: [['Dunlosky et al. (2013)', 'https://www.psychologicalscience.org/journals/pspi/1529100612453266/'], ['Revue sur l’effet de prétest (2022)', 'https://link.springer.com/article/10.3758/s13421-022-01392-1']], level: 'Solide' },
       { icon: 'pencil-simple-line', title: 'Essayer de répondre, même faux, aide',
         text: 'Tenter une réponse avant de voir la correction améliore la mémorisation, même quand la tentative est fausse. Condition : voir la bonne réponse juste après.',
@@ -2185,6 +2287,10 @@
       case 'mod-skip-pretest': { const n = currentNode().node; n.module.skipPretest = true; touch(); renderFiche(); break; }
       case 'mod-learned': { const n = currentNode().node; n.module.learned = true; gainXP(3); touch(); renderFiche(); break; }
       case 'mod-research': { const c = currentNode(); researchModule(subjectById(view.id), c.node); break; }
+      case 'write-course': { const c = currentNode(); const sj = subjectById(view.id); writeCourses(sj, [c.node]).then(() => render(view)); break; }
+      case 'write-all': { const sj = subjectById(view.id); writeCourses(sj, sj.root.children.filter((c) => c.module && !c.module.generated && !c.children.some((x) => x.notes.trim()))).then(() => render(view)); break; }
+      case 'course-reveal': { pretestSeen.add(t.dataset.id + ':course'); renderFiche(); const el = $('#course'); el && el.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth' }); break; }
+      case 'goto-course': { e.preventDefault(); pretestSeen.add(currentNode().node.id + ':course'); renderFiche(); const el = $('#course'); el && el.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth' }); break; }
       case 'reschedule': { const sj = subjectById(view.id); scheduleModules(sj); touch(); renderFiche(); FX.toast('Dates recalculées jusqu’à ton examen.', 'success'); break; }
       case 'anchor': {
         const a = ANCHORS.find((x) => x[0] === t.dataset.k); const ta = $('#explainInput');
