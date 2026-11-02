@@ -10,6 +10,7 @@
   const OLD_COLORS = { '#7c5cff': '#3451D1', '#ff5c8a': '#C2255C', '#ffb020': '#C2550A', '#22c55e': '#0B7F75', '#06b6d4': '#0369A1', '#f97316': '#C2550A', '#e879f9': '#9333B8', '#3b82f6': '#3451D1' };
   const OLD_EMOJIS = { '🧠': 'brain', '📚': 'book-open', '🧪': 'flask', '🌍': 'globe-hemisphere-west', '⚙️': 'code', '🎨': 'palette', '🧬': 'heartbeat', '📐': 'calculator', '💡': 'brain', '🏛️': 'bank', '🎵': 'music-notes', '💻': 'code', '⚖️': 'scales', '🩺': 'heartbeat', '📈': 'chart-line-up', '🪐': 'planet', '🌱': 'leaf' };
 
+  const DEFAULT_SETTINGS = { theme: 'auto', apiKey: '', model: 'claude-opus-5-5', mascot: true, dailyGoal: 15, newPerDay: 10, focusMin: 25, breakMin: 5 };
   const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
   function makeNode(title = 'Nouvelle partie', extra = {}) {
@@ -17,7 +18,9 @@
       id: uid(),
       title,
       notes: '',
+      explain: '',
       keyPoints: [],
+      srs: null, // répétition espacée : { s, d, last, due, reps, lapses }
       status: 'todo', // todo | doing | done
       collapsed: false,
       children: [],
@@ -37,6 +40,8 @@
   function normalize(node) {
     const n = makeNode(String(node.title || 'Sans titre').slice(0, 160), {
       notes: String(node.notes || ''),
+      explain: String(node.explain || ''),
+      srs: node.srs && typeof node.srs.s === 'number' ? node.srs : null,
       keyPoints: Array.isArray(node.keyPoints) ? node.keyPoints.map(String).filter(Boolean) : [],
       status: ['todo', 'doing', 'done'].includes(node.status) ? node.status : 'todo',
     });
@@ -79,18 +84,28 @@
       if (raw) {
         const data = JSON.parse(raw);
         if (data && Array.isArray(data.subjects)) {
-          data.settings = { theme: 'auto', apiKey: '', model: 'claude-opus-5-5', ...(data.settings || {}) };
+          data.settings = { ...DEFAULT_SETTINGS, ...(data.settings || {}) };
+          data.stats = data.stats || { days: {}, calib: {} };
           data.subjects.forEach((s) => {
             if (!ICONS.includes(s.icon)) s.icon = OLD_EMOJIS[s.emoji] || 'book-open';
             s.color = OLD_COLORS[s.color] || s.color;
             delete s.emoji;
+            // Anciennes parties marquées « maîtrisées » : on leur donne une mémoire de départ
+            walk(s.root, (n) => {
+              if (n.explain === undefined) n.explain = '';
+              if (n.srs === undefined) n.srs = null;
+              if (!n.srs && n.status === 'done') {
+                const now = Date.now();
+                n.srs = { s: 7, d: 5, last: now - 2 * 86400000, due: now + (2 + Math.random() * 4) * 86400000, reps: 1, lapses: 0 };
+              }
+            });
           });
           data.xp = data.xp || 0;
           return data;
         }
       }
     } catch (e) { console.warn('Lecture impossible', e); }
-    return { subjects: [demoSubject()], settings: { theme: 'auto', apiKey: '', model: 'claude-opus-5-5' }, xp: 0 };
+    return { subjects: [demoSubject()], settings: { ...DEFAULT_SETTINGS }, stats: { days: {}, calib: {} }, xp: 0, firstRun: true };
   }
 
   let saveTimer = null;

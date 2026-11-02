@@ -2,19 +2,38 @@
 
 Arbor est une application web pour apprendre en découpant n'importe quel sujet en **parties**, puis en **sous-parties** de plus en plus petites, jusqu'à ce que chaque morceau soit facile à retenir.
 
+## Pourquoi Arbor
+
+La plupart des étudiants relisent et surlignent. Ça donne l'impression d'apprendre, mais ce sont les méthodes les moins efficaces (Dunlosky et al., 2013 ; Karpicke et al., 2009). Arbor est construit sur ce que la recherche en sciences cognitives montre vraiment :
+
+| Ce qui bloque | Ce que dit la recherche | Ce que fait Arbor |
+|---|---|---|
+| Relire donne l'illusion de savoir | Se tester est la technique la plus efficace | Révision active : rappel libre ou phrase à compléter, réponse cachée |
+| On oublie avant l'examen | Espacer les révisions bat le bachotage | Répétition espacée FSRS-5 : chaque partie revient juste avant d'être oubliée |
+| On n'ose pas répondre faux | Tenter une réponse, même fausse, aide à retenir si on voit la correction | Tu écris ta réponse avant de retourner la carte |
+| On apprend par cœur sans comprendre | S'expliquer avec ses mots aide à comprendre | Zone « Explique-le simplement » dans chaque fiche |
+| On croit savoir | Nos impressions de maîtrise sont mal calibrées | Tu notes ta confiance, Arbor te dit si tu te surestimes |
+| Le téléphone, la procrastination | Distraction et procrastination vont souvent ensemble | Mode Focus, objectif quotidien, série de jours |
+| Les cours sont énormes | (choix de conception) | Chaque sujet découpé en petites parties, une idée par feuille |
+
+La page **Méthode** de l'application détaille chaque point avec ses sources et son niveau de preuve.
+
 ## Fonctionnalités
 
-- **Sujets en arbre** : chaque sujet est un arbre de parties à profondeur illimitée. On peut ajouter, renommer, monter ou descendre une partie, la supprimer, ou la glisser-déposer sur une autre pour l'y ranger.
-- **Fiche par partie** : des points clés ⭐, des notes en markdown simple (`**gras**`, `*italique*`, `==surligné==`, listes, titres) et un statut (À apprendre / En cours / Maîtrisé).
-- **Coller un plan** : colle une liste indentée et Arbor crée toute l'arborescence d'un coup.
-- **Import PDF** 📄 :
-  - *Analyse locale* (gratuite, rien ne quitte ton ordinateur) : Arbor repère les titres (taille de police, gras, numérotation 1. / 1.1 / I. / A.), regroupe le texte par partie, extrait les définitions et les phrases importantes comme points clés, et les surligne dans les notes.
-  - *Analyse par Claude* (optionnelle) : ajoute ta clé API dans ⚙️ Réglages. Claude lit le PDF et rédige un cours structuré avec des résumés et des points clés.
-- **Carte mentale** 🗺️ : une vue graphique de tout l'arbre, colorée selon le statut de chaque partie.
-- **Révision** 🃏 : des cartes à retourner. Réponds « Je maîtrise » ou « À revoir ». Tu gagnes de l'XP, tu montes de niveau, et il y a des confettis 🎉.
-- **Pousse, la mascotte** : ses yeux suivent ton curseur, elle cligne et respire. Elle saute de joie quand tu maîtrises une partie et t'encourage quand une carte est à revoir. Elle s'endort si tu ne fais rien et grandit avec ton niveau (une nouvelle feuille, puis un bourgeon, puis une fleur). Clique dessus pour avoir une astuce, mais pas trop vite… Tu peux la masquer dans les réglages.
-- Fond flou abstrait aux couleurs du sujet ouvert, thème automatique, clair ou sombre, et affichage adapté au mobile.
-- **Sauvegarde automatique** dans le navigateur (localStorage), avec export et import en JSON.
+- **Aujourd'hui** : les cartes à revoir et les nouvelles cartes du jour, l'objectif quotidien, la série et l'activité de la semaine.
+- **Révision du jour** : tous les sujets sont mélangés (entrelacement). Pour chaque carte, tu écris ta réponse, tu indiques ta confiance, tu vois la correction, puis tu choisis Oublié, Difficile, Bien ou Facile. L'intervalle avant le prochain passage s'affiche sous chaque bouton. Raccourcis clavier : Entrée et 1 à 4. Sur mobile, glisse la carte à droite ou à gauche.
+- **Sujets en arbre** : parties et sous-parties à profondeur illimitée, glisser-déposer, plan collé.
+- **Fiche par partie** : jauge de mémoire (probabilité de t'en souvenir maintenant), points clés, notes en markdown, « Explique-le simplement », bouton pour réviser cette partie.
+- **Import PDF** : analyse locale, ou par Claude avec ta clé API.
+- **Carte mentale** de chaque sujet.
+- **Focus** : minuteur de concentration (15 à 50 minutes) avec pauses fixes, son et notification à la fin, et une pastille visible partout.
+- **Application mobile** : installable (PWA), elle fonctionne hors connexion, avec une barre de navigation en bas. Elle a été testée de 320 px à 1440 px de large, en portrait et en paysage.
+- **Pousse, la mascotte** : un petit jouet vivant.
+  - Attrape-la et lance-la : elle rebondit. Caresse-la avec la souris : elle fait des cœurs.
+  - Seule, elle danse, fait l'hélicoptère avec ses feuilles ou bâille.
+  - Elle a soif quand des cartes attendent. Elle met un bandeau pendant le Focus.
+  - Elle grandit avec ton niveau.
+- Fond flou abstrait aux couleurs du sujet, thème automatique, clair ou sombre, sauvegarde locale avec export et import.
 
 ## Design
 
@@ -30,7 +49,7 @@ Le design applique les skills de [skills.sh](https://skills.sh) : `frontend-desi
 
 ## Lancer l'application
 
-Aucune installation n'est nécessaire : il suffit d'ouvrir `index.html` dans un navigateur.
+Aucune installation n'est nécessaire : il suffit d'ouvrir `index.html` dans un navigateur. Pour installer l'application sur ton téléphone et l'utiliser hors connexion, il faut la servir en HTTPS, par exemple avec GitHub Pages.
 
 Pour l'avoir en ligne, active **GitHub Pages** (Settings → Pages → branche `main`, dossier `/`).
 
@@ -47,5 +66,7 @@ Pour l'avoir en ligne, active **GitHub Pages** (Settings → Pages → branche `
 | `js/markdown.js` | Rendu markdown minimal |
 | `js/fx.js` | Confettis et notifications |
 | `js/mascot.js` | Pousse, la mascotte animée (SVG) |
+| `js/srs.js` | Répétition espacée (FSRS-5) et statistiques |
+| `js/pwa.js`, `sw.js`, `manifest.webmanifest`, `icons/` | Application installable et hors connexion |
 
 > 🔐 La clé API Claude est stockée uniquement dans ton navigateur et n'est envoyée qu'à l'API d'Anthropic. Ne l'enregistre pas sur un ordinateur partagé.

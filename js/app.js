@@ -11,7 +11,6 @@
   const state = Store.load();
   const app = $('#app');
   let view = { name: 'home' };
-  let review = null; // session de révision en cours
   let treeFilter = '';
   let notesMode = 'preview';
 
@@ -69,14 +68,12 @@
     const prev = node.status;
     node.status = status;
     if (status === 'done' && prev !== 'done') {
-      const lvlBefore = Math.floor(state.xp / 100);
-      state.xp += 10;
       popId = node.id;
-      if (Math.floor(state.xp / 100) === lvlBefore) Mascot.react('done');
-      renderXP(true);
+      const lvlBefore = Math.floor(state.xp / 100);
       const r = origin && origin.getBoundingClientRect ? origin.getBoundingClientRect() : null;
       FX.confetti(r ? r.left + r.width / 2 : undefined, r ? r.top : undefined, 40);
-      if (Math.floor(state.xp / 100) > lvlBefore) { FX.toast(`Niveau ${lvlBefore + 2} atteint`, 'success'); FX.confetti(undefined, undefined, 120); }
+      gainXP(10);
+      if (Math.floor(state.xp / 100) === lvlBefore) Mascot.react('done');
     }
     touch();
   }
@@ -95,12 +92,15 @@
       const s = subjectById(parts[1]);
       const nodeId = parts[2] && find(s.root, parts[2]) ? parts[2] : s.root.id;
       const mode = ['fiche', 'carte', 'revision'].includes(parts[3]) ? parts[3] : 'fiche';
-      if (mode !== 'revision' || prev.nodeId !== nodeId) review = null;
       view = { name: 'subject', id: s.id, nodeId, mode };
+    } else if (parts[0] === 'reviser') {
+      view = { name: 'study' };
+    } else if (parts[0] === 'methode') {
+      view = { name: 'method' };
     } else {
       view = { name: 'home' };
-      review = null;
     }
+    $$('[data-nav]').forEach((a) => { if (a.dataset.nav === view.name) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
     render(prev);
   }
   const link = (sid, nid, mode = 'fiche') => `#/s/${sid}/${nid}/${mode}`;
@@ -112,7 +112,10 @@
     const modeChange = !bigChange && prev.mode !== view.mode;
     const paint = () => {
       if (view.name === 'home') renderHome();
+      else if (view.name === 'study') renderGlobalStudy();
+      else if (view.name === 'method') renderMethod();
       else renderSubject(bigChange);
+      updateBadges();
       if (bigChange) { app.classList.remove('enter'); void app.offsetWidth; app.classList.add('enter'); window.scrollTo({ top: 0 }); }
       afterPaint();
     };
@@ -174,12 +177,16 @@
 
     app.innerHTML = `
       <section class="home">
+        ${todayPanel()}
         <header class="home-head">
           <div>
-            <h1>Tes sujets</h1>
+            <h2>Tes sujets</h2>
             <p class="lede">${plural(total, 'partie', 'parties')} réparties dans ${plural(subjects.length, 'sujet', 'sujets')}, dont ${fmt.format(done)} déjà ${done > 1 ? 'maîtrisées' : 'maîtrisée'}.</p>
           </div>
-          <button class="btn" data-act="new-subject">${ic('plus')}Nouveau sujet</button>
+          <div class="row-btns">
+            <button class="btn ghost show-mobile" data-act="import-pdf">${ic('file-arrow-up')}Importer un PDF</button>
+            <button class="btn" data-act="new-subject">${ic('plus')}Nouveau sujet</button>
+          </div>
         </header>
 
         <div class="subject-grid">
@@ -296,6 +303,7 @@
             <button class="caret ${hasKids ? '' : 'none'} ${open ? 'open' : ''}" data-act="toggle" data-id="${n.id}" tabindex="${hasKids ? 0 : -1}" aria-label="${open ? 'Replier' : 'Déplier'}">${ic('caret-right')}</button>
             <button class="dot" data-act="cycle" data-id="${n.id}" aria-label="Statut : ${STATUS[n.status].label}. Changer"></button>
             <a class="label" href="${link(s.id, n.id, mode)}" ${active ? 'aria-current="page"' : ''}>${esc(n.title)}</a>
+            ${SRS.isDue(n.srs) ? '<span class="due-dot" title="À revoir"></span>' : ''}
             ${hasKids ? `<span class="count num">${n.children.length}</span>` : ''}
             <button class="add" data-act="add-child" data-id="${n.id}" aria-label="Ajouter une sous-partie à « ${esc(n.title)} »">${ic('plus')}</button>
           </div>
@@ -329,6 +337,8 @@
           ${node.children.length ? ring(st.pct) : ''}
         </div>
 
+        ${memoryLine(s, node, isRoot)}
+
         ${isRoot && node.children.length ? '' : `<div class="status-seg" role="group" aria-label="Statut">
           ${Object.entries(STATUS).map(([k, v]) => `<button class="seg st-${k}" data-act="status" data-st="${k}" aria-pressed="${node.status === k}"><span class="sdot st-${k}" aria-hidden="true"></span>${v.label}</button>`).join('')}
         </div>`}
@@ -356,6 +366,13 @@
             : node.notes.trim()
               ? `<div class="md notes-view">${MD.render(node.notes)}</div>`
               : `<button class="notes-empty" data-act="notes-mode" data-m="edit">${ic('pencil-simple')}Écrire des notes pour cette partie</button>`}
+        </section>
+
+        <section class="sec">
+          <div class="sec-head"><h2>${ic('chat-circle-text')}Explique-le simplement</h2></div>
+          <p class="explain-prompt">${explainPrompt(node)}</p>
+          <textarea class="notes-input explain-input" id="explainInput" rows="3" aria-label="Ton explication" placeholder="Avec tes mots, comme à un ami…">${esc(node.explain)}</textarea>
+          <p class="hint">S’expliquer une notion aide à la comprendre. Ton explication apparaît au dos de la carte de révision.</p>
         </section>
 
         <section class="sec">
@@ -387,8 +404,34 @@
         </footer>
       </article>`;
     autoGrow($('#titleInput'));
+    autoGrow($('#explainInput'));
     const ni = $('#notesInput');
     if (ni) { autoGrow(ni); ni.focus(); ni.setSelectionRange(ni.value.length, ni.value.length); }
+  }
+
+  const EXPLAIN_PROMPTS = [
+    'Comment l’expliquerais-tu à un ami de 12 ans ?',
+    'Pourquoi est-ce vrai ? D’où ça vient ?',
+    'À quoi ça se relie dans ce que tu sais déjà ?',
+    'Quel exemple concret pourrais-tu donner ?',
+  ];
+  const explainPrompt = (node) => EXPLAIN_PROMPTS[[...node.id].reduce((a, c) => a + c.charCodeAt(0), 0) % EXPLAIN_PROMPTS.length];
+
+  function memoryLine(s, node, isRoot) {
+    if (isRoot && node.children.length) {
+      const ov = overview({ type: 'node', sid: s.id, nid: node.id });
+      return `<div class="memory"><span class="mem-text">${ic('cards')}${ov.due ? `${plural(ov.due, 'carte à revoir', 'cartes à revoir')}` : 'Rien à revoir'}${ov.fresh ? `, ${plural(ov.fresh, 'nouvelle', 'nouvelles')}` : ''}</span>
+        <a class="btn sm" href="${link(s.id, node.id, 'revision')}">${ic('play', true)}Réviser ce sujet</a></div>`;
+    }
+    const r = SRS.retrievability(node.srs);
+    if (r === null) return `<div class="memory"><span class="mem-text">${ic('sparkle')}Jamais révisée</span><a class="btn ghost sm" href="${link(s.id, node.id, 'revision')}">${ic('play', true)}Réviser cette partie</a></div>`;
+    const pct = Math.round(r * 100);
+    const days = Math.round((node.srs.due - Date.now()) / SRS.DAY);
+    const when = node.srs.due <= Date.now() ? 'à revoir maintenant' : days <= 0 ? 'prochaine révision aujourd’hui' : `prochaine révision dans ${plural(days, 'jour', 'jours')}`;
+    return `<div class="memory">
+      <span class="mem-text">${ic('brain')}Mémoire <b class="num">${pct} %</b><span class="mem-bar" aria-hidden="true"><span style="transform:scaleX(${r})" class="${pct < 85 ? 'low' : ''}"></span></span><span class="muted">${when}</span></span>
+      <a class="btn ghost sm" href="${link(s.id, node.id, 'revision')}">${ic('play', true)}Réviser cette partie</a>
+    </div>`;
   }
 
   function autoGrow(el) {
@@ -417,86 +460,620 @@
       </div>`;
   }
 
-  /* ----- Révision ----- */
-  function startReview(onlyTodo) {
-    const s = subjectById(view.id);
-    const base = find(s.root, view.nodeId).node;
-    const cards = [];
+  /* ----- Révision active avec répétition espacée -----
+     Recherche : se tester bat la relecture (Dunlosky 2013, Karpicke 2009), espacer bat le bachotage,
+     tenter une réponse avant de la voir aide à retenir (effet de prétest, à condition de voir la correction),
+     mélanger les sujets aide sur la durée (entrelacement). */
+  let study = null;
+  const STOP = new Set(('les des une un le la de du et en est sont pour par dans sur avec que qui pas plus ce cette ces son sa ses leur leurs aux au ou il elle ils elles on nous vous mais donc car comme tout tous toute toutes être avoir fait faire peut entre lors très aussi ainsi alors elle elles celui celle dont même autre autres the and for with that this from are was have').split(' '));
+  const normTxt = (t) => String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+
+  function makeCloze(kp) {
+    const plain = kp.replace(/\*\*/g, '').replace(/==/g, '');
+    const bold = kp.match(/\*\*([^*]{2,40})\*\*/);
+    let word = bold ? bold[1] : null;
+    if (!word) {
+      const words = plain.match(/[A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ0-9’'-]{3,}/g) || [];
+      const cands = words.filter((w) => !STOP.has(w.toLowerCase()) && !/^\d+$/.test(w));
+      if (!cands.length) return null;
+      // Le mot le plus long est souvent le terme technique ; on évite le tout premier mot de la phrase
+      cands.sort((a, b) => b.length - a.length);
+      word = cands.find((w) => plain.indexOf(w) > 0) || cands[0];
+    }
+    const i = plain.indexOf(word);
+    if (i < 0 || plain.length < 12) return null;
+    return { before: plain.slice(0, i), answer: word, after: plain.slice(i + word.length) };
+  }
+
+  // Cartes d'un sujet (ou d'une branche) : dues, nouvelles, et le reste
+  function collect(s, base, now) {
+    const due = [], fresh = [], other = [];
     walk(base, (n, d) => {
       if (d === 0 && base.children.length) return;
-      if (onlyTodo && n.status === 'done') return;
-      cards.push(n.id);
+      if (!n.srs) fresh.push(n);
+      else if (SRS.isDue(n.srs, now)) due.push(n);
+      else other.push(n);
     });
-    for (let i = cards.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [cards[i], cards[j]] = [cards[j], cards[i]]; }
-    review = { cards, i: 0, flipped: false, known: 0, again: 0 };
+    due.sort((a, b) => SRS.retrievability(a.srs, now) - SRS.retrievability(b.srs, now));
+    return { s, due, fresh, other };
+  }
+  function overview(scope) {
+    const now = Date.now();
+    const lists = scope.type === 'all'
+      ? state.subjects.map((s) => collect(s, s.root, now))
+      : [collect(subjectById(scope.sid), find(subjectById(scope.sid).root, scope.nid).node, now)];
+    const td = SRS.today(state.stats);
+    const newLeft = Math.max(0, state.settings.newPerDay - td.newCards);
+    const due = lists.reduce((a, l) => a + l.due.length, 0);
+    const fresh = lists.reduce((a, l) => a + l.fresh.length, 0);
+    const other = lists.reduce((a, l) => a + l.other.length, 0);
+    return { lists, due, fresh, newToday: Math.min(fresh, newLeft), total: due + fresh + other };
+  }
+  function buildSession(scope) {
+    const ov = overview(scope);
+    // Entrelacement : on alterne les sujets (une carte de chaque à tour de rôle)
+    const pick = (key, limit) => {
+      const out = [];
+      const pools = ov.lists.map((l) => ({ sid: l.s.id, items: l[key].slice() }));
+      let added = true;
+      while (added && out.length < limit) {
+        added = false;
+        for (const p of pools) {
+          if (out.length >= limit) break;
+          const n = p.items.shift();
+          if (n) { out.push({ sid: p.sid, nid: n.id }); added = true; }
+        }
+      }
+      return out;
+    };
+    let queue = pick('due', 300);
+    queue = scope.cram ? queue.concat(pick('fresh', 300), pick('other', 300)) : queue.concat(pick('fresh', ov.newToday));
+    study = { scope, queue: queue.slice(0, 60), i: 0, phase: 'ask', prompt: null, typed: '', conf: null, res: [0, 0, 0, 0], requeued: {}, total: 0 };
+    preparePrompt();
+  }
+  const studyKey = (scope) => (scope.type === 'all' ? 'all' : `${scope.sid}/${scope.nid}`);
+
+  function currentCard() {
+    if (!study || study.i >= study.queue.length) return null;
+    const q = study.queue[study.i];
+    const s = subjectById(q.sid);
+    const f = s && find(s.root, q.nid);
+    return f ? { s, node: f.node } : null;
+  }
+  function preparePrompt() {
+    const c = currentCard();
+    study.phase = 'ask'; study.typed = ''; study.conf = null; study.prompt = { type: 'recall' };
+    if (!c) return;
+    const kps = c.node.keyPoints.filter((k) => k.trim().length > 12);
+    if (kps.length && Math.random() < 0.65) {
+      const cl = makeCloze(kps[Math.floor(Math.random() * kps.length)]);
+      if (cl) study.prompt = { type: 'cloze', ...cl };
+    }
+  }
+
+  function studyPane() { return $('#paneBody'); }
+
+  function renderStudy() {
+    const pane = studyPane();
+    if (!pane || !study) return;
+    if (!study.queue.length) {
+      const ov = overview({ ...study.scope, cram: true });
+      pane.innerHTML = `
+        <div class="review-start">
+          <span class="tile big">${ic('check-circle', true)}</span>
+          <h2>Rien à réviser pour l’instant</h2>
+          <p class="muted">Ta mémoire est à jour. Arbor te reproposera chaque partie juste avant que tu l’oublies.</p>
+          <div class="row-btns center">
+            ${ov.total ? `<button class="btn ghost" data-act="study-start" data-cram="1">${ic('cards')}Réviser quand même (${ov.total})</button>` : ''}
+            <a class="btn" href="#/">${ic('house')}Retour à l’accueil</a>
+          </div>
+        </div>`;
+      return;
+    }
+    if (study.i >= study.queue.length) return renderSummary();
+    const { s, node } = currentCard();
+    const path = pathTo(s.root, node.id).slice(1, -1).map((p) => p.title);
+    const p = study.prompt;
+    const show = study.phase === 'show';
+    const typedOk = p.type === 'cloze' && study.typed && normTxt(study.typed) === normTxt(p.answer);
+    const intervals = SRS.preview(node.srs);
+    const isNew = !node.srs;
+    pane.innerHTML = `
+      <div class="study">
+        <div class="review-progress">
+          ${bar((study.i / study.queue.length) * 100)}
+          <span class="num">${study.i + 1} / ${study.queue.length}</span>
+        </div>
+        <article class="study-card ${show ? 'is-shown' : ''}" id="studyCard" style="--c:${s.color}">
+          <header class="sc-meta">
+            <span class="tile sm" style="--c:${s.color}">${ic(s.icon, true)}</span>
+            <span class="sc-path">${esc([s.title, ...path].join(' › '))}</span>
+            ${isNew ? '<span class="chip new-chip">Nouvelle</span>' : `<span class="chip" title="Probabilité de t’en souvenir maintenant">Mémoire ${Math.round(SRS.retrievability(node.srs) * 100)} %</span>`}
+          </header>
+          ${p.type === 'cloze'
+            ? `<p class="q-kind">${ic('text-aa')}Complète la phrase</p>
+               <p class="cloze">${esc(p.before)}<span class="blank ${show ? 'filled' : ''}">${show ? esc(p.answer) : '…'}</span>${esc(p.after)}</p>`
+            : `<p class="q-kind">${ic('brain')}Rappel libre</p>
+               <h2 class="q-title">${esc(node.title)}</h2>
+               <p class="muted">${show ? '' : 'Récite tout ce que tu sais sur cette partie, sans regarder. Écrire, même approximativement, aide à retenir.'}</p>`}
+          ${show ? `
+            ${study.typed ? `<div class="your-answer ${p.type === 'cloze' ? (typedOk ? 'ok' : 'ko') : ''}">
+              <small>${p.type === 'cloze' ? (typedOk ? `${ic('check-circle', true)}Bonne réponse` : `${ic('x-circle', true)}Ta réponse`) : 'Ta réponse'}</small>
+              <p>${esc(study.typed)}</p></div>` : ''}
+            <div class="answer">
+              ${p.type === 'cloze' ? `<p class="answer-title">${esc(node.title)}</p>` : ''}
+              ${node.keyPoints.length ? `<ul class="kps-back">${node.keyPoints.map((k) => `<li>${MD.render(k).replace(/^<p>|<\/p>$/g, '')}</li>`).join('')}</ul>` : ''}
+              ${node.explain.trim() ? `<div class="explain-back"><small>${ic('chat-circle-text')}Ton explication</small>${MD.render(node.explain)}</div>` : ''}
+              ${node.notes.trim() ? `<details class="notes-more"><summary>Voir les notes</summary><div class="md">${MD.render(node.notes)}</div></details>` : ''}
+              ${!node.keyPoints.length && !node.notes.trim() && !node.explain.trim() ? `<p class="muted">Cette partie n’a pas encore de contenu. Ajoute des points clés dans sa fiche pour des révisions plus précises.</p>` : ''}
+            </div>
+            <div class="grade-wrap">
+              <p class="grade-q">Comment ça s’est passé ?</p>
+              <div class="grades" role="group" aria-label="Évaluer ta réponse">
+                ${[['1', 'Oublié', 'again'], ['2', 'Difficile', 'hard'], ['3', 'Bien', 'good'], ['4', 'Facile', 'easy']].map(([g, l, cls], i) =>
+                  `<button class="grade ${cls}" data-act="grade" data-g="${g}"><b>${l}</b><small>${intervals[i]}</small><kbd>${g}</kbd></button>`).join('')}
+              </div>
+              <p class="hint swipe-hint">Glisse la carte : à droite pour Bien, à gauche pour Oublié.</p>
+            </div>`
+          : `
+            <label class="sr-only" for="typed">Ta réponse</label>
+            ${p.type === 'cloze'
+              ? `<input id="typed" class="answer-input" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Le mot manquant…" value="${esc(study.typed)}" />`
+              : `<textarea id="typed" class="answer-input" rows="3" placeholder="Ce dont tu te souviens…">${esc(study.typed)}</textarea>`}
+            <div class="conf" role="group" aria-label="Ta confiance avant de voir la réponse">
+              <span class="conf-label">Ta confiance</span>
+              ${[['unsure', 'Pas sûr'], ['mid', 'Plutôt sûr'], ['sure', 'Certain']].map(([k, l]) => `<button class="chip-btn" data-act="conf" data-c="${k}" aria-pressed="${study.conf === k}">${l}</button>`).join('')}
+            </div>
+            <button class="btn big reveal" data-act="reveal">${ic('eye')}Voir la réponse<kbd>Entrée</kbd></button>`}
+        </article>
+      </div>`;
+    const t = $('#typed');
+    if (t && matchMedia('(pointer: fine)').matches) t.focus();
+    if (show) bindSwipe($('#studyCard'));
+  }
+
+  function renderSummary() {
+    const pane = studyPane();
+    const [again, hard, good, easy] = study.res;
+    const n = again + hard + good + easy;
+    const ok = hard + good + easy;
+    const cal = (state.stats.calib && state.stats.calib.sure) || [0, 0];
+    const calPct = cal[1] ? Math.round((cal[0] / cal[1]) * 100) : null;
+    const td = SRS.today(state.stats);
+    const tomorrow = (() => {
+      const lim = Date.now() + SRS.DAY;
+      let c = 0;
+      state.subjects.forEach((s) => walk(s.root, (x) => { if (x.srs && x.srs.due <= lim) c++; }));
+      return c;
+    })();
+    pane.innerHTML = `
+      <div class="review-start summary">
+        <span class="tile big">${ic('trophy', true)}</span>
+        <h2>Session terminée</h2>
+        <div class="score">
+          <div><b class="num txt-ok">${ok}</b><span>retrouvées</span></div>
+          <div><b class="num txt-warn">${again}</b><span>oubliées</span></div>
+          <div><b class="num">${n ? Math.round((ok / n) * 100) : 0} %</b><span>réussite</span></div>
+        </div>
+        <div class="insights">
+          <p>${ic('target')}Objectif du jour : <b>${Math.min(td.reviews, state.settings.dailyGoal)}/${state.settings.dailyGoal}</b> cartes${td.reviews >= state.settings.dailyGoal ? ', atteint !' : '.'}</p>
+          ${calPct !== null && cal[1] >= 5 ? `<p>${ic('scales')}Quand tu te dis <b>certain</b>, tu as raison <b>${calPct} %</b> du temps.${calPct < 80 ? ' Méfie-toi de l’impression de déjà-vu : vérifie-toi davantage.' : ' Tu te connais bien !'}</p>` : `<p>${ic('scales')}Indique ta confiance avant de retourner les cartes : Arbor te dira si tu te surestimes.</p>`}
+          <p>${ic('calendar-check')}${tomorrow ? `${plural(tomorrow, 'carte reviendra', 'cartes reviendront')} d’ici demain.` : 'Rien de prévu demain : profite !'}</p>
+        </div>
+        <div class="row-btns center">
+          <button class="btn" data-act="study-start">${ic('arrow-counter-clockwise')}Nouvelle session</button>
+          <a class="btn ghost" href="#/">${ic('house')}Accueil</a>
+        </div>
+      </div>`;
+    if (n && !study.celebrated) { study.celebrated = true; FX.confetti(undefined, undefined, 110); Mascot.react('finished'); }
+  }
+
+  function reveal() {
+    if (!study || study.phase !== 'ask') return;
+    const t = $('#typed');
+    study.typed = t ? t.value.trim() : '';
+    study.phase = 'show';
+    renderStudy();
+    const card = $('#studyCard');
+    if (card && !reducedMotion()) card.querySelector('.answer') && card.querySelector('.answer').animate(
+      [{ opacity: 0, transform: 'translateY(8px)', filter: 'blur(2px)' }, { opacity: 1, transform: 'none', filter: 'blur(0)' }],
+      { duration: 260, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' });
+    const first = $('.grade.good'); first && matchMedia('(pointer: fine)').matches && first.focus({ preventScroll: true });
+  }
+
+  function gainXP(n) {
+    const before = Math.floor(state.xp / 100);
+    state.xp += n;
+    renderXP(true);
+    if (Math.floor(state.xp / 100) > before) { FX.toast(`Niveau ${before + 2} atteint`, 'success'); FX.confetti(undefined, undefined, 120); }
+  }
+
+  function grade(g, origin) {
+    const c = currentCard();
+    if (!c || study.phase !== 'show' || study.busy) return;
+    const { s, node } = c;
+    const wasNew = !node.srs;
+    node.srs = SRS.schedule(node.srs, g);
+    s.updatedAt = Date.now();
+    const td = SRS.today(state.stats);
+    td.reviews++;
+    if (wasNew) td.newCards++;
+    if (g >= 2) td.correct++;
+    if (study.conf) {
+      state.stats.calib = state.stats.calib || {};
+      const k = state.stats.calib[study.conf] || [0, 0];
+      state.stats.calib[study.conf] = [k[0] + (g >= 3 ? 1 : 0), k[1] + 1];
+    }
+    study.res[g - 1]++;
+    // Statut visible : « maîtrisé » quand la mémoire tient au moins 3 semaines
+    if (g === 1) { if (node.status !== 'doing') { node.status = 'doing'; } }
+    else if (node.srs.s >= 21 && node.status !== 'done') setStatus(node, 'done', origin);
+    else if (node.status === 'todo') node.status = 'doing';
+    gainXP(2);
+    if (td.reviews === state.settings.dailyGoal) {
+      FX.toast('Objectif du jour atteint !', 'success');
+      FX.confetti(undefined, undefined, 140);
+      Mascot.react('goal');
+    } else if (g === 1 && Math.random() < 0.5) Mascot.react('again');
+    // « Oublié » : la carte revient un peu plus loin dans la session (2 fois au maximum)
+    if (g === 1) {
+      const key = node.id;
+      study.requeued[key] = (study.requeued[key] || 0) + 1;
+      if (study.requeued[key] <= 2) study.queue.splice(Math.min(study.queue.length, study.i + 4), 0, study.queue[study.i]);
+    }
+    save();
+    updateBadges();
+    const card = $('#studyCard');
+    const next = () => {
+      study.busy = false;
+      study.i++;
+      preparePrompt();
+      renderStudy();
+      if (view.name === 'subject') { renderTree(); refreshProgress(); }
+      const nc = $('#studyCard'); nc && nc.classList.add('card-in');
+    };
+    if (card && !reducedMotion()) {
+      study.busy = true;
+      const dir = g >= 3 ? 1 : -1;
+      const from = card.style.transform || 'translateX(0) rotate(0deg)';
+      card.animate([
+        { transform: from, opacity: 1 },
+        { transform: `translateX(${dir * 70}%) rotate(${dir * 9}deg)`, opacity: 0 },
+      ], { duration: 240, easing: 'cubic-bezier(0.4, 0, 1, 1)', fill: 'forwards' }).finished.then(next);
+    } else next();
+  }
+
+  /* Glisser la carte (mobile et souris) : à droite = Bien, à gauche = Oublié.
+     Validation à la distance OU à la vitesse (un petit geste rapide suffit). */
+  function bindSwipe(card) {
+    if (!card) return;
+    let x0 = null, t0 = 0, dx = 0, id = null;
+    card.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('button, a, summary, input, textarea') || id !== null) return;
+      id = e.pointerId; x0 = e.clientX; t0 = performance.now(); dx = 0;
+      card.setPointerCapture(id);
+      card.style.transition = 'none';
+    });
+    card.addEventListener('pointermove', (e) => {
+      if (e.pointerId !== id) return;
+      dx = e.clientX - x0;
+      card.style.transform = `translateX(${dx}px) rotate(${dx / 22}deg)`;
+      card.dataset.swipe = dx > 40 ? 'good' : dx < -40 ? 'again' : '';
+    });
+    const end = (e) => {
+      if (e.pointerId !== id) return;
+      id = null;
+      const v = Math.abs(dx) / Math.max(1, performance.now() - t0);
+      card.style.transition = '';
+      if (Math.abs(dx) > 110 || (v > 0.5 && Math.abs(dx) > 30)) grade(dx > 0 ? 3 : 1, card);
+      else { card.style.transform = ''; card.dataset.swipe = ''; }
+    };
+    card.addEventListener('pointerup', end);
+    card.addEventListener('pointercancel', end);
   }
 
   function renderReview() {
     const s = subjectById(view.id);
-    const pane = $('#paneBody');
-    if (!review) {
-      const base = find(s.root, view.nodeId).node;
-      const st = stats(base);
-      const left = st.total - st.done;
-      pane.innerHTML = `
-        <div class="review-start">
-          <span class="tile big" style="--c:${s.color}">${ic('cards', true)}</span>
-          <h2>Réviser « ${esc(base.id === s.root.id ? s.title : base.title)} »</h2>
-          <p class="muted">${plural(st.total, 'carte', 'cartes')}, dont ${fmt.format(left)} à travailler.</p>
-          <div class="row-btns center">
-            ${left ? `<button class="btn" data-act="review-go" data-only="1">${ic('play')}Réviser les ${plural(left, 'carte restante', 'cartes restantes')}</button>` : ''}
-            <button class="btn ${left ? 'ghost' : ''}" data-act="review-go" data-only="0">${ic('cards')}Tout réviser</button>
-          </div>
-          <p class="hint">Sélectionne une partie dans l’arbre pour ne réviser que cette branche. Raccourcis : <kbd>Espace</kbd> retourner, <kbd>←</kbd> à revoir, <kbd>→</kbd> je maîtrise.</p>
-        </div>`;
-      return;
-    }
-    if (review.i >= review.cards.length) {
-      pane.innerHTML = `
-        <div class="review-start">
-          <span class="tile big" style="--c:${s.color}">${ic('trophy', true)}</span>
-          <h2>Session terminée</h2>
-          <div class="score">
-            <div><b class="num txt-ok">${review.known}</b><span>maîtrisées</span></div>
-            <div><b class="num txt-warn">${review.again}</b><span>à revoir</span></div>
-          </div>
-          <div class="row-btns center">
-            <button class="btn" data-act="review-reset">${ic('arrow-counter-clockwise')}Nouvelle session</button>
-            <a class="btn ghost" href="${link(s.id, view.nodeId)}">${ic('note-pencil')}Retour à la fiche</a>
-          </div>
-        </div>`;
-      if (review.known && !review.celebrated) { review.celebrated = true; FX.confetti(undefined, undefined, 110); }
-      return;
-    }
-    const f = find(s.root, review.cards[review.i]);
-    if (!f) { review.i++; return renderReview(); }
-    const n = f.node;
-    const path = pathTo(s.root, n.id).slice(1, -1).map((p) => p.title);
-    const back = `${n.keyPoints.length ? `<ul class="kps-back">${n.keyPoints.map((k) => `<li>${MD.render(k).replace(/^<p>|<\/p>$/g, '')}</li>`).join('')}</ul>` : ''}
-      ${n.notes.trim() ? `<div class="md">${MD.render(n.notes)}</div>` : ''}
-      ${!n.keyPoints.length && !n.notes.trim() ? `<p class="muted">Pas encore de contenu. Sous-parties : ${n.children.map((c) => esc(c.title)).join(', ') || 'aucune'}.</p>` : ''}`;
-    pane.innerHTML = `
-      <div class="review">
-        <div class="review-progress">
-          ${bar((review.i / review.cards.length) * 100)}
-          <span class="num">${review.i + 1} / ${review.cards.length}</span>
+    const scope = { type: 'node', sid: s.id, nid: view.nodeId };
+    if (study && studyKey(study.scope) === studyKey(scope)) return renderStudy();
+    const base = find(s.root, view.nodeId).node;
+    const ov = overview(scope);
+    const start = ov.due + ov.newToday;
+    $('#paneBody').innerHTML = `
+      <div class="review-start">
+        <span class="tile big" style="--c:${s.color}">${ic('cards', true)}</span>
+        <h2>Réviser « ${esc(base.id === s.root.id ? s.title : base.title)} »</h2>
+        <div class="score small">
+          <div><b class="num">${ov.due}</b><span>à revoir</span></div>
+          <div><b class="num">${ov.fresh}</b><span>nouvelles</span></div>
+          <div><b class="num">${ov.total}</b><span>au total</span></div>
         </div>
-        <div class="flip ${review.flipped ? 'flipped' : ''}" data-act="flip" role="button" tabindex="0" aria-label="${review.flipped ? 'Voir la question' : 'Retourner la carte'}">
-          <div class="flip-inner">
-            <div class="face front">
-              <small>${esc(path.join(' › ') || s.title)}</small>
-              <strong class="q">${esc(n.title)}</strong>
-              <span class="muted">Que sais-tu sur cette partie ? Réfléchis, puis retourne la carte.</span>
-              <span class="flip-hint">${ic('arrows-clockwise')}Retourner <kbd>Espace</kbd></span>
-            </div>
-            <div class="face back"><strong class="back-title">${esc(n.title)}</strong>${back}</div>
-          </div>
+        <div class="row-btns center">
+          ${start ? `<button class="btn" data-act="study-start">${ic('play')}Commencer (${start})</button>` : ''}
+          <button class="btn ${start ? 'ghost' : ''}" data-act="study-start" data-cram="1">${ic('cards')}Tout réviser (${ov.total})</button>
         </div>
-        <div class="row-btns center review-actions" ${review.flipped ? '' : 'inert'}>
-          <button class="btn warn" data-act="review-answer" data-ok="0">${ic('arrow-counter-clockwise')}À revoir</button>
-          <button class="btn ok" data-act="review-answer" data-ok="1">${ic('check')}Je maîtrise</button>
-        </div>
+        <p class="hint">Les cartes dues sont celles que tu risques d’oublier. Sélectionne une partie dans l’arbre pour ne réviser que cette branche.</p>
       </div>`;
+  }
+
+  function startStudy(cram) {
+    const scope = view.name === 'subject'
+      ? { type: 'node', sid: view.id, nid: view.nodeId, cram: !!cram }
+      : { type: 'all', cram: !!cram };
+    buildSession(scope);
+    renderStudy();
+  }
+
+  function renderGlobalStudy() {
+    document.documentElement.style.removeProperty('--accent');
+    app.innerHTML = `
+      <section class="study-page">
+        <header class="study-head">
+          <a class="back-link" href="#/">${ic('arrow-left')}Accueil</a>
+          <h1>Révision du jour</h1>
+          <p class="muted">Tes sujets sont mélangés : c’est plus exigeant, et c’est ce qui fait tenir les souvenirs.</p>
+        </header>
+        <div id="paneBody"></div>
+      </section>`;
+    if (!study || study.scope.type !== 'all' || (study.i >= study.queue.length && study.celebrated)) buildSession({ type: 'all' });
+    renderStudy();
+  }
+
+  /* Nombre de cartes dues (pastilles de navigation) */
+  function dueCount() {
+    const now = Date.now();
+    let n = 0;
+    state.subjects.forEach((s) => walk(s.root, (x, d) => { if (!(d === 0 && s.root.children.length) && SRS.isDue(x.srs, now)) n++; }));
+    return n;
+  }
+  function updateBadges() {
+    const ov = overview({ type: 'all' });
+    const n = ov.due + ov.newToday;
+    $$('.due-count').forEach((b) => { b.textContent = n > 99 ? '99+' : n; b.hidden = !n; });
+    Mascot.setThirst && Mascot.setThirst(ov.due);
+  }
+
+  function greeting() {
+    const h = new Date().getHours();
+    return h < 5 ? 'Bonsoir' : h < 12 ? 'Bonjour' : h < 18 ? 'Bon après-midi' : 'Bonsoir';
+  }
+
+  function todayPanel() {
+    const ov = overview({ type: 'all' });
+    const td = SRS.today(state.stats);
+    const goal = state.settings.dailyGoal;
+    const goalPct = Math.min(100, Math.round((td.reviews / goal) * 100));
+    const streak = SRS.streak(state.stats);
+    const week = SRS.last7(state.stats);
+    const max = Math.max(goal, ...week.map((d) => d.reviews));
+    const n = ov.due + ov.newToday;
+    const nextDue = (() => {
+      let t = Infinity;
+      state.subjects.forEach((s) => walk(s.root, (x) => { if (x.srs && x.srs.due > Date.now()) t = Math.min(t, x.srs.due); }));
+      return t === Infinity ? null : t;
+    })();
+    return `
+      <section class="today" aria-labelledby="todayTitle">
+        <div class="today-main">
+          <p class="kicker">${greeting()}</p>
+          <h1 id="todayTitle">${n ? `${plural(n, 'carte t’attend', 'cartes t’attendent')}` : ov.total ? 'Ta mémoire est à jour' : 'Prêt à commencer ?'}</h1>
+          <p class="lede">${n
+            ? `${ov.due ? `${plural(ov.due, 'partie à revoir', 'parties à revoir')} avant de l’oublier` : 'Aucune partie en danger'}${ov.newToday ? `, ${plural(ov.newToday, 'nouvelle à découvrir', 'nouvelles à découvrir')}` : ''}. Compte environ ${Math.max(2, Math.round(n * 0.4))} minutes.`
+            : ov.total ? `Prochaine révision ${nextDue ? new Intl.RelativeTimeFormat('fr-FR', { numeric: 'auto' }).format(Math.max(1, Math.round((nextDue - Date.now()) / SRS.DAY)), 'day') : 'bientôt'}. Profites-en pour approfondir une fiche ou ajouter des parties.`
+            : 'Crée un sujet ou importe un PDF : chaque partie deviendra une carte de révision.'}</p>
+          <div class="row-btns">
+            ${n ? `<a class="btn big" href="#/reviser">${ic('play', true)}Commencer la révision</a>` : `<button class="btn big" data-act="new-subject">${ic('plus')}Nouveau sujet</button>`}
+            <button class="btn ghost big" data-act="focus-open">${ic('timer')}Focus ${state.settings.focusMin} min</button>
+          </div>
+          <a class="method-link" href="#/methode">${ic('lightbulb')}Pourquoi cette méthode marche</a>
+        </div>
+        <div class="today-stats">
+          <div class="stat goal-stat">
+            ${ring(goalPct, 64)}
+            <div><b class="num">${td.reviews}/${goal}</b><span>cartes aujourd’hui</span></div>
+          </div>
+          <div class="stat streak-stat ${streak ? 'on' : ''}">
+            <span class="flame">${ic('fire', true)}</span>
+            <div><b class="num">${plural(streak, 'jour', 'jours')}</b><span>${streak ? 'de série, continue !' : 'Révise aujourd’hui pour lancer ta série'}</span></div>
+          </div>
+          <div class="stat week-stat">
+            <div class="week" aria-label="Cartes révisées ces 7 derniers jours">
+              ${week.map((d, i) => `<div class="day ${i === 6 ? 'is-today' : ''}" title="${d.reviews} cartes"><span style="--h:${d.reviews ? Math.max(8, (d.reviews / max) * 100) : 4}%"></span><small>${d.label}</small></div>`).join('')}
+            </div>
+            <div><b class="num">${week.reduce((a, d) => a + d.reviews, 0)}</b><span>cette semaine${td.focusMin ? `, ${td.focusMin} min de focus aujourd’hui` : ''}</span></div>
+          </div>
+        </div>
+      </section>`;
+  }
+
+  /* ----- Page « La méthode » : ce que dit la recherche, et ce qu'Arbor en fait ----- */
+  function renderMethod() {
+    document.documentElement.style.removeProperty('--accent');
+    const items = [
+      { icon: 'eye-slash', title: 'Relire donne l’illusion de savoir',
+        text: 'Dans une enquête auprès d’étudiants, 83 % disaient relire leurs cours, et 54 % en faisaient leur méthode n°1. Relire rend le texte familier, et cette familiarité se fait passer pour de la maîtrise.',
+        arbor: 'Arbor ne te montre la réponse qu’après que tu as essayé de t’en souvenir.',
+        src: [['Karpicke, Butler et Roediger (2009)', 'https://bpb-us-e2.wpmucdn.com/sites.wustl.edu/dist/8/805/files/2026/06/Karpicke-et-al.-2009-Metacognitive-strategies-in-student-learning-Do-students-practise-retrieval-when-they-study-on-thei.pdf']], level: 'Solide' },
+      { icon: 'brain', title: 'Se tester est la technique la plus efficace',
+        text: 'Une grande revue de dix techniques d’étude classe deux méthodes « très utiles » : se tester et espacer ses révisions. Relire, surligner et résumer arrivent en bas du classement.',
+        arbor: 'Chaque partie devient une carte : rappel libre ou phrase à compléter tirée de tes points clés.',
+        src: [['Dunlosky et al. (2013)', 'https://www.psychologicalscience.org/journals/pspi/1529100612453266/']], level: 'Très solide' },
+      { icon: 'calendar-check', title: 'Espacer bat le bachotage',
+        text: 'On oublie vite, puis de moins en moins vite à chaque rappel réussi. Réviser juste avant d’oublier renforce le souvenir avec le moins d’effort possible.',
+        arbor: 'L’algorithme FSRS calcule pour chaque partie le moment où ta mémoire passe sous 90 %, et la remet dans ta révision du jour.',
+        src: [['FSRS, algorithme open source', 'https://github.com/open-spaced-repetition'], ['Dunlosky et al. (2013)', 'https://www.psychologicalscience.org/journals/pspi/1529100612453266/']], level: 'Très solide' },
+      { icon: 'pencil-simple-line', title: 'Essayer de répondre, même faux, aide',
+        text: 'Tenter une réponse avant de voir la correction améliore la mémorisation, même quand la tentative est fausse. Condition : voir la bonne réponse juste après.',
+        arbor: 'Tu écris ta réponse avant de retourner la carte, puis tu la compares à la correction.',
+        src: [['Revue sur l’effet de prétest (2022)', 'https://link.springer.com/article/10.3758/s13421-022-01392-1']], level: 'Solide' },
+      { icon: 'chat-circle-text', title: 'S’expliquer avec ses mots',
+        text: 'Se demander « pourquoi est-ce vrai ? » et s’expliquer une notion améliore la compréhension, avec un effet modéré.',
+        arbor: 'Chaque fiche a une zone « Explique-le simplement », reprise au dos de la carte.',
+        src: [['Dunlosky et al. (2013)', 'https://www.psychologicalscience.org/journals/pspi/1529100612453266/'], ['Synthèse sur l’auto-explication', 'https://www.structural-learning.com/research-briefings/ask-why-and-how']], level: 'Modéré' },
+      { icon: 'shuffle', title: 'Mélanger les sujets',
+        text: 'Alterner les sujets rend la révision plus difficile sur le moment, mais aide à retenir plus tard. L’effet varie selon la matière.',
+        arbor: 'La révision du jour mélange tes sujets ; la révision d’un seul sujet reste possible.',
+        src: [['Dunlosky et al. (2013)', 'https://www.psychologicalscience.org/journals/pspi/1529100612453266/']], level: 'Modéré' },
+      { icon: 'scales', title: 'Savoir ce qu’on sait vraiment',
+        text: 'Nos jugements de « je le sais » sont souvent mal calibrés. Se tester donne des indices bien plus fiables que l’impression de familiarité.',
+        arbor: 'Tu indiques ta confiance avant de répondre ; Arbor te montre si tu te surestimes.',
+        src: [['Recherche sur les jugements d’apprentissage', 'https://pmc.ncbi.nlm.nih.gov/articles/PMC2836879']], level: 'Solide' },
+      { icon: 'device-mobile-slash', title: 'Le téléphone et la procrastination',
+        text: 'Plusieurs études récentes relient la distraction par le smartphone à la procrastination et à l’anxiété scolaire. Ce sont surtout des corrélations, mais le lien revient souvent.',
+        arbor: 'Le mode Focus, des objectifs courts (15 cartes) et une série quotidienne pour démarrer sans négocier avec soi-même.',
+        src: [['Étude sur 474 étudiants (2024)', 'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11428987/'], ['Pauses et fatigue (2025)', 'https://doaj.org/article/ba3ad862547f4f16a55b776eb52ab784']], level: 'Indicatif' },
+    ];
+    app.innerHTML = `
+      <section class="method">
+        <header class="method-head">
+          <a class="back-link" href="#/">${ic('arrow-left')}Accueil</a>
+          <h1>Pourquoi tu oublies, et comment Arbor t’aide</h1>
+          <p class="lede">La plupart des étudiants révisent de la façon qui donne l’impression d’apprendre, pas de celle qui fait retenir. Voici ce que montre la recherche en sciences cognitives, et comment chaque fonction d’Arbor en découle.</p>
+        </header>
+        <ol class="method-list">
+          ${items.map((it, i) => `
+            <li class="method-item" style="--i:${i}">
+              <span class="tile">${ic(it.icon, true)}</span>
+              <div>
+                <div class="mi-head"><h2>${it.title}</h2><span class="chip level">${it.level}</span></div>
+                <p>${it.text}</p>
+                <p class="mi-arbor">${ic('tree', true)}<span>${it.arbor}</span></p>
+                <p class="mi-src">Sources : ${it.src.map(([l, u]) => `<a href="${u}" target="_blank" rel="noopener">${l}</a>`).join(', ')}</p>
+              </div>
+            </li>`).join('')}
+        </ol>
+        <p class="hint method-foot">Niveaux de preuve résumés honnêtement : « très solide » pour des effets répliqués des centaines de fois, « indicatif » pour des études surtout corrélationnelles.</p>
+      </section>`;
+  }
+
+  /* ----- Mode Focus : minuteur de concentration avec pauses fixes ----- */
+  const focus = { mode: 'work', endAt: 0, left: 0, running: false, tick: null };
+  try { Object.assign(focus, JSON.parse(localStorage.getItem('arbor:focus') || '{}'), { tick: null }); } catch (e) { /* rien */ }
+  const focusLen = () => (focus.mode === 'work' ? state.settings.focusMin : state.settings.breakMin) * 60000;
+  const mmss = (ms) => { const s = Math.max(0, Math.ceil(ms / 1000)); return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; };
+  function focusLeft() { return focus.running ? focus.endAt - Date.now() : (focus.left || focusLen()); }
+  function saveFocus() { try { localStorage.setItem('arbor:focus', JSON.stringify({ mode: focus.mode, endAt: focus.endAt, left: focus.left, running: focus.running })); } catch (e) { /* rien */ } }
+
+  function focusStart() {
+    if (focus.running) return;
+    focus.endAt = Date.now() + focusLeft();
+    focus.running = true;
+    saveFocus(); focusLoop();
+    if (focus.mode === 'work') Mascot.setFocus(true);
+    if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission().catch(() => {});
+    renderFocusUI();
+  }
+  function focusPause() { if (!focus.running) return; focus.left = focus.endAt - Date.now(); focus.running = false; saveFocus(); Mascot.setFocus(false); renderFocusUI(); }
+  function focusReset() { focus.running = false; focus.left = 0; focus.mode = 'work'; saveFocus(); Mascot.setFocus(false); renderFocusUI(); }
+  function focusLoop() {
+    clearInterval(focus.tick);
+    focus.tick = setInterval(() => {
+      if (!focus.running) { clearInterval(focus.tick); return; }
+      if (focusLeft() <= 0) focusDone();
+      renderFocusUI();
+    }, 1000);
+  }
+  function chime() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      [660, 880, 1320].forEach((f, i) => {
+        const o = ctx.createOscillator(); const g = ctx.createGain();
+        o.frequency.value = f; o.type = 'sine';
+        g.gain.setValueAtTime(0.0001, ctx.currentTime + i * 0.16);
+        g.gain.exponentialRampToValueAtTime(0.18, ctx.currentTime + i * 0.16 + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + i * 0.16 + 0.5);
+        o.connect(g).connect(ctx.destination); o.start(ctx.currentTime + i * 0.16); o.stop(ctx.currentTime + i * 0.16 + 0.55);
+      });
+    } catch (e) { /* audio indisponible */ }
+  }
+  function focusDone() {
+    const wasWork = focus.mode === 'work';
+    focus.running = false; focus.left = 0;
+    chime();
+    if (wasWork) {
+      SRS.today(state.stats).focusMin += state.settings.focusMin;
+      gainXP(5);
+      save();
+      FX.confetti(undefined, undefined, 80);
+      Mascot.setFocus(false);
+      Mascot.react('focusdone');
+      notify('Session de focus terminée', `Bravo ! Fais une pause de ${state.settings.breakMin} minutes.`);
+      focus.mode = 'break';
+      focusStart();
+    } else {
+      notify('Pause terminée', 'On s’y remet ?');
+      Mascot.say('Pause finie ! Prêt pour une nouvelle session ?');
+      focus.mode = 'work';
+    }
+    saveFocus(); renderFocusUI();
+    if (view.name === 'home') render(view);
+  }
+  function notify(title, body) {
+    try { if ('Notification' in window && Notification.permission === 'granted' && document.hidden) new Notification(title, { body, icon: 'icons/icon-192.png' }); } catch (e) { /* rien */ }
+  }
+
+  function renderFocusUI() {
+    const left = focusLeft();
+    const total = focusLen();
+    const pct = 1 - left / total;
+    // Pastille flottante (visible pendant un focus, sur tous les écrans)
+    const pill = $('#focusPill');
+    const active = focus.running || (focus.left && focus.left < total);
+    pill.hidden = !active;
+    pill.classList.toggle('break', focus.mode === 'break');
+    pill.querySelector('.fp-time').textContent = mmss(left);
+    pill.querySelector('.fp-label').textContent = focus.mode === 'work' ? 'Focus' : 'Pause';
+    $$('.focus-nav-label').forEach((el) => { el.textContent = active ? mmss(left) : 'Focus'; });
+    // Modale ouverte
+    const box = $('#focusBox');
+    if (box) {
+      box.querySelector('.fr-time').textContent = mmss(left);
+      box.querySelector('.fr-mode').textContent = focus.mode === 'work' ? 'Concentration' : 'Pause';
+      box.querySelector('.fr-progress').style.strokeDashoffset = String(1 - pct);
+      box.classList.toggle('break', focus.mode === 'break');
+      $('[data-act="focus-toggle"]').innerHTML = focus.running ? `${ic('pause', true)}Pause` : `${ic('play', true)}${focus.left ? 'Reprendre' : 'Démarrer'}`;
+    }
+  }
+
+  function focusModal() {
+    const tips = [
+      'Pose ton téléphone dans une autre pièce, ou au moins hors de vue.',
+      'Une seule tâche : une fiche, ou une révision. Pas les deux.',
+      'Pendant la pause, lève-toi et bouge : pas d’écran.',
+      'Prépare de l’eau avant de commencer.',
+    ];
+    openModal(`
+      <h2 id="modalTitle">Focus</h2>
+      <p class="modal-lede">${state.settings.focusMin} minutes de concentration, puis ${state.settings.breakMin} minutes de pause. Des pauses fixes aident à garder l’attention.</p>
+      <div class="focus-box" id="focusBox">
+        <svg viewBox="0 0 120 120" class="focus-ring" aria-hidden="true">
+          <circle cx="60" cy="60" r="52" class="fr-track"/>
+          <circle cx="60" cy="60" r="52" class="fr-progress" pathLength="1"/>
+        </svg>
+        <div class="fr-center"><span class="fr-mode"></span><b class="fr-time num" role="timer" aria-live="off"></b></div>
+      </div>
+      <div class="row-btns center">
+        <button class="btn big" data-act="focus-toggle"></button>
+        <button class="btn ghost big" data-act="focus-reset">${ic('arrow-counter-clockwise')}Réinitialiser</button>
+      </div>
+      <div class="field focus-len">
+        <label for="focusLen">Durée de concentration</label>
+        <select id="focusLen">${[15, 25, 45, 50].map((m) => `<option value="${m}" ${state.settings.focusMin === m ? 'selected' : ''}>${m} minutes</option>`).join('')}</select>
+      </div>
+      <ul class="tips">${tips.map((t) => `<li>${ic('check-circle', true)}${t}</li>`).join('')}</ul>`, (el) => {
+      $('#focusLen', el).onchange = (e) => {
+        state.settings.focusMin = +e.target.value;
+        state.settings.breakMin = state.settings.focusMin >= 45 ? 10 : 5;
+        save();
+        if (!focus.running) { focus.left = 0; }
+        renderFocusUI();
+      };
+    });
+    renderFocusUI();
+  }
+  if (focus.running) {
+    if (focusLeft() <= 0) { focus.running = false; focus.left = 0; focus.mode = 'work'; saveFocus(); }
+    else focusLoop();
   }
 
   /* ---------- Modales ---------- */
@@ -669,6 +1246,16 @@
             ${[['auto', 'Automatique (comme le système)'], ['light', 'Clair'], ['dark', 'Sombre']].map(([v, l]) => `<option value="${v}" ${st.theme === v ? 'selected' : ''}>${l}</option>`).join('')}
           </select>
         </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="dailyGoal">Objectif quotidien</label>
+            <select id="dailyGoal">${[10, 15, 20, 30, 50].map((v) => `<option value="${v}" ${st.dailyGoal === v ? 'selected' : ''}>${v} cartes</option>`).join('')}</select>
+          </div>
+          <div class="field">
+            <label for="newPerDay">Nouvelles cartes par jour</label>
+            <select id="newPerDay">${[5, 10, 20, 30].map((v) => `<option value="${v}" ${st.newPerDay === v ? 'selected' : ''}>${v}</option>`).join('')}</select>
+          </div>
+        </div>
         <label class="check switch-row"><input type="checkbox" id="mascotOn" ${st.mascot !== false ? 'checked' : ''} /> Afficher Pousse, la mascotte</label>
         <div class="field">
           <label for="apiKey">Clé API Claude <span class="optional">facultatif</span></label>
@@ -682,6 +1269,7 @@
               .map(([v, l]) => `<option value="${v}" ${st.model === v ? 'selected' : ''}>${l}</option>`).join('')}
           </select>
         </div>
+        ${installBlock()}
         <fieldset class="field">
           <legend>Sauvegarde</legend>
           <div class="row-btns">
@@ -691,18 +1279,28 @@
         </fieldset>
         <div class="row-btns end"><button class="btn">Enregistrer</button></div>
       </form>`, (el) => {
+      const ib = $('#installBtn', el); if (ib) ib.onclick = () => window.PWA && PWA.install();
       $('#expAll', el).onclick = () => exportJSON({ subjects: state.subjects, xp: state.xp }, 'arbor-sauvegarde');
       $('#impAll', el).onclick = () => $('#jsonInput').click();
       $('#setForm', el).onsubmit = (e) => {
         e.preventDefault();
         st.theme = $('#theme', el).value;
         st.mascot = $('#mascotOn', el).checked;
+        st.dailyGoal = +$('#dailyGoal', el).value;
+        st.newPerDay = +$('#newPerDay', el).value;
         Mascot.setEnabled(st.mascot);
         st.apiKey = $('#apiKey', el).value.trim();
         st.model = $('#model', el).value;
         applyTheme(); save(); closeModal(); FX.toast('Réglages enregistrés', 'success');
       };
     });
+  }
+
+  function installBlock() {
+    if (!window.PWA || PWA.installed()) return '';
+    if (PWA.canInstall()) return `<fieldset class="field"><legend>Application</legend><button type="button" class="btn ghost sm" id="installBtn">${ic('download-simple')}Installer Arbor sur cet appareil</button></fieldset>`;
+    if (PWA.isIOS()) return `<fieldset class="field"><legend>Application</legend><p class="hint">Sur iPhone : touche ${ic('export')} Partager, puis « Sur l’écran d’accueil ».</p></fieldset>`;
+    return '';
   }
 
   function exportJSON(data, name) {
@@ -961,48 +1559,15 @@
         touch(); go(link(s.id, parent.id)); FX.toast('Partie supprimée'); break;
       }
       case 'export-subject': exportJSON(s, s.title); break;
-      case 'review-go': startReview(t.dataset.only === '1'); renderReview(); $('.flip') && $('.flip').focus(); break;
-      case 'review-reset': review = null; renderReview(); break;
-      case 'flip': flip(); break;
-      case 'review-answer': answer(t.dataset.ok === '1', t); break;
+      case 'study-start': startStudy(t.dataset.cram === '1'); break;
+      case 'reveal': reveal(); break;
+      case 'conf': study.conf = study.conf === t.dataset.c ? null : t.dataset.c; $$('[data-act="conf"]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.c === study.conf)); break;
+      case 'grade': grade(+t.dataset.g, t); break;
+      case 'focus-open': focusModal(); break;
+      case 'focus-toggle': if (focus.running) focusPause(); else focusStart(); break;
+      case 'focus-reset': focusReset(); break;
     }
   });
-
-  function flip() {
-    if (!review) return;
-    review.flipped = !review.flipped;
-    const f = $('.flip');
-    f.classList.toggle('flipped', review.flipped);
-    f.setAttribute('aria-label', review.flipped ? 'Voir la question' : 'Retourner la carte');
-    const actions = $('.review-actions');
-    if (review.flipped) actions.removeAttribute('inert'); else actions.setAttribute('inert', '');
-  }
-
-  function answer(ok, origin) {
-    if (!review || review.busy || review.i >= review.cards.length) return;
-    const s = subjectById(view.id);
-    const f = find(s.root, review.cards[review.i]);
-    if (f) setStatus(f.node, ok ? 'done' : 'doing', origin);
-    if (!ok) Mascot.react('again');
-    if (ok) review.known++; else review.again++;
-    review.i++; review.flipped = false;
-    const next = () => {
-      review.busy = false;
-      renderReview(); renderTree(); refreshProgress();
-      if (review.i >= review.cards.length) Mascot.react('finished');
-      const fl = $('.flip');
-      if (fl) { fl.classList.add('card-in'); fl.focus(); }
-    };
-    const card = $('.flip');
-    if (card && !reducedMotion()) {
-      review.busy = true;
-      const dir = ok ? 1 : -1;
-      card.animate([
-        { transform: 'translateX(0) rotate(0deg)', opacity: 1 },
-        { transform: `translateX(${dir * 70}%) rotate(${dir * 9}deg)`, opacity: 0 },
-      ], { duration: 240, easing: 'cubic-bezier(0.4, 0, 1, 1)', fill: 'forwards' }).finished.then(next);
-    } else next();
-  }
 
   function refreshProgress() {
     const s = subjectById(view.id);
@@ -1017,6 +1582,7 @@
   /* Saisie : titre, notes, points clés, filtre */
   document.addEventListener('input', (e) => {
     const t = e.target;
+    if (t.id === 'typed' && study) { study.typed = t.value; return; }
     if (t.id === 'treeSearch') { treeFilter = t.value; renderTree(); return; }
     const cur = view.name === 'subject' && currentNode();
     if (!cur) return;
@@ -1028,6 +1594,10 @@
       cur.node.title = v;
       const lbl = $(`.row[data-node="${cur.node.id}"] .label`);
       if (lbl && cur.node.id !== s.root.id) lbl.textContent = v;
+      touch();
+    } else if (t.id === 'explainInput') {
+      autoGrow(t);
+      cur.node.explain = t.value;
       touch();
     } else if (t.id === 'notesInput') {
       autoGrow(t);
@@ -1046,12 +1616,11 @@
     }
     if (e.key === 'Escape' && !$('#modal').hidden) closeModal();
     if (e.key === 'Escape' && $('#treePane') && $('#treePane').classList.contains('open')) $('#treePane').classList.remove('open');
-    if (e.key === 'Enter' && e.target.classList && e.target.classList.contains('flip')) { e.preventDefault(); flip(); }
-    // raccourcis de révision
-    if (view.mode === 'revision' && review && review.i < review.cards.length && $('#modal').hidden && !e.target.closest('input, textarea, [contenteditable]')) {
-      if (e.key === ' ' && !e.target.closest('button, a')) { e.preventDefault(); flip(); }
-      if (review.flipped && e.key === 'ArrowRight') answer(true, $('.btn.ok'));
-      if (review.flipped && e.key === 'ArrowLeft') answer(false, $('.btn.warn'));
+    // Révision : Entrée pour voir la réponse (Maj+Entrée = retour à la ligne), 1 à 4 pour évaluer
+    if (study && $('#studyCard') && $('#modal').hidden) {
+      if (study.phase === 'ask' && e.key === 'Enter' && !e.shiftKey && !e.target.closest('a, [contenteditable], input:not(#typed), textarea:not(#typed), select, [data-act="reveal"], .modal')) { e.preventDefault(); reveal(); }
+      else if (study.phase === 'ask' && e.key === ' ' && !e.target.closest('input, textarea, [contenteditable], button, a')) { e.preventDefault(); reveal(); }
+      else if (study.phase === 'show' && /^[1-4]$/.test(e.key) && !e.target.closest('input, textarea, [contenteditable]')) { e.preventDefault(); grade(+e.key, $(`.grade[data-g="${e.key}"]`)); }
     }
   });
   document.addEventListener('focusout', (e) => {
@@ -1158,8 +1727,13 @@
     },
   });
 
+  $('#focusPill').onclick = focusModal;
   window.addEventListener('hashchange', route);
   applyTheme();
   renderXP();
   route();
+  renderFocusUI();
+  if (focus.running && focus.mode === 'work') Mascot.setFocus(true);
+  // À minuit (ou au retour sur l'onglet), les cartes dues changent
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) updateBadges(); });
 })();
