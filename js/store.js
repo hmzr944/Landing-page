@@ -1,9 +1,14 @@
-/* Arbor — données et persistance (localStorage) */
+/* Arbor : données et persistance (localStorage) */
 (function () {
   const KEY = 'arbor:v1';
 
-  const PALETTE = ['#7c5cff', '#ff5c8a', '#ffb020', '#22c55e', '#06b6d4', '#f97316', '#e879f9', '#3b82f6'];
-  const EMOJIS = ['🧠', '📚', '🧪', '🌍', '⚙️', '🎨', '🧬', '📐', '💡', '🏛️', '🎵', '💻', '⚖️', '🩺', '📈', '🪐'];
+  // Couleurs de sujet : toutes lisibles avec du texte blanc (contraste ≥ 4.5:1)
+  const PALETTE = ['#3451D1', '#D93A40', '#C2550A', '#0B7F75', '#0369A1', '#9333B8', '#C2255C', '#5B7A1E'];
+  // Icônes Phosphor proposées pour un sujet
+  const ICONS = ['book-open', 'brain', 'flask', 'atom', 'globe-hemisphere-west', 'bank', 'scales', 'heartbeat',
+    'calculator', 'chart-line-up', 'code', 'translate', 'music-notes', 'palette', 'planet', 'leaf'];
+  const OLD_COLORS = { '#7c5cff': '#3451D1', '#ff5c8a': '#C2255C', '#ffb020': '#C2550A', '#22c55e': '#0B7F75', '#06b6d4': '#0369A1', '#f97316': '#C2550A', '#e879f9': '#9333B8', '#3b82f6': '#3451D1' };
+  const OLD_EMOJIS = { '🧠': 'brain', '📚': 'book-open', '🧪': 'flask', '🌍': 'globe-hemisphere-west', '⚙️': 'code', '🎨': 'palette', '🧬': 'heartbeat', '📐': 'calculator', '💡': 'brain', '🏛️': 'bank', '🎵': 'music-notes', '💻': 'code', '⚖️': 'scales', '🩺': 'heartbeat', '📈': 'chart-line-up', '🪐': 'planet', '🌱': 'leaf' };
 
   const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
@@ -22,10 +27,10 @@
 
   function makeSubject(title = 'Nouveau sujet', extra = {}) {
     const color = extra.color || PALETTE[Math.floor(Math.random() * PALETTE.length)];
-    const emoji = extra.emoji || EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
+    const icon = ICONS.includes(extra.icon) ? extra.icon : OLD_EMOJIS[extra.emoji] || ICONS[Math.floor(Math.random() * ICONS.length)];
     const root = extra.root || makeNode(title);
     root.title = title;
-    return { id: uid(), title, color, emoji, createdAt: Date.now(), updatedAt: Date.now(), root };
+    return { id: uid(), title, color: OLD_COLORS[color] || color, icon, createdAt: Date.now(), updatedAt: Date.now(), root };
   }
 
   /* Normalise un arbre venant d'un import (PDF, IA, JSON) */
@@ -40,10 +45,10 @@
   }
 
   function demoSubject() {
-    const s = makeSubject('Découvrir Arbor', { emoji: '🌱', color: '#7c5cff' });
-    s.root.notes = "Bienvenue ! Un **sujet** est un arbre : chaque partie peut contenir des **sous-parties**.\n\n- Clique sur une partie dans l'arbre pour l'ouvrir\n- Ajoute des notes, des points clés, change son statut\n- Glisse-dépose une partie sur une autre pour la ranger dedans\n- Lance le mode **Révision** pour t'entraîner en cartes";
+    const s = makeSubject('Découvrir Arbor', { icon: 'leaf', color: '#3451D1' });
+    s.root.notes = "Bienvenue ! Un **sujet** est un arbre : chaque partie peut contenir des **sous-parties**.\n\n- Clique sur une partie dans l’arbre pour l’ouvrir\n- Ajoute des notes, des points clés, change son statut\n- Glisse-dépose une partie sur une autre pour la ranger dedans\n- Lance le mode **Révision** pour t’entraîner en cartes";
     const a = makeNode('1. Découper le sujet', {
-      notes: "Commence large, puis découpe jusqu'à obtenir des morceaux **digestes** (une idée = une feuille).",
+      notes: "Commence large, puis découpe jusqu’à obtenir des morceaux **digestes** (une idée = une feuille).",
       keyPoints: ['Une feuille = une seule idée', 'Pas plus de 5 à 7 enfants par partie'],
       status: 'done',
     });
@@ -57,7 +62,7 @@
       status: 'doing',
     });
     const c = makeNode('3. Importer un PDF', {
-      notes: "Le bouton **📄 Importer un PDF** analyse le document (titres, définitions, points importants) et construit un cours structuré. Avec une clé API Claude (⚙️ Réglages), l'analyse est encore plus fine.",
+      notes: "Le bouton **Importer un PDF** analyse le document (titres, définitions, points importants) et construit un cours structuré. Avec une clé API Claude (Réglages), l’analyse est encore plus fine.",
       keyPoints: ['Les titres deviennent des parties', 'Les définitions deviennent des points clés'],
     });
     const d = makeNode('4. Réviser', {
@@ -74,13 +79,18 @@
       if (raw) {
         const data = JSON.parse(raw);
         if (data && Array.isArray(data.subjects)) {
-          data.settings = { theme: 'dark', apiKey: '', model: 'claude-opus-5-5', ...(data.settings || {}) };
+          data.settings = { theme: 'auto', apiKey: '', model: 'claude-opus-5-5', ...(data.settings || {}) };
+          data.subjects.forEach((s) => {
+            if (!ICONS.includes(s.icon)) s.icon = OLD_EMOJIS[s.emoji] || 'book-open';
+            s.color = OLD_COLORS[s.color] || s.color;
+            delete s.emoji;
+          });
           data.xp = data.xp || 0;
           return data;
         }
       }
     } catch (e) { console.warn('Lecture impossible', e); }
-    return { subjects: [demoSubject()], settings: { theme: 'dark', apiKey: '', model: 'claude-opus-5-5' }, xp: 0 };
+    return { subjects: [demoSubject()], settings: { theme: 'auto', apiKey: '', model: 'claude-opus-5-5' }, xp: 0 };
   }
 
   let saveTimer = null;
@@ -126,5 +136,5 @@
     return found;
   }
 
-  window.Store = { PALETTE, EMOJIS, uid, makeNode, makeSubject, normalize, load, save, walk, find, pathTo, stats, isDescendant };
+  window.Store = { PALETTE, ICONS, uid, makeNode, makeSubject, normalize, load, save, walk, find, pathTo, stats, isDescendant };
 })();

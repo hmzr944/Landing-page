@@ -2,45 +2,51 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Arbor · Apprendre en arborescence</title>
-  <meta name="description" content="Découpe n'importe quel sujet en une arborescence de petites parties, prends des notes, importe un PDF et révise en t'amusant." />
+  <meta name="description" content="Découpe n'importe quel sujet en petites parties, prends des notes, importe un PDF et révise avec des cartes." />
+  <meta name="theme-color" content="#F5F6F8" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#111318" media="(prefers-color-scheme: dark)" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://unpkg.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" />
   <link rel="stylesheet" href="styles.css" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌳</text></svg>" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='9' fill='%233451D1'/><path d='M16 25V13M16 17l-5-4M16 15l5-4' stroke='white' stroke-width='2.6' stroke-linecap='round' fill='none'/></svg>" />
 </head>
 <body>
-  <div class="bg" aria-hidden="true"><span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span></div>
+  <a class="skip" href="#app">Aller au contenu</a>
 
   <header class="topbar">
-    <button class="brand" id="homeBtn" title="Accueil">
-      <span class="brand-logo">🌳</span><span class="brand-name">Arbor</span>
-    </button>
+    <a class="brand" href="#/" aria-label="Arbor, accueil">
+      <span class="brand-mark" aria-hidden="true"><i class="ph-fill ph-tree"></i></span>
+      <span class="brand-name" translate="no">Arbor</span>
+    </a>
     <div class="topbar-actions">
-      <div class="xp" id="xp" title="Points d'expérience gagnés en maîtrisant des parties">
+      <div class="xp" id="xp" title="Points gagnés en maîtrisant des parties">
+        <i class="ph-fill ph-lightning" aria-hidden="true"></i>
         <span class="xp-level" id="xpLevel">Niv. 1</span>
-        <span class="xp-bar"><span id="xpFill"></span></span>
+        <span class="xp-bar" aria-hidden="true"><span id="xpFill"></span></span>
         <span class="xp-num" id="xpNum">0 XP</span>
       </div>
-      <button class="btn ghost" id="importPdfBtn"><span>📄</span><span class="hide-sm">Importer un PDF</span></button>
-      <button class="icon-btn" id="themeBtn" title="Changer de thème">🌓</button>
-      <button class="icon-btn" id="settingsBtn" title="Réglages">⚙️</button>
+      <button class="btn ghost" id="importPdfBtn"><i class="ph ph-file-arrow-up" aria-hidden="true"></i><span class="hide-sm">Importer un PDF</span></button>
+      <button class="icon-btn" id="themeBtn" aria-label="Changer de thème"><i class="ph ph-moon" aria-hidden="true"></i></button>
+      <button class="icon-btn" id="settingsBtn" aria-label="Réglages"><i class="ph ph-gear" aria-hidden="true"></i></button>
     </div>
   </header>
 
-  <main id="app"></main>
+  <main id="app" tabindex="-1"></main>
 
-  <!-- Modale générique -->
   <div class="modal-backdrop" id="modal" hidden>
-    <div class="modal" role="dialog" aria-modal="true">
-      <button class="icon-btn modal-close" id="modalClose" title="Fermer">✕</button>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <button class="icon-btn modal-close" id="modalClose" aria-label="Fermer"><i class="ph ph-x" aria-hidden="true"></i></button>
       <div id="modalBody"></div>
     </div>
   </div>
 
-  <div class="toasts" id="toasts"></div>
+  <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
   <canvas id="confetti" aria-hidden="true"></canvas>
   <input type="file" id="pdfInput" accept="application/pdf" hidden />
   <input type="file" id="jsonInput" accept="application/json" hidden />
