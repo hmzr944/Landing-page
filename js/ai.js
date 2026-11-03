@@ -146,5 +146,18 @@ Réponds à la fin par UN SEUL bloc JSON, sans texte après, de la forme :
     return { overview: String(data.overview || ''), notions: Array.isArray(data.notions) ? data.notions : [], sources: sources.slice(0, 8) };
   }
 
-  window.AI = { structure, researchTopic };
+  // Messages d'erreur compréhensibles
+  function friendly(e) {
+    const st = e && e.status;
+    if (st === 401) return new Error('Clé API refusée : vérifie-la dans les Réglages (elle commence par sk-ant-).');
+    if (st === 403) return new Error('Cette clé n’a pas accès à ce modèle.');
+    if (st === 429) return new Error('Trop de demandes d’un coup : réessaie dans une minute.');
+    if (st === 529 || st === 503) return new Error('Claude est surchargé pour le moment : réessaie un peu plus tard.');
+    if (st === 400 && /credit|billing/i.test(e.message || '')) return new Error('Crédit API épuisé : recharge ton compte sur console.anthropic.com.');
+    if (!st && /connection|fetch|network/i.test((e && e.message) || '')) return new Error('Impossible de joindre Claude : vérifie ta connexion.');
+    return e;
+  }
+  const safe = (fn) => async (...args) => { try { return await fn(...args); } catch (e) { throw friendly(e); } };
+
+  window.AI = { structure: safe(structure), researchTopic: safe(researchTopic) };
 })();

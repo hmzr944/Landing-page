@@ -554,7 +554,7 @@
             <select id="pgRhythm"><option value="1">par jour</option><option value="2" selected>tous les 2 jours</option><option value="3">tous les 3 jours</option><option value="7">par semaine</option></select>
           </div>
         </div>
-        <label class="check"><input type="checkbox" id="pgWrite" checked /> Rédiger le cours de chaque sujet (${state.settings.apiKey ? 'Claude cherche et rédige' : 'à partir de Wikipédia, gratuitement'})</label>
+        <label class="check"><input type="checkbox" id="pgWrite" checked /> Rédiger le cours de chaque sujet (${state.settings.apiKey ? 'Claude cherche et rédige' : 'fiche de départ tirée de Wikipédia ; ajoute une clé Claude dans les Réglages pour un vrai cours rédigé'})</label>
         ${pickers(sel.color, sel.icon)}
         <div class="row-btns end"><button type="button" class="btn ghost" data-close>Annuler</button><button class="btn">${ic('path')}Créer le parcours</button></div>
       </form>`, (el) => {
@@ -605,7 +605,7 @@
       learn: () => m.generated ? `
         <p>Ton cours est prêt juste en dessous : ${plural(node.children.length, 'notion', 'notions')}. Lis-le en entier, à ton rythme. Compare avec ce que tu pensais savoir.</p>
         <div class="row-btns"><a class="btn" href="#course" data-act="goto-course">${ic('book-open-text')}Lire le cours</a><button class="btn ghost" data-act="mod-learned">${ic('check')}J’ai lu le cours</button></div>` : `
-        <p>Arbor peut rédiger le cours de « ${esc(node.title)} » ${hasKey ? 'avec Claude, qui cherche des sources fiables' : 'à partir de Wikipédia'}. Tu peux aussi chercher toi-même.</p>
+        <p>Arbor peut rédiger le cours de « ${esc(node.title)} » ${hasKey ? 'avec Claude, qui cherche des sources fiables' : 'à partir de Wikipédia (une fiche de départ, assez encyclopédique ; avec une clé Claude dans les Réglages, tu obtiens un vrai cours expliqué avec exemples et exercices)'}. Tu peux aussi chercher toi-même.</p>
         <button class="btn" data-act="write-course">${ic('book-open-text')}Rédiger le cours</button>
         <div class="research-links">${researchLinks(node.title, s).map(([l, u, i]) => `<a class="chip-link" href="${u}" target="_blank" rel="noopener">${ic(i)}${l}</a>`).join('')}</div>
         <button class="btn ghost sm" data-act="mod-learned">${ic('check')}J’ai lu et pris mes notes</button>`,
@@ -772,7 +772,7 @@
         return missing ? `<section class="sec write-course"><p>${plural(missing, 'module n’a', 'modules n’ont')} pas encore de cours.</p><button class="btn" data-act="write-all">${ic('book-open-text')}Rédiger les cours manquants</button></section>` : '';
       }
       if (isRoot || node.notes.trim().length > 80) return '';
-      return `<section class="sec write-course"><p>Cette partie est vide. Arbor peut en rédiger le cours à partir de son titre, ${state.settings.apiKey ? 'avec Claude et des sources fiables' : 'à partir de Wikipédia'}.</p><button class="btn" data-act="write-course">${ic('book-open-text')}Rédiger le cours</button></section>`;
+      return `<section class="sec write-course"><p>Cette partie est vide. Arbor peut en rédiger le cours à partir de son titre, ${state.settings.apiKey ? 'avec Claude et des sources fiables' : 'à partir de Wikipédia (fiche de départ ; avec une clé Claude, un vrai cours expliqué)'}.</p><button class="btn" data-act="write-course">${ic('book-open-text')}Rédiger le cours</button></section>`;
     }
     const pre = node.module && !moduleSteps(node).pretest && !pretestSeen.has(node.id + ':course');
     const sources = [...((node.course && node.course.sources) || []), ...((node.module && node.module.sources) || []), ...withNotes.flatMap((c) => (c.course && c.course.sources) || [])]
@@ -2162,14 +2162,14 @@
   }
 
   function previewImport(root, into) {
-    let count = 0, kps = 0;
-    walk(root, (n) => { count++; kps += n.keyPoints.length; });
+    let count = 0, kps = 0, exs = 0;
+    walk(root, (n) => { count++; kps += n.keyPoints.length; exs += (n.exercises || []).length; });
     const sel = { color: PALETTE[state.subjects.length % PALETTE.length], icon: 'book-open' };
     const outline = (n) => `<li><span>${esc(n.title)}</span>${n.keyPoints.length ? ` <em class="num">${ic('star', true)}${n.keyPoints.length}</em>` : ''}
       ${n.children.length ? `<ul>${n.children.map(outline).join('')}</ul>` : ''}</li>`;
     $('#modalBody').innerHTML = `
       <h2 id="modalTitle">Cours structuré</h2>
-      <p class="modal-lede">${plural(count - 1, 'partie', 'parties')} et ${plural(kps, 'point clé extrait', 'points clés extraits')}. Tu pourras tout modifier ensuite.</p>
+      <p class="modal-lede">${plural(count - 1, 'partie', 'parties')} et ${plural(kps, 'point clé extrait', 'points clés extraits')}${exs ? `, ${plural(exs, 'exercice', 'exercices')}` : ''}. Tu pourras tout modifier ensuite.</p>
       <form id="pvForm" class="form">
         ${into ? '' : `<div class="field"><label for="pvTitle">Titre du sujet</label><input id="pvTitle" name="title" autocomplete="off" value="${esc(root.title)}" /></div>${pickers(sel.color, sel.icon)}`}
         <div class="field">

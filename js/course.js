@@ -47,6 +47,11 @@
     return t;
   }
 
+  // Les sections encyclopédiques (histoire, étymologie, culture) passent après celles qui expliquent
+  const LESS = /^(histoire|historique|étymologie|origines?|dans la culture|culture populaire|postérité|controverses?|anecdotes?|chronologie|personnalités|distinctions|hommages?|dans les arts|économie|statistiques|recherche|découverte)/i;
+  const MORE = /(principe|mécanisme|fonctionnement|définition|structure|étapes?|propriétés?|caractéristiques|types?|classification|rôle|fonctions?|formule|calcul|méthode|régulation|processus|composition|description|modèle|théorie|exemples?|applications?|loi|règles?|conditions|effets?)/i;
+  const rank = (title) => (MORE.test(title) ? 2 : 0) - (LESS.test(title) ? 3 : 0);
+
   async function fromWikipedia(topic, context) {
     let page = await wikiPage(topic);
     if (!page && context) page = await wikiPage(`${topic} ${context}`);
@@ -58,8 +63,11 @@
         const body = [sec.text, ...sec.subs.map((x) => x.text)].filter(Boolean).join('\n\n');
         return { sec, body };
       })
-      .filter(({ body }) => body.length >= 220)
+      .map((x, i) => ({ ...x, i, r: rank(x.sec.title) }))
+      .filter(({ body, r }) => body.length >= 220 && r > -3)
+      .sort((a, b) => b.r - a.r || a.i - b.i)
       .slice(0, 6)
+      .sort((a, b) => a.i - b.i)
       .map(({ sec, body }) => {
         const notes = trimText(body, 1100);
         const keyPoints = PdfImport.keySentences(notes, 3);
@@ -74,7 +82,7 @@
       }
     }
     return {
-      overview: `${overview}\n\n_Cours rédigé à partir de l’article Wikipédia « ${page.title} » (licence CC BY-SA 4.0)._`,
+      overview: `${overview}\n\n_Fiche de départ tirée de l’article Wikipédia « ${page.title} » (licence CC BY-SA 4.0)._`,
       notions,
       sources: [{ title: `Wikipédia : ${page.title}`, url: page.fullurl || `https://fr.wikipedia.org/wiki/${encodeURIComponent(page.title)}` }],
       from: 'wikipedia',
