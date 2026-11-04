@@ -47,18 +47,47 @@
       segs.forEach((g) => { g.kind = g.x0 >= mid - W * 0.04 ? 'right' : g.x1 <= mid + W * 0.04 ? 'left' : 'full'; });
       segs.sort((a, b) => b.y - a.y);
       const ordered = [];
+      const segText = (g) => g.parts.map((x) => x.str).join(' ').trim();
+      const isBullet = (g) => /^\s*[•●▪◦‣\-–*✓➢►○□☐]/.test(segText(g));
+      const median = (a) => { const b = [...a].sort((x, y) => x - y); return b.length ? b[Math.floor(b.length / 2)] : 0; };
       for (let i = 0; i < segs.length;) {
         if (segs[i].kind === 'full') { ordered.push(segs[i]); i++; continue; }
         let j = i; while (j < segs.length && segs[j].kind !== 'full') j++;
         const run = segs.slice(i, j);
-        if (run.some((g) => g.kind === 'right') && run.some((g) => g.kind === 'left')) ordered.push(...run.filter((g) => g.kind === 'left'), ...run.filter((g) => g.kind === 'right'));
-        else ordered.push(...run);
         i = j;
+        const L = run.filter((g) => g.kind === 'left'), R = run.filter((g) => g.kind === 'right');
+        if (!L.length || !R.length) { ordered.push(...run); continue; }
+        const mate = (r) => L.find((l) => Math.abs(l.y - r.y) <= 2.5);
+        const paired = R.filter(mate);
+        // Tableau à deux colonnes : cellules courtes alignées ligne à ligne -> une ligne « gauche : droite »
+        const table = paired.length >= 3 && paired.length >= R.length * 0.8 && !L.some(isBullet)
+          && median(L.map((g) => segText(g).length)) < 38 && median(R.map((g) => segText(g).length)) < 48;
+        if (table) {
+          const used = new Set();
+          for (const l of L) {
+            const r = R.find((x) => !used.has(x) && Math.abs(x.y - l.y) <= 2.5);
+            if (r) { used.add(r); if (!/^\s*\.*\s*\d{1,4}\s*$/.test(segText(r))) { l.parts.push(...r.parts.map((x) => ({ ...x, cell: true }))); l.row = true; } }
+            ordered.push(l);
+          }
+          ordered.push(...R.filter((x) => !used.has(x)));
+          continue;
+        }
+        // Colonne latérale (encadrés) : on découpe en blocs au début de chaque titre de gauche,
+        // chaque bloc = son texte de gauche puis ce qui est à droite à la même hauteur
+        const starts = L.filter((g, k) => k === 0 || (g.parts.every((x) => x.bold) && !isBullet(g)));
+        const blocks = starts.map((g, k) => ({ top: g.y + 3, bottom: k + 1 < starts.length ? starts[k + 1].y + 3 : -Infinity, segs: [] }));
+        for (const g of run) {
+          const b = blocks.find((x) => g.y <= x.top && g.y > x.bottom) || blocks[blocks.length - 1];
+          // badge à droite d'un titre (« PRIORITÉ MAXIMALE », « ÉTAPE 2 ») : décoration, on l'ignore
+          if (g.kind === 'right' && starts.some((st) => Math.abs(st.y - g.y) <= 2.5) && segText(g) === segText(g).toUpperCase() && segText(g).length < 30) continue;
+          b.segs.push(g);
+        }
+        for (const b of blocks) ordered.push(...b.segs.filter((g) => g.kind !== 'right'), ...b.segs.filter((g) => g.kind === 'right'));
       }
       let prev = null;
       for (const g of ordered) {
-        const parts = g.parts.sort((a, b) => a.x - b.x);
-        const text = parts.map((x) => x.str).join(' ').replace(/\s+/g, ' ').replace(/ ([,.;:)])/g, '$1').trim();
+        const parts = g.row ? g.parts : g.parts.sort((a, b) => a.x - b.x);
+        const text = (g.row ? parts.filter((x) => !x.cell).map((x) => x.str).join(' ') + ' : ' + parts.filter((x) => x.cell).map((x) => x.str).join(' ') : parts.map((x) => x.str).join(' ')).replace(/\s+/g, ' ').replace(/ ([,.;:)])/g, '$1').trim();
         if (!text) continue;
         const chars = parts.reduce((a, x) => a + x.str.length, 0) || 1;
         const size = Math.max(...parts.map((x) => x.size));
@@ -66,7 +95,14 @@
         const italChars = parts.filter((x) => x.italic).reduce((a, x) => a + x.str.length, 0);
         const lead = parts[0].bold && parts.length > 1 && !parts.every((x) => x.bold) ? parts.filter((x, k) => k === 0 || (x.bold && parts.slice(0, k).every((y) => y.bold))).map((x) => x.str).join(' ').trim() : '';
         const gap = prev && prev.page === p ? prev.y - g.y : null;
-        const line = { text, size, bold: boldChars / chars > 0.6, italic: italChars / chars > 0.6, lead, page: p, y: g.y, x: g.x0, pageH: vp.height, gap, prevSize: prev ? prev.size : size, col: g.kind };
+        // même hauteur que la ligne précédente (cellule de tableau, libellé d'encadré) : on les réunit
+        if (prev && prev.page === p && Math.abs(prev.y - g.y) <= 2 && !g.row && !prev.row && prev.text.length < 60) {
+          if (prev.bold && !(boldChars / chars > 0.6)) { prev.lead = prev.text; prev.text = `${prev.text} : ${text}`; prev.bold = false; prev.row = true; }
+          else if (prev.bold && boldChars / chars > 0.6 && prev.text.length < 40 && text.length < 40) { prev.text = `${prev.text} : ${text}`; prev.row = true; } // en-tête de tableau
+          else prev.text = `${prev.text} ${text}`;
+          continue;
+        }
+        const line = { row: !!g.row, text, size, bold: boldChars / chars > 0.6, italic: italChars / chars > 0.6, lead, page: p, y: g.y, x: g.x0, pageH: vp.height, gap, prevSize: prev ? prev.size : size, col: g.kind };
         lines.push(line);
         prev = line;
       }
@@ -78,14 +114,21 @@
   /* En-têtes, pieds de page, numéros de page : position dans la marge, petite taille, ou répétition */
   function cleanLines(lines, numPages) {
     const body = bodySize(lines);
-    const freq = new Map();
-    lines.forEach((l) => { const k = l.text.replace(/\d+/g, '#'); freq.set(k, (freq.get(k) || 0) + 1); });
+    const freq = new Map(), edgeFreq = new Map();
+    const isEdge = (l) => l.y > l.pageH * 0.9 || l.y < l.pageH * 0.08;
+    lines.forEach((l) => {
+      const k = l.text.replace(/\d+/g, '#');
+      freq.set(k, (freq.get(k) || 0) + 1);
+      if (isEdge(l)) edgeFreq.set(k, (edgeFreq.get(k) || 0) + 1);
+    });
     return lines.filter((l) => {
       if (/^(page\s*)?\d{1,4}(\s*(\/|sur)\s*\d{1,4})?$/i.test(l.text)) return false;
       const edge = l.y > l.pageH * 0.9 || l.y < l.pageH * 0.08;
       const k = l.text.replace(/\d+/g, '#');
-      if (edge && (l.size < body * 0.95 || (numPages > 1 && freq.get(k) > 1))) return false;
-      if (numPages > 2 && freq.get(k) >= Math.max(2, numPages * 0.5) && l.text.length < 90) return false;
+      // dans la marge : répété d'une page à l'autre, ou minuscule
+      if (edge && ((numPages > 1 && edgeFreq.get(k) > 1) || l.size < body * 0.75)) return false;
+      // ailleurs, une ligne répétée n'est retirée que si elle ressemble à un en-tête (numéro de page inclus)
+      if (numPages > 2 && freq.get(k) >= Math.max(3, numPages * 0.5) && /\d/.test(l.text) && l.text.length < 90 && (l.y > l.pageH * 0.8 || l.y < l.pageH * 0.15)) return false;
       if (l.size < body * 0.65) return false;
       return true;
     });
@@ -101,6 +144,7 @@
     const t = line.text;
     if (t.length > 110 || t.length < 2) return null;
     if (/[,;]$/.test(t)) return null;
+    if (/^\s*[•●▪◦‣\-–*✓➢►○□☐]/.test(t) || line.row) return null;
     const words = t.split(' ').length;
     const bigger = line.size >= body * 1.15;
     const numbered = NUM_RE.test(t) && words <= 14 && !/[.:]\s*$/.test(t.replace(/^\S+\s/, ''));
@@ -111,8 +155,8 @@
     if (/[.!?]$/.test(t) && !numbered && words > 6) return null;
     // profondeur suggérée par la numérotation
     let numDepth = null;
-    const m = t.match(/^(\d{1,2}(\.\d{1,2}){0,3})[.)]?\s/);
-    if (m) numDepth = m[1].split('.').length;
+    const m = t.match(/^(\d{1,2}(?:\.\d{1,2}){1,3}[.)]?|\d{1,2}[.)])\s/);
+    if (m) numDepth = m[1].replace(/[.)]$/, '').split('.').length;
     else if (/^[IVXLC]{1,6}[.)\-–]\s/.test(t)) numDepth = 1;
     else if (/^[A-H][.)]\s/.test(t)) numDepth = 2;
     return { size: line.size, numDepth, keyword: keyword ? 1 : 0 };
@@ -139,9 +183,14 @@
   }
 
   /* Blocs à libellé : « Définition. », « Exercice 2. », « Exemple : »… */
-  const LABEL_RE = /^(définitions?|théorèmes?|propriétés?|règles?|formules?|lois?|principes?|corollaires?|propositions?|lemmes?|notations?|méthodes?|remarques?|exemples?|attention|exercices?|application|à retenir|important)\b\s*(\d{1,2}(\.\d{1,2})?)?\s*[.:)–—-]?\s*/i;
+  const LABEL_RE = /^(définitions?|théorèmes?|propriétés?|règles?|formules?|lois?|principes?|corollaires?|propositions?|lemmes?|notations?|méthodes?|remarques?|exemples?|attention|exercices?|application|à retenir|important|objectifs?|astuce|conseil)\b\s*(\d{1,2}(\.\d{1,2})?)?\s*[.:)–—-]?\s*/i;
   const KEY_LABELS = /^(définition|théorème|propriété|règle|formule|loi|principe|corollaire|proposition|lemme|notation|à retenir|important)/i;
   const EX_SECTION = /^(exercices?|exercices? d['’]application|exercices? corrigés?|entraînement|travaux dirigés|td|applications?)$/i;
+  const TOC_SECTION = /^(sommaire|table des mati[eè]res|plan( du (document|cours))?|contents?)$/i;
+  const QUESTION_RE = /^(question|q)\s*\d{1,2}\s*[—–:.)-]\s*/i;
+  const OPTION_RE = /^\s*[○◯□☐◻]\s*(.+)$/;
+  const ANSWER_RE = /^(bonne réponse|réponse|correction|solution)\s*:\s*/i;
+  const BULLET_RE = /^\s*[•●▪◦‣\-–*✓➢►]\s*(.+)$/;
   const SUM_SECTION = /^(à retenir|ce qu['’]il faut retenir|l['’]essentiel|résumé|synthèse|en résumé|bilan|points? clés?)$/i;
 
   function finalizeNode(node) {
@@ -157,18 +206,32 @@
     const top = scored.filter((x) => x.score >= 2.5 && x.s.length >= 35).sort((a, b) => b.score - a.score).slice(0, Math.min(room, 3)).sort((a, b) => a.i - b.i);
     const keyPoints = [...keys];
     top.forEach((x) => keyPoints.push(x.s.length > 220 ? x.s.slice(0, 217) + '…' : x.s));
-    bullets.slice(0, 6).forEach((b) => { if (keyPoints.length < 7 && !keyPoints.includes(b) && b.length > 12) keyPoints.push(b); });
+    const firstList = (blocks.find((b) => b.list) || { list: bullets }).list;
+    firstList.slice(0, 6).forEach((b) => { if (keyPoints.length < 7 && !keyPoints.includes(b) && b.length > 12) keyPoints.push(b); });
 
     const keySet = new Set(top.map((x) => x.s));
     let notes = blocks
-      .map((b) => (typeof b === 'string' ? splitSentences(b).map((s) => (keySet.has(s) ? `==${s}==` : s)).join(' ') : b.md))
+      .map((b) => (typeof b === 'string' ? splitSentences(b).map((s) => (keySet.has(s) ? `==${s}==` : s)).join(' ')
+        : b.list ? (b.intro ? b.intro + '\n' : '') + b.list.map((x) => `- ${x}`).join('\n') : b.md))
       .join('\n\n');
-    if (bullets.length) notes += (notes ? '\n\n' : '') + bullets.map((b) => `- ${b}`).join('\n');
     if (notes.length > 6000) notes = notes.slice(0, 6000) + '…';
 
     node.notes = notes;
     node.keyPoints = keyPoints;
-    node.exercises = (node._ex || []).filter((e) => e.q.length > 8);
+    let exs = (node._ex || []).filter((e) => e.q.length > 8);
+    // QCM de 3 questions ou plus : une sous-partie par question, pour que chacune ait sa carte de révision
+    const quizzes = exs.filter((e) => e.quiz);
+    if (quizzes.length >= 3) {
+      quizzes.forEach((e) => {
+        const t = e.quiz.length > 80 ? e.quiz.slice(0, 77).replace(/\s+\S*$/, '') + '…' : e.quiz;
+        const n = mk(cap(t));
+        n._ex.push({ q: e.q, a: e.a });
+        if (e.a) n._keys.push(e.a);
+        node.children.push(n);
+      });
+      exs = exs.filter((e) => !e.quiz);
+    }
+    node.exercises = exs.map(({ q, a }) => ({ q, a }));
     delete node._blocks; delete node._bullets; delete node._bold; delete node._keys; delete node._ex;
     node.children.forEach(finalizeNode);
   }
@@ -177,25 +240,50 @@
   const cap = (t) => (t ? t.charAt(0).toUpperCase() + t.slice(1) : t);
   const prominence = (h) => h.size * 10 + (h.bold ? 3 : 0) - (h.italic ? 2 : 0);
 
+  // « BILAN DE NIVEAU ET PARCOURS TSSR » -> « Bilan de niveau et parcours TSSR » (les sigles restent)
+  function unshout(t) {
+    if (t !== t.toUpperCase() || !/[A-ZÀ-Ý]{3}/.test(t)) return t;
+    const out = t.split(' ').map((w) => (/^[A-ZÀ-Ý0-9]{2,6}$/.test(w) && !/[AEIOUYÀÂÉÈÊËÎÏÔÙÛ]/.test(w) ? w : w.toLowerCase())).join(' ');
+    return cap(out);
+  }
+
+  /* Titre du document : la plus grosse ligne de la 1re page, nettement plus grande que le texte,
+     avec les lignes suivantes de même taille (titre sur plusieurs lignes) */
+  function docTitleOf(lines, body) {
+    const first = lines.filter((l) => l.page === 1 && l.text.length <= 120);
+    if (!first.length) return null;
+    const big = first.reduce((a, b) => (b.size > a.size ? b : a));
+    if (big.size < body * 1.3) return null;
+    const used = [big];
+    for (let i = lines.indexOf(big) + 1; i < lines.length; i++) {
+      const l = lines[i];
+      if (l.page !== big.page || Math.abs(l.size - big.size) > 0.5 || l.gap == null || l.gap > l.size * 1.8 || used.length >= 3) break;
+      used.push(l);
+    }
+    const text = unshout(used.map((l) => l.text).join(' ')).replace(/^(chapitre|chapter|leçon|cours)\s*\d+\s*[:.—–-]\s*/i, '');
+    return { text, lines: new Set(used) };
+  }
+
   function build(lines, fileTitle) {
     const body = bodySize(lines);
-
-    // Titre du document : la plus grosse ligne de la 1re page, nettement plus grande que le texte
-    let docTitle = fileTitle, titleLine = null;
-    const first = lines.filter((l) => l.page === 1 && l.text.length <= 120);
-    if (first.length) {
-      const big = first.reduce((a, b) => (b.size > a.size ? b : a));
-      if (big.size >= body * 1.3) { titleLine = big; docTitle = big.text.replace(/^(chapitre|chapter|leçon|cours)\s*\d+\s*[:.—–-]\s*/i, ''); }
-    }
+    const dt = docTitleOf(lines, body);
+    const docTitle = dt ? dt.text : fileTitle;
+    const isTitle = (l) => dt && dt.lines.has(l);
 
     // 1. Titres : style, numérotation, mots-clés. Une ligne qui commence par un libellé n'en est pas un.
     const heads = [];
+    const cont = new Set();
     lines.forEach((l, i) => {
-      if (l === titleLine || l.lead || LABEL_RE.test(l.text) && !EX_SECTION.test(l.text.replace(/[:.]$/, '')) && !SUM_SECTION.test(l.text.replace(/[:.]$/, ''))) return;
+      if (isTitle(l) || l.lead || QUESTION_RE.test(l.text) || LABEL_RE.test(l.text) && !EX_SECTION.test(l.text.replace(/[:.]$/, '')) && !SUM_SECTION.test(l.text.replace(/[:.]$/, ''))) return;
       const prev = lines[i - 1];
+      if (prev && QUESTION_RE.test(prev.text) && !/\?\s*$/.test(prev.text)) return;
+      if (prev && isTitle(prev) && !l.bold) return; // sous-titre du document
       // suite d'une phrase coupée : pas un titre
       if (prev && !l.bold && prev.size === l.size && !/[.!?:]$/.test(prev.text) && /^[a-zà-ÿ]/.test(l.text)) return;
       const h = headingInfo(l, body);
+      // titre sur deux lignes : la 2e ligne (même style, commence par une minuscule) prolonge la 1re
+      const last = heads[heads.length - 1];
+      if (h && last && last.i === i - 1 && last.size === l.size && last.bold === l.bold && l.gap < l.size * 1.6 && /^[a-zà-ÿ]/.test(l.text)) { cont.add(i); return; }
       if (h) heads.push({ i, size: l.size, bold: l.bold, italic: l.italic, numDepth: h.numDepth, keyword: h.keyword });
     });
 
@@ -210,9 +298,23 @@
     const root = mk(docTitle);
     const stack = [{ node: root, level: 0 }];
     const cur = () => stack[stack.length - 1].node;
-    let mode = null; // null | 'ex' (section d'exercices) | 'sum' (à retenir)
-    let para = '', paraSize = body, block = null;
-    const flushPara = () => { if (para.trim()) cur()._blocks.push(para.trim()); para = ''; };
+    let mode = null; // null | 'ex' (section d'exercices) | 'sum' (à retenir) | 'toc' (sommaire, ignoré)
+    let para = '', paraSize = body, block = null, list = null, quiz = null;
+    const flushList = () => { list = null; };
+    const flushPara = () => { if (para.trim()) cur()._blocks.push(para.trim()); para = ''; flushList(); };
+    const addItem = (text) => {
+      if (para.trim()) { const pt = para.trim(); para = ''; if (/:$/.test(pt)) { list = { intro: pt, list: [] }; cur()._blocks.push(list); } else cur()._blocks.push(pt); }
+      if (!list) { list = { intro: '', list: [] }; cur()._blocks.push(list); }
+      list.list.push(text);
+      cur()._bullets.push(text);
+    };
+    // QCM : « Question 1 — … », options « ○ … », « Bonne réponse : … » -> un exercice corrigé
+    const flushQuiz = () => {
+      if (!quiz) return;
+      const q = quiz.q.replace(/\s+/g, ' ').trim() + (quiz.opts.length ? '\n' + quiz.opts.map((o) => `- ${o}`).join('\n') : '');
+      if (quiz.q.trim()) cur()._ex.push({ q: cap(q), a: cap(quiz.a.trim()), quiz: quiz.q.replace(/\s+/g, ' ').trim() });
+      quiz = null;
+    };
     const flushBlock = () => {
       if (!block) return;
       const text = block.text.replace(/\s+/g, ' ').trim();
@@ -224,35 +326,52 @@
       } else if (text) cur()._blocks.push({ md: `**${cap(label)}.** ${text}` });
       block = null;
     };
-    const flush = () => { flushPara(); flushBlock(); };
+    const flush = () => { flushPara(); flushBlock(); flushQuiz(); };
 
     let headingCount = 0;
+    let lastNode = null, lastNum = 0;
     lines.forEach((l, i) => {
-      if (l === titleLine) return;
+      if (isTitle(l)) return;
       const t = l.text;
+      if (cont.has(i)) { if (lastNode) lastNode.title += ' ' + t; return; }
       const newPara = l.gap != null && (l.gap > l.size * 1.75 || (l.gap < 0 && /[.!?:]$/.test(lines[i - 1].text)));
       const h = headAt.get(i);
       if (h) {
         flush();
         const plain = t.replace(/[:.]$/, '').trim();
+        if (TOC_SECTION.test(plain)) { mode = 'toc'; return; }
         if (EX_SECTION.test(plain)) { mode = 'ex'; return; }
         if (SUM_SECTION.test(plain)) { mode = 'sum'; return; }
         mode = null;
         let level;
         if (h.numDepth) level = h.numDepth - minNum + 1;
         else if (styleLevel.has(prominence(h))) level = styleLevel.get(prominence(h));
-        else if (nums.length && prominence(h) < Math.min(...styleLevel.keys())) level = stack[stack.length - 1].level + 1; // intertitre sous la partie en cours
+        else if (nums.length && prominence(h) < Math.min(...styleLevel.keys())) level = (lastNum || stack[stack.length - 1].level) + 1; // intertitre sous la dernière partie numérotée
         else level = styles.indexOf(prominence(h)) + 1 || 1;
         level = Math.min(Math.max(level, 1), 4);
+        if (h.numDepth || styleLevel.has(prominence(h))) lastNum = level;
         while (stack.length > 1 && stack[stack.length - 1].level >= level) stack.pop();
         const node = mk(t);
+        lastNode = node;
         cur().children.push(node);
         stack.push({ node, level });
         headingCount++;
         return;
       }
+      if (mode === 'toc') return;
+      // QCM
+      if (QUESTION_RE.test(t)) { flush(); quiz = { q: t.replace(QUESTION_RE, ''), opts: [], a: '', open: !/\?\s*$/.test(t) }; return; }
+      if (quiz) {
+        const o = t.match(OPTION_RE);
+        if (o) { quiz.opts.push(o[1].trim()); quiz.open = false; return; }
+        if (ANSWER_RE.test(t)) { quiz.a = t.replace(ANSWER_RE, ''); quiz.open = false; quiz.inA = true; return; }
+        if (quiz.open) { quiz.q += ' ' + t; if (/\?\s*$/.test(t)) quiz.open = false; return; }
+        if (quiz.inA && !newPara && !l.bold) { quiz.a += ' ' + t; return; }
+        flushQuiz();
+      }
       // Bloc à libellé : « Définition. … », « Exercice 1. … »
-      const lab = (l.lead && LABEL_RE.test(l.lead)) || (!l.lead && /^(définition|théorème|propriété|exercice|exemple|remarque|méthode|règle|formule|attention)s?\b\s*\d*\s*[.:]/i.test(t)) ? t.match(LABEL_RE) : null;
+      const lab = (l.lead && LABEL_RE.test(l.lead)) || (!l.lead && /^(définition|théorème|propriété|exercice|exemple|remarque|méthode|règle|formule|attention)s?\b\s*\d*\s*[.:]/i.test(t))
+        || /^(objectifs?|exemples?|remarques?|attention|méthode|astuce|conseil)\s*:?$/i.test(t) ? t.match(LABEL_RE) : null;
       if (lab) {
         flush();
         block = { label: lab[0].replace(/[\s.:)–—-]+$/, ''), text: t.slice(lab[0].length) };
@@ -262,7 +381,7 @@
         if (newPara) flushBlock();
         else { block.text += (block.text.endsWith('-') ? '' : ' ') + t; return; }
       }
-      const bullet = t.match(/^\s*[•●▪◦‣\-–*✓➢►]\s*(.+)$/);
+      const bullet = t.match(BULLET_RE);
       if (mode === 'sum') { flushPara(); root._keys.push((bullet ? bullet[1] : t).trim()); return; }
       if (mode === 'ex') {
         // énoncé sans libellé dans une section d'exercices : un exercice par paragraphe
@@ -270,7 +389,11 @@
         else root._ex[root._ex.length - 1].q += ' ' + t;
         return;
       }
-      if (bullet) { flushPara(); cur()._bullets.push(bullet[1].trim()); return; }
+      // ligne de tableau : « cellule : cellule » ; la ligne d'en-tête (en gras) est ignorée
+      if (l.row) { if (!l.bold) addItem(t); return; }
+      if (bullet) { addItem(bullet[1].trim()); return; }
+      if (list && !newPara && /^[a-zà-ÿ]/.test(t)) { list.list[list.list.length - 1] += ' ' + t; return; } // puce sur deux lignes
+      flushList();
       if (newPara) flushPara();
       if (l.bold && t.length < 80) cur()._bold.push(t.replace(/[:.]$/, ''));
       if (para.endsWith('-')) para = para.slice(0, -1) + t;
@@ -315,7 +438,8 @@
     const lines = cleanLines(raw, pdf.numPages);
     const title = file.name.replace(/\.pdf$/i, '').replace(/[_-]+/g, ' ');
     const prog = programme(lines);
-    return { tree: build(lines, title), pages: pdf.numPages, title: prog.docTitle || title, topics: prog.topics, isProgramme: prog.isProgramme };
+    const tree = build(lines, title);
+    return { tree, pages: pdf.numPages, title: prog.docTitle || (SKIP.test(tree.title) ? title : tree.title), topics: prog.topics, isProgramme: prog.isProgramme, hasPlan: prog.hasPlan, planCount: prog.planCount };
   }
 
   /* Programme ou sommaire : une liste de sujets sans vrai contenu.
@@ -324,7 +448,7 @@
      - les numéros de page en fin de ligne d'un sommaire sont retirés. */
   const SKIP = /^(programme|sommaire|table des mati[eè]res|plan( du cours)?|contenu|contenus|objectifs?|sujets?( à réviser)?|chapitres?|page \d+|\d+)$/i;
   const ADMIN = /^(responsables?|enseignants?|intervenants?|volume horaire|ects|crédits?|coefficients?|modalités|évaluation|examen|bibliographie|références|objectifs?|prérequis|pré-requis|compétences|contenu|semestre|horaires?|contact|e-?mail|mots[- ]clés|langue|lieu|salle|ue\s*\d)\b/i;
-  const CHAP = /^\s*(chapitre|partie|thème|séance|leçon|module|unité|cours|cm|td|tp|semaine|chapter|part|unit)\s*\d{1,2}\s*[—–\-:.)]?\s*/i;
+  const CHAP = /^\s*(chapitre|partie|thème|séance|leçon|module|unité|cours|cm|td|tp|semaine|étape|phase|palier|niveau|sprint|jour|chapter|part|unit|step|week)\s*\d{1,2}\s*[—–\-:.)]\s*(?=\S)/i;
   const LISTM = /^\s*([•●▪◦‣\-–*✓➢►□☐]|\d{1,2}(\.\d{1,2}){0,3}[.)]?|[IVXLC]{1,6}[.)]|[A-H][.)])\s+(?=\S)/;
   function programme(lines) {
     const body = bodySize(lines);
@@ -336,8 +460,9 @@
     // Titre : la plus grande ligne de la première page, sans code d'UE ni crédits
     const firstP = lines.filter((l) => l.page === 1);
     const big = firstP.length ? firstP.reduce((a, b) => (b.size > a.size ? b : a)) : null;
+    const dtt = docTitleOf(lines, body);
     const docTitle = big && big.size >= body * 1.2 && !SKIP.test(big.text)
-      ? big.text.replace(/\(\s*\d+(?:[.,]\d+)?\s*(ects|crédits?)\s*\)/i, '').replace(/^(ue|ec|module)\s*[\w.]{1,6}\s*[—–\-:]\s*/i, '').trim()
+      ? (dtt ? dtt.text : big.text).replace(/\(\s*\d+(?:[.,]\d+)?\s*(ects|crédits?)\s*\)/i, '').replace(/^(ue|ec|module)\s*[\w.]{1,6}\s*[—–\-:]\s*/i, '').trim()
       : null;
 
     const chapters = lines.filter((l) => CHAP.test(l.text));
@@ -375,8 +500,34 @@
     }
     // Peu de phrases rédigées et plusieurs sujets : c'est une liste de sujets
     const roots = topics.filter((t) => !t.depth).length;
-    const isProgramme = roots >= 3 && (prose / total < 0.35 || (chapters.length >= 3 && prose / total < 0.6));
-    return { topics: topics.slice(0, 80), isProgramme, docTitle };
+    // (un document long et rédigé qui contient un plan n'est pas « un programme » : voir hasPlan)
+    const isProgramme = roots >= 3 && (prose / total < 0.35 || (chapters.length >= 3 && prose / total < 0.6 && total < 3500));
+    // Plan de progression dans un document rédigé (« Étape 1 — … » suivie de puces) :
+    // chaque étape devient un module, ses puces deviennent ses notions
+    let hasPlan = false;
+    if (chapters.length >= 3) {
+      const plan = [];
+      let open = false;
+      for (const l of lines) {
+        if (CHAP.test(l.text)) {
+          open = true;
+          plan.push({ title: cap(l.text.replace(CHAP, '').replace(/[.;:]$/, '').trim()), depth: 0 });
+          continue;
+        }
+        if (!open) continue;
+        // « Objectif » de l'étape (souvent dans une colonne à côté) : gardé avec le module
+        const mod = [...plan].reverse().find((t) => !t.depth);
+        if (/^objectifs?\s*:?\s*$/i.test(l.text)) { mod.goal = ''; continue; }
+        const og = l.text.match(/^objectifs?\s*:\s*(.+)$/i);
+        if (og) { mod.goal = og[1]; continue; }
+        if (mod.goal !== undefined && !/^\s*[•●▪◦‣\-–*✓➢►]/.test(l.text) && !l.bold) { mod.goal = (mod.goal + ' ' + l.text).trim(); continue; }
+        const b = l.text.match(/^\s*[•●▪◦‣\-–*✓➢►]\s*(.+)$/);
+        if (b) { const t = b[1].replace(/[.;:,]$/, '').trim(); if (t.length >= 2 && t.length <= 110) plan.push({ title: cap(t), depth: 1 }); continue; }
+        if (l.size >= body * 1.15 || (l.bold && !CHAP.test(l.text) && l.text.length > 3 && !/^objectifs?/i.test(l.text))) open = false; // nouvelle section
+      }
+      if (plan.filter((t) => !t.depth).length >= 3 && plan.some((t) => t.depth)) { hasPlan = !isProgramme; topics.length = 0; topics.push(...plan); }
+    }
+    return { topics: topics.slice(0, 80), isProgramme, hasPlan, planCount: topics.filter((t) => !t.depth).length, docTitle };
   }
 
   // Phrases importantes d'un texte (définitions, règles, mots-clés), dans leur ordre d'origine

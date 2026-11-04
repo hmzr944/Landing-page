@@ -520,7 +520,7 @@
     let last = null;
     topics.forEach((t) => {
       if (t.depth > 0 && last) { last.children.push(makeNode(t.title)); return; }
-      last = makeNode(t.title, { module: { pretest: '', learned: false, sources: [], date: null } });
+      last = makeNode(t.title, { notes: t.goal ? `**Objectif.** ${t.goal}` : '', module: { pretest: '', learned: false, sources: [], date: null } });
       s.root.children.push(last);
     });
     s.root.notes = 'Ce sujet est un parcours : chaque grande partie est un module à suivre en 5 étapes. Arbor les a répartis jusqu’à ton examen.';
@@ -564,6 +564,7 @@
         e.preventDefault();
         const lines = $('#pgTopics', el).value.split(/\r?\n/).filter((l) => l.trim());
         const list = lines.map((l) => ({ title: Store.cleanTitle(l.trim().replace(/^([-*•+]|\d+[.)])\s+/, '')), depth: /^\s+/.test(l) ? 1 : 0 })).filter((t) => t.title);
+        list.forEach((t) => { const o = topics.find((x) => x.title === t.title && x.goal); if (o) t.goal = o.goal; }); // objectif tiré du document
         if (!list.some((t) => !t.depth)) { FX.toast('Ajoute au moins un sujet, sans indentation.', 'error'); return; }
         const s = makeProgram($('#pgTitle', el).value.trim() || 'Mon programme', list, { ...sel, examDate: $('#pgExam', el).value || null, rhythm: +$('#pgRhythm', el).value });
         state.subjects.push(s);
@@ -1057,7 +1058,7 @@
       cloze: () => `<p class="cloze">${esc(p.before)}<span class="blank ${show ? 'filled' : ''}">${show ? esc(p.answer) : '…'}</span>${esc(p.after)}</p>`,
       recall: () => `<h2 class="q-title">${esc(node.title)}</h2>${show ? '' : '<p class="muted">Récite ce que tu sais sur cette partie, sans regarder. Écrire, même approximativement, aide à retenir.</p>'}`,
       branch: () => `<h2 class="q-title">${esc(node.title)}</h2>${show ? '' : `<p class="muted">Retrouve ses ${plural(node.children.length, 'sous-partie', 'sous-parties')}, dans l’ordre. Reconstruire la structure aide à organiser ce que tu sais.</p>`}`,
-      exercise: () => `<h2 class="q-title small">${esc(node.title)}</h2><div class="exercise-q md">${MD.render(p.type === 'exercise' ? p.ex.q : '')}</div>${show ? '' : '<p class="muted">Résous-le avant de regarder la méthode, sur papier ou ici.</p>'}`,
+      exercise: () => `${p.ex.q.startsWith(node.title.replace(/…$/, '')) ? '' : `<h2 class="q-title small">${esc(node.title)}</h2>`}<div class="exercise-q md">${MD.render(p.type === 'exercise' ? p.ex.q : '')}</div>${show ? '' : '<p class="muted">Résous-le avant de regarder la méthode, sur papier ou ici.</p>'}`,
     }[p.type]();
     pane.innerHTML = `
       <div class="study">
@@ -2201,7 +2202,7 @@
         const res = await PdfImport.analyze(file, (p) => { setPct(p * 0.9); setMsg(`Lecture des pages… ${Math.round(p * 100)} %`); });
         setMsg('Classement des informations…');
         tree = res.tree;
-        if (res.isProgramme && !into) { Mascot.react('stop-reading'); return programChoice(res); }
+        if ((res.isProgramme || res.hasPlan) && !into) { Mascot.react('stop-reading'); return programChoice(res); }
         if (mode === 'llm') await enrichTree(tree, setMsg, setPct);
       }
       setPct(1);
@@ -2224,12 +2225,16 @@
 
   // Le PDF ressemble à une liste de sujets : on propose le parcours
   function programChoice(res) {
+    const mods = res.topics.filter((t) => !t.depth);
+    const notions = (i) => { const out = []; for (let k = res.topics.indexOf(mods[i]) + 1; k < res.topics.length && res.topics[k].depth; k++) out.push(res.topics[k]); return out; };
     $('#modalBody').innerHTML = `
-      <h2 id="modalTitle">Ce PDF ressemble à un programme</h2>
-      <p class="modal-lede">Arbor y voit ${plural(res.topics.filter((t) => !t.depth).length, 'sujet', 'sujets')}, mais peu de contenu rédigé. Tu peux en faire un parcours : un module par sujet, avec une méthode en 5 étapes et des recherches toutes prêtes.</p>
-      <ul class="topic-preview">${res.topics.slice(0, 8).map((t) => `<li class="${t.depth ? 'sub' : ''}">${esc(t.title)}</li>`).join('')}${res.topics.length > 8 ? `<li class="more">et ${res.topics.length - 8} de plus</li>` : ''}</ul>
+      <h2 id="modalTitle">${res.hasPlan ? `Ce document contient un parcours en ${mods.length} étapes` : 'Ce PDF ressemble à un programme'}</h2>
+      <p class="modal-lede">${res.hasPlan
+        ? 'Tu peux en faire un parcours : chaque étape devient un module, ses points deviennent ses notions, répartis jusqu’à ta date d’objectif. Ou importer tout le document comme un cours.'
+        : `Arbor y voit ${plural(mods.length, 'sujet', 'sujets')}, mais peu de contenu rédigé. Tu peux en faire un parcours : un module par sujet, avec une méthode en 5 étapes et des recherches toutes prêtes.`}</p>
+      <ol class="topic-preview">${mods.slice(0, 8).map((t, i) => { const n = notions(i); return `<li>${esc(t.title)}${n.length ? ` <span class="muted">· ${plural(n.length, 'notion', 'notions')}</span>` : ''}</li>`; }).join('')}${mods.length > 8 ? `<li class="more">et ${mods.length - 8} de plus</li>` : ''}</ol>
       <div class="row-btns end">
-        <button class="btn ghost" id="asCourse">L’importer comme un cours</button>
+        <button class="btn ghost" id="asCourse">${res.hasPlan ? 'Importer tout le document' : 'L’importer comme un cours'}</button>
         <button class="btn" id="asProg">${ic('path')}Créer un parcours de modules</button>
       </div>`;
     $('#asProg').onclick = () => programModal(res.topics, res.title);
