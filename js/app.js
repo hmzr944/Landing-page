@@ -73,7 +73,7 @@
       requestAnimationFrame(step);
     }
     if (bump) { const x = $('#xp'); x.classList.remove('bump'); void x.offsetWidth; x.classList.add('bump'); }
-    window.Mascot && Mascot.setLevel(lvl);
+    if (window.Mascot) { Mascot.setLevel(lvl); Mascot.setVigor && Mascot.setVigor(SRS.streak(state.stats)); }
   }
   const derivedStatus = (n) => (!n.srs ? 'todo' : n.srs.s >= 21 ? 'done' : 'doing');
   function setStatus(node, status, origin) {

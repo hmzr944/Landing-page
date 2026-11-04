@@ -72,35 +72,60 @@
     <button class="mascot-btn" id="mascotBtn" type="button" aria-label="Pousse, la mascotte. Clique pour jouer, ou attrape-la pour la lancer">
       <svg viewBox="0 0 120 120" class="mascot-svg" aria-hidden="true">
         <defs>
-          <radialGradient id="mBody" cx="40%" cy="35%" r="75%">
-            <stop class="mb1" offset="0" stop-color="#7EE09A"/><stop class="mb2" offset=".6" stop-color="#3FBF6A"/><stop class="mb3" offset="1" stop-color="#249652"/>
+          <radialGradient id="mBody" cx="38%" cy="30%" r="80%">
+            <stop class="mb1" offset="0" stop-color="#7EE09A"/><stop class="mb2" offset=".58" stop-color="#3FBF6A"/><stop class="mb3" offset="1" stop-color="#249652"/>
           </radialGradient>
           <linearGradient id="mLeaf" x1="0" y1="1" x2="1" y2="0">
             <stop class="ml1" offset="0" stop-color="#2FA85C"/><stop class="ml2" offset="1" stop-color="#8BE36A"/>
           </linearGradient>
+          <linearGradient id="mHusk" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#E2B07A"/><stop offset="1" stop-color="#A8713F"/>
+          </linearGradient>
+          <linearGradient id="mGold" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#FFE08A"/><stop offset=".5" stop-color="#F2B32E"/><stop offset="1" stop-color="#C98A12"/>
+          </linearGradient>
+          <radialGradient id="mAura" cx="50%" cy="55%" r="50%">
+            <stop class="ma1" offset=".35" stop-color="#FFE9A8" stop-opacity=".85"/><stop offset="1" stop-color="#FFE9A8" stop-opacity="0"/>
+          </radialGradient>
         </defs>
         <ellipse class="m-shadow" cx="60" cy="113" rx="27" ry="4.5"/>
         <g class="m-sprite">
+          <!-- Halo de régularité (7 jours et plus) -->
+          <circle class="m-aura" cx="60" cy="74" r="50" fill="url(#mAura)"/>
+          <circle class="m-aura-rainbow" cx="60" cy="74" r="47" fill="none" stroke-width="3"/>
           <g class="m-body">
-            <path class="m-stem" d="M60 50 C60 42 61 36 60 30" />
+            <path class="m-stem" d="M60 44 C59 38 61 34 60 28" />
             <g class="m-leaves">
-              <path class="m-leaf m-leaf-l" d="M60 32 C50 20 36 22 32 30 C42 38 54 38 60 32 Z"/>
-              <path class="m-leaf m-leaf-r" d="M60 30 C66 16 82 12 88 18 C82 30 70 34 60 30 Z"/>
-              <path class="m-leaf m-leaf-3" d="M60 34 C56 22 58 10 62 4 C68 12 66 26 60 34 Z"/>
+              <!-- Feuilles nervurées : le nombre dépend du rang -->
+              <g class="m-leaf-g m-leaf-l"><path class="m-leaf" d="M60 32 C51 20 37 20 31 28 C38 38 52 40 60 32 Z"/><path class="m-vein" d="M58 32 C50 29 42 27 34 28"/></g>
+              <g class="m-leaf-g m-leaf-r"><path class="m-leaf" d="M60 30 C65 16 80 10 89 15 C85 29 71 35 60 30 Z"/><path class="m-vein" d="M62 29 C70 24 78 19 86 16"/></g>
+              <g class="m-leaf-g m-leaf-3"><path class="m-leaf" d="M60 32 C55 21 57 9 62 3 C68 11 67 25 60 32 Z"/><path class="m-vein" d="M60 30 C60 22 61 14 62 7"/></g>
+              <g class="m-leaf-g m-leaf-4"><path class="m-leaf" d="M58 34 C46 32 38 40 37 48 C47 49 56 43 58 34 Z"/><path class="m-vein" d="M57 35 C51 39 45 43 39 47"/></g>
+              <g class="m-leaf-g m-leaf-5"><path class="m-leaf" d="M62 34 C74 31 83 37 85 45 C75 47 65 42 62 34 Z"/><path class="m-vein" d="M63 35 C70 38 77 41 83 44"/></g>
+              <g class="m-glints"><path d="M41 26 l1.2 2.8 2.8 1.2 -2.8 1.2 -1.2 2.8 -1.2 -2.8 -2.8 -1.2 2.8 -1.2 z"/><path d="M80 16 l1 2.4 2.4 1 -2.4 1 -1 2.4 -1 -2.4 -2.4 -1 2.4 -1 z"/></g>
               <g class="m-bud"><circle cx="62" cy="6" r="6" fill="#FF7A9C"/><circle cx="62" cy="6" r="2.6" fill="#FFD46B"/></g>
               <g class="m-flower">
                 <circle cx="62" cy="-2" r="6" fill="#FF7A9C"/><circle cx="70" cy="5" r="6" fill="#FF9AB4"/>
                 <circle cx="54" cy="5" r="6" fill="#FF9AB4"/><circle cx="62" cy="12" r="5" fill="#FF7A9C"/>
                 <circle cx="62" cy="5" r="4" fill="#FFD46B"/>
               </g>
+              <!-- Gland qui pend (Grand chêne) -->
+              <g class="m-acorn"><path d="M86 17 C88 21 88 24 87 26" stroke="#7A5230" stroke-width="1.4" fill="none"/>
+                <ellipse cx="87" cy="31" rx="4.2" ry="5.2" fill="#C98A4B"/><path d="M82.5 28 C83 24 91 24 91.5 28 Z" fill="#7A5230"/></g>
             </g>
-            <g class="m-arm m-arm-l"><ellipse class="m-limb" cx="27" cy="82" rx="7" ry="5" fill="#2FA85C"/></g>
-            <g class="m-arm m-arm-r"><ellipse class="m-limb" cx="93" cy="82" rx="7" ry="5" fill="#2FA85C"/></g>
-            <g class="m-foot m-foot-l"><ellipse class="m-feet" cx="47" cy="109" rx="8" ry="4.5" fill="#249652"/></g>
-            <g class="m-foot m-foot-r"><ellipse class="m-feet" cx="73" cy="109" rx="8" ry="4.5" fill="#249652"/></g>
-            <path class="m-torso" fill="url(#mBody)" d="M60 46 C84 46 96 62 95 82 C94 102 80 110 60 110 C40 110 26 102 25 82 C24 62 36 46 60 46 Z"/>
-            <ellipse class="m-belly" cx="60" cy="96" rx="22" ry="10" fill="#B9F5C7" opacity=".35"/>
-            <path d="M40 58 C46 52 54 50 60 50" stroke="#fff" stroke-opacity=".45" stroke-width="3" stroke-linecap="round" fill="none"/>
+            <g class="m-arm m-arm-l"><ellipse class="m-limb" cx="27" cy="83" rx="7" ry="5" fill="#2FA85C"/></g>
+            <g class="m-arm m-arm-r"><ellipse class="m-limb" cx="93" cy="83" rx="7" ry="5" fill="#2FA85C"/></g>
+            <g class="m-foot m-foot-l"><ellipse class="m-feet" cx="47" cy="109" rx="8.5" ry="4.5" fill="#249652"/></g>
+            <g class="m-foot m-foot-r"><ellipse class="m-feet" cx="73" cy="109" rx="8.5" ry="4.5" fill="#249652"/></g>
+            <!-- Corps en forme de graine : arrondi en bas, pointu en haut -->
+            <path class="m-torso" fill="url(#mBody)" d="M60 41 C73 48 97 58 96 82 C95 102 80 111 60 111 C40 111 25 102 24 82 C23 58 47 48 60 41 Z"/>
+            <path class="m-shade" d="M93 84 C92 101 79 109 60 109 C72 104 86 96 93 84 Z"/>
+            <ellipse class="m-belly" cx="60" cy="97" rx="21" ry="9.5" fill="#B9F5C7" opacity=".35"/>
+            <path class="m-rim" d="M36 64 C41 55 50 49 58 46" stroke="#fff" stroke-opacity=".55" stroke-width="3" stroke-linecap="round" fill="none"/>
+            <ellipse class="m-gloss" cx="40" cy="70" rx="3.2" ry="2.2" fill="#fff" opacity=".55" transform="rotate(-30 40 70)"/>
+            <!-- Coque de graine sur la tête (rang Graine) -->
+            <g class="m-husk"><path d="M38 54 C42 40 78 40 82 54 L76 51 L71 56 L65 50 L60 56 L55 50 L49 56 L44 51 Z" fill="url(#mHusk)"/>
+              <path d="M46 46 C52 42 60 41 66 42" stroke="#fff" stroke-opacity=".5" stroke-width="2" stroke-linecap="round" fill="none"/></g>
             <g class="m-book">
               <path d="M34 86 L60 90 L60 106 L34 102 Z" fill="#FFFFFF" stroke="#C9CED8" stroke-width="1.2"/>
               <path d="M86 86 L60 90 L60 106 L86 102 Z" fill="#F4F6FA" stroke="#C9CED8" stroke-width="1.2"/>
@@ -111,17 +136,30 @@
               <path d="M29 66 C44 58 76 58 91 66 L90 72 C75 64 45 64 30 72 Z" fill="#E5484D"/>
               <path d="M88 66 L100 60 L97 69 Z M88 68 L101 72 L94 75 Z" fill="#E5484D"/>
             </g>
+            <!-- Couronne de laurier dorée (Forêt ancienne) -->
+            <g class="m-crown">
+              <path d="M34 58 C38 50 46 46 52 45" stroke="url(#mGold)" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+              <path d="M86 58 C82 50 74 46 68 45" stroke="url(#mGold)" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+              <g fill="url(#mGold)"><ellipse cx="37" cy="53" rx="3.4" ry="1.7" transform="rotate(-50 37 53)"/><ellipse cx="42" cy="48" rx="3.4" ry="1.7" transform="rotate(-30 42 48)"/><ellipse cx="48" cy="45.5" rx="3.4" ry="1.7" transform="rotate(-12 48 45.5)"/>
+                <ellipse cx="83" cy="53" rx="3.4" ry="1.7" transform="rotate(50 83 53)"/><ellipse cx="78" cy="48" rx="3.4" ry="1.7" transform="rotate(30 78 48)"/><ellipse cx="72" cy="45.5" rx="3.4" ry="1.7" transform="rotate(12 72 45.5)"/></g>
+            </g>
             <g class="m-face">
-              <ellipse class="m-cheek" cx="41" cy="88" rx="6" ry="3.6" fill="#FF7A9C" opacity=".5"/>
-              <ellipse class="m-cheek" cx="79" cy="88" rx="6" ry="3.6" fill="#FF7A9C" opacity=".5"/>
-              <g class="m-eye m-eye-l"><ellipse cx="49" cy="76" rx="7.5" ry="8.5" fill="#fff"/><g class="m-pupil"><circle cx="49" cy="77" r="4.4" fill="#18202B"/><circle cx="50.6" cy="75.2" r="1.5" fill="#fff"/></g></g>
-              <g class="m-eye m-eye-r"><ellipse cx="71" cy="76" rx="7.5" ry="8.5" fill="#fff"/><g class="m-pupil"><circle cx="71" cy="77" r="4.4" fill="#18202B"/><circle cx="72.6" cy="75.2" r="1.5" fill="#fff"/></g></g>
+              <ellipse class="m-cheek" cx="40" cy="88" rx="6.2" ry="3.6" fill="#FF7A9C" opacity=".5"/>
+              <ellipse class="m-cheek" cx="80" cy="88" rx="6.2" ry="3.6" fill="#FF7A9C" opacity=".5"/>
+              <g class="m-eye m-eye-l"><ellipse cx="49" cy="76" rx="8.2" ry="9.4" fill="#fff"/><g class="m-pupil"><circle cx="49" cy="77.5" r="5" fill="#18202B"/><circle cx="51" cy="75.2" r="1.8" fill="#fff"/><circle cx="47.2" cy="80" r=".9" fill="#fff" opacity=".8"/></g></g>
+              <g class="m-eye m-eye-r"><ellipse cx="71" cy="76" rx="8.2" ry="9.4" fill="#fff"/><g class="m-pupil"><circle cx="71" cy="77.5" r="5" fill="#18202B"/><circle cx="73" cy="75.2" r="1.8" fill="#fff"/><circle cx="69.2" cy="80" r=".9" fill="#fff" opacity=".8"/></g></g>
               <g class="m-closed"><path d="M42 77 Q49 81 56 77" /><path d="M64 77 Q71 81 78 77" /></g>
               <g class="m-joy"><path d="M42 79 Q49 70 56 79" /><path d="M64 79 Q71 70 78 79" /></g>
               <g class="m-dizzy"><path d="M44 72 L54 82 M54 72 L44 82"/><path d="M66 72 L76 82 M76 72 L66 82"/></g>
               <path class="m-mouth" d="${MOUTHS.smile}"/>
             </g>
           </g>
+          <!-- Compagnon papillon (Forêt) -->
+          <g class="m-buddy"><g class="m-buddy-path"><g class="m-fly" transform="scale(1.5)">
+            <path d="M0 0 C-6 -8 -12 -4 -9 2 C-7 5 -3 4 0 0 Z" fill="#7FB8FF"/><path d="M0 0 C6 -8 12 -4 9 2 C7 5 3 4 0 0 Z" fill="#B49CFF"/>
+            <path d="M0 0 C-4 3 -6 7 -3 8 C-1 8 0 4 0 0 Z M0 0 C4 3 6 7 3 8 C1 8 0 4 0 0 Z" fill="#FF9AB4"/><ellipse cx="0" cy="1.5" rx=".9" ry="4" fill="#33264D"/></g></g></g>
+          <!-- Lucioles de régularité (30 jours et plus) -->
+          <g class="m-flies"><g class="m-orbit o1"><circle cx="12" cy="70" r="2.2"/></g><g class="m-orbit o2"><circle cx="108" cy="60" r="1.7"/></g><g class="m-orbit o3"><circle cx="60" cy="18" r="1.9"/></g></g>
         </g>
         <g class="m-zzz"><text x="88" y="40">z</text><text x="96" y="28">z</text><text x="104" y="16">Z</text></g>
         <g class="m-sparkles">
@@ -557,12 +595,33 @@
   }
 
   /* ---------- États liés à l'étude ---------- */
+  /* Pousse évolue avec le rang (niveaux) : coque de graine, feuilles, bourgeon, fleur, gland, papillon, couronne */
+  let rank = -1, vigor = -1;
   function setLevel(lvl, silent) {
     const grew = lvl > level;
     level = lvl;
     if (!root) return;
+    const r = window.Trophies ? Trophies.rankOf(lvl) : Math.min(7, Math.floor((lvl - 1) / 3));
+    const rankUp = rank >= 0 && r > rank;
+    rank = r;
+    root.dataset.rank = r;
     root.dataset.stage = window.Trophies ? Trophies.stageOf(lvl) : lvl >= 6 ? 4 : lvl >= 4 ? 3 : lvl >= 2 ? 2 : 1;
     if (grew && !silent) react('levelup');
+    if (rankUp && !silent) setTimeout(() => say(rand(RANK_LINES[r] || LINES.levelup), 4200, true), 1200);
+  }
+  const RANK_LINES = {
+    1: ['Ma coque a craqué ! Me voilà pousse.'], 2: ['Une troisième feuille ! Je deviens une vraie tige.'],
+    3: ['Regarde ma couronne de feuilles, et un bourgeon !'], 4: ['J’ai fleuri. C’est grâce à toi.'],
+    5: ['Un gland ! Je deviens un grand chêne.'], 6: ['Un papillon est venu habiter chez moi.'], 7: ['Une couronne dorée… Forêt ancienne, rien que ça.'],
+  };
+  /* Pousse évolue aussi avec la régularité (série de jours) : reflets, halo, lucioles, halo irisé */
+  function setVigor(streak) {
+    const v = streak >= 100 ? 4 : streak >= 30 ? 3 : streak >= 7 ? 2 : streak >= 3 ? 1 : 0;
+    if (!root || v === vigor) return;
+    const up = vigor >= 0 && v > vigor;
+    vigor = v;
+    root.dataset.vigor = v;
+    if (up) setTimeout(() => say(['', 'Mes feuilles brillent : 3 jours de suite !', 'Une semaine de suite ! Je rayonne.', '30 jours… les lucioles sont venues.', '100 jours. Je n’ai jamais été aussi beau.'][v], 4200, true), 600);
   }
   function setThirst(n) {
     dueN = n;
@@ -580,5 +639,5 @@
 
   function setCalm(on) { calm = on; if (root) root.classList.toggle('calm', on); }
 
-  window.Mascot = { init, react, say: (t, ms) => say(t, ms, true), setLevel, setEnabled, setThirst, setFocus, setCalm };
+  window.Mascot = { init, react, say: (t, ms) => say(t, ms, true), setLevel, setVigor, setEnabled, setThirst, setFocus, setCalm };
 })();

@@ -1674,3 +1674,84 @@ a.xp:hover { transform: translateY(-1px); }
 .tr-batch { display: flex; }
 .tr-batch .medal + .medal { margin-left: -18px; }
 @media (max-width: 640px) { .tr-count { grid-column: span 2; flex-direction: row; align-items: center; gap: var(--s4); } .tr-count .tile-cap { margin-left: auto; } }
+
+/* =========================================================
+   Pousse : nouveau design (corps en graine, ombrage, feuilles nervurées)
+   et évolution avec le rang (data-rank 0 à 7) et la régularité (data-vigor 0 à 4)
+   ========================================================= */
+.mascot .m-vein { stroke: rgb(255 255 255 / 0.5); stroke-width: 1.1; fill: none; stroke-linecap: round; }
+.mascot .m-shade { fill: var(--mb3); opacity: 0.4; transition: fill 700ms ease; }
+.mascot .m-leaf-g { transform-box: fill-box; transform-origin: 50% 100%; transition: opacity 400ms ease, transform 700ms cubic-bezier(0.34, 1.56, 0.64, 1); }
+.mascot .m-leaf-l { transform-origin: 100% 60%; } .mascot .m-leaf-r { transform-origin: 0% 80%; }
+.mascot .m-leaf-4 { transform-origin: 100% 0%; } .mascot .m-leaf-5 { transform-origin: 0% 0%; }
+.mascot .m-leaf-4, .mascot .m-leaf-5, .mascot .m-acorn, .mascot .m-husk, .mascot .m-crown, .mascot .m-buddy, .mascot .m-glints, .mascot .m-flies, .mascot .m-aura, .mascot .m-aura-rainbow {
+  opacity: 0; transition: opacity 500ms ease, transform 700ms cubic-bezier(0.34, 1.56, 0.64, 1); }
+.mascot .m-husk, .mascot .m-crown, .mascot .m-acorn { transform-box: fill-box; transform-origin: 50% 100%; transform: scale(0.6); }
+
+/* Rang 0, Graine : une coque sur la tête, et une toute petite pousse */
+.mascot[data-rank='0'] .m-husk { opacity: 1; transform: none; }
+.mascot[data-rank='0'] .m-leaf-l, .mascot[data-rank='0'] .m-leaf-r { transform: scale(0.5); }
+.mascot[data-rank='0'] .m-stem { transform: scaleY(0.6); transform-box: fill-box; transform-origin: 50% 100%; }
+/* Rang 1, Pousse : deux feuilles (pas encore la troisième) */
+.mascot[data-rank='1'] .m-leaf-3 { opacity: 0 !important; transform: scale(0.3) !important; }
+/* Rang 3 et plus : couronne de feuilles */
+.mascot[data-rank='3'] .m-leaf-4, .mascot[data-rank='3'] .m-leaf-5, .mascot[data-rank='4'] .m-leaf-4, .mascot[data-rank='4'] .m-leaf-5,
+.mascot[data-rank='5'] .m-leaf-4, .mascot[data-rank='5'] .m-leaf-5, .mascot[data-rank='6'] .m-leaf-4, .mascot[data-rank='6'] .m-leaf-5,
+.mascot[data-rank='7'] .m-leaf-4, .mascot[data-rank='7'] .m-leaf-5 { opacity: 1; }
+/* Rang 5 et plus : le gland ; rang 6 et plus : le papillon ; rang 7 : la couronne dorée */
+.mascot[data-rank='5'] .m-acorn, .mascot[data-rank='6'] .m-acorn, .mascot[data-rank='7'] .m-acorn { opacity: 1; transform: none; }
+.mascot[data-rank='6'] .m-buddy, .mascot[data-rank='7'] .m-buddy { opacity: 1; }
+.mascot[data-rank='7'] .m-crown { opacity: 1; transform: none; }
+.mascot .m-acorn { animation: acorn-swing 3.2s ease-in-out infinite; transform-origin: 86px 17px; transform-box: view-box; }
+@keyframes acorn-swing { 0%, 100% { rotate: -8deg; } 50% { rotate: 8deg; } }
+.mascot .m-buddy-path { animation: buddy-orbit 9s ease-in-out infinite; }
+@keyframes buddy-orbit {
+  0% { transform: translate(100px, 44px); } 25% { transform: translate(84px, 14px) rotate(-12deg); } 50% { transform: translate(36px, 18px) rotate(10deg); }
+  75% { transform: translate(18px, 48px); } 100% { transform: translate(100px, 44px); } }
+.mascot .m-fly { animation: flap 260ms ease-in-out infinite alternate; transform-origin: 0 0; }
+@keyframes flap { from { transform: scale(1.5, 1.5); } to { transform: scale(0.55, 1.5); } }
+
+/* Régularité : 3 jours, des reflets sur les feuilles */
+.mascot .m-glints path { fill: #fff; }
+.mascot[data-vigor='1'] .m-glints, .mascot[data-vigor='2'] .m-glints, .mascot[data-vigor='3'] .m-glints, .mascot[data-vigor='4'] .m-glints { opacity: 1; animation: twinkle 2.4s ease-in-out infinite; }
+@keyframes twinkle { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } }
+/* 7 jours : un halo ; 30 jours : des lucioles ; 100 jours : un halo irisé */
+.mascot[data-vigor='2'] .m-aura, .mascot[data-vigor='3'] .m-aura, .mascot[data-vigor='4'] .m-aura { opacity: 1; animation: aura 3.6s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes aura { 50% { transform: scale(1.06); opacity: 0.75; } }
+.mascot[data-vigor='3'] .m-flies, .mascot[data-vigor='4'] .m-flies { opacity: 1; }
+.mascot .m-flies circle { fill: #FFE27A; filter: drop-shadow(0 0 2px #FFD23F); }
+.mascot .m-orbit { transform-origin: 60px 72px; animation: spin 7s linear infinite; }
+.mascot .m-orbit.o2 { animation-duration: 11s; animation-direction: reverse; }
+.mascot .m-orbit.o3 { animation-duration: 9s; }
+.mascot .m-orbit circle { animation: twinkle 1.6s ease-in-out infinite; }
+.mascot[data-vigor='4'] .m-aura-rainbow { opacity: 0.8; animation: hue-ring 6s linear infinite; }
+@keyframes hue-ring { 0% { stroke: #7FB8FF; } 25% { stroke: #B49CFF; } 50% { stroke: #FF9AB4; } 75% { stroke: #FFD46B; } 100% { stroke: #7FB8FF; } }
+:root[data-theme='dark'] .mascot .ma1 { stop-color: #7FD8FF; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme='light']) .mascot .ma1 { stop-color: #7FD8FF; } }
+
+.calm .mascot .m-acorn, .calm .mascot .m-buddy-path, .calm .mascot .m-fly, .calm .mascot .m-glints, .calm .mascot .m-aura, .calm .mascot .m-orbit, .calm .mascot .m-orbit circle, .calm .mascot .m-aura-rainbow { animation: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .mascot .m-acorn, .mascot .m-buddy-path, .mascot .m-fly, .mascot .m-glints, .mascot .m-aura, .mascot .m-orbit, .mascot .m-orbit circle, .mascot .m-aura-rainbow { animation: none !important; }
+}
+
+/* =========================================================
+   Logo : le « a » graine qui pousse. Animation d'entrée (bol, tige, feuilles), feuilles qui ondulent au survol
+   ========================================================= */
+.logo { width: 38px; height: 38px; overflow: visible; }
+.logo .lg-bowl, .logo .lg-stem, .logo .lg-leaf { transform-box: view-box; transition: transform 500ms cubic-bezier(0.34, 1.56, 0.64, 1); }
+.logo .lg-bowl { transform-origin: 20px 44px; animation: lg-pop 700ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.logo .lg-stem { transform-origin: 34px 34px; animation: lg-grow 650ms cubic-bezier(0.22, 1, 0.36, 1) both 220ms; }
+.logo .lg-leaf-b { transform-origin: 38.5px 11px; animation: lg-unfurl 800ms cubic-bezier(0.34, 1.56, 0.64, 1) both 620ms; }
+.logo .lg-leaf-s { transform-origin: 33.5px 18px; animation: lg-unfurl-s 800ms cubic-bezier(0.34, 1.56, 0.64, 1) both 760ms; }
+@keyframes lg-pop { from { transform: scale(0.4, 0.2); opacity: 0; } 60% { transform: scale(1.06, 0.95); opacity: 1; } to { transform: none; } }
+@keyframes lg-grow { from { transform: scaleY(0); } to { transform: none; } }
+@keyframes lg-unfurl { from { transform: rotate(-70deg) scale(0); } to { transform: none; } }
+@keyframes lg-unfurl-s { from { transform: rotate(60deg) scale(0); } to { transform: none; } }
+@media (hover: hover) and (pointer: fine) {
+  .brand:hover .lg-leaf-b { transform: rotate(-14deg) scale(1.08); }
+  .brand:hover .lg-leaf-s { transform: rotate(12deg) scale(1.08); }
+  .brand:hover .lg-stem { transform: rotate(-3deg); }
+}
+:root[data-theme='dark'] .logo .lg-a1 { stop-color: #8FA2FF; } :root[data-theme='dark'] .logo .lg-a2 { stop-color: #5866F0; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme='light']) .logo .lg-a1 { stop-color: #8FA2FF; } :root:not([data-theme='light']) .logo .lg-a2 { stop-color: #5866F0; } }
+@media (prefers-reduced-motion: reduce) { .logo .lg-bowl, .logo .lg-stem, .logo .lg-leaf { animation: none; } }
