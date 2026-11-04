@@ -554,7 +554,7 @@
             <select id="pgRhythm"><option value="1">par jour</option><option value="2" selected>tous les 2 jours</option><option value="3">tous les 3 jours</option><option value="7">par semaine</option></select>
           </div>
         </div>
-        <label class="check"><input type="checkbox" id="pgWrite" checked /> Rédiger le cours de chaque sujet (${state.settings.apiKey ? 'Claude cherche et rédige' : useLocal() ? 'l’IA locale rédige, gratuitement' : 'fiche de départ tirée de Wikipédia ; active l’IA locale dans les Réglages pour un vrai cours'})</label>
+        <label class="check"><input type="checkbox" id="pgWrite" checked /> Rédiger le cours de chaque sujet (${state.settings.apiKey ? 'Claude cherche et rédige' : useLocal() ? 'l’IA locale rédige, gratuitement' : 'passages choisis dans Wikilivres, Wikiversité et Wikipédia pour chaque notion ; l’IA locale les reformule si tu l’actives'})</label>
         ${pickers(sel.color, sel.icon)}
         <div class="row-btns end"><button type="button" class="btn ghost" data-close>Annuler</button><button class="btn">${ic('path')}Créer le parcours</button></div>
       </form>`, (el) => {
@@ -680,8 +680,8 @@
   // Qui rédige les cours : Claude (clé API), l'IA locale (modèle open source dans le navigateur) ou Wikipédia
   const useLocal = () => !state.settings.apiKey && state.settings.localAI && window.LocalAI && LocalAI.supported();
   const engineLabel = () => state.settings.apiKey ? 'avec Claude et des sources fiables'
-    : useLocal() ? 'avec l’IA locale, gratuite, qui reformule un article de référence en vrai cours'
-    : 'à partir de Wikipédia (fiche de départ ; active l’IA locale gratuite dans les Réglages pour un vrai cours expliqué)';
+    : useLocal() ? 'avec l’IA locale, gratuite, qui reformule en cours les meilleurs passages de Wikilivres, Wikiversité et Wikipédia'
+    : 'à partir de Wikilivres, Wikiversité et Wikipédia (passages choisis pour chaque notion ; active l’IA locale gratuite dans les Réglages pour qu’ils soient reformulés en cours)';
   async function fetchCourse(topic, context, onStatus) {
     if (state.settings.apiKey) {
       const r = await AI.researchTopic(topic, context, state.settings.apiKey, state.settings.model, onStatus);
@@ -702,32 +702,88 @@
     return Course.fromWikipedia(topic, context);
   }
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  /* Rédiger le cours d'une partie à partir de son titre.
+     - Avec une clé Claude : Claude cherche sur le web et rédige.
+     - Sinon, méthode inspirée de STORM (voir storm.js) : chaque notion est rédigée à partir de ses meilleurs
+       passages (Wikilivres, Wikiversité, Wikipédia), reformulés par l'IA locale si elle est activée.
+     Une partie sans sous-parties reçoit d'abord un plan, tiré des sections de la meilleure source. */
+  async function writeNotionInto(ch, ctx, onStatus) {
+    const r = await Storm.buildNotion(ch.title, ctx, { local: useLocal() ? { id: state.settings.localModel } : null, onStatus });
+    ch.notes = r.notes;
+    ch.keyPoints = [...(ch.keyPoints || []), ...r.keyPoints].slice(0, 5);
+    ch.exercises = (ch.exercises || []).concat(r.exercises.map((e) => ({ id: Store.uid(), q: String(e.q || ''), a: String(e.a || '') })));
+    ch.course = { from: r.from, sources: r.sources };
+    return r;
+  }
   async function writeCourse(s, node, onStatus) {
     const ctx = node === s.root ? '' : s.title;
-    if (node.children.length) {
-      let n = 0;
-      for (const ch of node.children) {
-        if (ch.notes.trim()) continue;
-        onStatus && onStatus(`« ${ch.title} »`);
-        const r = await fetchCourse(ch.title, node.title, onStatus);
-        ch.notes = [r.overview, ...r.notions.slice(0, 4).map((x) => `### ${x.title}\n${x.notes}`)].filter(Boolean).join('\n\n');
-        ch.keyPoints = r.notions.flatMap((x) => x.keyPoints || []).slice(0, 4);
-        ch.exercises = (ch.exercises || []).concat(r.notions.flatMap((x) => (x.exercises || []).map((e) => ({ id: Store.uid(), q: String(e.q || ''), a: String(e.a || '') }))).slice(0, 3));
-        ch.course = { from: r.from, sources: r.sources };
-        n++;
-        if (r.from !== 'claude') await wait(700); // rester poli avec Wikipédia
+    if (state.settings.apiKey) {
+      if (node.children.length) {
+        let n = 0;
+        for (const ch of node.children) {
+          if (ch.notes.trim()) continue;
+          onStatus && onStatus(`« ${ch.title} »`);
+          const r = await fetchCourse(ch.title, node.title, onStatus);
+          ch.notes = [r.overview, ...r.notions.slice(0, 4).map((x) => `### ${x.title}\n${x.notes}`)].filter(Boolean).join('\n\n');
+          ch.keyPoints = r.notions.flatMap((x) => x.keyPoints || []).slice(0, 4);
+          ch.exercises = (ch.exercises || []).concat(r.notions.flatMap((x) => (x.exercises || []).map((e) => ({ id: Store.uid(), q: String(e.q || ''), a: String(e.a || '') }))).slice(0, 3));
+          ch.course = { from: r.from, sources: r.sources };
+          n++;
+        }
+        if (node.module) node.module.generated = true;
+        return n;
       }
-      if (node.module) node.module.generated = true;
-      return n;
+      onStatus && onStatus(`« ${node.title} »`);
+      const r = await fetchCourse(node.title, ctx, onStatus);
+      if (r.overview && !node.notes.trim()) node.notes = r.overview;
+      r.notions.forEach((x) => node.children.push(normalize(x)));
+      node.course = { from: r.from, sources: r.sources };
+      node.collapsed = false;
+      if (node.module) { node.module.sources = r.sources; node.module.generated = true; }
+      return r.notions.length;
     }
-    onStatus && onStatus(`« ${node.title} »`);
-    const r = await fetchCourse(node.title, ctx, onStatus);
-    if (r.overview && !node.notes.trim()) node.notes = r.overview;
-    r.notions.forEach((x) => node.children.push(normalize(x)));
-    node.course = { from: r.from, sources: r.sources };
-    node.collapsed = false;
-    if (node.module) { node.module.sources = r.sources; node.module.generated = true; }
-    return r.notions.length;
+
+    // Sans clé : un plan si la partie n'a pas de notions, puis une rédaction notion par notion
+    if (!node.children.length) {
+      onStatus && onStatus(`plan de « ${node.title} »`);
+      const dom = []; walk(s.root, (x) => dom.push(x.title));
+      const plan = await Storm.outline(node.title, { module: ctx, domain: dom.join(' ') }).catch(() => []);
+      if (plan.length < 2) {
+        const r = await Course.fromWikipedia(node.title, ctx); // repli : la fiche Wikipédia
+        if (r.overview && !node.notes.trim()) node.notes = r.overview;
+        r.notions.forEach((x) => node.children.push(normalize(x)));
+        node.course = { from: r.from, sources: r.sources };
+        node.collapsed = false;
+        if (node.module) { node.module.sources = r.sources; node.module.generated = true; }
+        return r.notions.length;
+      }
+      plan.forEach((t) => node.children.push(makeNode(t)));
+      node.collapsed = false;
+    }
+    // Introduction du module
+    if (node.notes.replace(/\*\*Objectif\.\*\*[^\n]*/, '').trim().length < 40) {
+      const dom = []; walk(s.root, (x) => dom.push(x.title));
+      const lead = await Storm.moduleLead(node.title, { subject: s.title, domain: dom.join(' ') }, { onStatus }).catch(() => null);
+      if (lead) {
+        node.notes = [node.notes.trim(), lead.text, `Dans ce module : ${node.children.map((c) => c.title.charAt(0).toLowerCase() + c.title.slice(1)).join(', ')}.`].filter(Boolean).join('\n\n');
+        if (node.module) node.module.sources = lead.sources;
+      }
+    }
+    let n = 0;
+    const missed = [];
+    // vocabulaire du domaine : tous les titres du sujet (sert à écarter les pages hors sujet)
+    const domain = [];
+    walk(s.root, (x) => domain.push(x.title));
+    for (const ch of node.children) {
+      if (ch.notes.trim()) continue;
+      // mots propres aux autres modules du parcours (pour écarter une page Linux dans un module Windows)
+      const others = s.root.children.filter((m) => m !== node && m.module).map((m) => m.title).join(' ');
+      try { await writeNotionInto(ch, { module: node.title, subject: s.title, domain: domain.join(' '), others }, (m) => onStatus && onStatus(`« ${ch.title} » : ${m}`)); n++; }
+      catch (err) { if (/ralentir/.test(err.message)) throw err; missed.push(ch.title); }
+    }
+    if (node.module) node.module.generated = true;
+    if (!n && missed.length) throw new Error(`Rien trouvé pour ${missed.slice(0, 3).join(', ')}.`);
+    return n;
   }
 
   // Plusieurs cours à la suite, avec une progression visible
@@ -735,7 +791,7 @@
     openModal(`
       <div class="loading">
         <h2 id="modalTitle">Arbor rédige ton cours…</h2>
-        <p class="modal-lede" id="ldMsg">${state.settings.apiKey ? 'Claude cherche des sources fiables et rédige chaque module.' : useLocal() ? 'L’IA locale rédige chaque module à partir d’un texte de référence. La première fois, le modèle se télécharge.' : 'Arbor cherche l’article de référence de chaque sujet et le transforme en cours.'}</p>
+        <p class="modal-lede" id="ldMsg">${state.settings.apiKey ? 'Claude cherche des sources fiables et rédige chaque module.' : useLocal() ? 'Pour chaque notion, Arbor choisit les meilleurs passages de Wikilivres, Wikiversité et Wikipédia, puis l’IA locale les reformule en cours. La première fois, le modèle se télécharge.' : 'Pour chaque notion, Arbor cherche dans Wikilivres, Wikiversité et Wikipédia, choisit les passages les plus pertinents et les assemble en cours.'}</p>
         <div class="bar big" role="progressbar" aria-label="Progression" aria-valuemin="0" aria-valuemax="100"><span id="ldBar" style="transform:scaleX(.03)"></span></div>
         <p class="hint" id="ldCount">0 / ${nodes.length}</p>
       </div>`);

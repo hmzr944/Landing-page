@@ -172,6 +172,25 @@ Rédige :
     };
   }
 
+  /* Une notion d'un parcours, à partir des passages sélectionnés (méthode inspirée de STORM :
+     chaque section est rédigée à partir de SES sources, ce qui tient dans la petite mémoire du modèle) */
+  const NOTION_SCHEMA = { type: 'object', properties: { notes: str, keyPoints: { type: 'array', items: str }, exercises: { type: 'array', items: qa } }, required: ['notes', 'keyPoints', 'exercises'] };
+  const NOTION_SYSTEM = `Tu es un formateur qui rédige une partie de cours pour un étudiant français débutant.
+On te donne une notion, le module dont elle fait partie et des extraits de sources numérotés. N'utilise que ces extraits : n'invente ni chiffre, ni commande, ni nom.
+- "notes" : un cours clair en markdown simple (8 à 14 phrases courtes) : à quoi ça sert, comment ça marche, puis un exemple concret. Si c'est une manipulation, donne les étapes dans l'ordre en liste "- ". Entoure la phrase la plus importante de == (==phrase==).
+- "keyPoints" : 2 à 4 phrases courtes à retenir.
+- "exercises" : 1 ou 2 questions qui font réfléchir ou appliquer, avec la réponse attendue dans "a".
+Écris en français.`;
+  async function writeNotion(notion, module, sources, opts = {}) {
+    const r = await ask(NOTION_SYSTEM, `Notion : « ${notion} »${module ? `\nModule : « ${module} »` : ''}\n\nExtraits :\n${sources}`, NOTION_SCHEMA, { ...opts, maxTokens: 1300 });
+    if (!r.notes || String(r.notes).length < 80) throw new Error('Le modèle local n’a rien rédigé.');
+    return {
+      notes: String(r.notes),
+      keyPoints: (r.keyPoints || []).map(String).filter((k) => k.length > 8).slice(0, 4),
+      exercises: (r.exercises || []).filter((e) => e && e.q && e.a).map((e) => ({ q: String(e.q), a: String(e.a) })).slice(0, 2),
+    };
+  }
+
   async function remove(id = DEFAULT) {
     const l = await getLib();
     id = await resolve(id);
@@ -179,5 +198,5 @@ Rédige :
     await l.deleteModelAllInfoInCache(id);
   }
 
-  window.LocalAI = { MODELS, DEFAULT, supported, isCached, load, writeCourse, enrich, remove, loaded: () => loadedId, ask };
+  window.LocalAI = { MODELS, DEFAULT, supported, isCached, load, writeCourse, writeNotion, enrich, remove, loaded: () => loadedId, ask };
 })();
