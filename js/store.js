@@ -10,7 +10,7 @@
   const OLD_COLORS = { '#7c5cff': '#3451D1', '#ff5c8a': '#C2255C', '#ffb020': '#C2550A', '#22c55e': '#0B7F75', '#06b6d4': '#0369A1', '#f97316': '#C2550A', '#e879f9': '#9333B8', '#3b82f6': '#3451D1' };
   const OLD_EMOJIS = { '🧠': 'brain', '📚': 'book-open', '🧪': 'flask', '🌍': 'globe-hemisphere-west', '⚙️': 'code', '🎨': 'palette', '🧬': 'heartbeat', '📐': 'calculator', '💡': 'brain', '🏛️': 'bank', '🎵': 'music-notes', '💻': 'code', '⚖️': 'scales', '🩺': 'heartbeat', '📈': 'chart-line-up', '🪐': 'planet', '🌱': 'leaf' };
 
-  const DEFAULT_SETTINGS = { theme: 'auto', apiKey: '', model: 'claude-opus-5-5', mascot: true, dailyGoal: 15, newPerDay: 10, focusMin: 25, breakMin: 5, calm: false, plan: null };
+  const DEFAULT_SETTINGS = { theme: 'auto', apiKey: '', model: 'claude-opus-5-5', mascot: true, dailyGoal: 15, newPerDay: 10, focusMin: 25, breakMin: 5, calm: false, plan: null, localAI: false, localModel: 'Qwen2.5-3B-Instruct-q4f16_1-MLC' };
   const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
   function makeNode(title = 'Nouvelle partie', extra = {}) {

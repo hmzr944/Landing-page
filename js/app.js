@@ -554,7 +554,7 @@
             <select id="pgRhythm"><option value="1">par jour</option><option value="2" selected>tous les 2 jours</option><option value="3">tous les 3 jours</option><option value="7">par semaine</option></select>
           </div>
         </div>
-        <label class="check"><input type="checkbox" id="pgWrite" checked /> Rédiger le cours de chaque sujet (${state.settings.apiKey ? 'Claude cherche et rédige' : 'fiche de départ tirée de Wikipédia ; ajoute une clé Claude dans les Réglages pour un vrai cours rédigé'})</label>
+        <label class="check"><input type="checkbox" id="pgWrite" checked /> Rédiger le cours de chaque sujet (${state.settings.apiKey ? 'Claude cherche et rédige' : useLocal() ? 'l’IA locale rédige, gratuitement' : 'fiche de départ tirée de Wikipédia ; active l’IA locale dans les Réglages pour un vrai cours'})</label>
         ${pickers(sel.color, sel.icon)}
         <div class="row-btns end"><button type="button" class="btn ghost" data-close>Annuler</button><button class="btn">${ic('path')}Créer le parcours</button></div>
       </form>`, (el) => {
@@ -605,7 +605,7 @@
       learn: () => m.generated ? `
         <p>Ton cours est prêt juste en dessous : ${plural(node.children.length, 'notion', 'notions')}. Lis-le en entier, à ton rythme. Compare avec ce que tu pensais savoir.</p>
         <div class="row-btns"><a class="btn" href="#course" data-act="goto-course">${ic('book-open-text')}Lire le cours</a><button class="btn ghost" data-act="mod-learned">${ic('check')}J’ai lu le cours</button></div>` : `
-        <p>Arbor peut rédiger le cours de « ${esc(node.title)} » ${hasKey ? 'avec Claude, qui cherche des sources fiables' : 'à partir de Wikipédia (une fiche de départ, assez encyclopédique ; avec une clé Claude dans les Réglages, tu obtiens un vrai cours expliqué avec exemples et exercices)'}. Tu peux aussi chercher toi-même.</p>
+        <p>Arbor peut rédiger le cours de « ${esc(node.title)} » ${engineLabel()}. Tu peux aussi chercher toi-même.</p>
         <button class="btn" data-act="write-course">${ic('book-open-text')}Rédiger le cours</button>
         <div class="research-links">${researchLinks(node.title, s).map(([l, u, i]) => `<a class="chip-link" href="${u}" target="_blank" rel="noopener">${ic(i)}${l}</a>`).join('')}</div>
         <button class="btn ghost sm" data-act="mod-learned">${ic('check')}J’ai lu et pris mes notes</button>`,
@@ -676,10 +676,27 @@
 
   /* Rédiger le cours d'une partie à partir de son titre.
      Si la partie a déjà des sous-parties (ex. notions listées dans le programme), chacune reçoit son cours. */
+  // Qui rédige les cours : Claude (clé API), l'IA locale (modèle open source dans le navigateur) ou Wikipédia
+  const useLocal = () => !state.settings.apiKey && state.settings.localAI && window.LocalAI && LocalAI.supported();
+  const engineLabel = () => state.settings.apiKey ? 'avec Claude et des sources fiables'
+    : useLocal() ? 'avec l’IA locale, gratuite, qui reformule un article de référence en vrai cours'
+    : 'à partir de Wikipédia (fiche de départ ; active l’IA locale gratuite dans les Réglages pour un vrai cours expliqué)';
   async function fetchCourse(topic, context, onStatus) {
     if (state.settings.apiKey) {
       const r = await AI.researchTopic(topic, context, state.settings.apiKey, state.settings.model, onStatus);
       return { ...r, from: 'claude' };
+    }
+    if (useLocal()) {
+      onStatus && onStatus('Recherche d’un texte de référence…');
+      const src = await Course.wikiSource(topic, context).catch(() => null);
+      const r = await LocalAI.writeCourse(topic, context, src, {
+        id: state.settings.localModel,
+        onStatus,
+        onProgress: (p, t) => onStatus && onStatus(p < 1 ? `${t} (${Math.round(p * 100)} %)` : 'Le modèle local rédige le cours…'),
+      });
+      if (!r.notions.length) throw new Error('Le modèle local n’a rien rédigé.');
+      r.overview = `${r.overview}\n\n_Cours rédigé par l’IA locale${src ? ` à partir de l’article Wikipédia « ${src.title} »` : ', sans texte de référence'}. Vérifie les points importants dans ton cours._`;
+      return { ...r, sources: src ? [{ title: `Wikipédia : ${src.title}`, url: src.url }] : [], from: 'local' };
     }
     return Course.fromWikipedia(topic, context);
   }
@@ -697,7 +714,7 @@
         ch.exercises = (ch.exercises || []).concat(r.notions.flatMap((x) => (x.exercises || []).map((e) => ({ id: Store.uid(), q: String(e.q || ''), a: String(e.a || '') }))).slice(0, 3));
         ch.course = { from: r.from, sources: r.sources };
         n++;
-        if (r.from === 'wikipedia') await wait(700); // rester poli avec Wikipédia
+        if (r.from !== 'claude') await wait(700); // rester poli avec Wikipédia
       }
       if (node.module) node.module.generated = true;
       return n;
@@ -717,7 +734,7 @@
     openModal(`
       <div class="loading">
         <h2 id="modalTitle">Arbor rédige ton cours…</h2>
-        <p class="modal-lede" id="ldMsg">${state.settings.apiKey ? 'Claude cherche des sources fiables et rédige chaque module.' : 'Arbor cherche l’article de référence de chaque sujet et le transforme en cours.'}</p>
+        <p class="modal-lede" id="ldMsg">${state.settings.apiKey ? 'Claude cherche des sources fiables et rédige chaque module.' : useLocal() ? 'L’IA locale rédige chaque module à partir d’un texte de référence. La première fois, le modèle se télécharge.' : 'Arbor cherche l’article de référence de chaque sujet et le transforme en cours.'}</p>
         <div class="bar big" role="progressbar" aria-label="Progression" aria-valuemin="0" aria-valuemax="100"><span id="ldBar" style="transform:scaleX(.03)"></span></div>
         <p class="hint" id="ldCount">0 / ${nodes.length}</p>
       </div>`);
@@ -772,7 +789,7 @@
         return missing ? `<section class="sec write-course"><p>${plural(missing, 'module n’a', 'modules n’ont')} pas encore de cours.</p><button class="btn" data-act="write-all">${ic('book-open-text')}Rédiger les cours manquants</button></section>` : '';
       }
       if (isRoot || node.notes.trim().length > 80) return '';
-      return `<section class="sec write-course"><p>Cette partie est vide. Arbor peut en rédiger le cours à partir de son titre, ${state.settings.apiKey ? 'avec Claude et des sources fiables' : 'à partir de Wikipédia (fiche de départ ; avec une clé Claude, un vrai cours expliqué)'}.</p><button class="btn" data-act="write-course">${ic('book-open-text')}Rédiger le cours</button></section>`;
+      return `<section class="sec write-course"><p>Cette partie est vide. Arbor peut en rédiger le cours à partir de son titre, ${engineLabel()}.</p><button class="btn" data-act="write-course">${ic('book-open-text')}Rédiger le cours</button></section>`;
     }
     const pre = node.module && !moduleSteps(node).pretest && !pretestSeen.has(node.id + ':course');
     const sources = [...((node.course && node.course.sources) || []), ...((node.module && node.module.sources) || []), ...withNotes.flatMap((c) => (c.course && c.course.sources) || [])]
@@ -1963,6 +1980,16 @@
         </div>
         <label class="check switch-row"><input type="checkbox" id="calmOn" ${st.calm ? 'checked' : ''} /> Mode calme : moins de mouvement, pas de confettis, mascotte silencieuse</label>
         <label class="check switch-row"><input type="checkbox" id="mascotOn" ${st.mascot !== false ? 'checked' : ''} /> Afficher Pousse, la mascotte</label>
+        <fieldset class="field local-ai">
+          <legend>IA locale <span class="optional">gratuite, open source</span></legend>
+          ${window.LocalAI && LocalAI.supported() ? `
+          <label class="check switch-row"><input type="checkbox" id="localOn" ${st.localAI ? 'checked' : ''} /> Utiliser un modèle open source (Qwen, via WebLLM) qui tourne dans ce navigateur pour rédiger les cours et analyser les PDF</label>
+          <select id="localModel" aria-label="Modèle local">${LocalAI.MODELS.map((m) => `<option value="${m.id}" ${st.localModel === m.id ? 'selected' : ''}>${m.label} (${m.size})</option>`).join('')}</select>
+          <div class="row-btns"><button type="button" class="btn ghost sm" id="localDl">${ic('download-simple')}Télécharger le modèle maintenant</button><span class="hint" id="localState"></span></div>
+          <div class="bar" id="localBarWrap" hidden><span id="localBar" style="transform:scaleX(0)"></span></div>
+          <p class="hint">Téléchargé une seule fois, puis gardé sur l’appareil. Rien n’est envoyé à un serveur. Moins précis que Claude : il reformule un article de référence plutôt que d’inventer.</p>`
+          : `<p class="hint">Ce navigateur ne gère pas WebGPU, nécessaire pour faire tourner une IA sur l’appareil. Essaie Chrome ou Edge à jour, sur ordinateur ou sur un téléphone récent.</p>`}
+        </fieldset>
         <div class="field">
           <label for="apiKey">Clé API Claude <span class="optional">facultatif</span></label>
           <input id="apiKey" name="api-key" type="password" autocomplete="off" spellcheck="false" placeholder="sk-ant-…" value="${esc(st.apiKey || '')}" />
@@ -1986,6 +2013,23 @@
         <div class="row-btns end"><button class="btn">Enregistrer</button></div>
       </form>`, (el) => {
       const ib = $('#installBtn', el); if (ib) ib.onclick = () => window.PWA && PWA.install();
+      const dl = $('#localDl', el);
+      if (dl) {
+        const stateEl = $('#localState', el);
+        const refresh = async () => { stateEl.textContent = (await LocalAI.isCached($('#localModel', el).value)) ? 'Déjà téléchargé' : ''; };
+        refresh();
+        $('#localModel', el).onchange = refresh;
+        dl.onclick = async () => {
+          dl.disabled = true;
+          $('#localBarWrap', el).hidden = false;
+          try {
+            await LocalAI.load($('#localModel', el).value, (p, t) => { stateEl.textContent = t; $('#localBar', el).style.transform = `scaleX(${p})`; });
+            stateEl.textContent = 'Modèle prêt';
+            $('#localOn', el).checked = true;
+          } catch (err) { stateEl.textContent = err.message; }
+          dl.disabled = false;
+        };
+      }
       $('#expAll', el).onclick = () => exportJSON({ subjects: state.subjects, xp: state.xp }, 'arbor-sauvegarde');
       $('#impAll', el).onclick = () => $('#jsonInput').click();
       $('#setForm', el).onsubmit = (e) => {
@@ -1999,6 +2043,7 @@
         Mascot.setEnabled(st.mascot);
         st.apiKey = $('#apiKey', el).value.trim();
         st.model = $('#model', el).value;
+        if ($('#localOn', el)) { st.localAI = $('#localOn', el).checked; st.localModel = $('#localModel', el).value; }
         applyTheme(); save(); closeModal(); FX.toast('Réglages enregistrés', 'success');
       };
     });
@@ -2048,6 +2093,7 @@
   function pdfModal() {
     pdfFile = null;
     const hasKey = !!state.settings.apiKey;
+    const llmOk = !!(state.settings.localAI && window.LocalAI && LocalAI.supported());
     const inSubject = view.name === 'subject';
     openModal(`
       <h2 id="modalTitle">Importer un PDF</h2>
@@ -2060,9 +2106,12 @@
       <fieldset class="field">
         <legend>Méthode d’analyse</legend>
         <div class="mode-pick">
-          <label class="mode"><input type="radio" name="mode" value="local" ${hasKey ? '' : 'checked'} />
+          <label class="mode"><input type="radio" name="mode" value="local" ${hasKey || llmOk ? "" : "checked"} />
             <span class="mode-ic" aria-hidden="true">${ic('lightning', true)}</span>
-            <span><b>Analyse locale</b><small>Gratuite et instantanée. Le fichier ne quitte pas ton ordinateur.</small></span></label>
+            <span><b>Analyse rapide</b><small>Instantanée : titres, définitions, exercices. Le fichier reste sur ton appareil.</small></span></label>
+          <label class="mode ${llmOk ? '' : 'locked'}"><input type="radio" name="mode" value="llm" ${llmOk ? (hasKey ? '' : 'checked') : 'disabled'} />
+            <span class="mode-ic" aria-hidden="true">${ic('cpu', true)}</span>
+            <span><b>IA locale</b><small>${llmOk ? 'Gratuite et privée : ajoute des points clés et des questions à chaque partie. Prend quelques minutes.' : window.LocalAI && LocalAI.supported() ? 'Active-la dans les réglages (gratuit).' : 'Navigateur non compatible (WebGPU).'}</small></span></label>
           <label class="mode ${hasKey ? '' : 'locked'}"><input type="radio" name="mode" value="ai" ${hasKey ? 'checked' : 'disabled'} />
             <span class="mode-ic" aria-hidden="true">${ic('sparkle', true)}</span>
             <span><b>Analyse par Claude</b><small>${hasKey ? 'Résumés et points clés rédigés, découpage plus fin.' : 'Ajoute ta clé API dans les réglages pour l’activer.'}</small></span></label>
@@ -2090,6 +2139,31 @@
         runPdf(pdfFile, $('#asProgram', el).checked ? 'program' : mode, into);
       };
     });
+  }
+
+  /* IA locale sur un PDF : le texte du cours reste celui du document ;
+     le modèle ajoute des points clés reformulés et des questions à chaque partie qui a du contenu. */
+  async function enrichTree(tree, setMsg, setPct) {
+    const parts = [];
+    (function w(n) { if ((n.notes || '').length >= 250) parts.push(n); (n.children || []).forEach(w); })(tree);
+    const todo = parts.slice(0, 14);
+    for (let i = 0; i < todo.length; i++) {
+      const n = todo[i];
+      setMsg(`IA locale : « ${n.title} » (${i + 1}/${todo.length})`);
+      try {
+        const r = await LocalAI.enrich(n.title, n.notes, {
+          id: state.settings.localModel,
+          onProgress: (p, t) => { setMsg(`${t} (${Math.round(p * 100)} %)`); setPct(0.1 + p * 0.3); },
+        });
+        const have = new Set((n.keyPoints || []).map((k) => k.toLowerCase()));
+        n.keyPoints = [...(n.keyPoints || []), ...r.keyPoints.filter((k) => !have.has(k.toLowerCase()))].slice(0, 6);
+        n.exercises = [...(n.exercises || []), ...r.exercises.map((e) => ({ q: String(e.q), a: String(e.a) }))];
+      } catch (err) {
+        if (i === 0) throw err; // le modèle ne se charge pas : on prévient
+        console.warn(err);
+      }
+      setPct(0.4 + ((i + 1) / todo.length) * 0.6);
+    }
   }
 
   async function runPdf(file, mode, into) {
@@ -2128,6 +2202,7 @@
         setMsg('Classement des informations…');
         tree = res.tree;
         if (res.isProgramme && !into) { Mascot.react('stop-reading'); return programChoice(res); }
+        if (mode === 'llm') await enrichTree(tree, setMsg, setPct);
       }
       setPct(1);
       Mascot.react('imported');

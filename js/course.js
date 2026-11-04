@@ -89,5 +89,21 @@
     };
   }
 
-  window.Course = { fromWikipedia };
+  /* Texte de référence pour l'IA locale : introduction + sections explicatives, sans les annexes */
+  async function wikiSource(topic, context) {
+    let page = await wikiPage(topic);
+    if (!page && context) page = await wikiPage(`${topic} ${context}`);
+    if (!page) return null;
+    const { intro, sections: secs } = sections(page.extract);
+    const parts = secs.map((sec, i) => ({ sec, i, r: rank(sec.title) })).filter((x) => x.r > -3)
+      .sort((a, b) => b.r - a.r || a.i - b.i).slice(0, 4).sort((a, b) => a.i - b.i)
+      .map(({ sec }) => `${sec.title} : ${trimText([sec.text, ...sec.subs.map((x) => x.text)].join('\n'), 900)}`);
+    return {
+      title: page.title,
+      url: page.fullurl || `https://fr.wikipedia.org/wiki/${encodeURIComponent(page.title)}`,
+      text: [trimText(intro, 1400), ...parts].join('\n\n'),
+    };
+  }
+
+  window.Course = { fromWikipedia, wikiSource };
 })();

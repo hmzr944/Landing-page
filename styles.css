@@ -535,7 +535,8 @@ html:not([data-vt]) #app.enter > * { animation: enter 260ms var(--ease-out) both
 .drop.has .tile { --c: var(--done); }
 @media (hover: hover) and (pointer: fine) { .drop:hover { border-color: var(--accent); } }
 #modalBody > fieldset.field { margin-top: var(--s5); }
-.mode-pick { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s3); }
+.mode-pick { display: grid; grid-template-columns: 1fr; gap: var(--s2); }
+.local-ai > * + * { margin-top: var(--s2); }
 .mode { display: flex; gap: var(--s3); padding: var(--s4); border-radius: var(--r-ctl); border: 1px solid var(--line); cursor: pointer; transition: border-color var(--d-fast) ease, background-color var(--d-fast) ease; }
 .mode:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
 .mode:has(input:focus-visible) { box-shadow: var(--ring); }
