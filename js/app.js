@@ -15,7 +15,9 @@
   let notesMode = 'preview';
   const pretestSeen = new Set(); // parties dont on a déjà révélé les points clés pendant cette visite
 
-  const save = () => Store.save(state);
+  let trophyTimer = null;
+  const save = () => { Store.save(state); clearTimeout(trophyTimer); trophyTimer = setTimeout(checkTrophies, 700); };
+  const count = (k, n = 1) => { state.stats.counters = state.stats.counters || {}; state.stats.counters[k] = (state.stats.counters[k] || 0) + n; };
   const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
   let popId = null; // partie qui vient d'être maîtrisée : sa pastille fait un petit « pop »
   const subjectById = (id) => state.subjects.find((s) => s.id === id);
@@ -49,9 +51,13 @@
 
   let shownXP = state.xp;
   function renderXP(bump) {
-    const lvl = Math.floor(state.xp / 100) + 1;
+    const L = Trophies.levelOf(state.xp);
+    const lvl = L.lvl;
+    const rank = Trophies.RANKS[Trophies.rankOf(lvl)];
     $('#xpLevel').textContent = `Niv. ${lvl}`;
-    $('#xpFill').style.transform = `scaleX(${(state.xp % 100) / 100})`;
+    $('#xp').title = `${rank.name} · ${L.into}/${L.need} XP avant le niveau ${lvl + 1}`;
+    $('#xp').style.setProperty('--rank', rank.c);
+    $('#xpFill').style.transform = `scaleX(${L.into / L.need})`;
     // Compteur qui défile jusqu'à la nouvelle valeur (moment rare : gain d'XP)
     const from = shownXP, to = state.xp;
     shownXP = to;
@@ -75,11 +81,11 @@
     node.status = status;
     if (status === 'done' && prev !== 'done') {
       popId = node.id;
-      const lvlBefore = Math.floor(state.xp / 100);
+      const lvlBefore = Trophies.levelOf(state.xp).lvl;
       const r = origin && origin.getBoundingClientRect ? origin.getBoundingClientRect() : null;
       FX.confetti(r ? r.left + r.width / 2 : undefined, r ? r.top : undefined, 40);
       gainXP(10);
-      if (Math.floor(state.xp / 100) === lvlBefore) Mascot.react('done');
+      if (Trophies.levelOf(state.xp).lvl === lvlBefore) Mascot.react('done');
     }
     touch();
   }
@@ -103,6 +109,8 @@
       view = { name: 'study' };
     } else if (parts[0] === 'methode') {
       view = { name: 'method' };
+    } else if (parts[0] === 'trophees') {
+      view = { name: 'trophies' };
     } else {
       view = { name: 'home' };
     }
@@ -121,6 +129,7 @@
       if (view.name === 'home') renderHome();
       else if (view.name === 'study') renderGlobalStudy();
       else if (view.name === 'method') renderMethod();
+      else if (view.name === 'trophies') renderTrophies();
       else renderSubject(bigChange);
       updateBadges();
       if (bigChange) { app.classList.remove('enter'); void app.offsetWidth; app.classList.add('enter'); window.scrollTo({ top: 0 }); }
@@ -607,6 +616,7 @@
         list.forEach((t) => { const o = topics.find((x) => x.title === t.title && x.goal); if (o) t.goal = o.goal; }); // objectif tiré du document
         if (!list.some((t) => !t.depth)) { FX.toast('Ajoute au moins un sujet, sans indentation.', 'error'); return; }
         const s = makeProgram($('#pgTitle', el).value.trim() || 'Mon programme', list, { ...sel, examDate: $('#pgExam', el).value || null, rhythm: +$('#pgRhythm', el).value });
+        count('program');
         state.subjects.push(s);
         save();
         const write = $('#pgWrite', el).checked;
@@ -1279,10 +1289,59 @@
   }
 
   function gainXP(n) {
-    const before = Math.floor(state.xp / 100);
+    const before = Trophies.levelOf(state.xp).lvl;
     state.xp += n;
     renderXP(true);
-    if (Math.floor(state.xp / 100) > before) { FX.toast(`Niveau ${before + 2} atteint`, 'success'); FX.confetti(undefined, undefined, 120); }
+    const after = Trophies.levelOf(state.xp).lvl;
+    if (after > before) celebrate({ kind: 'level', lvl: after, rankUp: Trophies.rankOf(after) > Trophies.rankOf(before) });
+  }
+
+  /* ---------- Trophées et niveaux : célébrations ---------- */
+  const trophyCtx = () => ({ walk, streak: SRS.streak(state.stats), moduleDone: (n) => moduleProgress(n) === 5 });
+  function checkTrophies() {
+    const st = SRS.streak(state.stats);
+    if (st > (state.stats.bestStreak || 0)) state.stats.bestStreak = st;
+    const { fresh } = Trophies.evaluate(state, trophyCtx());
+    if (!fresh.length) return;
+    Store.save(state);
+    // Plusieurs d'un coup (premier lancement après une mise à jour) : une seule carte récapitulative
+    if (fresh.length > 2) celebrate({ kind: 'batch', list: fresh });
+    else fresh.forEach((t) => celebrate({ kind: 'trophy', t }));
+    fresh.forEach((t) => { state.xp += t.xp; });
+    renderXP(true);
+    if (view.name === 'trophies') render(view);
+  }
+  // File d'attente : une célébration à la fois, sans bloquer la révision
+  const pops = [];
+  let popping = false;
+  function celebrate(item) { pops.push(item); if (!popping) nextPop(); }
+  function nextPop() {
+    const item = pops.shift();
+    if (!item) { popping = false; return; }
+    popping = true;
+    let el = $('#trophyPop');
+    if (!el) { el = document.createElement('div'); el.id = 'trophyPop'; el.className = 'trophy-pop'; el.setAttribute('role', 'status'); el.setAttribute('aria-live', 'polite'); document.body.appendChild(el); }
+    if (item.kind === 'level') {
+      const rank = Trophies.RANKS[Trophies.rankOf(item.lvl)];
+      el.style.setProperty('--rank', rank.c);
+      el.innerHTML = `<a class="tp-card glass level" href="#/trophees">
+        <span class="lvl-badge" style="--rank:${rank.c}"><b class="num">${item.lvl}</b></span>
+        <span class="tp-txt"><small>${item.rankUp ? 'Nouveau rang' : 'Niveau atteint'}</small><b>${item.rankUp ? rank.name : `Niveau ${item.lvl}`}</b><span>${item.rankUp ? 'Pousse grandit avec toi' : rank.name}</span></span></a>`;
+      Mascot.react('levelup');
+    } else if (item.kind === 'batch') {
+      const xp = item.list.reduce((a, t) => a + t.xp, 0);
+      el.innerHTML = `<a class="tp-card glass" href="#/trophees">
+        <span class="tr-batch pop-in">${item.list.slice(0, 3).map((t) => Trophies.medal(t.f.icon, t.tier < 0 ? 'single' : t.tier, 46)).join('')}</span>
+        <span class="tp-txt"><small>${item.list.length} trophées débloqués</small><b>Bravo !</b><span>+${xp} XP · voir la collection</span></span></a>`;
+    } else {
+      const { f, tier, xp } = item.t;
+      el.innerHTML = `<a class="tp-card glass" href="#/trophees">
+        ${Trophies.medal(f.icon, tier < 0 ? 'single' : tier, 58, 'pop-in')}
+        <span class="tp-txt"><small>Trophée débloqué</small><b>${esc(f.name)}</b><span>${tier < 0 ? esc(f.desc) : Trophies.TIERS[tier].name} · +${xp} XP</span></span></a>`;
+    }
+    el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+    if (!state.settings.calm) FX.confetti(innerWidth / 2, 90, item.kind === 'level' || item.kind === 'batch' ? 140 : item.t.tier >= 2 ? 120 : 60);
+    setTimeout(() => { el.classList.remove('show'); setTimeout(nextPop, 450); }, 3800);
   }
 
   function grade(g, origin) {
@@ -1291,7 +1350,13 @@
     const { s, node } = c;
     const wasNew = !node.srs;
     const prevSrs = node.srs || {};
+    // Persévérance : une carte oubliée la dernière fois, retrouvée cette fois
+    if (prevSrs.missed && g >= 2) count('recovered');
+    // Le retour : première révision après au moins 3 jours sans réviser (on accueille, on ne punit pas)
+    const lastDay = Object.keys(state.stats.days || {}).filter((k) => state.stats.days[k].reviews > 0 && k !== SRS.dayKey()).sort().pop();
+    if (lastDay && !SRS.today(state.stats).reviews && (Date.now() - new Date(lastDay + 'T12:00').getTime()) / SRS.DAY >= 3) count('comeback');
     node.srs = SRS.schedule(node.srs, g);
+    node.srs.missed = g === 1;
     // Illusion de maîtrise : « certain » puis oublié. On le compte pour te le montrer.
     node.srs.illusions = (prevSrs.illusions || 0) + (study.conf === 'sure' && g === 1 ? 1 : 0);
     if (study.conf === 'sure' && g === 1) {
@@ -1606,7 +1671,7 @@
               ${n ? `<a class="btn big" href="#/reviser">${ic('play', true)}Réviser</a>` : `<button class="btn big" data-act="new-subject">${ic('plus')}Nouveau sujet</button>`}
               ${n > 5 ? `<button class="btn ghost big" data-act="quick-start">${ic('lightning', true)}2 min</button>` : `<button class="btn ghost big" data-act="focus-open">${ic('timer', true)}Focus</button>`}
             </div>
-            <div class="hero-links">${planLine()}${moduleLine()}${examLine()}</div>
+            <div class="hero-links">${planLine()}${moduleLine()}${examLine()}<a class="pill-btn" href="#/trophees" style="--c:#C27803">${ic('trophy', true)}<span>${Trophies.owned(state)}/${Trophies.total()}</span></a></div>
           </div>
           <a class="corner-link" href="#/methode" aria-label="Pourquoi cette méthode marche">${ic('lightbulb', true)}</a>
         </div>
@@ -1769,6 +1834,78 @@
         <h2 class="method-sub">Si l’attention est ton point faible</h2>
         <div class="bento m-grid">${adhdItems().map((it, i) => tile(it, VIS_ADHD[i], i, wide2.has(i))).join('')}</div>
         <p class="hint method-foot">Touche ${ic('plus')} pour le détail et les sources.</p>
+      </section>`;
+  }
+
+  /* ----- Page Trophées : niveau, rangs, trophées les plus proches, collection ----- */
+  function renderTrophies() {
+    document.documentElement.style.removeProperty('--accent');
+    const values = Trophies.measure(state, trophyCtx()); // mesure seulement : l'attribution passe par checkTrophies (avec célébration)
+    const L = Trophies.levelOf(state.xp);
+    const ri = Trophies.rankOf(L.lvl), rank = Trophies.RANKS[ri], nextRank = Trophies.RANKS[ri + 1];
+    const T = state.trophies || {};
+    const near = Trophies.nextUp(state, values, 3);
+    const unitOf = (f, n) => (n > 1 ? f.unit[1] : f.unit[0]);
+    app.innerHTML = `
+      <section class="trophies">
+        <header class="method-head">
+          <a class="back-link" href="#/">${ic('arrow-left')}Accueil</a>
+          <h1>Trophées</h1>
+        </header>
+        <div class="bento tr-top">
+          <div class="tr-level glass" style="--rank:${rank.c};--i:0">
+            <div class="lvl-orb" aria-hidden="true"><i></i><i></i></div>
+            <div class="lvl-ring" style="--p:${L.pct}" role="img" aria-label="Niveau ${L.lvl}, ${L.pct} % vers le suivant">
+              <span><small>Niveau</small><b class="num" data-count="${L.lvl}">${L.lvl}</b></span>
+            </div>
+            <div class="lvl-txt">
+              <p class="rank-name">${ic(rank.icon, true)}${rank.name}</p>
+              <p class="tile-cap"><b class="num">${L.into}/${L.need} XP</b> avant le niveau ${L.lvl + 1}</p>
+              ${nextRank ? `<p class="tile-cap">${ic(nextRank.icon, true)} ${nextRank.name} au niveau ${nextRank.from}</p>` : ''}
+            </div>
+          </div>
+          <div class="tr-count glass" style="--i:1">
+            ${Trophies.medal('trophy', 2, 72)}
+            <b class="big-stat num" data-count="${Trophies.owned(state)}">${Trophies.owned(state)}</b>
+            <p class="tile-cap">sur ${Trophies.total()} trophées</p>
+          </div>
+          <div class="tr-next glass" style="--i:2">
+            <p class="tile-cap"><b>Presque</b></p>
+            <ul>${near.map((n) => `<li>
+              <span class="near-ring" style="--p:${n.pct}">${Trophies.medal(n.f.icon, n.tier, 40)}</span>
+              <span><b>${n.f.name}</b><small>Plus que ${fmt.format(n.left)} ${unitOf(n.f, n.left)}</small></span></li>`).join('')}</ul>
+          </div>
+        </div>
+
+        <ol class="ranks" aria-label="Rangs">
+          ${Trophies.RANKS.map((r, i) => `<li class="${i < ri ? 'past' : i === ri ? 'now' : ''}" style="--rank:${r.c};--i:${i}">
+            <span class="rk-dot">${ic(r.icon, true)}</span><span class="rk-name">${r.name}</span><small class="num">niv. ${r.from}</small></li>`).join('')}
+        </ol>
+
+        <h2 class="method-sub">Collection</h2>
+        <div class="bento tr-grid">
+          ${Trophies.FAMILIES.map((f, i) => {
+            const have = T[f.id] ? T[f.id].tier : -1;
+            const goal = f.goals[Math.min(3, have + 1)];
+            const prev = have >= 0 ? f.goals[have] : 0;
+            const pct = have >= 3 ? 100 : Math.max(0, Math.min(100, Math.round(((values[f.id] - prev) / (goal - prev)) * 100)));
+            return `<article class="tr-card glass ${have < 0 ? 'locked' : ''}" style="--i:${i + 3}">
+              <div class="tr-medal" style="--p:${pct}">${Trophies.medal(f.icon, have, 76)}</div>
+              <h3>${f.name}</h3>
+              <p class="tile-cap num">${fmt.format(values[f.id])}${have < 3 ? ` / ${fmt.format(goal)}` : ''}</p>
+              <div class="tiers" aria-label="${have + 1} paliers sur 4">${Trophies.TIERS.map((t, k) => `<span class="tier t-${t.key} ${k <= have ? 'on' : ''}" title="${t.name} : ${fmt.format(f.goals[k])} ${unitOf(f, f.goals[k])}"></span>`).join('')}</div>
+            </article>`;
+          }).join('')}
+          ${Trophies.SINGLES.map((x, i) => `<article class="tr-card glass single ${T[x.id] ? '' : 'locked'}" style="--i:${i + 13}">
+              <div class="tr-medal">${Trophies.medal(x.icon, T[x.id] ? 'single' : -1, 64)}</div>
+              <h3>${x.name}</h3><p class="tile-cap">${x.desc}</p></article>`).join('')}
+        </div>
+
+        <h2 class="method-sub">Gagner de l’XP</h2>
+        <div class="xp-ways">
+          ${[['cards', '+2', 'une carte'], ['anchor-simple', '+3', 'un ancrage'], ['timer', '+5', '25 min de focus'], ['brain', '+10', 'une partie maîtrisée'], ['trophy', '+10 à 150', 'un trophée']]
+            .map(([i, x, l]) => `<span class="pill">${ic(i, true)}<b>${x}</b> ${l}</span>`).join('')}
+        </div>
       </section>`;
   }
 
@@ -2323,6 +2460,7 @@
       }
       setPct(1);
       Mascot.react('imported');
+      count('pdf');
       previewImport(normalize(tree), into);
     } catch (err) {
       console.error(err);
@@ -2477,7 +2615,7 @@
       }
       case 'export-subject': exportJSON(s, s.title); break;
       case 'study-start': startStudy(t.dataset.cram === '1'); break;
-      case 'quick-start': buildSession({ type: 'all' }); study.queue = study.queue.slice(0, 5); study.quick = true; preparePrompt(); go('#/reviser'); break;
+      case 'quick-start': count('quick'); buildSession({ type: 'all' }); study.queue = study.queue.slice(0, 5); study.quick = true; preparePrompt(); go('#/reviser'); break;
       case 'plan-edit': planModal(); break;
       case 'reveal': reveal(); break;
       case 'mod-pretest-done': { const n = currentNode().node; const v = ($('#modulePretest') || {}).value || ''; if (v.trim().length < 10) { FX.toast('Écris au moins une phrase, même approximative.', 'error'); break; } n.module.pretest = v; gainXP(3); touch(); renderFiche(); break; }
@@ -2679,6 +2817,8 @@
   route();
   renderFocusUI();
   if (focus.running && focus.mode === 'work') Mascot.setFocus(true);
+  // Trophées déjà mérités (anciens utilisateurs, ou activité hors session) : célébrés au démarrage
+  setTimeout(checkTrophies, 1500);
   // À minuit (ou au retour sur l'onglet), les cartes dues changent
   document.addEventListener('visibilitychange', () => { if (!document.hidden) updateBadges(); });
 })();

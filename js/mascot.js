@@ -73,10 +73,10 @@
       <svg viewBox="0 0 120 120" class="mascot-svg" aria-hidden="true">
         <defs>
           <radialGradient id="mBody" cx="40%" cy="35%" r="75%">
-            <stop offset="0" stop-color="#7EE09A"/><stop offset=".6" stop-color="#3FBF6A"/><stop offset="1" stop-color="#249652"/>
+            <stop class="mb1" offset="0" stop-color="#7EE09A"/><stop class="mb2" offset=".6" stop-color="#3FBF6A"/><stop class="mb3" offset="1" stop-color="#249652"/>
           </radialGradient>
           <linearGradient id="mLeaf" x1="0" y1="1" x2="1" y2="0">
-            <stop offset="0" stop-color="#2FA85C"/><stop offset="1" stop-color="#8BE36A"/>
+            <stop class="ml1" offset="0" stop-color="#2FA85C"/><stop class="ml2" offset="1" stop-color="#8BE36A"/>
           </linearGradient>
         </defs>
         <ellipse class="m-shadow" cx="60" cy="113" rx="27" ry="4.5"/>
@@ -94,12 +94,12 @@
                 <circle cx="62" cy="5" r="4" fill="#FFD46B"/>
               </g>
             </g>
-            <g class="m-arm m-arm-l"><ellipse cx="27" cy="82" rx="7" ry="5" fill="#2FA85C"/></g>
-            <g class="m-arm m-arm-r"><ellipse cx="93" cy="82" rx="7" ry="5" fill="#2FA85C"/></g>
-            <g class="m-foot m-foot-l"><ellipse cx="47" cy="109" rx="8" ry="4.5" fill="#249652"/></g>
-            <g class="m-foot m-foot-r"><ellipse cx="73" cy="109" rx="8" ry="4.5" fill="#249652"/></g>
+            <g class="m-arm m-arm-l"><ellipse class="m-limb" cx="27" cy="82" rx="7" ry="5" fill="#2FA85C"/></g>
+            <g class="m-arm m-arm-r"><ellipse class="m-limb" cx="93" cy="82" rx="7" ry="5" fill="#2FA85C"/></g>
+            <g class="m-foot m-foot-l"><ellipse class="m-feet" cx="47" cy="109" rx="8" ry="4.5" fill="#249652"/></g>
+            <g class="m-foot m-foot-r"><ellipse class="m-feet" cx="73" cy="109" rx="8" ry="4.5" fill="#249652"/></g>
             <path class="m-torso" fill="url(#mBody)" d="M60 46 C84 46 96 62 95 82 C94 102 80 110 60 110 C40 110 26 102 25 82 C24 62 36 46 60 46 Z"/>
-            <ellipse cx="60" cy="96" rx="22" ry="10" fill="#B9F5C7" opacity=".35"/>
+            <ellipse class="m-belly" cx="60" cy="96" rx="22" ry="10" fill="#B9F5C7" opacity=".35"/>
             <path d="M40 58 C46 52 54 50 60 50" stroke="#fff" stroke-opacity=".45" stroke-width="3" stroke-linecap="round" fill="none"/>
             <g class="m-book">
               <path d="M34 86 L60 90 L60 106 L34 102 Z" fill="#FFFFFF" stroke="#C9CED8" stroke-width="1.2"/>
@@ -561,7 +561,7 @@
     const grew = lvl > level;
     level = lvl;
     if (!root) return;
-    root.dataset.stage = lvl >= 6 ? 4 : lvl >= 4 ? 3 : lvl >= 2 ? 2 : 1;
+    root.dataset.stage = window.Trophies ? Trophies.stageOf(lvl) : lvl >= 6 ? 4 : lvl >= 4 ? 3 : lvl >= 2 ? 2 : 1;
     if (grew && !silent) react('levelup');
   }
   function setThirst(n) {

@@ -78,6 +78,12 @@ La page **Méthode** de l'application détaille chaque point avec ses sources et
 Le design applique les skills de [skills.sh](https://skills.sh) : `frontend-design` (Anthropic), `design-taste-frontend` (taste-skill), `ui-ux-pro-max`, `emil-design-eng`, `review-animations`, `find-animation-opportunities`, `improve-animations` et `animation-performance` (Emil Kowalski), `web-design-guidelines` (Vercel), `motion-background` et `svg-animation` (iart-ai), `svg-logo-designer`, `page-mascot`, `microinteractions`, `better-typography` (titres, graisses), `ux-writing` et `humanizer` (textes).
 
 - **Typographie** : [Satoshi](https://www.fontshare.com/fonts/satoshi) pour les titres et les chiffres, [Chillax](https://www.fontshare.com/fonts/chillax) pour les textes (polices Fontshare), avec une échelle de 1,25. Deux graisses par police : Satoshi 700 pour les titres de page et 500 pour les titres de section ; Chillax 400 pour le texte et 500 pour les boutons. La hiérarchie passe par la taille, pas par le gras.
+- **Niveaux et trophées** (page Trophées, via la pastille de niveau) :
+  - niveaux progressifs (60 XP, puis 100, 140… par niveau), regroupés en 8 rangs : Graine, Pousse, Tige, Arbuste, Arbre, Grand chêne, Forêt, Forêt ancienne ; le rang fait grandir Pousse ;
+  - 10 familles de trophées à 4 paliers (bronze, argent, or, platine : +10, +25, +60, +150 XP) : Réviseur, Régularité, Objectif du jour, Ancrage, Concentration, Mémoire durable, Persévérance (oubli rattrapé), Lucidité (« certain » juste), Bâtisseur, Explorateur ; et 4 trophées uniques (premier import, premier parcours, « Juste 2 minutes », retour après 3 jours) ;
+  - ils récompensent l'effort et la régularité, jamais le fait de se noter « Bien » ; le retour après une pause est récompensé, pas puni ;
+  - « Presque » : les 3 trophées les plus proches (« Plus que 4 cartes ») ; médailles métalliques animées, célébration discrète en haut de l'écran qui ne bloque pas la révision (regroupée si plusieurs arrivent d'un coup) ; calme en mode calme.
+- **Pousse la nuit** : en mode sombre, la mascotte passe en bleu nuit aux feuilles cyan, avec un léger halo, et change de couleur en douceur.
 - **Design bento en verre** : tuiles de tailles variées (grille bento), matériau translucide inspiré du « Liquid Glass » d'Apple (approximation web : flou d'arrière-plan, reflets, bordures superposées, reflet qui suit le pointeur), coins de 28 px et boutons en pilule. Formes abstraites animées dans les couleurs du logo (taches qui changent de forme, anneau qui tourne), anneaux de progression et chiffres animés, entrée des tuiles en ressort. Peu de texte : un chiffre ou une icône et une phrase par tuile, le détail s'ouvre à la demande, les longues notes sont repliées. Tout le mouvement s'arrête en mode calme ou avec « réduire les animations » ; surface opaque avec « réduire la transparence ».
 - **Textes** : titres sans numérotation (« 1. », « 2.1 » sont retirés, y compris à l'import d'un PDF), sans icône décorative, en minuscules sauf la première lettre ; boutons de la forme « verbe + objet » ; gras réservé aux termes à retenir.
 - **Couleurs** : fond neutre froid. Chaque sujet a sa propre couleur, qui teinte toute sa vue. Les couleurs des statuts sont réservées (gris, ambre, vert).
@@ -104,6 +110,7 @@ Pour l'avoir en ligne, active **GitHub Pages** (Settings → Pages → branche `
 | `js/pdf-import.js` | Analyse locale des PDF (avec pdf.js) |
 | `js/ai.js` | Structuration d'un PDF et rédaction de cours par Claude (optionnelles) |
 | `js/local-ai.js` | IA locale : modèle open source Qwen qui tourne dans le navigateur avec [WebLLM](https://github.com/mlc-ai/web-llm) |
+| `js/trophies.js` | Niveaux, rangs et trophées |
 | `js/storm.js` | Rédaction d'un cours entier à partir de thématiques, méthode inspirée de [STORM](https://github.com/stanford-oval/storm) (Stanford, MIT) |
 | `js/course.js` | Rédaction d'un cours à partir d'un sujet, via Wikipédia |
 | `js/markdown.js` | Rendu markdown minimal |
