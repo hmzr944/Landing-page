@@ -400,7 +400,7 @@
           ${node.children.length ? ring(st.pct) : ''}
         </div>
 
-        ${isModule(s, node) ? modulePanel(s, node) : ''}
+        ${isModule(s, node) ? modulePanel(s, node) : node.children.length >= 2 ? lessonCard(s, node, false) : ''}
         ${memoryLine(s, node, isRoot)}
         ${isRoot && s.program ? programPanel(s) : ''}
 
@@ -436,14 +436,6 @@
         </section>
 
         ${courseSection(s, node, isRoot)}
-
-        <section class="sec">
-          <div class="sec-head"><h2>Ancre-la</h2></div>
-          <div class="anchor-chips" role="group" aria-label="Façons d’ancrer cette notion">
-            ${ANCHORS.map(([k, label]) => `<button class="chip-btn" data-act="anchor" data-k="${k}">${label}</button>`).join('')}
-          </div>
-          <textarea class="notes-input explain-input" id="explainInput" rows="3" aria-label="Ton ancrage" placeholder="${esc(explainPrompt(node))}">${esc(node.explain)}</textarea>
-        </section>
 
         <section class="sec">
           <div class="sec-head"><h2>Exercices <span class="muted num">${(node.exercises || []).length}</span></h2>
@@ -490,7 +482,6 @@
         </footer>
       </article>`;
     autoGrow($('#titleInput'));
-    autoGrow($('#explainInput'));
     $$('.ex-q, .ex-a').forEach(autoGrow);
     const ni = $('#notesInput');
     if (ni) { autoGrow(ni); ni.focus(); ni.setSelectionRange(ni.value.length, ni.value.length); }
@@ -520,24 +511,15 @@
      4. Ancrer (image, exemple, pourquoi)   5. Me tester (révision espacée)
      ========================================================= */
   const MOD_STEPS = [
-    ['pretest', 'Ce que tu sais déjà'],
-    ['learn', 'Découvrir'],
-    ['split', 'Découper'],
-    ['anchor', 'Ancrer'],
-    ['test', 'Te tester'],
+    ['lesson', 'Leçon'],
+    ['review', 'Révision'],
   ];
   const isModule = (s, node) => !!(s && s.program && node.module);
   function moduleSteps(node) {
     const m = node.module || {};
-    let anchored = !!node.explain.trim(), tested = false;
-    walk(node, (n) => { if (n !== node && n.explain.trim()) anchored = true; if (n.srs) tested = true; });
-    return {
-      pretest: (m.pretest || '').trim().length >= 10 || !!m.skipPretest,
-      learn: !!m.learned || (!m.generated && (node.notes.trim().length > 80 || node.keyPoints.length >= 2)),
-      split: node.children.length >= 2,
-      anchor: anchored,
-      test: tested,
-    };
+    let tested = false;
+    walk(node, (n) => { if (n.srs) tested = true; });
+    return { lesson: !!m.lessonDone || !!m.learned, review: tested };
   }
   const moduleProgress = (node) => Object.values(moduleSteps(node)).filter(Boolean).length;
   function dayLabel(date) {
@@ -558,7 +540,7 @@
       const days = Math.max(1, Math.round((new Date(s.examDate + 'T00:00') - start) / SRS.DAY));
       span = Math.max(1, Math.floor(days * 0.8)); // 20 % du temps gardé pour réviser l'ensemble
     } else span = mods.length * (s.program.rhythm || 2);
-    const todo = mods.filter((m) => moduleProgress(m) < 5);
+    const todo = mods.filter((m) => moduleProgress(m) < MOD_STEPS.length);
     todo.forEach((m, i) => { m.module.date = isoDay(start.getTime() + Math.floor((i * span) / todo.length) * SRS.DAY); });
   }
 
@@ -642,51 +624,33 @@
     ];
   }
 
-  function modulePanel(s, node) {
-    const st = moduleSteps(node);
-    const m = node.module;
-    const current = MOD_STEPS.find(([k]) => !st[k]);
-    const step = current ? current[0] : null;
-    const hasKey = !!state.settings.apiKey;
-    const body = {
-      pretest: () => `
-        <p><b>Ce que tu en sais déjà ?</b> Même flou ou faux.</p>
-        <textarea class="notes-input" id="modulePretest" rows="3" placeholder="Ce que j’en sais, ce que j’imagine…">${esc(m.pretest || '')}</textarea>
-        <div class="row-btns"><button class="btn sm" data-act="mod-pretest-done">${ic('check')}C’est noté</button><button class="btn ghost sm" data-act="mod-skip-pretest">Je n’en sais rien, passer</button></div>`,
-      learn: () => m.generated ? `
-        <p><b>Ton cours est prêt</b> · ${plural(node.children.length, 'notion', 'notions')}</p>
-        <div class="row-btns"><a class="btn" href="#course" data-act="goto-course">${ic('book-open-text')}Lire</a><button class="btn ghost" data-act="mod-learned">${ic('check')}C’est lu</button></div>` : `
-        <p><b>Pas encore de cours.</b> Arbor peut le rédiger.</p>
-        <button class="btn" data-act="write-course">${ic('book-open-text')}Rédiger le cours</button>
-        <div class="research-links">${researchLinks(node.title, s).map(([l, u, i]) => `<a class="chip-link" href="${u}" target="_blank" rel="noopener">${ic(i)}${l}</a>`).join('')}</div>
-        <button class="btn ghost sm" data-act="mod-learned">${ic('check')}C’est lu</button>`,
-      split: () => `
-        <p><b>3 à 5 notions</b>, une idée chacune.</p>
-        <button class="btn" data-act="bulk-add" data-id="${node.id}">${ic('tree-structure')}Découper en notions</button>`,
-      anchor: () => `
-        <p><b>Une image, un exemple, un pourquoi.</b></p>
-        <button class="btn" data-act="focus-explain">${ic('anchor-simple')}Ancrer</button>`,
-      test: () => `
-        <p><b>À toi de jouer.</b> Arbor le reproposera au bon moment.</p>
-        <a class="btn" href="${link(s.id, node.id, 'revision')}">${ic('play', true)}Me tester</a>`,
-    };
-    return `
-      <section class="module-panel" aria-label="Parcours du module">
-        <div class="mp-head">
-          <span class="mp-title">${step ? current[1] : 'Module terminé'} <span class="muted num">${moduleProgress(node)}/5</span></span>
-          ${m.date ? `<span class="chip">${ic('calendar-blank')}${dayLabel(m.date)}</span>` : ''}
-        </div>
-        <ol class="mp-steps">${MOD_STEPS.map(([k, l]) => `<li class="${st[k] ? 'done' : k === step ? 'current' : ''}"><span class="mp-dot" aria-hidden="true">${st[k] ? ic('check', true) : ''}</span><span>${l}</span></li>`).join('')}</ol>
-        ${step ? `<div class="mp-body">${body[step]()}</div>` : `<div class="mp-body"><p>${ic('check-circle', true)} <b>Module fait.</b> Il revient avant l’oubli.</p></div>`}
-        ${m.sources && m.sources.length ? `<details class="mp-sources"><summary>Sources (${m.sources.length})</summary><ul>${m.sources.map((x) => `<li><a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title || x.url)}</a></li>`).join('')}</ul></details>` : ''}
-        ${m.pretest && st.pretest && step !== 'pretest' ? `<details class="mp-sources"><summary>Ce que tu pensais savoir avant</summary><p class="mp-pretest">${esc(m.pretest)}</p></details>` : ''}
-      </section>`;
+  /* Carte « Leçon » : le module se suit comme une petite partie, une idée par écran */
+  function lessonCard(s, node, isMod) {
+    const m = node.module || node;
+    const done = isMod ? moduleSteps(node).lesson : !!node.lessonDone;
+    const can = window.Lesson && Lesson.canStart(node);
+    const n = node.children.filter((c) => (c.notes || '').trim() || c.keyPoints.length).length;
+    if (!can) {
+      return isMod ? `<section class="lesson-card glass">
+        <span class="lc-ic" aria-hidden="true">${ic('book-open-text', true)}</span>
+        <div class="lc-txt"><b>Pas encore de cours</b><small>Arbor le prépare en quelques instants</small></div>
+        <button class="btn" data-act="write-course">${ic('sparkle', true)}Préparer</button></section>` : '';
+    }
+    const res = (node.module && node.module.lessonDone) || node.lessonDone;
+    return `<section class="lesson-card glass ${done ? 'done' : ''}">
+      <span class="lc-ic" aria-hidden="true">${ic(done ? 'check-circle' : 'play-circle', true)}</span>
+      <div class="lc-txt"><b>${done ? 'Leçon faite' : 'Leçon'}${isMod && node.module.date && !done ? ` · ${dayLabel(node.module.date)}` : ''}</b>
+        <small>${done && res && res.asked ? `${Math.round((res.good / res.asked) * 100)} % de bonnes réponses` : `${plural(n, 'notion', 'notions')} · ${Lesson.minutes(node)} min`}</small></div>
+      ${done ? `<div class="row-btns"><a class="btn" href="${link(s.id, node.id, 'revision')}">${ic('play', true)}Réviser</a><button class="btn ghost" data-act="start-lesson" data-id="${node.id}" aria-label="Refaire la leçon">${ic('arrow-counter-clockwise')}</button></div>`
+        : `<button class="btn big" data-act="start-lesson" data-id="${node.id}">${ic('play', true)}Commencer</button>`}
+    </section>`;
   }
+  function modulePanel(s, node) { return lessonCard(s, node, true); }
 
   // Vue d'ensemble d'un parcours : la frise des modules
   function programPanel(s) {
     const mods = s.root.children.filter((c) => c.module);
-    const done = mods.filter((mm) => moduleProgress(mm) === 5).length;
+    const done = mods.filter((mm) => moduleProgress(mm) === MOD_STEPS.length).length;
     return `
       <section class="sec program">
         <div class="sec-head"><h2>Ton parcours <span class="muted num">${done}/${mods.length}</span></h2>
@@ -695,12 +659,12 @@
         <ol class="timeline">
           ${mods.map((mm) => {
             const p = moduleProgress(mm);
-            const today = mm.module.date && mm.module.date <= SRS.dayKey() && p < 5;
-            return `<li class="${p === 5 ? 'done' : today ? 'now' : ''}">
+            const today = mm.module.date && mm.module.date <= SRS.dayKey() && p < MOD_STEPS.length;
+            return `<li class="${p === MOD_STEPS.length ? 'done' : today ? 'now' : ''}">
               <a href="${link(s.id, mm.id)}">
-                <span class="tl-date">${p === 5 ? 'Terminé' : dayLabel(mm.module.date)}</span>
+                <span class="tl-date">${p === MOD_STEPS.length ? 'Terminé' : dayLabel(mm.module.date)}</span>
                 <span class="tl-title">${esc(mm.title)}</span>
-                <span class="tl-steps" aria-label="${p} étapes sur 5">${MOD_STEPS.map((_, i) => `<i class="${i < p ? 'on' : ''}"></i>`).join('')}</span>
+                <span class="tl-steps" aria-label="${p} étapes sur ${MOD_STEPS.length}">${MOD_STEPS.map((_, i) => `<i class="${i < p ? 'on' : ''}"></i>`).join('')}</span>
               </a>
             </li>`;
           }).join('')}
@@ -713,7 +677,7 @@
     const today = SRS.dayKey();
     for (const s of state.subjects) {
       if (!s.program) continue;
-      const mm = s.root.children.find((c) => c.module && c.module.date && c.module.date <= today && moduleProgress(c) < 5);
+      const mm = s.root.children.find((c) => c.module && c.module.date && c.module.date <= today && moduleProgress(c) < MOD_STEPS.length);
       if (mm) {
         const step = MOD_STEPS.find(([k]) => !moduleSteps(mm)[k]);
         return `<a class="pill-btn" href="${link(s.id, mm.id)}" style="--c:${s.color}" title="Module du jour, prochaine étape : ${step[1].toLowerCase()}">${ic('path', true)}<span>${esc(mm.title)}</span></a>`;
@@ -893,7 +857,7 @@
       node.module.researched = true;
       node.collapsed = false;
       touch(); Mascot.react('imported'); closeModal(); render(view);
-      FX.toast(`${plural(r.notions.length, 'notion préparée', 'notions préparées')}, avec ${plural(r.sources.length, 'source', 'sources')}. Lis-les, puis ancre-les avec tes mots.`, 'success', 5200);
+      FX.toast(`${plural(r.notions.length, 'notion préparée', 'notions préparées')}, avec ${plural(r.sources.length, 'source', 'sources')}. Lance la leçon quand tu veux.`, 'success', 5200);
     } catch (err) {
       console.error(err);
       Mascot.react('stop-reading');
@@ -1013,7 +977,7 @@
     const due = [], fresh = [], other = [];
     // Parcours : un module n'entre en révision qu'après l'étape « Découvrir » (on ne teste pas du vide)
     const locked = new Set();
-    if (s.program) s.root.children.forEach((m) => { if (m.module && !moduleSteps(m).learn) walk(m, (x) => { if (!x.srs) locked.add(x.id); }); });
+    if (s.program) s.root.children.forEach((m) => { if (m.module && !moduleSteps(m).lesson) walk(m, (x) => { if (!x.srs) locked.add(x.id); }); });
     walk(base, (n, d) => {
       if (d === 0 && base.children.length) return;
       if (locked.has(n.id)) return;
@@ -1209,11 +1173,7 @@
                 </fieldset>`
                 : p.type === 'cloze' && node.keyPoints.length ? `<p class="answer-title">${esc(node.title)}</p><ul class="kps-back">${node.keyPoints.map((k) => `<li>${MD.render(k).replace(/^<p>|<\/p>$/g, '')}</li>`).join('')}</ul>` : ''}
               ${node.explain.trim() ? `<div class="explain-back"><small>${ic('anchor-simple')}Ton ancrage</small>${MD.render(node.explain)}</div>` : ''}
-              ${isLeech(node) ? `<div class="leech-tip">${ic('warning-circle', true)}<p>Tu as oublié cette partie ${node.srs.lapses} fois. Elle est peut-être trop grosse : <a href="${link(s.id, node.id)}">découpe-la en sous-parties</a> ou ancre-la avec une image ou un exemple.</p></div>` : ''}
-              ${isNew && !node.explain.trim() ? `<div class="anchor-now">
-                  <label for="anchorNow">${ic('anchor-simple')}Ancre-la avant de passer : une image, un exemple, ou une phrase à toi</label>
-                  <input id="anchorNow" class="answer-input" autocomplete="off" placeholder="Ex. : comme une usine qui fabrique du sucre avec la lumière…" value="${esc(study.anchor)}" />
-                </div>` : ''}
+              ${isLeech(node) ? `<div class="leech-tip">${ic('warning-circle', true)}<p>Tu as oublié cette partie ${node.srs.lapses} fois. Elle est peut-être trop grosse : <a href="${link(s.id, node.id)}">découpe-la en sous-parties</a>.</p></div>` : ''}
               ${node.notes.trim() ? `<details class="notes-more"><summary>Voir les notes</summary><div class="md">${MD.render(node.notes)}</div></details>` : ''}
               ${!items.length && p.type === 'recall' && !node.notes.trim() && !node.explain.trim() ? `<p class="muted">Cette partie n’a pas encore de points clés. Ajoute-en dans sa fiche : tu pourras cocher ce que tu as retrouvé.</p>` : ''}
             </div>
@@ -1313,7 +1273,7 @@
   }
 
   /* ---------- Trophées et niveaux : célébrations ---------- */
-  const trophyCtx = () => ({ walk, streak: SRS.streak(state.stats), moduleDone: (n) => moduleProgress(n) === 5 });
+  const trophyCtx = () => ({ walk, streak: SRS.streak(state.stats), moduleDone: (n) => moduleProgress(n) === MOD_STEPS.length, lessonDone: (n) => !!(n.module && n.module.lessonDone) || !!n.lessonDone });
   function checkTrophies() {
     const st = SRS.streak(state.stats);
     if (st > (state.stats.bestStreak || 0)) state.stats.bestStreak = st;
@@ -1716,9 +1676,9 @@
         text: 'Dans une étude de 2023, se tester a aidé les étudiants avec un TDAH autant que les autres. Mais une autre étude montre qu’ils l’utilisent moins quand ils organisent seuls leurs révisions.',
         arbor: 'Arbor prend le pilotage : un seul bouton pour démarrer, les cartes arrivent toutes seules, dans le bon ordre et au bon moment.',
         src: [['Minear et al. (2023)', 'https://pmc.ncbi.nlm.nih.gov/articles/PMC10397724/'], ['Étude sur les définitions de cours (2020)', 'https://www.sciencedirect.com/science/article/abs/pii/S0959475219305092']], level: 'Solide, petits échantillons' },
-      { icon: 'anchor-simple', title: 'Le point faible, c’est la première mémorisation',
+      { icon: 'graduation-cap', title: 'Le point faible, c’est la première mémorisation',
         text: 'Dans la même étude, les étudiants avec un TDAH sans traitement utilisaient beaucoup moins de stratégies « profondes » (image mentale, sens, phrase personnelle). Se tester ne compensait pas ce manque.',
-        arbor: 'Chaque fiche propose de l’ancrer : une image, un exemple, un lien, un « pourquoi ». À la première révision d’une partie, Arbor te demande une phrase d’ancrage.',
+        arbor: 'Chaque module se découvre en leçon guidée : une idée par écran, deux ou trois points à retenir, puis une question tout de suite. Une réponse ratée revient à la fin.',
         src: [['Minear et al. (2023)', 'https://pmc.ncbi.nlm.nih.gov/articles/PMC10397724/']], level: 'Solide, à confirmer' },
       { icon: 'tree-structure', title: 'Réciter un ensemble, dans l’ordre',
         text: 'Chez 72 étudiants, réciter un texte entier de mémoire a mieux tenu deux jours plus tard que le réciter section par section. Le rappel des étudiants avec un TDAH était moins bien organisé.',
@@ -1738,7 +1698,7 @@
         src: [['Rohrer et al. (2020)', 'https://Www.Gwern.net/doc/psychology/spaced-repetition/2019-rohrer.pdf']], level: 'Très solide' },
       { icon: 'robot', title: 'Une IA qui donne les réponses fait moins bien apprendre',
         text: 'Des lycéens ayant eu ChatGPT en libre accès ont fait 17 % de moins à l’examen, une fois l’outil retiré. Avec un tuteur à garde-fous, la perte a disparu. Un tuteur IA bien structuré peut même doubler les progrès.',
-        arbor: 'Les indices mettent sur la piste sans donner la réponse, et baissent la note proposée. L’IA d’import structure ton cours mais ne rédige pas tes ancrages à ta place.',
+        arbor: 'Les indices mettent sur la piste sans donner la réponse, et baissent la note proposée. L’IA d’import structure ton cours mais ne répond pas à ta place.',
         src: [['Bastani et al., PNAS (2025)', 'https://papers.ssrn.com/abstract=4895486'], ['Kestin et al. (2025)', 'https://michellemillerphd.substack.com/p/r3-37-july-15-2025-how-do-tutoring']], level: 'Solide' },
       { icon: 'scales', title: 'Tu te notes moins bien que tu ne le crois',
         text: 'S’auto-évaluer est peu fiable : on prend la familiarité pour du savoir. Une note trop généreuse espace trop la carte, et on l’oublie.',
@@ -1746,7 +1706,7 @@
         src: [['Recherche sur les jugements d’apprentissage', 'https://pmc.ncbi.nlm.nih.gov/articles/PMC2836879']], level: 'Solide' },
       { icon: 'game-controller', title: 'Les points et les badges motivent un peu, pas plus',
         text: 'Une méta-analyse de 2024 trouve un effet faible de la ludification sur la motivation (g = 0,26), moins stable que sur les résultats.',
-        arbor: 'L’XP récompense l’effort (réviser, ancrer, se concentrer), pas le fait de cliquer « Bien ». Le mode calme coupe les confettis et fige le décor si le mouvement te distrait.',
+        arbor: 'L’XP récompense l’effort (réviser, finir une leçon, se concentrer), pas le fait de cliquer « Bien ». Le mode calme coupe les confettis et fige le décor si le mouvement te distrait.',
         src: [['Méta-analyse 2024', 'https://repository.hku.hk/handle/10722/348034']], level: 'Modéré' },
       { icon: 'users-three', title: 'Travailler « avec quelqu’un »',
         text: 'Le body doubling, travailler en présence de quelqu’un, est très utilisé par les personnes avec un TDAH. Les premières données (12 participants, 2025) vont dans le bon sens, sans preuve solide pour l’instant.',
@@ -1773,7 +1733,7 @@
         src: [['FSRS, algorithme open source', 'https://github.com/open-spaced-repetition'], ['Dunlosky et al. (2013)', 'https://www.psychologicalscience.org/journals/pspi/1529100612453266/']], level: 'Très solide' },
       { icon: 'path', title: 'Un programme devient un parcours',
         text: 'Quand on n’a qu’une liste de sujets, le risque est de tout repousser puis de bachoter. Étaler l’apprentissage sur la durée, et tester ce qu’on sait avant de lire, sont deux des effets les mieux établis.',
-        arbor: 'Importe un programme : chaque sujet devient un module, réparti jusqu’à ton examen, et Arbor en rédige le cours à partir de sources fiables. Avant de le lire, tu écris ce que tu sais déjà ; ensuite tu ancres et tu te testes.',
+        arbor: 'Importe un programme : chaque sujet devient un module, réparti jusqu’à ton examen, et Arbor en rédige le cours à partir de sources fiables. Tu le découvres en leçon courte, puis tu le révises au bon moment.',
         src: [['Dunlosky et al. (2013)', 'https://www.psychologicalscience.org/journals/pspi/1529100612453266/'], ['Revue sur l’effet de prétest (2022)', 'https://link.springer.com/article/10.3758/s13421-022-01392-1']], level: 'Solide' },
       { icon: 'pencil-simple-line', title: 'Essayer de répondre, même faux, aide',
         text: 'Tenter une réponse avant de voir la correction améliore la mémorisation, même quand la tentative est fausse. Condition : voir la bonne réponse juste après.',
@@ -1810,7 +1770,7 @@
     ];
     const VIS_ADHD = [
       ['', '', 'Se tester marche aussi', 'Un bouton, les cartes arrivent seules.'],
-      ['', '', 'Ancrer dès le début', 'Image, exemple, pourquoi.'],
+      ['', '', 'Apprendre en leçon', 'Une idée, puis une question.'],
       ['72', 'étudiants testés', 'Réciter dans l’ordre', 'La carte « branche ».'],
       ['2 min', 'pour démarrer', 'Le plus dur : commencer', '5 cartes, et c’est parti.'],
       ['', '', 'Jusqu’à réussir', 'Une carte ratée revient.'],
@@ -1919,7 +1879,7 @@
 
         <h2 class="method-sub">Gagner de l’XP</h2>
         <div class="xp-ways">
-          ${[['cards', '+2', 'une carte'], ['anchor-simple', '+3', 'un ancrage'], ['timer', '+5', '25 min de focus'], ['brain', '+10', 'une partie maîtrisée'], ['trophy', '+10 à 150', 'un trophée']]
+          ${[['cards', '+2', 'une carte'], ['graduation-cap', '+10', 'une leçon'], ['timer', '+5', '25 min de focus'], ['brain', '+10', 'une partie maîtrisée'], ['trophy', '+10 à 150', 'un trophée']]
             .map(([i, x, l]) => `<span class="pill">${ic(i, true)}<b>${x}</b> ${l}</span>`).join('')}
         </div>
       </section>`;
@@ -2636,6 +2596,17 @@
       case 'reveal': reveal(); break;
       case 'mod-pretest-done': { const n = currentNode().node; const v = ($('#modulePretest') || {}).value || ''; if (v.trim().length < 10) { FX.toast('Écris au moins une phrase, même approximative.', 'error'); break; } n.module.pretest = v; gainXP(3); touch(); renderFiche(); break; }
       case 'mod-skip-pretest': { const n = currentNode().node; n.module.skipPretest = true; touch(); renderFiche(); break; }
+      case 'start-lesson': {
+        const sj = subjectById(view.id); const f = find(sj.root, t.dataset.id); if (!f) break;
+        const nd = f.node;
+        Lesson.start({ module: nd, subject: sj, color: sj.color, onFinish: (r) => {
+          const res = { at: Date.now(), good: r.good, asked: r.asked };
+          if (nd.module) { nd.module.lessonDone = res; nd.module.learned = true; } else nd.lessonDone = res;
+          state.stats.counters = state.stats.counters || {}; state.stats.counters.lessons = (state.stats.counters.lessons || 0) + 1;
+          gainXP(r.xp); touch(); render(view);
+        } });
+        break;
+      }
       case 'mod-learned': { const n = currentNode().node; n.module.learned = true; gainXP(3); touch(); renderFiche(); break; }
       case 'mod-research': { const c = currentNode(); researchModule(subjectById(view.id), c.node); break; }
       case 'write-course': { const c = currentNode(); const sj = subjectById(view.id); writeCourses(sj, [c.node]).then(() => render(view)); break; }

@@ -257,12 +257,11 @@
     .map((p) => ({ title: `${p.site.name} : ${p.title}`, url: p.url }));
 
   const low = (t) => (/^.[a-zà-ÿ]/.test(t) ? t.charAt(0).toLowerCase() + t.slice(1) : t); // garde « SSH », « DNS »
+  // Une vraie manipulation (installer, configurer…), pas « comprendre » ni « apprendre »
+  const PRACTICAL = /^(installer|configurer|créer|sécuriser|surveiller|diagnostiquer|résoudre|documenter|restaurer|sauvegarder|mettre en place|mettre en œuvre|administrer|déployer|calculer|réaliser|construire|tester|attribuer|joindre|organiser|appliquer|gérer|vérifier|faire)/i;
   function practice(notion, action, ctx) {
-    if (!action) return null;
-    return {
-      q: `Mise en pratique : ${low(notion)}${ctx.module ? ` (module « ${ctx.module} »)` : ''}. Fais-le dans ton environnement de test, note chaque étape, puis explique comment tu vérifies que ça fonctionne.`,
-      a: 'Compare ta démarche avec le cours : les étapes sont-elles dans le bon ordre ? Sais-tu dire à quoi sert chacune ? Note ce qui a bloqué et comment tu l’as résolu : c’est ce qui fait progresser.',
-    };
+    if (!action || !PRACTICAL.test(action)) return null;
+    return { q: `À toi : ${low(notion)} dans ton environnement de test.`, a: 'Note les étapes, puis vérifie que ça marche.' };
   }
 
   // Sans IA : on assemble les passages choisis, on surligne l'essentiel, on prépare les questions
@@ -276,7 +275,7 @@
     }).join('\n\n');
     if (notes.length > 3000) notes = notes.slice(0, notes.lastIndexOf('. ', 3000) + 1);
     const exercises = [];
-    if (keys[0]) exercises.push({ q: `Explique avec tes mots, sans regarder : ${low(notion)}. Donne un exemple concret.`, a: keys.slice(0, 2).join(' ') });
+    if (keys[0]) exercises.push({ q: `En une phrase : c’est quoi, « ${notion} » ?`, a: keys[0] });
     const pr = practice(notion, r.action, ctx);
     if (pr) exercises.push(pr);
     return { notes, keyPoints: keys, exercises };

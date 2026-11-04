@@ -109,6 +109,14 @@
                 n.srs = { s: 7, d: 5, last: now - 2 * 86400000, due: now + (2 + Math.random() * 4) * 86400000, reps: 1, lapses: 0 };
               }
               if (!Array.isArray(n.exercises)) n.exercises = [];
+              // anciens exercices générés, trop longs : raccourcis (et retirés s'il n'y a rien à manipuler)
+              n.exercises = n.exercises.filter((e) => {
+                if (/^Mise en pratique : /.test(e.q)) {
+                  if (/^(comprendre|apprendre|maîtriser|découvrir|connaître|savoir|étudier|expliquer|définir|décrire)\b/i.test(n.title)) return false;
+                  e.q = `À toi : ${n.title.charAt(0).toLowerCase() + n.title.slice(1)} dans ton environnement de test.`; e.a = 'Note les étapes, puis vérifie que ça marche.';
+                } else if (/^Explique avec tes mots, sans regarder : /.test(e.q)) e.q = `En une phrase : c’est quoi, « ${n.title} » ?`;
+                return true;
+              });
               // Statut calculé à partir de la mémoire mesurée, plus jamais déclaré à la main
               n.status = !n.srs ? 'todo' : n.srs.s >= 21 ? 'done' : 'doing';
             });

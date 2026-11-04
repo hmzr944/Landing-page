@@ -1966,3 +1966,73 @@ a.xp:hover { transform: translateY(-1px); }
 .wc-bar { grid-column: 2 / 4; height: 5px; border-radius: 999px; background: color-mix(in oklab, var(--done) 18%, transparent); overflow: hidden; }
 .wc-bar span { display: block; height: 100%; border-radius: inherit; background: var(--done); transform-origin: left; transform: scaleX(0.04); transition: transform 500ms var(--ease-out); }
 .calm .wc-leaf { animation: none; }
+
+/* =========================================================
+   Leçon guidée : une idée par écran, questions à toucher, retour immédiat
+   ========================================================= */
+.lesson-card { display: flex; align-items: center; gap: var(--s4); padding: var(--s5); margin-top: var(--s5); flex-wrap: wrap; }
+.lesson-card .lc-ic { width: 52px; height: 52px; border-radius: 18px; display: grid; place-items: center; font-size: 1.8rem; color: #fff; background: var(--accent); flex: none; }
+.lesson-card.done .lc-ic { background: var(--done); }
+.lesson-card .lc-txt { display: flex; flex-direction: column; flex: 1; min-width: 140px; }
+.lesson-card .lc-txt b { font-family: var(--font-display); font-size: var(--t-lg); }
+.lesson-card .lc-txt small { color: var(--text-3); }
+
+html.in-lesson { overflow: hidden; }
+.lesson { position: fixed; inset: 0; z-index: 90; display: flex; flex-direction: column; background: var(--bg); opacity: 0; transform: translateY(24px); transition: opacity 250ms ease, transform 450ms cubic-bezier(0.22, 1, 0.36, 1);
+  padding: max(var(--s4), env(safe-area-inset-top)) var(--s4) max(var(--s4), env(safe-area-inset-bottom)); }
+.lesson.show { opacity: 1; transform: none; }
+.ls-top { display: flex; align-items: center; gap: var(--s3); max-width: 680px; width: 100%; margin: 0 auto; }
+.ls-bar { flex: 1; height: 14px; border-radius: 999px; background: color-mix(in oklab, var(--text-3) 18%, transparent); overflow: hidden; }
+.ls-bar span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--lc), color-mix(in oklab, var(--lc) 55%, white)); transform-origin: left; transition: transform 600ms cubic-bezier(0.34, 1.56, 0.64, 1); }
+.ls-xp { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; color: #E09A12; min-width: 46px; }
+.ls-stage { flex: 1; display: grid; place-items: center; overflow-y: auto; padding: var(--s6) 0; }
+.ls-stage.in .ls-card { animation: ls-in 520ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes ls-in { from { opacity: 0; transform: translateX(40px) scale(0.98); } to { opacity: 1; transform: none; } }
+.ls-card { width: 100%; max-width: 620px; display: flex; flex-direction: column; gap: var(--s4); }
+.ls-card h2 { font-size: clamp(1.6rem, 1.2rem + 2vw, 2.3rem); letter-spacing: -0.03em; line-height: 1.1; }
+.ls-step, .ls-kicker { font-size: var(--t-sm); font-weight: 700; color: var(--lc); }
+.ls-idea { font-size: clamp(1.15rem, 1rem + 0.8vw, 1.4rem); line-height: 1.5; margin: 0; color: var(--text); }
+.ls-points { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--s3); }
+.ls-points li { display: flex; gap: var(--s3); align-items: flex-start; padding: var(--s4); border-radius: 20px; font-size: var(--t-md); line-height: 1.45;
+  background: color-mix(in oklab, var(--lc) 9%, var(--surface)); animation: ls-in 500ms cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: calc(var(--k) * 120ms + 150ms); }
+.ls-dot { width: 28px; height: 28px; flex: none; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: var(--t-sm); color: #fff; background: var(--lc); }
+.ls-gap { font-size: var(--t-lg); line-height: 1.6; margin: 0; }
+.ls-quote { margin: 0 0 4px; padding: 14px 16px; border-left: 4px solid var(--lc); border-radius: 12px; background: color-mix(in srgb, var(--lc) 8%, transparent); font-size: var(--t-md, 1.05rem); line-height: 1.55; }
+.ls-blank { display: inline-block; min-width: 90px; padding: 0 10px; margin: 0 4px; border-bottom: 3px solid var(--lc); color: var(--lc); font-weight: 700; text-align: center; }
+.ls-opts { display: flex; flex-direction: column; gap: var(--s3); }
+.ls-opts.gap { flex-direction: row; flex-wrap: wrap; }
+.ls-opt { text-align: left; padding: var(--s4) var(--s5); border-radius: 18px; font-size: var(--t-md); line-height: 1.4; cursor: pointer; color: var(--text);
+  background: var(--surface); border: 2px solid var(--line); box-shadow: 0 4px 0 var(--line); transition: transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease; }
+.ls-opts.gap .ls-opt { padding: var(--s3) var(--s5); font-weight: 600; }
+.ls-opt:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--line); }
+.ls-opt.on { border-color: var(--lc); box-shadow: 0 4px 0 color-mix(in oklab, var(--lc) 60%, black); background: color-mix(in oklab, var(--lc) 8%, var(--surface)); }
+.ls-opt.right { border-color: var(--done); background: color-mix(in oklab, var(--done) 14%, var(--surface)); box-shadow: 0 4px 0 color-mix(in oklab, var(--done) 70%, black); }
+.ls-opt.wrong { border-color: var(--danger); background: color-mix(in oklab, var(--danger) 12%, var(--surface)); box-shadow: 0 4px 0 color-mix(in oklab, var(--danger) 70%, black); animation: ls-shake 400ms ease; }
+.ls-opt.dim { opacity: 0.5; }
+@keyframes ls-shake { 25% { transform: translateX(-6px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-3px); } }
+.ls-foot { max-width: 680px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: var(--s3); }
+.ls-foot .btn.big { width: 100%; justify-content: center; height: 56px; font-size: var(--t-md); box-shadow: 0 5px 0 color-mix(in oklab, var(--accent) 60%, black); }
+.ls-foot .btn.big:active { transform: translateY(3px); box-shadow: 0 2px 0 color-mix(in oklab, var(--accent) 60%, black); }
+.ls-foot .btn.big:disabled { opacity: 0.45; box-shadow: none; }
+.ls-feedback { display: flex; align-items: center; gap: var(--s3); padding: var(--s4); border-radius: 20px; animation: ls-up 400ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.ls-feedback.ok { background: color-mix(in oklab, var(--done) 16%, var(--surface)); color: var(--done); }
+.ls-feedback.ko { background: color-mix(in oklab, var(--danger) 13%, var(--surface)); color: var(--danger); }
+.ls-feedback b { display: block; font-family: var(--font-display); font-size: var(--t-lg); }
+.ls-feedback small { color: var(--text-2); font-size: var(--t-sm); }
+.ls-fb-ic { font-size: 2rem; }
+@keyframes ls-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+.ls-card.intro, .ls-card.end { align-items: center; text-align: center; }
+.ls-orb { position: relative; width: 150px; height: 150px; margin-bottom: var(--s2); }
+.ls-orb i { position: absolute; inset: 12%; border-radius: 42% 58% 63% 37% / 41% 44% 56% 59%; background: var(--lc); opacity: 0.55; animation: morph 9s ease-in-out infinite, spin 20s linear infinite; }
+.ls-orb i:nth-child(2) { background: var(--c2); inset: 22% 6% 14% 26%; animation-duration: 7s, 16s; }
+.ls-orb i:nth-child(3) { background: var(--c3); inset: 30% 28% 20% 12%; animation-duration: 8s, 24s; }
+.ls-goal { display: flex; align-items: flex-start; justify-content: center; gap: 8px; margin: 0; max-width: 34ch; color: var(--text-2); font-size: var(--t-md); text-wrap: balance; }
+.ls-goal i { flex: none; margin-top: .25em; }
+.ls-goal i { color: var(--lc); }
+.ls-meta { display: flex; justify-content: center; gap: var(--s3); flex-wrap: wrap; }
+.ls-meta span { padding: var(--s3) var(--s4); border-radius: 18px; background: var(--surface); border: 1px solid var(--line); color: var(--text-3); }
+.ls-meta b { display: block; font-family: var(--font-display); font-size: var(--t-xl); color: var(--text); }
+.ls-trophy { width: 110px; height: 110px; border-radius: 50%; display: grid; place-items: center; font-size: 3.6rem; color: #fff; background: linear-gradient(135deg, #FFC93C, #F2A31E); box-shadow: 0 14px 30px -12px #F2A31E; animation: pop-badge 800ms var(--spring) both; }
+.ls-next { color: var(--text-3); margin: 0; }
+.calm .ls-orb i, .calm .ls-points li, .calm .ls-stage.in .ls-card { animation: none !important; }
+@media (prefers-reduced-motion: reduce) { .ls-orb i, .ls-points li, .ls-stage.in .ls-card, .ls-opt.wrong, .ls-feedback { animation: none !important; } }
