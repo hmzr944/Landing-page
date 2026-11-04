@@ -144,7 +144,50 @@
       });
       popId = null;
     }
+    countUp();
   }
+
+  /* Chiffres qui défilent jusqu'à leur valeur (amorti), comme une petite animation Lottie */
+  function countUp() {
+    if (reducedMotion() || state.settings.calm) return;
+    $$('[data-count]').forEach((el) => {
+      const to = +el.dataset.count; if (!to) return;
+      const t0 = performance.now(), dur = 900;
+      const step = (t) => {
+        const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 4);
+        el.textContent = fmt.format(Math.round(to * e));
+        if (k < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    });
+  }
+
+  /* Verre : le reflet suit le pointeur, et les tuiles de sujet s'inclinent un peu (ressort au retour) */
+  (function glassPointer() {
+    if (!matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+    let raf = 0, last = null;
+    document.addEventListener('pointermove', (e) => {
+      last = e;
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        const el = last.target.closest && last.target.closest('.glass');
+        if (!el) return;
+        const r = el.getBoundingClientRect();
+        const x = (last.clientX - r.left) / r.width, y = (last.clientY - r.top) / r.height;
+        el.style.setProperty('--mx', `${Math.round(x * 100)}%`);
+        el.style.setProperty('--my', `${Math.round(y * 100)}%`);
+        if (el.classList.contains('tilt') && !reducedMotion() && !state.settings.calm) {
+          el.style.setProperty('--rx', `${((x - 0.5) * 6).toFixed(2)}deg`);
+          el.style.setProperty('--ry', `${((0.5 - y) * 6).toFixed(2)}deg`);
+        }
+      });
+    }, { passive: true });
+    document.addEventListener('pointerout', (e) => {
+      const el = e.target.closest && e.target.closest('.tilt');
+      if (el && !el.contains(e.relatedTarget)) { el.style.setProperty('--rx', '0deg'); el.style.setProperty('--ry', '0deg'); }
+    });
+  })();
 
   function ring(pct, size = 56) {
     return `<div class="ring" style="--p:${pct};--s:${size}px" role="img" aria-label="${pct} % maîtrisé"><span>${pct}<small>%</small></span></div>`;
@@ -190,59 +233,58 @@
         ${todayPanel()}
         ${weakPanel()}
         <header class="home-head">
-          <div>
-            <h2>Tes sujets</h2>
-            <p class="lede">${plural(total, 'partie', 'parties')} réparties dans ${plural(subjects.length, 'sujet', 'sujets')}, dont ${fmt.format(done)} déjà ${done > 1 ? 'maîtrisées' : 'maîtrisée'}.</p>
-          </div>
+          <h2>Tes sujets <span class="muted num">${subjects.length}</span></h2>
           <div class="row-btns">
-            <button class="btn ghost show-mobile" data-act="import-pdf">${ic('file-arrow-up')}Importer un PDF</button>
-            <button class="btn" data-act="new-subject">${ic('plus')}Nouveau sujet</button>
+            <button class="btn ghost show-mobile" data-act="import-pdf" aria-label="Importer un PDF">${ic('file-arrow-up')}PDF</button>
+            <button class="btn" data-act="new-subject">${ic('plus')}Sujet</button>
           </div>
         </header>
 
-        <div class="subject-grid">
-          <article class="featured" style="--c:${first.color}" data-open="${first.id}">
-            <div class="featured-main">
-              <div class="featured-top">
-                <span class="tile" style="--c:${first.color}">${ic(first.icon, true)}</span>
-                <button class="icon-btn sm" data-act="edit-subject" data-id="${first.id}" aria-label="Modifier « ${esc(first.title)} »">${ic('pencil-simple')}</button>
+        <div class="subject-grid bento">
+          <article class="featured glass tilt" style="--c:${first.color};--i:4" data-open="${first.id}">
+            <span class="t-blob" aria-hidden="true"></span>
+            <div class="featured-top">
+              <span class="tile" style="--c:${first.color}">${ic(first.icon, true)}</span>
+              <button class="icon-btn sm" data-act="edit-subject" data-id="${first.id}" aria-label="Modifier « ${esc(first.title)} »">${ic('pencil-simple')}</button>
+            </div>
+            <div class="featured-body">
+              ${ring(fs.pct, 120)}
+              <div>
+                <h2><a href="${link(first.id, first.root.id)}" class="stretched">${esc(first.title)}</a></h2>
+                <p class="tile-cap num">${fs.done}/${fs.total} parties</p>
               </div>
-              <p class="kicker">Ton dernier sujet</p>
-              <h2><a href="${link(first.id, first.root.id)}" class="stretched">${esc(first.title)}</a></h2>
-              <div class="featured-progress">
-                ${bar(fs.pct)}
-                <span class="num">${fs.done}/${fs.total}</span>
-              </div>
-              ${next ? `<a class="btn next-btn" href="${link(first.id, next.id)}">${ic('arrow-right')}<span>Étudier « ${esc(next.title)} »</span></a>`
-                : fs.total ? `<p class="all-done">${ic('trophy', true)}Tout est maîtrisé dans ce sujet.</p>` : ''}
             </div>
             ${branches.length ? `<ul class="branches" aria-label="Grandes parties">
               ${branches.map((b) => {
                 const bs = stats(b);
-                return `<li><span class="sdot st-${b.children.length ? (bs.pct === 100 ? 'done' : bs.done || bs.doing ? 'doing' : 'todo') : b.status}" aria-hidden="true"></span>
-                  <span class="b-title">${esc(b.title)}</span>
-                  <span class="num">${b.children.length ? `${bs.pct} %` : STATUS[b.status].label}</span></li>`;
+                const pc = b.children.length ? bs.pct : b.status === 'done' ? 100 : b.status === 'doing' ? 50 : 0;
+                return `<li title="${esc(b.title)}"><span class="mini-ring" style="--p:${pc}" aria-hidden="true"></span><span class="b-title">${esc(b.title)}</span></li>`;
               }).join('')}
-              ${first.root.children.length > 5 ? `<li class="more">et ${plural(first.root.children.length - 5, 'autre partie', 'autres parties')}</li>` : ''}
             </ul>` : ''}
+            ${next ? `<a class="btn next-btn" href="${link(first.id, next.id)}">${ic('arrow-right')}<span>${esc(next.title)}</span></a>`
+              : fs.total ? `<p class="all-done">${ic('trophy', true)}Tout est maîtrisé</p>` : ''}
           </article>
 
           ${rest.map((s, i) => {
             const st = stats(s.root);
             return `
-            <article class="subject-card" style="--c:${s.color};--i:${i + 1}" data-open="${s.id}">
+            <article class="subject-card glass tilt" style="--c:${s.color};--i:${i + 5}" data-fill="${rest.length === 1 ? '2x1' : ''}" data-open="${s.id}">
+              <span class="t-blob" aria-hidden="true"></span>
               <div class="featured-top">
                 <span class="tile" style="--c:${s.color}">${ic(s.icon, true)}</span>
                 <button class="icon-btn sm" data-act="edit-subject" data-id="${s.id}" aria-label="Modifier « ${esc(s.title)} »">${ic('pencil-simple')}</button>
               </div>
               <h3><a href="${link(s.id, s.root.id)}" class="stretched">${esc(s.title)}</a></h3>
               <div class="card-foot">
-                ${bar(st.pct)}
-                ${s.examDate ? `<span class="chip exam-chip">${ic('flag-checkered')}Examen le ${new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short' }).format(new Date(s.examDate + 'T00:00'))}</span>` : ''}
-                <span class="meta">${plural(st.total, 'partie', 'parties')}, ${st.pct} % maîtrisé${memAvg(s) !== null ? `, mémoire ${memAvg(s)} %` : ''}</span>
+                ${ring(st.pct, 52)}
+                <span class="tile-cap num">${st.total} parties${memAvg(s) !== null ? ` · ${memAvg(s)} % mémoire` : ''}</span>
+                ${s.examDate ? `<span class="pill">${ic('flag-checkered', true)}${new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short' }).format(new Date(s.examDate + 'T00:00'))}</span>` : ''}
               </div>
             </article>`;
           }).join('')}
+          <button class="subject-card add-tile glass" data-act="new-subject" style="--i:${rest.length + 5}" data-fill="${rest.length === 0 ? '2x2' : rest.length < 3 ? '2x1' : ''}">
+            <span class="plus-orb" aria-hidden="true">${ic('plus', true)}</span><span>Nouveau sujet</span>
+          </button>
         </div>
       </section>`;
   }
@@ -358,15 +400,15 @@
         <section class="sec">
           <div class="sec-head"><h2>Points clés</h2><button class="btn ghost sm" data-act="add-kp">${ic('plus')}Ajouter</button></div>
           ${node.keyPoints.length && !node.srs && !pretestSeen.has(node.id) ? `<div class="pretest-cover">
-              <p>${ic('lightbulb', true)}<span><b>Essaie d’abord de deviner.</b> Avant de lire, demande-toi ce que seraient les ${plural(node.keyPoints.length, 'point clé', 'points clés')}. Même faux, cet essai aide à retenir la réponse.</span></p>
-              <button class="btn sm" data-act="pretest-reveal" data-id="${node.id}">${ic('eye')}Révéler les points clés</button>
+              <p>${ic('lightbulb', true)}<span><b>Devine d’abord</b> ${plural(node.keyPoints.length, 'point clé', 'points clés')}</span></p>
+              <button class="btn sm" data-act="pretest-reveal" data-id="${node.id}">${ic('eye')}Révéler</button>
             </div>` : ''}
           ${node.keyPoints.length ? `<ol class="kps ${!node.srs && !pretestSeen.has(node.id) ? 'pretest' : ''}" id="kps">
             ${node.keyPoints.map((k, i) => `
               <li><span class="kp-dot" aria-hidden="true"></span>
                 <div class="kp-text" contenteditable="true" role="textbox" aria-label="Point clé ${i + 1}" data-kp="${i}">${esc(k)}</div>
                 <button class="icon-btn sm" data-act="del-kp" data-i="${i}" aria-label="Supprimer le point clé ${i + 1}">${ic('x')}</button></li>`).join('')}
-          </ol>` : '<p class="hint-empty">Les idées à retenir absolument. Elles s’affichent au dos des cartes de révision.</p>'}
+          </ol>` : `<p class="hint-empty">${ic('star')}Les idées à retenir</p>`}
         </section>
 
         <section class="sec">
@@ -378,27 +420,25 @@
           </div>
           ${notesMode === 'edit'
             ? `<textarea class="notes-input" id="notesInput" aria-label="Notes" placeholder="Écris tes notes…">${esc(node.notes)}</textarea>
-               <p class="hint">**gras**, *italique*, ==surligné==, \`code\`, - liste, # titre. Chaque passage ==surligné== devient une question de révision.</p>`
+               <p class="hint">==surligné== devient une question · **gras** · - liste · # titre</p>`
             : node.notes.trim()
-              ? `<div class="md notes-view">${MD.render(node.notes)}</div>${highlights(node.notes).length ? `<p class="hint hl-hint">${ic('highlighter-circle')}${plural(highlights(node.notes).length, 'passage surligné deviendra', 'passages surlignés deviendront')} des questions de révision.</p>` : ''}`
-              : `<button class="notes-empty" data-act="notes-mode" data-m="edit">${ic('pencil-simple')}Écrire des notes pour cette partie</button>`}
+              ? `<div class="md notes-view ${node.notes.length > 700 ? 'clamp' : ''}">${MD.render(node.notes)}</div>${node.notes.length > 700 ? `<button class="btn ghost sm more-btn" data-act="unclamp">${ic('caret-down')}Lire la suite</button>` : ''}${highlights(node.notes).length ? `<p class="hint hl-hint">${ic('highlighter-circle')}${plural(highlights(node.notes).length, 'question', 'questions')} en révision</p>` : ''}`
+              : `<button class="notes-empty" data-act="notes-mode" data-m="edit">${ic('pencil-simple')}Écrire des notes</button>`}
         </section>
 
         ${courseSection(s, node, isRoot)}
 
         <section class="sec">
-          <div class="sec-head"><h2>Ancre-la dans ta mémoire</h2></div>
-          <p class="explain-prompt">Une notion s’oublie moins quand on lui donne du sens. Choisis une façon de l’ancrer :</p>
+          <div class="sec-head"><h2>Ancre-la</h2></div>
           <div class="anchor-chips" role="group" aria-label="Façons d’ancrer cette notion">
             ${ANCHORS.map(([k, label]) => `<button class="chip-btn" data-act="anchor" data-k="${k}">${label}</button>`).join('')}
           </div>
           <textarea class="notes-input explain-input" id="explainInput" rows="3" aria-label="Ton ancrage" placeholder="${esc(explainPrompt(node))}">${esc(node.explain)}</textarea>
-          <p class="hint">Ce que tu écris ici apparaît au dos de la carte de révision.</p>
         </section>
 
         <section class="sec">
           <div class="sec-head"><h2>Exercices <span class="muted num">${(node.exercises || []).length}</span></h2>
-            <button class="btn ghost sm" data-act="add-ex">${ic('plus')}Ajouter un exercice</button>
+            <button class="btn ghost sm" data-act="add-ex">${ic('plus')}Exercice</button>
           </div>
           ${(node.exercises || []).length ? `<ol class="ex-list">
             ${node.exercises.map((e) => `
@@ -409,7 +449,7 @@
                 <textarea class="ex-a" id="exa-${e.id}" data-exf="a" rows="2" placeholder="Les étapes, puis le résultat…">${esc(e.a)}</textarea>
                 <button class="icon-btn sm ex-del" data-act="del-ex" aria-label="Supprimer cet exercice">${ic('trash')}</button>
               </li>`).join('')}
-          </ol>` : '<p class="hint-empty">Pour les maths, la physique ou la compta : ajoute des exercices avec leur méthode. En révision, ils reviennent mélangés avec ceux des autres parties, ce qui t’entraîne à reconnaître quelle méthode utiliser.</p>'}
+          </ol>` : `<p class="hint-empty">${ic('pencil-simple-line')}Énoncé + méthode, mélangés en révision</p>`}
         </section>
 
         <section class="sec">
@@ -428,7 +468,7 @@
                 <small>${c.children.length ? `${plural(c.children.length, 'sous-partie', 'sous-parties')}, ${cs.pct} %` : STATUS[c.status].label}</small>
               </a>`;
             }).join('')}
-          </div>` : '<p class="hint-empty">Découpe cette partie en morceaux plus petits pour mieux l’apprendre.</p>'}
+          </div>` : `<p class="hint-empty">${ic('tree-structure')}Découpe en petits morceaux</p>`}
         </section>
 
         <footer class="fiche-foot">
@@ -600,34 +640,34 @@
     const hasKey = !!state.settings.apiKey;
     const body = {
       pretest: () => `
-        <p>Avant de lire quoi que ce soit : qu’est-ce que tu sais déjà sur « ${esc(node.title)} » ? Écris tout ce qui te vient, même flou ou faux. Cet essai prépare ta mémoire à retenir la suite.</p>
+        <p><b>Ce que tu en sais déjà ?</b> Même flou ou faux.</p>
         <textarea class="notes-input" id="modulePretest" rows="3" placeholder="Ce que j’en sais, ce que j’imagine…">${esc(m.pretest || '')}</textarea>
         <div class="row-btns"><button class="btn sm" data-act="mod-pretest-done">${ic('check')}C’est noté</button><button class="btn ghost sm" data-act="mod-skip-pretest">Je n’en sais rien, passer</button></div>`,
       learn: () => m.generated ? `
-        <p>Ton cours est prêt juste en dessous : ${plural(node.children.length, 'notion', 'notions')}. Lis-le en entier, à ton rythme. Compare avec ce que tu pensais savoir.</p>
-        <div class="row-btns"><a class="btn" href="#course" data-act="goto-course">${ic('book-open-text')}Lire le cours</a><button class="btn ghost" data-act="mod-learned">${ic('check')}J’ai lu le cours</button></div>` : `
-        <p>Arbor peut rédiger le cours de « ${esc(node.title)} » ${engineLabel()}. Tu peux aussi chercher toi-même.</p>
+        <p><b>Ton cours est prêt</b> · ${plural(node.children.length, 'notion', 'notions')}</p>
+        <div class="row-btns"><a class="btn" href="#course" data-act="goto-course">${ic('book-open-text')}Lire</a><button class="btn ghost" data-act="mod-learned">${ic('check')}C’est lu</button></div>` : `
+        <p><b>Pas encore de cours.</b> Arbor peut le rédiger.</p>
         <button class="btn" data-act="write-course">${ic('book-open-text')}Rédiger le cours</button>
         <div class="research-links">${researchLinks(node.title, s).map(([l, u, i]) => `<a class="chip-link" href="${u}" target="_blank" rel="noopener">${ic(i)}${l}</a>`).join('')}</div>
-        <button class="btn ghost sm" data-act="mod-learned">${ic('check')}J’ai lu et pris mes notes</button>`,
+        <button class="btn ghost sm" data-act="mod-learned">${ic('check')}C’est lu</button>`,
       split: () => `
-        <p>Découpe « ${esc(node.title)} » en 3 à 5 notions, une idée chacune. Faire ce découpage toi-même t’aide à organiser ce que tu sais.</p>
+        <p><b>3 à 5 notions</b>, une idée chacune.</p>
         <button class="btn" data-act="bulk-add" data-id="${node.id}">${ic('tree-structure')}Découper en notions</button>`,
       anchor: () => `
-        <p>Ancre au moins une notion : une image, un exemple concret, ou pourquoi c’est vrai. C’est l’étape qui fait le plus de différence pour retenir.</p>
-        <button class="btn" data-act="focus-explain">${ic('anchor-simple')}Ancrer ce module</button>`,
+        <p><b>Une image, un exemple, un pourquoi.</b></p>
+        <button class="btn" data-act="focus-explain">${ic('anchor-simple')}Ancrer</button>`,
       test: () => `
-        <p>Teste-toi sur ce module. Ensuite, Arbor te le reproposera au bon moment, mélangé avec les autres.</p>
-        <a class="btn" href="${link(s.id, node.id, 'revision')}">${ic('play', true)}Me tester sur ce module</a>`,
+        <p><b>À toi de jouer.</b> Arbor le reproposera au bon moment.</p>
+        <a class="btn" href="${link(s.id, node.id, 'revision')}">${ic('play', true)}Me tester</a>`,
     };
     return `
       <section class="module-panel" aria-label="Parcours du module">
         <div class="mp-head">
-          <span class="mp-title">${step ? `Étape ${MOD_STEPS.findIndex(([k]) => k === step) + 1} sur 5 : ${current[1]}` : 'Module terminé'}</span>
+          <span class="mp-title">${step ? current[1] : 'Module terminé'} <span class="muted num">${moduleProgress(node)}/5</span></span>
           ${m.date ? `<span class="chip">${ic('calendar-blank')}${dayLabel(m.date)}</span>` : ''}
         </div>
         <ol class="mp-steps">${MOD_STEPS.map(([k, l]) => `<li class="${st[k] ? 'done' : k === step ? 'current' : ''}"><span class="mp-dot" aria-hidden="true">${st[k] ? ic('check', true) : ''}</span><span>${l}</span></li>`).join('')}</ol>
-        ${step ? `<div class="mp-body">${body[step]()}</div>` : `<div class="mp-body"><p>Les 5 étapes sont faites. Ce module revient maintenant dans ta révision du jour, au moment où tu risques de l’oublier.</p></div>`}
+        ${step ? `<div class="mp-body">${body[step]()}</div>` : `<div class="mp-body"><p>${ic('check-circle', true)} <b>Module fait.</b> Il revient avant l’oubli.</p></div>`}
         ${m.sources && m.sources.length ? `<details class="mp-sources"><summary>Sources (${m.sources.length})</summary><ul>${m.sources.map((x) => `<li><a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title || x.url)}</a></li>`).join('')}</ul></details>` : ''}
         ${m.pretest && st.pretest && step !== 'pretest' ? `<details class="mp-sources"><summary>Ce que tu pensais savoir avant</summary><p class="mp-pretest">${esc(m.pretest)}</p></details>` : ''}
       </section>`;
@@ -666,10 +706,7 @@
       const mm = s.root.children.find((c) => c.module && c.module.date && c.module.date <= today && moduleProgress(c) < 5);
       if (mm) {
         const step = MOD_STEPS.find(([k]) => !moduleSteps(mm)[k]);
-        return `<a class="exam-line" href="${link(s.id, mm.id)}" style="--c:${s.color}">
-          <span class="tile sm" style="--c:${s.color}">${ic('path', true)}</span>
-          <span><b>Module du jour : ${esc(mm.title)}</b>. Prochaine étape : ${step[1].toLowerCase()}.</span>
-        </a>`;
+        return `<a class="pill-btn" href="${link(s.id, mm.id)}" style="--c:${s.color}" title="Module du jour, prochaine étape : ${step[1].toLowerCase()}">${ic('path', true)}<span>${esc(mm.title)}</span></a>`;
       }
     }
     return '';
@@ -845,10 +882,10 @@
     if (!withNotes.length) {
       if (isRoot && s.program) {
         const missing = s.root.children.filter((c) => c.module && !c.module.generated && !c.children.some((x) => x.notes.trim())).length;
-        return missing ? `<section class="sec write-course"><p>${plural(missing, 'module n’a', 'modules n’ont')} pas encore de cours.</p><button class="btn" data-act="write-all">${ic('book-open-text')}Rédiger les cours manquants</button></section>` : '';
+        return missing ? `<section class="sec write-course"><p>${ic('sparkle', true)} <b>${plural(missing, 'module', 'modules')}</b> sans cours</p><button class="btn" data-act="write-all">${ic('book-open-text')}Rédiger</button></section>` : '';
       }
       if (isRoot || node.notes.trim().length > 80) return '';
-      return `<section class="sec write-course"><p>Cette partie est vide. Arbor peut en rédiger le cours à partir de son titre, ${engineLabel()}.</p><button class="btn" data-act="write-course">${ic('book-open-text')}Rédiger le cours</button></section>`;
+      return `<section class="sec write-course"><p title="${esc(engineLabel())}">${ic('sparkle', true)} <b>Partie vide.</b> Arbor peut en rédiger le cours.</p><button class="btn" data-act="write-course">${ic('book-open-text')}Rédiger le cours</button></section>`;
     }
     const pre = node.module && !moduleSteps(node).pretest && !pretestSeen.has(node.id + ':course');
     const sources = [...((node.course && node.course.sources) || []), ...((node.module && node.module.sources) || []), ...withNotes.flatMap((c) => (c.course && c.course.sources) || [])]
@@ -856,13 +893,13 @@
     return `
       <section class="sec course" id="course">
         <div class="sec-head"><h2>Le cours</h2><span class="muted">${plural(withNotes.length, 'notion', 'notions')}</span></div>
-        ${pre ? `<div class="pretest-cover"><p>${ic('lightbulb', true)}<span><b>Avant de lire :</b> écris en haut ce que tu sais déjà sur ce sujet. Même faux, cet essai t’aidera à retenir le cours.</span></p><button class="btn ghost sm" data-act="course-reveal" data-id="${node.id}">Lire quand même</button></div>` : ''}
+        ${pre ? `<div class="pretest-cover"><p>${ic('lightbulb', true)}<span><b>Avant de lire :</b> écris ce que tu en sais.</span></p><button class="btn ghost sm" data-act="course-reveal" data-id="${node.id}">Lire quand même</button></div>` : ''}
         <div class="course-body ${pre ? 'pretest' : ''}">
           ${withNotes.map((c) => `
             <article class="course-part">
               <h3><a href="${link(s.id, c.id)}">${esc(c.title)}</a></h3>
-              <div class="md">${MD.render(c.notes)}</div>
-              ${c.keyPoints.length ? `<div class="course-keys"><small>À retenir</small><ul>${c.keyPoints.map((k) => `<li>${MD.render(k).replace(/^<p>|<\/p>$/g, '')}</li>`).join('')}</ul></div>` : ''}
+              ${c.keyPoints.length ? `<div class="course-keys"><small>${ic('star', true)}À retenir</small><ul>${c.keyPoints.slice(0, 3).map((k) => `<li>${MD.render(k).replace(/^<p>|<\/p>$/g, '')}</li>`).join('')}</ul></div>` : ''}
+              <div class="md ${c.notes.length > 500 ? 'clamp' : ''}">${MD.render(c.notes)}</div>${c.notes.length > 500 ? `<button class="btn ghost sm more-btn" data-act="unclamp">${ic('caret-down')}Lire la suite</button>` : ''}
             </article>`).join('')}
         </div>
         ${sources.length ? `<p class="course-src">Sources : ${sources.map((x) => `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title || x.url)}</a>`).join(', ')}</p>` : ''}
@@ -1114,9 +1151,9 @@
     }[p.type];
     const front = {
       cloze: () => `<p class="cloze">${esc(p.before)}<span class="blank ${show ? 'filled' : ''}">${show ? esc(p.answer) : '…'}</span>${esc(p.after)}</p>`,
-      recall: () => `<h2 class="q-title">${esc(node.title)}</h2>${show ? '' : '<p class="muted">Récite ce que tu sais sur cette partie, sans regarder. Écrire, même approximativement, aide à retenir.</p>'}`,
-      branch: () => `<h2 class="q-title">${esc(node.title)}</h2>${show ? '' : `<p class="muted">Retrouve ses ${plural(node.children.length, 'sous-partie', 'sous-parties')}, dans l’ordre. Reconstruire la structure aide à organiser ce que tu sais.</p>`}`,
-      exercise: () => `${p.ex.q.startsWith(node.title.replace(/…$/, '')) ? '' : `<h2 class="q-title small">${esc(node.title)}</h2>`}<div class="exercise-q md">${MD.render(p.type === 'exercise' ? p.ex.q : '')}</div>${show ? '' : '<p class="muted">Résous-le avant de regarder la méthode, sur papier ou ici.</p>'}`,
+      recall: () => `<h2 class="q-title">${esc(node.title)}</h2>${show ? '' : '<p class="muted">Récite sans regarder.</p>'}`,
+      branch: () => `<h2 class="q-title">${esc(node.title)}</h2>${show ? '' : `<p class="muted">Ses ${plural(node.children.length, 'sous-partie', 'sous-parties')}, dans l’ordre.</p>`}`,
+      exercise: () => `${p.ex.q.startsWith(node.title.replace(/…$/, '')) ? '' : `<h2 class="q-title small">${esc(node.title)}</h2>`}<div class="exercise-q md">${MD.render(p.type === 'exercise' ? p.ex.q : '')}</div>${show ? '' : '<p class="muted">Résous-le d’abord.</p>'}`,
     }[p.type]();
     pane.innerHTML = `
       <div class="study">
@@ -1385,7 +1422,7 @@
         <header class="study-head">
           <a class="back-link" href="#/">${ic('arrow-left')}Accueil</a>
           <h1>Révision du jour</h1>
-          <p class="muted">Tes sujets sont mélangés : c’est plus exigeant, et c’est ce qui fait tenir les souvenirs.</p>
+          <p class="muted">Sujets mélangés, pour mieux retenir.</p>
         </header>
         <div id="paneBody"></div>
       </section>`;
@@ -1449,8 +1486,8 @@
   const PLAN_CUES = ['je rentre de cours', 'je finis de manger le midi', 'je m’assois dans le bus ou le train', 'je me suis brossé les dents le soir', 'je pose mon sac après le travail'];
   function planLine() {
     const p = state.settings.plan;
-    if (!p) return `<button class="plan-line empty" data-act="plan-edit">${ic('calendar-plus')}<span>Décide quand tu révises : un plan « quand… alors… » aide à s’y tenir.</span></button>`;
-    return `<button class="plan-line" data-act="plan-edit">${ic('calendar-check')}<span>Quand ${esc(p.cue)}, je révise ${p.n} cartes${p.time ? ` (vers ${esc(p.time)})` : ''}.</span><small>Modifier</small></button>`;
+    if (!p) return `<button class="pill-btn" data-act="plan-edit" title="Un plan « quand… alors… » aide à s’y tenir">${ic('calendar-plus', true)}<span>Mon plan</span></button>`;
+    return `<button class="pill-btn" data-act="plan-edit" title="Quand ${esc(p.cue)}, je révise ${p.n} cartes">${ic('calendar-check', true)}<span>${p.time ? esc(p.time) : esc(p.cue)} · ${p.n} cartes</span></button>`;
   }
   function examLine() {
     const now = new Date(); now.setHours(0, 0, 0, 0);
@@ -1459,11 +1496,7 @@
     const { s, days } = exams[0];
     let fresh = 0; walk(s.root, (n, d) => { if (!(d === 0 && s.root.children.length) && !n.srs) fresh++; });
     const perDay = days ? Math.ceil(fresh / days) : fresh;
-    return `<a class="exam-line" href="${link(s.id, s.root.id, 'revision')}" style="--c:${s.color}">
-      <span class="tile sm" style="--c:${s.color}">${ic('flag-checkered', true)}</span>
-      <span><b>${esc(s.title)}</b> : examen ${days === 0 ? 'aujourd’hui' : days === 1 ? 'demain' : `dans ${days} jours`}.
-      ${fresh ? `${plural(fresh, 'partie jamais vue', 'parties jamais vues')} : vise ${plural(perDay, 'nouvelle par jour', 'nouvelles par jour')}.` : 'Tout a été vu au moins une fois : continue les révisions.'}</span>
-    </a>`;
+    return `<a class="pill-btn" href="${link(s.id, s.root.id, 'revision')}" style="--c:${s.color}" title="${esc(s.title)} : ${fresh ? `${plural(fresh, 'partie jamais vue', 'parties jamais vues')}, vise ${perDay} par jour` : 'tout a été vu'}">${ic('flag-checkered', true)}<span>${days === 0 ? 'Examen aujourd’hui' : `J-${days}`}${fresh ? ` · ${perDay}/jour` : ''}</span></a>`;
   }
   function planModal() {
     const p = state.settings.plan || { cue: PLAN_CUES[0], n: 10, time: '18:30' };
@@ -1554,38 +1587,43 @@
       state.subjects.forEach((s) => walk(s.root, (x) => { if (x.srs && x.srs.due > Date.now()) t = Math.min(t, x.srs.due); }));
       return t === Infinity ? null : t;
     })();
+    const mins = Math.max(2, Math.round(n * 0.4));
+    const wk = week.reduce((a, d) => a + d.reviews, 0);
     return `
-      <section class="today" aria-labelledby="todayTitle">
-        <div class="today-main">
-          <h1 id="todayTitle">${n ? `${plural(n, 'carte t’attend', 'cartes t’attendent')}` : ov.total ? 'Ta mémoire est à jour' : 'Prêt à commencer ?'}</h1>
-          <p class="lede">${greeting()}. ${n
-            ? `${ov.due ? `${plural(ov.due, 'partie à revoir', 'parties à revoir')} avant de l’oublier` : 'Aucune partie en danger'}${ov.newToday ? `, ${plural(ov.newToday, 'nouvelle à découvrir', 'nouvelles à découvrir')}` : ''}. Compte environ ${Math.max(2, Math.round(n * 0.4))} minutes.`
-            : ov.total ? `Prochaine révision ${nextDue ? new Intl.RelativeTimeFormat('fr-FR', { numeric: 'auto' }).format(Math.max(1, Math.round((nextDue - Date.now()) / SRS.DAY)), 'day') : 'bientôt'}. Profites-en pour approfondir une fiche ou ajouter des parties.`
-            : 'Crée un sujet ou importe un PDF : chaque partie deviendra une carte de révision.'}</p>
-          <div class="row-btns">
-            ${n ? `<a class="btn big" href="#/reviser">${ic('play', true)}Commencer la révision</a>` : `<button class="btn big" data-act="new-subject">${ic('plus')}Nouveau sujet</button>`}
-            ${n > 5 ? `<button class="btn ghost big" data-act="quick-start">${ic('lightning')}Juste 2 minutes</button>` : `<button class="btn ghost big" data-act="focus-open">${ic('timer')}Focus ${state.settings.focusMin} min</button>`}
-          </div>
-          ${planLine()}
-          ${moduleLine()}
-          ${examLine()}
-          <a class="method-link" href="#/methode">${ic('lightbulb')}Pourquoi cette méthode marche</a>
-        </div>
-        <div class="today-stats">
-          <div class="stat goal-stat">
-            ${ring(goalPct, 64)}
-            <div><b class="num">${td.reviews}/${goal}</b><span>cartes aujourd’hui</span></div>
-          </div>
-          <div class="stat streak-stat ${streak ? 'on' : ''}">
-            <span class="flame">${ic('fire', true)}</span>
-            <div><b class="num">${plural(streak, 'jour', 'jours')}</b><span>${streak ? 'de série, continue !' : 'Révise aujourd’hui pour lancer ta série'}</span></div>
-          </div>
-          <div class="stat week-stat">
-            <div class="week" aria-label="Cartes révisées ces 7 derniers jours">
-              ${week.map((d, i) => `<div class="day ${i === 6 ? 'is-today' : ''}" title="${d.reviews} cartes"><span style="--h:${d.reviews ? Math.max(8, (d.reviews / max) * 100) : 4}%"></span><small>${d.label}</small></div>`).join('')}
+      <section class="today bento" aria-labelledby="todayTitle">
+        <div class="b-hero glass" style="--i:0">
+          <div class="orb" aria-hidden="true"><i></i><i></i><i></i><b></b></div>
+          <div class="hero-copy">
+            <p class="hello">${greeting()}</p>
+            <h1 id="todayTitle">${n
+              ? `<span class="big-num num" data-count="${n}">${n}</span><span class="big-label">${n > 1 ? 'cartes' : 'carte'}<br>à réviser</span>`
+              : `<span class="big-label solo">${ov.total ? 'Mémoire à jour' : 'Prêt ?'}</span>`}</h1>
+            <div class="pills">
+              ${n ? `${ov.due ? `<span class="pill warn">${ic('warning', true)}${ov.due} à revoir</span>` : ''}${ov.newToday ? `<span class="pill">${ic('sparkle', true)}${ov.newToday} nouvelles</span>` : ''}<span class="pill">${ic('clock', true)}${mins} min</span>`
+                : ov.total && nextDue ? `<span class="pill">${ic('calendar-blank', true)}${new Intl.RelativeTimeFormat('fr-FR', { numeric: 'auto' }).format(Math.max(1, Math.round((nextDue - Date.now()) / SRS.DAY)), 'day')}</span>` : ''}
             </div>
-            <div><b class="num">${week.reduce((a, d) => a + d.reviews, 0)}</b><span>cette semaine${td.focusMin ? `, ${td.focusMin} min de focus aujourd’hui` : ''}</span></div>
+            <div class="row-btns">
+              ${n ? `<a class="btn big" href="#/reviser">${ic('play', true)}Réviser</a>` : `<button class="btn big" data-act="new-subject">${ic('plus')}Nouveau sujet</button>`}
+              ${n > 5 ? `<button class="btn ghost big" data-act="quick-start">${ic('lightning', true)}2 min</button>` : `<button class="btn ghost big" data-act="focus-open">${ic('timer', true)}Focus</button>`}
+            </div>
+            <div class="hero-links">${planLine()}${moduleLine()}${examLine()}</div>
           </div>
+          <a class="corner-link" href="#/methode" aria-label="Pourquoi cette méthode marche">${ic('lightbulb', true)}</a>
+        </div>
+        <div class="b-goal glass" style="--i:1">
+          ${ring(goalPct, 112)}
+          <p class="tile-cap"><b class="num">${td.reviews}/${goal}</b> aujourd’hui</p>
+        </div>
+        <div class="b-streak glass ${streak ? 'on' : ''}" style="--i:2">
+          <span class="flame" aria-hidden="true">${ic('fire', true)}</span>
+          <b class="num big-stat" data-count="${streak}">${streak}</b>
+          <p class="tile-cap">${streak > 1 ? 'jours de suite' : streak ? 'jour de suite' : 'série à lancer'}</p>
+        </div>
+        <div class="b-week glass" style="--i:3">
+          <div class="week" aria-label="Cartes révisées ces 7 derniers jours">
+            ${week.map((d, i) => `<div class="day ${i === 6 ? 'is-today' : ''}" title="${d.reviews} cartes" style="--j:${i}"><span style="--h:${d.reviews ? Math.max(10, (d.reviews / max) * 100) : 5}%"></span><small>${d.label}</small></div>`).join('')}
+          </div>
+          <p class="tile-cap"><b class="num">${wk}</b> cette semaine${td.focusMin ? ` · ${td.focusMin} min focus` : ''}</p>
         </div>
       </section>`;
   }
@@ -1677,40 +1715,60 @@
         arbor: 'Le mode Focus, des objectifs courts (15 cartes) et une série quotidienne pour démarrer sans négocier avec soi-même.',
         src: [['Étude sur 474 étudiants (2024)', 'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11428987/'], ['Pauses et fatigue (2025)', 'https://doaj.org/article/ba3ad862547f4f16a55b776eb52ab784']], level: 'Indicatif' },
     ];
+    // Version visuelle : un chiffre ou une icône, un titre court, une phrase. Le détail s'ouvre à la demande.
+    const VIS = [
+      ['83 %', 'relisent leurs cours', 'Relire trompe', 'Réponse cachée tant que tu n’as pas essayé.'],
+      ['#1', 'technique d’étude', 'Se tester', 'Chaque partie devient une carte.'],
+      ['90 %', 'de mémoire visée', 'Espacer', 'FSRS te redonne la carte avant l’oubli.'],
+      ['5', 'étapes par module', 'Un parcours', 'Ton programme devient des modules datés.'],
+      ['', '', 'Essayer avant de lire', 'Devine les points clés d’abord.'],
+      ['', '', 'Le dire avec tes mots', 'Une zone « explique-le » par fiche.'],
+      ['', '', 'Mélanger', 'Révisions mélangées entre sujets.'],
+      ['', '', 'Savoir ce qu’on sait', 'Ta confiance est mesurée.'],
+      ['', '', 'Moins de distractions', 'Focus, petits objectifs, série.'],
+    ];
+    const VIS_ADHD = [
+      ['', '', 'Se tester marche aussi', 'Un bouton, les cartes arrivent seules.'],
+      ['', '', 'Ancrer dès le début', 'Image, exemple, pourquoi.'],
+      ['72', 'étudiants testés', 'Réciter dans l’ordre', 'La carte « branche ».'],
+      ['2 min', 'pour démarrer', 'Le plus dur : commencer', '5 cartes, et c’est parti.'],
+      ['', '', 'Jusqu’à réussir', 'Une carte ratée revient.'],
+      ['61 %', 'contre 38 % en blocs', 'Mélanger les exercices', 'Exercices mélangés en révision.'],
+      ['-17 %', 'à l’examen sans garde-fous', 'L’IA donne des pistes', 'Des indices, pas les réponses.'],
+      ['', '', 'Se noter honnêtement', 'Tu coches, Arbor propose la note.'],
+      ['0,26', 'effet des badges', 'Les points motivent un peu', 'L’XP récompense l’effort.'],
+      ['12', 'participants, à confirmer', 'Travailler à deux', 'Pousse lit à côté de toi.'],
+    ];
+    const tile = (it, v, i, wide) => `
+      <article class="m-tile glass ${wide ? 'wide' : ''} ${v[0] ? 'has-num' : ''}" style="--i:${i}">
+        <span class="m-shape s${i % 4}" aria-hidden="true"></span>
+        <div class="m-top">
+          ${v[0] ? `<b class="m-num num">${v[0]}</b><small class="m-cap">${v[1]}</small>` : `<span class="tile big-ic">${ic(it.icon, true)}</span>`}
+        </div>
+        <h2>${v[2]}</h2>
+        <p class="m-arbor">${ic('tree', true)}${v[3]}</p>
+        <details class="m-more">
+          <summary aria-label="En savoir plus : ${esc(v[2])}">${ic('plus')}</summary>
+          <div class="m-detail">
+            <p>${it.text}</p>
+            <p class="mi-arbor">${it.arbor}</p>
+            <p class="mi-src"><span class="chip level">${it.level}</span> ${it.src.map(([l, u]) => `<a href="${u}" target="_blank" rel="noopener">${l}</a>`).join(', ')}</p>
+          </div>
+        </details>
+      </article>`;
+    // 4 colonnes : 9 tuiles dont 3 larges, puis 10 dont 2 larges = 12 cases pleines à chaque fois
+    const wide1 = new Set([0, 3, 6]), wide2 = new Set([3, 5]);
     app.innerHTML = `
       <section class="method">
         <header class="method-head">
           <a class="back-link" href="#/">${ic('arrow-left')}Accueil</a>
-          <h1>Pourquoi tu oublies, et comment Arbor t’aide</h1>
-          <p class="lede">La plupart des étudiants révisent de la façon qui donne l’impression d’apprendre, pas de celle qui fait retenir. Voici ce que montre la recherche en sciences cognitives, et comment chaque fonction d’Arbor en découle.</p>
+          <h1>Pourquoi tu oublies</h1>
+          <p class="lede">Ce que dit la recherche, et ce qu’Arbor en fait.</p>
         </header>
-        <ol class="method-list">
-          ${items.map((it, i) => `
-            <li class="method-item" style="--i:${i}">
-              <span class="tile">${ic(it.icon, true)}</span>
-              <div>
-                <div class="mi-head"><h2>${it.title}</h2><span class="chip level">${it.level}</span></div>
-                <p>${it.text}</p>
-                <p class="mi-arbor">${ic('tree', true)}<span>${it.arbor}</span></p>
-                <p class="mi-src">Sources : ${it.src.map(([l, u]) => `<a href="${u}" target="_blank" rel="noopener">${l}</a>`).join(', ')}</p>
-              </div>
-            </li>`).join('')}
-        </ol>
+        <div class="bento m-grid">${items.map((it, i) => tile(it, VIS[i], i, wide1.has(i))).join('')}</div>
         <h2 class="method-sub">Si l’attention est ton point faible</h2>
-        <p class="lede method-sub-lede">TDAH diagnostiqué ou simple difficulté à rester concentré : voici ce que les études récentes montrent, et ce qu’Arbor en fait. Les preuves sont encore minces pour les étudiants avec un TDAH ; on le dit quand c’est le cas.</p>
-        <ol class="method-list">
-          ${adhdItems().map((it, i) => `
-            <li class="method-item" style="--i:${i}">
-              <span class="tile">${ic(it.icon, true)}</span>
-              <div>
-                <div class="mi-head"><h2>${it.title}</h2><span class="chip level">${it.level}</span></div>
-                <p>${it.text}</p>
-                <p class="mi-arbor">${ic('tree', true)}<span>${it.arbor}</span></p>
-                <p class="mi-src">Sources : ${it.src.map(([l, u]) => `<a href="${u}" target="_blank" rel="noopener">${l}</a>`).join(', ')}</p>
-              </div>
-            </li>`).join('')}
-        </ol>
-        <p class="hint method-foot">Niveaux de preuve résumés honnêtement : « très solide » pour des effets répliqués des centaines de fois, « indicatif » pour des études surtout corrélationnelles.</p>
+        <div class="bento m-grid">${adhdItems().map((it, i) => tile(it, VIS_ADHD[i], i, wide2.has(i))).join('')}</div>
+        <p class="hint method-foot">Touche ${ic('plus')} pour le détail et les sources.</p>
       </section>`;
   }
 
@@ -2401,6 +2459,7 @@
       }
       case 'del-kp': currentNode().node.keyPoints.splice(+t.dataset.i, 1); save(); renderFiche(); break;
       case 'notes-mode': notesMode = t.dataset.m; renderFiche(); break;
+      case 'unclamp': { const v = t.previousElementSibling; if (v) v.classList.remove('clamp'); t.remove(); break; }
       case 'move': {
         const { node, parent } = currentNode();
         const i = parent.children.indexOf(node);

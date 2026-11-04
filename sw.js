@@ -1,7 +1,7 @@
 /* Service worker d'Arbor : l'application fonctionne hors connexion.
    Fichiers de l'app : réseau d'abord (pour les mises à jour), cache en secours.
    Bibliothèques des CDN (polices Fontshare, icônes, pdf.js) : cache d'abord. */
-const VERSION = 'arbor-v11';
+const VERSION = 'arbor-v12';
 const SHELL = [
   './', './index.html', './styles.css', './manifest.webmanifest',
   './js/srs.js', './js/store.js', './js/markdown.js', './js/fx.js', './js/pdf-import.js', './js/ai.js', './js/course.js', './js/storm.js', './js/local-ai.js',
