@@ -108,7 +108,8 @@
       const req = fmt ? { ...base, response_format: fmt } : { ...base, messages: [base.messages[0], { role: 'user', content: user + `\n\nRéponds uniquement par un objet JSON de cette forme, sans texte autour :\n${example(schema)}` }] };
       try {
         const out = await e.chat.completions.create(req);
-        return parseJson(out.choices[0].message.content || '');
+        const txt = out.choices[0].message.content || '';
+        try { return parseJson(txt); } catch (pe) { console.warn('IA locale, réponse brute :', txt.slice(0, 400)); throw pe; }
       } catch (err) {
         lastErr = err;
         if (fmt && /grammar/i.test(String(err && err.message))) grammarBroken = true; // inutile de réessayer à chaque demande
