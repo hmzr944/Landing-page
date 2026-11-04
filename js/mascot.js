@@ -69,7 +69,7 @@
 
   const markup = `
     <div class="mascot-bubble" id="mascotBubble" aria-hidden="true"></div>
-    <button class="mascot-btn" id="mascotBtn" type="button" aria-label="Pousse, la mascotte. Clique pour jouer, ou attrape-la pour la lancer">
+    <button class="mascot-btn" id="mascotBtn" type="button" aria-label="Pousse, la mascotte. Touche-la pour voir ses évolutions, ou attrape-la pour la lancer">
       <svg viewBox="0 0 120 120" class="mascot-svg" aria-hidden="true">
         <ellipse class="m-shadow" cx="60" cy="113" rx="26" ry="4"/>
         <g class="m-sprite">
@@ -94,14 +94,24 @@
                 <g class="p-crown" transform="translate(60 -6)"><path d="M-9 4 L-9 -4 L-4.5 0 L0 -7 L4.5 0 L9 -4 L9 4 Z"/><circle cx="0" cy="-7" r="1.6"/><circle cx="-9" cy="-4" r="1.3"/><circle cx="9" cy="-4" r="1.3"/></g></g>
             </g>
             <!-- Corps : couleur à plat, une ombre, un reflet. Aucun dégradé, aucun contour -->
-            <g class="m-arm m-arm-l"><ellipse class="p-limb" cx="25" cy="82" rx="6.5" ry="5"/></g>
-            <g class="m-arm m-arm-r"><ellipse class="p-limb" cx="95" cy="82" rx="6.5" ry="5"/></g>
-            <g class="m-foot m-foot-l"><ellipse class="p-limb" cx="47" cy="110" rx="8" ry="4.6"/></g>
-            <g class="m-foot m-foot-r"><ellipse class="p-limb" cx="73" cy="110" rx="8" ry="4.6"/></g>
+            <g class="m-arm m-arm-l"><ellipse class="p-limb p-arm-round" cx="25" cy="82" rx="6.5" ry="5"/><g class="pv r3 r4 r5 r6 r7 p-arm-leaf" transform="translate(28 84) rotate(-118) scale(.62)"><path class="pl-a" d="M0 0 C-7 -6 -7 -15 0 -22 Z"/><path class="pl-b" d="M0 0 C7 -6 7 -15 0 -22 Z"/></g></g>
+            <g class="m-arm m-arm-r"><ellipse class="p-limb p-arm-round" cx="95" cy="82" rx="6.5" ry="5"/><g class="pv r3 r4 r5 r6 r7 p-arm-leaf" transform="translate(92 84) rotate(118) scale(.62)"><path class="pl-a" d="M0 0 C-7 -6 -7 -15 0 -22 Z"/><path class="pl-b" d="M0 0 C7 -6 7 -15 0 -22 Z"/></g></g>
+            <g class="m-foot m-foot-l"><ellipse class="p-limb p-foot" cx="47" cy="110" rx="8" ry="4.6"/><path class="pv r4 r5 r6 r7 p-root" d="M41 112 C38 114 35 114 33 113 M46 114 C45 116 43 117 41 117"/></g>
+            <g class="m-foot m-foot-r"><ellipse class="p-limb p-foot" cx="73" cy="110" rx="8" ry="4.6"/><path class="pv r4 r5 r6 r7 p-root" d="M79 112 C82 114 85 114 87 113 M74 114 C75 116 77 117 79 117"/></g>
             <path class="p-body" d="M60 40 C84 40 98 56 98 78 C98 100 82 112 60 112 C38 112 22 100 22 78 C22 56 36 40 60 40 Z"/>
             <path class="p-shade" d="M98 78 C98 100 82 112 60 112 C78 106 91 94 92 74 C93 60 88 50 80 45 C92 51 98 63 98 78 Z"/>
             <path class="p-belly" d="M38 96 C38 88 48 84 60 84 C72 84 82 88 82 96 C82 104 72 108 60 108 C48 108 38 104 38 96 Z"/>
             <path class="p-hi" d="M34 64 C37 56 43 50 50 47" stroke-width="4" stroke-linecap="round" fill="none"/>
+            <!-- Détails du corps : un par rang -->
+            <g class="pv r2 p-belly-leaf" transform="translate(60 101) scale(.48)"><path class="pl-a" d="M0 0 C-7 -6 -7 -15 0 -22 Z"/><path class="pl-b" d="M0 0 C7 -6 7 -15 0 -22 Z"/></g>
+            <g class="pv r5 p-bark"><path d="M24.6 90 C30 104 44 112 60 112 C76 112 90 104 95.4 90 C80 99 40 99 24.6 90 Z"/>
+              <path class="pk-l" d="M38 99 L37 106 M50 102 L49.5 110 M62 103 L62 111 M74 102 L75 109 M84 98 L86 104"/></g>
+            <g class="pv r6 p-moss"><path d="M30 60 C33 52 40 48 46 50 C44 55 38 59 30 60 Z"/><path d="M33 64 C31 60 34 57 37 58 C37 61 35 63 33 64 Z"/>
+              <path d="M90 96 C92 102 88 106 84 106 C85 101 87 98 90 96 Z"/></g>
+            <g class="pv r6 p-mush" transform="translate(88 60)"><path d="M-2 6 L-1.6 0 L2 0 L2.4 6 Z" fill="#FFF3E3"/><path d="M-7 1 C-6 -6 7 -6 8 1 Z" fill="#FF5C7A"/><circle cx="-2.5" cy="-2" r="1.2" fill="#fff"/><circle cx="3" cy="-2.6" r="1" fill="#fff"/></g>
+            <g class="pv r4 p-side-flower" transform="translate(86 57)"><circle cx="0" cy="-3.2" r="2.8"/><circle cx="3" cy="-1" r="2.8"/><circle cx="1.9" cy="2.6" r="2.8"/><circle cx="-1.9" cy="2.6" r="2.8"/><circle cx="-3" cy="-1" r="2.8"/><circle class="pf-c" r="2"/></g>
+            <g class="pv r7 p-medal" transform="translate(60 99)"><circle r="7.5" class="pm-a"/><circle r="5.2" class="pm-b"/><path d="M0 3.6 C-3 1.2 -3 -2 0 -4.4 C3 -2 3 1.2 0 3.6 Z" class="pm-c"/></g>
+            <g class="pv r1 p-cap"><path d="M40 52 C43 43 56 39 66 42 L63.4 46 L60 42.6 L56.6 47 L53 43 L49.4 47.4 L46 44 L42.4 48.6 Z" class="pk-a"/><path d="M44 46 C49 42.6 55 41.6 60 42" class="pk-h" stroke-width="1.8" stroke-linecap="round" fill="none"/></g>
             <g class="pc r0 p-seam"><path d="M60 46 C57.5 62 57.5 88 60 106" stroke-width="1.8" stroke-linecap="round" fill="none"/></g>
             <g class="m-book">
               <path d="M34 86 L60 90 L60 106 L34 102 Z" fill="#FFFFFF"/>
@@ -116,6 +126,7 @@
             <g class="m-face">
               <ellipse class="m-cheek" cx="37" cy="88" rx="5.5" ry="3.4"/>
               <ellipse class="m-cheek" cx="83" cy="88" rx="5.5" ry="3.4"/>
+              <g class="pv r5 r7 p-brows"><path d="M39 60.6 C42.6 58 48 57.8 52.6 59.4"/><path d="M81 60.6 C77.4 58 72 57.8 67.4 59.4"/></g>
               <g class="m-eye m-eye-l"><ellipse cx="47" cy="74" rx="9.5" ry="11" fill="#fff"/><g class="m-pupil"><circle cx="48.5" cy="76" r="6" fill="#1C1F2A"/><circle cx="51" cy="73" r="2.2" fill="#fff"/></g></g>
               <g class="m-eye m-eye-r"><ellipse cx="73" cy="74" rx="9.5" ry="11" fill="#fff"/><g class="m-pupil"><circle cx="74.5" cy="76" r="6" fill="#1C1F2A"/><circle cx="77" cy="73" r="2.2" fill="#fff"/></g></g>
               <g class="m-closed"><path d="M40 76 Q47 81 54 76" /><path d="M66 76 Q73 81 80 76" /></g>
@@ -535,9 +546,9 @@
       setTimeout(() => { state = 'idle'; root.classList.remove('dizzy'); setMood('smile'); }, 1800);
       return;
     }
-    rand([hop, wiggle, spin, dance, helicopter])();
+    hop(0.7);
     moodFor('happy', 900);
-    if (dueN && Math.random() < 0.3) say(rand(LINES.thirsty(dueN)), 3600, true);
+    if (window.PousseDex) setTimeout(() => PousseDex.open(info()), 260);
     else say(rand(LINES.poke), 3600, true);
   }
 
@@ -569,8 +580,9 @@
     if (!root) return;
     const r = window.Trophies ? Trophies.rankOf(lvl) : Math.min(7, Math.floor((lvl - 1) / 3));
     const rankUp = rank >= 0 && r > rank;
+    const from = rank;
     rank = r;
-    root.dataset.rank = r;
+    if (rankUp && !silent && !calm) evolve(from, r); else root.dataset.rank = r;
     root.dataset.stage = window.Trophies ? Trophies.stageOf(lvl) : lvl >= 6 ? 4 : lvl >= 4 ? 3 : lvl >= 2 ? 2 : 1;
     if (grew && !silent) react('levelup');
     if (rankUp && !silent) setTimeout(() => say(rand(RANK_LINES[r] || LINES.levelup), 4200, true), 1200);
@@ -580,8 +592,26 @@
     3: ['Regarde : un bouton de fleur !'], 4: ['Je suis devenu un petit arbre en fleurs. Grâce à toi.'],
     5: ['Des glands ! Je deviens un grand chêne.'], 6: ['Un oiseau s’est posé sur moi.'], 7: ['Une couronne… Forêt ancienne, rien que ça.'],
   };
+  /* Évolution : silhouette blanche qui scintille, rayons de lumière, éclats de feuilles, puis la nouvelle forme */
+  function evolve(from, to) {
+    root.dataset.rank = from;
+    root.classList.remove('evolving'); void root.offsetWidth; root.classList.add('evolving');
+    let burst = root.querySelector('.m-burst');
+    if (!burst) {
+      burst = document.createElement('div'); burst.className = 'm-burst'; burst.setAttribute('aria-hidden', 'true');
+      burst.innerHTML = '<span class="mb-rays"></span><span class="mb-ring"></span>' + Array.from({ length: 10 }, (_, i) => `<i style="--k:${i}"></i>`).join('');
+      root.insertBefore(burst, root.firstChild);
+    }
+    burst.classList.remove('go'); void burst.offsetWidth; burst.classList.add('go');
+    setTimeout(() => { root.dataset.rank = to; }, 900);
+    setTimeout(() => { root.classList.remove('evolving'); burst.classList.remove('go'); }, 2200);
+  }
+  const info = () => ({ rank: Math.max(0, rank), level, vigor: Math.max(0, vigor), streak: lastStreak });
+  let lastStreak = 0;
+
   /* Pousse évolue aussi avec la régularité (série de jours) : reflets, halo, lucioles, halo irisé */
   function setVigor(streak) {
+    lastStreak = streak;
     const v = streak >= 100 ? 4 : streak >= 30 ? 3 : streak >= 7 ? 2 : streak >= 3 ? 1 : 0;
     if (!root || v === vigor) return;
     const up = vigor >= 0 && v > vigor;
@@ -605,5 +635,5 @@
 
   function setCalm(on) { calm = on; if (root) root.classList.toggle('calm', on); }
 
-  window.Mascot = { init, react, say: (t, ms) => say(t, ms, true), setLevel, setVigor, setEnabled, setThirst, setFocus, setCalm };
+  window.Mascot = { init, react, say: (t, ms) => say(t, ms, true), setLevel, setVigor, info, evolve: (a, b) => evolve(a, b), setEnabled, setThirst, setFocus, setCalm };
 })();
