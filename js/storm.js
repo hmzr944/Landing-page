@@ -18,22 +18,31 @@
   // Cache borné (les pages peuvent être longues : on garde les 40 dernières réponses)
   const cache = new Map();
   const remember = (k, v) => { cache.set(k, v); if (cache.size > 40) cache.delete(cache.keys().next().value); };
-  let lastCall = 0;
+  // 4 requêtes à la fois au plus (raisonnable pour les serveurs de Wikimedia, bien plus rapide qu'une par une)
+  let inflight = 0;
+  const waiting = [], pending = new Map();
+  const acquire = () => new Promise((r) => { if (inflight < 4) { inflight++; r(); } else waiting.push(r); });
+  const release = () => { const next = waiting.shift(); if (next) next(); else inflight--; };
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   async function api(host, params) {
     const url = `https://${host}/w/api.php?` + new URLSearchParams({ ...params, format: 'json', origin: '*' });
     if (cache.has(url)) return cache.get(url);
-    for (let attempt = 0; attempt < 4; attempt++) {
-      const wait = lastCall + 220 - Date.now();
-      if (wait > 0) await sleep(wait);
-      lastCall = Date.now();
-      let res;
-      try { res = await fetch(url, { headers: HEADERS }); } catch (e) { res = null; }
-      if (res && res.ok) { const data = await res.json(); remember(url, data); return data; }
-      if (res && res.status !== 429 && res.status < 500) throw new Error(`${host} répond ${res.status}`);
-      await sleep(1500 * 2 ** attempt); // 1,5 s, 3 s, 6 s, 12 s
-    }
-    throw new Error('Les sources demandent de ralentir : réessaie dans une minute.');
+    if (pending.has(url)) return pending.get(url); // même requête déjà en cours : on la partage
+    const job = (async () => {
+      await acquire();
+      try {
+        for (let attempt = 0; attempt < 4; attempt++) {
+          let res;
+          try { res = await fetch(url, { headers: HEADERS }); } catch (e) { res = null; }
+          if (res && res.ok) { const data = await res.json(); remember(url, data); return data; }
+          if (res && res.status !== 429 && res.status < 500) throw new Error(`${host} répond ${res.status}`);
+          await sleep(1200 * 2 ** attempt); // 1,2 s, 2,4 s, 4,8 s, 9,6 s
+        }
+        throw new Error('Les sources demandent de ralentir : réessaie dans une minute.');
+      } finally { release(); pending.delete(url); }
+    })();
+    pending.set(url, job);
+    return job;
   }
 
   /* ---------- Texte : mots, mots vides, racines ---------- */

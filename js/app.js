@@ -821,12 +821,16 @@
     // vocabulaire du domaine : tous les titres du sujet (sert à écarter les pages hors sujet)
     const domain = [];
     walk(s.root, (x) => domain.push(x.title));
-    for (const ch of node.children) {
-      if (ch.notes.trim()) continue;
-      // mots propres aux autres modules du parcours (pour écarter une page Linux dans un module Windows)
-      const others = s.root.children.filter((m) => m !== node && m.module).map((m) => m.title).join(' ');
-      try { await writeNotionInto(ch, { module: node.title, subject: s.title, domain: domain.join(' '), others }, (m) => onStatus && onStatus(`« ${ch.title} » : ${m}`)); n++; }
-      catch (err) { if (/ralentir/.test(err.message)) throw err; missed.push(ch.title); }
+    // mots propres aux autres modules du parcours (pour écarter une page Linux dans un module Windows)
+    const others = s.root.children.filter((m) => m !== node && m.module).map((m) => m.title).join(' ');
+    const todo = node.children.filter((ch) => !ch.notes.trim());
+    // 3 notions à la fois : les recherches se recouvrent au lieu de s'attendre
+    for (let i = 0; i < todo.length; i += 3) {
+      await Promise.all(todo.slice(i, i + 3).map(async (ch) => {
+        try { await writeNotionInto(ch, { module: node.title, subject: s.title, domain: domain.join(' '), others }, (m) => onStatus && onStatus(`« ${ch.title} »`)); n++; }
+        catch (err) { if (/ralentir/.test(err.message)) throw err; missed.push(ch.title); }
+        writeTick();
+      }));
     }
     if (node.module) node.module.generated = true;
     if (!n && missed.length) throw new Error(`Rien trouvé pour ${missed.slice(0, 3).join(', ')}.`);
@@ -834,26 +838,40 @@
   }
 
   // Plusieurs cours à la suite, avec une progression visible
+  /* Rédaction en arrière-plan : une petite carte en bas de l'écran montre l'avancée, notion par notion.
+     On peut continuer à utiliser Arbor ; chaque cours terminé s'affiche aussitôt. */
+  let writeTick = () => {};
   async function writeCourses(s, nodes) {
-    openModal(`
-      <div class="loading">
-        <h2 id="modalTitle">Arbor rédige ton cours…</h2>
-        <p class="modal-lede" id="ldMsg">Arbor cherche des sources fiables et rédige chaque notion.</p>
-        <div class="bar big" role="progressbar" aria-label="Progression" aria-valuemin="0" aria-valuemax="100"><span id="ldBar" style="transform:scaleX(.03)"></span></div>
-        <p class="hint" id="ldCount">0 / ${nodes.length}</p>
-      </div>`);
+    closeModal();
+    const total = nodes.reduce((a, n) => a + (n.children.filter((c) => !c.notes.trim()).length || 4), 0);
+    let done = 0;
+    let card = $('#writeCard');
+    if (!card) { card = document.createElement('div'); card.id = 'writeCard'; card.className = 'write-card glass'; card.setAttribute('role', 'status'); document.body.appendChild(card); }
+    card.innerHTML = `<span class="wc-leaf" aria-hidden="true">${ic('leaf', true)}</span><span class="wc-txt"><b>Arbor rédige ton cours</b><small id="wcMsg">Recherche des sources…</small></span><span class="wc-num num" id="wcNum">0/${total}</span><span class="wc-bar" aria-hidden="true"><span id="wcBar"></span></span>`;
+    requestAnimationFrame(() => card.classList.add('show'));
+    const paintProgress = () => {
+      const k = Math.min(1, done / total);
+      const b = $('#wcBar'); if (b) b.style.transform = `scaleX(${Math.max(0.04, k)})`;
+      const c = $('#wcNum'); if (c) c.textContent = `${Math.min(done, total)}/${total}`;
+    };
+    writeTick = () => { done++; paintProgress(); };
     Mascot.react('reading');
     const failed = [];
     for (let i = 0; i < nodes.length; i++) {
       const node = nodes[i];
-      const msg = (m) => { const e = $('#ldMsg'); if (e) e.textContent = `${node.title} : ${m}`; };
+      const before = done;
+      const msg = (m) => { const e = $('#wcMsg'); if (e) e.textContent = m; };
       try { await writeCourse(s, node, msg); } catch (err) { console.warn(err.message); failed.push(node.title); }
-      const b = $('#ldBar'); if (b) b.style.transform = `scaleX(${(i + 1) / nodes.length})`;
-      const c = $('#ldCount'); if (c) c.textContent = `${i + 1} / ${nodes.length}`;
+      if (done === before) { done += node.children.filter((c) => !c.notes.trim()).length || 4; paintProgress(); }
       save();
+      // le cours apparaît tout de suite si on le regarde (sans interrompre une saisie)
+      const typing = document.activeElement && /INPUT|TEXTAREA/.test(document.activeElement.tagName);
+      if (view.name === 'subject' && view.id === s.id && !typing && !$('#modal:not([hidden])')) render(view);
     }
+    writeTick = () => {};
+    done = total; paintProgress();
+    setTimeout(() => { card.classList.remove('show'); setTimeout(() => card.remove(), 400); }, 900);
     Mascot.react('imported');
-    closeModal();
     const ok = nodes.length - failed.length;
     FX.toast(failed.length ? `${plural(ok, 'cours rédigé', 'cours rédigés')}. Pas trouvé : ${failed.slice(0, 3).join(', ')}${failed.length > 3 ? '…' : ''}. Complète-les à la main.` : `${plural(ok, 'cours rédigé', 'cours rédigés')}. Bonne lecture !`, failed.length ? 'info' : 'success', 6000);
     return failed;
