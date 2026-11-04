@@ -108,12 +108,12 @@
   const SKIP_SEC = /^(notes?( et références)?|références|bibliographie|voir aussi|liens? externes?|annexes|articles? connexes|sources|galerie|historique|histoire|étymologie|voir également|pour aller plus loin|lectures?)/i;
   function passages(page) {
     const out = [];
-    let section = '';
+    let section = '', top = '';
     const blocks = page.text.split(/\n(?=={2,}[^=\n]+={2,})/);
     for (const b of blocks) {
       const m = b.match(/^(={2,})\s*([^=\n]+?)\s*={2,}\s*\n?([\s\S]*)$/);
       const body = m ? m[3] : b;
-      if (m) section = m[2].trim();
+      if (m) { section = m[2].trim(); if (m[1].length === 2) top = section; }
       if (SKIP_SEC.test(section)) continue;
       for (let para of body.split(/\n{2,}|\n(?=={3,})/)) {
         para = para.split('\n').filter((ln) => !/^={2,}/.test(ln) && (ln.length >= 70 || /[.!?:]\s*$/.test(ln))).join(' ').replace(/\s+/g, ' ').trim();
@@ -122,10 +122,10 @@
         const sents = PdfImport.splitSentences(para);
         let chunk = '';
         for (const s of sents) {
-          if ((chunk + ' ' + s).length > 700 && chunk.length > 200) { out.push({ text: chunk.trim(), section, page }); chunk = ''; }
+          if ((chunk + ' ' + s).length > 700 && chunk.length > 200) { out.push({ text: chunk.trim(), section, top, page }); chunk = ''; }
           chunk += ' ' + s;
         }
-        if (chunk.trim().length >= 110) out.push({ text: chunk.trim(), section, page });
+        if (chunk.trim().length >= 110) out.push({ text: chunk.trim(), section, top, page });
       }
     }
     return out.map((p) => ({ ...p, text: p.text.replace(/\s*[^.!?]*:\s*$/, '').trim() })).filter((p) => p.text.length >= 110 && prose(p.text));
@@ -165,7 +165,7 @@
       // l'introduction d'une page qui porte le nom de la notion : c'est souvent la meilleure entrée en matière
       if (!p.section && core.some((w) => head.has(w))) s *= 1.4;
       // passage qui renvoie à ce qui précède (« C'est la méthode… », « Dans ce cas… ») : peu clair hors contexte
-      if (/^(c['’]est|cela|ceci|ce |cette|ces |il |elle |ils |elles |dans ce cas|de même|en revanche|par contre|ainsi|enfin|ensuite|puis|sinon|lors de)/i.test(p.text)) s *= 0.6;
+      if (ANAPHOR.test(p.text) || /^(sinon|lors de)/i.test(p.text)) s *= 0.6;
       p.score = s * p.page.site.w;
       p.toks = new Set(d);
     });
@@ -225,7 +225,15 @@
     coreT.forEach((w) => weights.set(w, 2));
     modT.forEach((w) => { if (!weights.has(w)) weights.set(w, 0.6); });
     look.domain.forEach((w) => { if (!weights.has(w)) weights.set(w, 0.15); });
+    // notion issue d'une section du plan : le texte de cette section est sa meilleure source
+    const from = outline.from && outline.from.get(norm(notion));
+    if (from && !pages.some((p) => p.url === from.page.url)) pages.push(from.page);
     const ranked = rank(pages.flatMap(passages), weights);
+    if (from) {
+      const max = ranked.reduce((a, p) => Math.max(a, p.score || 0), 0);
+      ranked.forEach((p) => { if (p.page.url === from.page.url && (p.section === from.section || p.top === from.section)) p.score = max + 1 + (p.score || 0); });
+      ranked.sort((a, b) => b.score - a.score);
+    }
     const chosen = select(ranked, 2600, 4);
     chosen.sort((a, b) => (DEF.test(b.text) && !DEF.test(a.text) ? 1 : 0) - (DEF.test(a.text) && !DEF.test(b.text) ? 1 : 0) || b.score - a.score);
     return { core, action, chosen, pages, coreT };
@@ -283,7 +291,17 @@
   }
 
   /* Introduction d'un module (la « section d'introduction » de STORM) : un passage qui situe le thème */
+  // introduction : début (hors section) d'une page dont le titre nomme le thème, sans phrase qui renvoie à ce qui précède
+  const ANAPHOR = /^(c['’]est|ce sont|cela|ceci|ce |cette|ces |il |elle |ils |elles |dans ce cas|de même|en revanche|par contre|ainsi|enfin|ensuite|puis)/i;
+  function leadOf(r) {
+    const strict = (pg) => r.coreT.length && r.coreT.every((w) => tokens(pg.title.split('/').pop()).includes(w));
+    const pool = [...r.pages.filter(strict), ...((outline.last === r && outline.extra) || [])];
+    const p = pool.flatMap(passages).find((x) => !x.section && !ANAPHOR.test(x.text) && /^[A-ZÀ-Ý«"(]/.test(x.text))
+      || r.chosen.find((x) => !ANAPHOR.test(x.text)) || r.chosen[0];
+    return p ? { text: PdfImport.splitSentences(p.text).slice(0, 3).join(' '), sources: sourcesOf([p]) } : null;
+  }
   async function moduleLead(module, ctx = {}, opts = {}) {
+    if (ctx.research) return leadOf(ctx.research);
     const r = await research(module, { module: '' }, opts.onStatus); // le module est lui-même le thème : pas de filtre de domaine
     const named = r.pages.find((pg) => tokens(pg.title.replace(/\//g, ' ')).some((w) => r.coreT.includes(w)));
     const p = (named && passages(named).find((x) => !x.section)) || r.chosen[0];
@@ -295,20 +313,31 @@
   /* Plan d'un thème seul (sans notions) : les sections explicatives de la meilleure source deviennent les notions */
   const LESS = /^(histoire|historique|étymologie|origines?|dans la culture|culture populaire|controverses?|anecdotes?|chronologie|personnalités|distinctions|statistiques|introduction|présentation|généralités|conclusion|résumé|exercices?|annexes?|remarques?|actualités|application suivant|par pays|dans le monde|perspectives)/i;
   async function outline(topic, ctx = {}, opts = {}) {
+    outline.from = outline.from || new Map();
     const r = await research(topic, ctx, opts.onStatus);
     const secs = [];
     // d'abord les pages dont le titre nomme le thème (Wikipédia « Mitose » plutôt qu'un manuel général)
-    const named = (p) => tokens(p.title.replace(/\//g, ' ')).some((w) => r.coreT.includes(w));
-    const pages = [...r.pages].sort((a, b) => named(b) - named(a));
+    // le plan ne vient QUE d'une page dont le titre nomme le thème : sinon on va la chercher exprès
+    const named = (p) => r.coreT.length && r.coreT.every((w) => tokens(p.title.split('/').pop()).includes(w));
+    let pages = r.pages.filter(named);
+    if (!pages.length) {
+      const look = { mod: [], modW: [], domain: new Set(), others: [] };
+      for (const c of (await candidates(r.core, r.coreT, look)).filter(named).slice(0, 2)) {
+        try { const p = await pageText(c.site, c.title); if (p && p.text.length > 400) pages.push(p); } catch (e) { if (/ralentir/.test(e.message)) throw e; }
+      }
+    }
     for (const page of pages) {
       for (const m of page.text.matchAll(/\n==\s*([^=\n]+?)\s*==\s*\n/g)) {
         const t = m[1].trim();
-        if (SKIP_SEC.test(t) || LESS.test(t) || t.length > 70 || secs.some((x) => norm(x) === norm(t))) continue;
+        if (SKIP_SEC.test(t) || LESS.test(t) || t.length > 70 || /\?$/.test(t) || secs.some((x) => norm(x) === norm(t))) continue;
         if (tokens(t).every((w) => r.coreT.includes(w))) continue; // la section « Mitose » d'une page sur la mitose n'apprend rien de plus
         secs.push(t);
+        outline.from.set(norm(t), { page, section: t });
       }
       if (secs.length >= 4) break;
     }
+    outline.last = r; // pour l'introduction du module, sans refaire la recherche
+    outline.extra = pages;
     if (window.Storm && Storm.debug) console.log('[outline] pages: ' + pages.map((p) => `${p.title} (${(p.text.match(/\n==[^=]/g) || []).length} sections)`).join(' | ') + ' -> ' + secs.join(' ; '));
     return secs.slice(0, 4);
   }

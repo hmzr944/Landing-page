@@ -744,10 +744,12 @@
     }
 
     // Sans clé : un plan si la partie n'a pas de notions, puis une rédaction notion par notion
+    let planResearch = null;
     if (!node.children.length) {
       onStatus && onStatus(`plan de « ${node.title} »`);
       const dom = []; walk(s.root, (x) => dom.push(x.title));
       const plan = await Storm.outline(node.title, { module: ctx, domain: dom.join(' ') }).catch(() => []);
+      planResearch = Storm.outline.last || null;
       if (plan.length < 2) {
         const r = await Course.fromWikipedia(node.title, ctx); // repli : la fiche Wikipédia
         if (r.overview && !node.notes.trim()) node.notes = r.overview;
@@ -763,7 +765,7 @@
     // Introduction du module
     if (node.notes.replace(/\*\*Objectif\.\*\*[^\n]*/, '').trim().length < 40) {
       const dom = []; walk(s.root, (x) => dom.push(x.title));
-      const lead = await Storm.moduleLead(node.title, { subject: s.title, domain: dom.join(' ') }, { onStatus }).catch(() => null);
+      const lead = await Storm.moduleLead(node.title, { subject: s.title, research: planResearch }, { onStatus }).catch(() => null);
       if (lead) {
         node.notes = [node.notes.trim(), lead.text, `Dans ce module : ${node.children.map((c) => c.title.charAt(0).toLowerCase() + c.title.slice(1)).join(', ')}.`].filter(Boolean).join('\n\n');
         if (node.module) node.module.sources = lead.sources;
