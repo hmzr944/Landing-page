@@ -13,7 +13,7 @@
   const EASE_OUT = 'cubic-bezier(0.23, 1, 0.32, 1)';
 
   const MOUTHS = {
-    smile: 'M52 89 Q60 96 68 89',
+    smile: 'M53 88 Q60 95 67 88',
     grin: 'M50 87 Q60 100 70 87 Z',
     open: 'M55 89 Q60 99 65 89 Q60 86 55 89 Z',
     wide: 'M53 87 Q60 103 67 87 Q60 84 53 87 Z',
@@ -71,95 +71,61 @@
     <div class="mascot-bubble" id="mascotBubble" aria-hidden="true"></div>
     <button class="mascot-btn" id="mascotBtn" type="button" aria-label="Pousse, la mascotte. Clique pour jouer, ou attrape-la pour la lancer">
       <svg viewBox="0 0 120 120" class="mascot-svg" aria-hidden="true">
-        <defs>
-          <radialGradient id="mBody" cx="38%" cy="30%" r="80%">
-            <stop class="mb1" offset="0" stop-color="#7EE09A"/><stop class="mb2" offset=".58" stop-color="#3FBF6A"/><stop class="mb3" offset="1" stop-color="#249652"/>
-          </radialGradient>
-          <linearGradient id="mLeaf" x1="0" y1="1" x2="1" y2="0">
-            <stop class="ml1" offset="0" stop-color="#2FA85C"/><stop class="ml2" offset="1" stop-color="#8BE36A"/>
-          </linearGradient>
-          <linearGradient id="mHusk" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#E2B07A"/><stop offset="1" stop-color="#A8713F"/>
-          </linearGradient>
-          <linearGradient id="mGold" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#FFE08A"/><stop offset=".5" stop-color="#F2B32E"/><stop offset="1" stop-color="#C98A12"/>
-          </linearGradient>
-          <radialGradient id="mAura" cx="50%" cy="55%" r="50%">
-            <stop class="ma1" offset=".35" stop-color="#FFE9A8" stop-opacity=".85"/><stop offset="1" stop-color="#FFE9A8" stop-opacity="0"/>
-          </radialGradient>
-        </defs>
-        <ellipse class="m-shadow" cx="60" cy="113" rx="27" ry="4.5"/>
+        <ellipse class="m-shadow" cx="60" cy="113" rx="26" ry="4"/>
         <g class="m-sprite">
-          <!-- Halo de régularité (7 jours et plus) -->
-          <circle class="m-aura" cx="60" cy="74" r="50" fill="url(#mAura)"/>
+          <circle class="m-aura" cx="60" cy="74" r="50"/>
           <circle class="m-aura-rainbow" cx="60" cy="74" r="47" fill="none" stroke-width="3"/>
           <g class="m-body">
-            <path class="m-stem" d="M60 44 C59 38 61 34 60 28" />
+            <!-- Ce qui pousse sur la tête : une silhouette simple par rang -->
             <g class="m-leaves">
-              <!-- Feuilles nervurées : le nombre dépend du rang -->
-              <g class="m-leaf-g m-leaf-l"><path class="m-leaf" d="M60 32 C51 20 37 20 31 28 C38 38 52 40 60 32 Z"/><path class="m-vein" d="M58 32 C50 29 42 27 34 28"/></g>
-              <g class="m-leaf-g m-leaf-r"><path class="m-leaf" d="M60 30 C65 16 80 10 89 15 C85 29 71 35 60 30 Z"/><path class="m-vein" d="M62 29 C70 24 78 19 86 16"/></g>
-              <g class="m-leaf-g m-leaf-3"><path class="m-leaf" d="M60 32 C55 21 57 9 62 3 C68 11 67 25 60 32 Z"/><path class="m-vein" d="M60 30 C60 22 61 14 62 7"/></g>
-              <g class="m-leaf-g m-leaf-4"><path class="m-leaf" d="M58 34 C46 32 38 40 37 48 C47 49 56 43 58 34 Z"/><path class="m-vein" d="M57 35 C51 39 45 43 39 47"/></g>
-              <g class="m-leaf-g m-leaf-5"><path class="m-leaf" d="M62 34 C74 31 83 37 85 45 C75 47 65 42 62 34 Z"/><path class="m-vein" d="M63 35 C70 38 77 41 83 44"/></g>
-              <g class="m-glints"><path d="M41 26 l1.2 2.8 2.8 1.2 -2.8 1.2 -1.2 2.8 -1.2 -2.8 -2.8 -1.2 2.8 -1.2 z"/><path d="M80 16 l1 2.4 2.4 1 -2.4 1 -1 2.4 -1 -2.4 -2.4 -1 2.4 -1 z"/></g>
-              <g class="m-bud"><circle cx="62" cy="6" r="6" fill="#FF7A9C"/><circle cx="62" cy="6" r="2.6" fill="#FFD46B"/></g>
-              <g class="m-flower">
-                <circle cx="62" cy="-2" r="6" fill="#FF7A9C"/><circle cx="70" cy="5" r="6" fill="#FF9AB4"/>
-                <circle cx="54" cy="5" r="6" fill="#FF9AB4"/><circle cx="62" cy="12" r="5" fill="#FF7A9C"/>
-                <circle cx="62" cy="5" r="4" fill="#FFD46B"/>
-              </g>
-              <!-- Gland qui pend (Grand chêne) -->
-              <g class="m-acorn"><path d="M86 17 C88 21 88 24 87 26" stroke="#7A5230" stroke-width="1.4" fill="none"/>
-                <ellipse cx="87" cy="31" rx="4.2" ry="5.2" fill="#C98A4B"/><path d="M82.5 28 C83 24 91 24 91.5 28 Z" fill="#7A5230"/></g>
+              <g class="pc r0"><path class="p-stem" d="M60 43 C60 39 61 36 63 34"/><g class="p-leaf" transform="translate(63 35) rotate(40) scale(0.55)"><path class="pl-a" d="M0 0 C-7 -6 -7 -15 0 -22 Z"/><path class="pl-b" d="M0 0 C7 -6 7 -15 0 -22 Z"/></g></g>
+              <g class="pc r1"><path class="p-stem" d="M60 44 L60 32"/><g class="p-leaf" transform="translate(60 33) rotate(-48) scale(0.85)"><path class="pl-a" d="M0 0 C-7 -6 -7 -15 0 -22 Z"/><path class="pl-b" d="M0 0 C7 -6 7 -15 0 -22 Z"/></g><g class="p-leaf" transform="translate(60 33) rotate(48) scale(0.85)"><path class="pl-a" d="M0 0 C-7 -6 -7 -15 0 -22 Z"/><path class="pl-b" d="M0 0 C7 -6 7 -15 0 -22 Z"/></g></g>
+              <g class="pc r2"><path class="p-stem" d="M60 44 L60 26"/><g class="p-leaf" transform="translate(60 36) rotate(-60) scale(0.8)"><path class="pl-a" d="M0 0 C-7 -6 -7 -15 0 -22 Z"/><path class="pl-b" d="M0 0 C7 -6 7 -15 0 -22 Z"/></g><g class="p-leaf" transform="translate(60 36) rotate(60) scale(0.8)"><path class="pl-a" d="M0 0 C-7 -6 -7 -15 0 -22 Z"/><path class="pl-b" d="M0 0 C7 -6 7 -15 0 -22 Z"/></g><g class="p-leaf" transform="translate(60 27) rotate(0) scale(0.95)"><path class="pl-a" d="M0 0 C-7 -6 -7 -15 0 -22 Z"/><path class="pl-b" d="M0 0 C7 -6 7 -15 0 -22 Z"/></g></g>
+              <g class="pc r3"><path class="p-stem" d="M60 44 L60 22"/><g class="p-leaf" transform="translate(60 38) rotate(-78) scale(0.75)"><path class="pl-a" d="M0 0 C-7 -6 -7 -15 0 -22 Z"/><path class="pl-b" d="M0 0 C7 -6 7 -15 0 -22 Z"/></g><g class="p-leaf" transform="translate(60 38) rotate(78) scale(0.75)"><path class="pl-a" d="M0 0 C-7 -6 -7 -15 0 -22 Z"/><path class="pl-b" d="M0 0 C7 -6 7 -15 0 -22 Z"/></g><g class="p-leaf" transform="translate(60 31) rotate(-38) scale(0.85)"><path class="pl-a" d="M0 0 C-7 -6 -7 -15 0 -22 Z"/><path class="pl-b" d="M0 0 C7 -6 7 -15 0 -22 Z"/></g><g class="p-leaf" transform="translate(60 31) rotate(38) scale(0.85)"><path class="pl-a" d="M0 0 C-7 -6 -7 -15 0 -22 Z"/><path class="pl-b" d="M0 0 C7 -6 7 -15 0 -22 Z"/></g>
+                <g class="p-bud"><path d="M60 23 C55.5 20 56 13 60 9 C64 13 64.5 20 60 23 Z"/></g></g>
+              <g class="pc r4"><path class="p-trunk" d="M57 44 L57.6 30 L62.4 30 L63 44 Z"/><g class="p-canopy" transform="translate(60 24)"><path class="pc-a" d="M-22 4 C-27 4 -29 -4 -24 -8 C-27 -16 -18 -22 -12 -18 C-10 -27 4 -29 8 -21 C14 -26 24 -21 22 -13 C29 -11 29 0 22 3 C20 9 -16 10 -22 4 Z"/><path class="pc-b" d="M22 3 C20 9 -16 10 -22 4 C-10 6 10 5 20 -2 C24 -4 26 -8 25 -11 C29 -7 28 1 22 3 Z"/><path class="pc-h" d="M-17 -10 C-14 -15 -8 -17 -3 -15" stroke-width="3.2" stroke-linecap="round" fill="none"/></g><g class="p-flower" transform="translate(50 16) scale(0.9)"><circle cx="0" cy="-3.2" r="2.6"/><circle cx="3" cy="-1" r="2.6"/><circle cx="1.9" cy="2.6" r="2.6"/><circle cx="-1.9" cy="2.6" r="2.6"/><circle cx="-3" cy="-1" r="2.6"/><circle class="pf-c" r="1.8"/></g><g class="p-flower" transform="translate(70 19) scale(0.8)"><circle cx="0" cy="-3.2" r="2.6"/><circle cx="3" cy="-1" r="2.6"/><circle cx="1.9" cy="2.6" r="2.6"/><circle cx="-1.9" cy="2.6" r="2.6"/><circle cx="-3" cy="-1" r="2.6"/><circle class="pf-c" r="1.8"/></g><g class="p-flower" transform="translate(62 6) scale(0.75)"><circle cx="0" cy="-3.2" r="2.6"/><circle cx="3" cy="-1" r="2.6"/><circle cx="1.9" cy="2.6" r="2.6"/><circle cx="-1.9" cy="2.6" r="2.6"/><circle cx="-3" cy="-1" r="2.6"/><circle class="pf-c" r="1.8"/></g></g>
+              <g class="pc r5"><path class="p-trunk" d="M57 44 L57.6 30 L62.4 30 L63 44 Z"/><g class="p-canopy" transform="translate(60 24)"><path class="pc-a" d="M-22 4 C-27 4 -29 -4 -24 -8 C-27 -16 -18 -22 -12 -18 C-10 -27 4 -29 8 -21 C14 -26 24 -21 22 -13 C29 -11 29 0 22 3 C20 9 -16 10 -22 4 Z"/><path class="pc-b" d="M22 3 C20 9 -16 10 -22 4 C-10 6 10 5 20 -2 C24 -4 26 -8 25 -11 C29 -7 28 1 22 3 Z"/><path class="pc-h" d="M-17 -10 C-14 -15 -8 -17 -3 -15" stroke-width="3.2" stroke-linecap="round" fill="none"/></g><g class="p-flower" transform="translate(52 12) scale(0.75)"><circle cx="0" cy="-3.2" r="2.6"/><circle cx="3" cy="-1" r="2.6"/><circle cx="1.9" cy="2.6" r="2.6"/><circle cx="-1.9" cy="2.6" r="2.6"/><circle cx="-3" cy="-1" r="2.6"/><circle class="pf-c" r="1.8"/></g>
+                <g class="p-acorn" transform="translate(76 26)"><path d="M0 0 L0 3" stroke="#7A5230" stroke-width="1.4"/><ellipse cx="0" cy="8" rx="3.8" ry="4.8" fill="#D08A47"/><path d="M-4.4 5.6 C-4 2 4 2 4.4 5.6 Z" fill="#7A4E2C"/></g>
+                <g class="p-acorn a2" transform="translate(44 27)"><path d="M0 0 L0 3" stroke="#7A5230" stroke-width="1.4"/><ellipse cx="0" cy="8" rx="3.4" ry="4.4" fill="#D08A47"/><path d="M-4 5.4 C-3.6 2 3.6 2 4 5.4 Z" fill="#7A4E2C"/></g></g>
+              <g class="pc r6"><path class="p-trunk" d="M57 44 L57.6 30 L62.4 30 L63 44 Z"/><g class="p-canopy" transform="translate(60 24)"><path class="pc-a" d="M-22 4 C-27 4 -29 -4 -24 -8 C-27 -16 -18 -22 -12 -18 C-10 -27 4 -29 8 -21 C14 -26 24 -21 22 -13 C29 -11 29 0 22 3 C20 9 -16 10 -22 4 Z"/><path class="pc-b" d="M22 3 C20 9 -16 10 -22 4 C-10 6 10 5 20 -2 C24 -4 26 -8 25 -11 C29 -7 28 1 22 3 Z"/><path class="pc-h" d="M-17 -10 C-14 -15 -8 -17 -3 -15" stroke-width="3.2" stroke-linecap="round" fill="none"/></g><g class="p-flower" transform="translate(50 17) scale(0.8)"><circle cx="0" cy="-3.2" r="2.6"/><circle cx="3" cy="-1" r="2.6"/><circle cx="1.9" cy="2.6" r="2.6"/><circle cx="-1.9" cy="2.6" r="2.6"/><circle cx="-3" cy="-1" r="2.6"/><circle class="pf-c" r="1.8"/></g><g class="p-flower" transform="translate(71 15) scale(0.7)"><circle cx="0" cy="-3.2" r="2.6"/><circle cx="3" cy="-1" r="2.6"/><circle cx="1.9" cy="2.6" r="2.6"/><circle cx="-1.9" cy="2.6" r="2.6"/><circle cx="-3" cy="-1" r="2.6"/><circle class="pf-c" r="1.8"/></g>
+                <g class="p-bird" transform="translate(64 0)"><path class="pb-a" d="M-7 0 C-7 -6 -1 -8 3 -5 C6 -3 7 1 5 4 C2 7 -7 6 -7 0 Z"/><path class="pb-b" d="M-1 1 C2 0 5 2 5 4 C2 6 -1 5 -1 1 Z"/>
+                  <circle cx="-3.2" cy="-2.6" r="1.1" fill="#1C1F2A"/><path d="M-7.2 -1.6 L-10 -0.6 L-7.2 0.4 Z" fill="#FFB020"/></g></g>
+              <g class="pc r7"><path class="p-trunk" d="M57 44 L57.6 30 L62.4 30 L63 44 Z"/><g class="p-canopy" transform="translate(60 24)"><path class="pc-a" d="M-22 4 C-27 4 -29 -4 -24 -8 C-27 -16 -18 -22 -12 -18 C-10 -27 4 -29 8 -21 C14 -26 24 -21 22 -13 C29 -11 29 0 22 3 C20 9 -16 10 -22 4 Z"/><path class="pc-b" d="M22 3 C20 9 -16 10 -22 4 C-10 6 10 5 20 -2 C24 -4 26 -8 25 -11 C29 -7 28 1 22 3 Z"/><path class="pc-h" d="M-17 -10 C-14 -15 -8 -17 -3 -15" stroke-width="3.2" stroke-linecap="round" fill="none"/></g><g class="p-flower" transform="translate(51 15) scale(0.8)"><circle cx="0" cy="-3.2" r="2.6"/><circle cx="3" cy="-1" r="2.6"/><circle cx="1.9" cy="2.6" r="2.6"/><circle cx="-1.9" cy="2.6" r="2.6"/><circle cx="-3" cy="-1" r="2.6"/><circle class="pf-c" r="1.8"/></g><g class="p-flower" transform="translate(70 18) scale(0.75)"><circle cx="0" cy="-3.2" r="2.6"/><circle cx="3" cy="-1" r="2.6"/><circle cx="1.9" cy="2.6" r="2.6"/><circle cx="-1.9" cy="2.6" r="2.6"/><circle cx="-3" cy="-1" r="2.6"/><circle class="pf-c" r="1.8"/></g>
+                <g class="p-crown" transform="translate(60 -6)"><path d="M-9 4 L-9 -4 L-4.5 0 L0 -7 L4.5 0 L9 -4 L9 4 Z"/><circle cx="0" cy="-7" r="1.6"/><circle cx="-9" cy="-4" r="1.3"/><circle cx="9" cy="-4" r="1.3"/></g></g>
             </g>
-            <g class="m-arm m-arm-l"><ellipse class="m-limb" cx="27" cy="83" rx="7" ry="5" fill="#2FA85C"/></g>
-            <g class="m-arm m-arm-r"><ellipse class="m-limb" cx="93" cy="83" rx="7" ry="5" fill="#2FA85C"/></g>
-            <g class="m-foot m-foot-l"><ellipse class="m-feet" cx="47" cy="109" rx="8.5" ry="4.5" fill="#249652"/></g>
-            <g class="m-foot m-foot-r"><ellipse class="m-feet" cx="73" cy="109" rx="8.5" ry="4.5" fill="#249652"/></g>
-            <!-- Corps en forme de graine : arrondi en bas, pointu en haut -->
-            <path class="m-torso" fill="url(#mBody)" d="M60 41 C73 48 97 58 96 82 C95 102 80 111 60 111 C40 111 25 102 24 82 C23 58 47 48 60 41 Z"/>
-            <path class="m-shade" d="M93 84 C92 101 79 109 60 109 C72 104 86 96 93 84 Z"/>
-            <ellipse class="m-belly" cx="60" cy="97" rx="21" ry="9.5" fill="#B9F5C7" opacity=".35"/>
-            <path class="m-rim" d="M36 64 C41 55 50 49 58 46" stroke="#fff" stroke-opacity=".55" stroke-width="3" stroke-linecap="round" fill="none"/>
-            <ellipse class="m-gloss" cx="40" cy="70" rx="3.2" ry="2.2" fill="#fff" opacity=".55" transform="rotate(-30 40 70)"/>
-            <!-- Coque de graine sur la tête (rang Graine) -->
-            <g class="m-husk"><path d="M38 54 C42 40 78 40 82 54 L76 51 L71 56 L65 50 L60 56 L55 50 L49 56 L44 51 Z" fill="url(#mHusk)"/>
-              <path d="M46 46 C52 42 60 41 66 42" stroke="#fff" stroke-opacity=".5" stroke-width="2" stroke-linecap="round" fill="none"/></g>
+            <!-- Corps : couleur à plat, une ombre, un reflet. Aucun dégradé, aucun contour -->
+            <g class="m-arm m-arm-l"><ellipse class="p-limb" cx="25" cy="82" rx="6.5" ry="5"/></g>
+            <g class="m-arm m-arm-r"><ellipse class="p-limb" cx="95" cy="82" rx="6.5" ry="5"/></g>
+            <g class="m-foot m-foot-l"><ellipse class="p-limb" cx="47" cy="110" rx="8" ry="4.6"/></g>
+            <g class="m-foot m-foot-r"><ellipse class="p-limb" cx="73" cy="110" rx="8" ry="4.6"/></g>
+            <path class="p-body" d="M60 40 C84 40 98 56 98 78 C98 100 82 112 60 112 C38 112 22 100 22 78 C22 56 36 40 60 40 Z"/>
+            <path class="p-shade" d="M98 78 C98 100 82 112 60 112 C78 106 91 94 92 74 C93 60 88 50 80 45 C92 51 98 63 98 78 Z"/>
+            <path class="p-belly" d="M38 96 C38 88 48 84 60 84 C72 84 82 88 82 96 C82 104 72 108 60 108 C48 108 38 104 38 96 Z"/>
+            <path class="p-hi" d="M34 64 C37 56 43 50 50 47" stroke-width="4" stroke-linecap="round" fill="none"/>
+            <g class="pc r0 p-seam"><path d="M60 46 C57.5 62 57.5 88 60 106" stroke-width="1.8" stroke-linecap="round" fill="none"/></g>
             <g class="m-book">
-              <path d="M34 86 L60 90 L60 106 L34 102 Z" fill="#FFFFFF" stroke="#C9CED8" stroke-width="1.2"/>
-              <path d="M86 86 L60 90 L60 106 L86 102 Z" fill="#F4F6FA" stroke="#C9CED8" stroke-width="1.2"/>
-              <path d="M38 92 L55 94.5 M38 96 L55 98.5 M65 94.5 L82 92 M65 98.5 L82 96" stroke="#AEB4C0" stroke-width="1.2" stroke-linecap="round"/>
-              <path class="m-page" d="M60 90 L82 87 L82 103 L60 106 Z" fill="#FFFFFF" stroke="#C9CED8" stroke-width="1.2"/>
+              <path d="M34 86 L60 90 L60 106 L34 102 Z" fill="#FFFFFF"/>
+              <path d="M86 86 L60 90 L60 106 L86 102 Z" fill="#EEF1F6"/>
+              <path d="M38 92 L55 94.5 M38 96 L55 98.5 M65 94.5 L82 92 M65 98.5 L82 96" stroke="#B7BDC9" stroke-width="1.4" stroke-linecap="round"/>
+              <path class="m-page" d="M60 90 L82 87 L82 103 L60 106 Z" fill="#FFFFFF"/>
             </g>
             <g class="m-band">
-              <path d="M29 66 C44 58 76 58 91 66 L90 72 C75 64 45 64 30 72 Z" fill="#E5484D"/>
-              <path d="M88 66 L100 60 L97 69 Z M88 68 L101 72 L94 75 Z" fill="#E5484D"/>
-            </g>
-            <!-- Couronne de laurier dorée (Forêt ancienne) -->
-            <g class="m-crown">
-              <path d="M34 58 C38 50 46 46 52 45" stroke="url(#mGold)" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-              <path d="M86 58 C82 50 74 46 68 45" stroke="url(#mGold)" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-              <g fill="url(#mGold)"><ellipse cx="37" cy="53" rx="3.4" ry="1.7" transform="rotate(-50 37 53)"/><ellipse cx="42" cy="48" rx="3.4" ry="1.7" transform="rotate(-30 42 48)"/><ellipse cx="48" cy="45.5" rx="3.4" ry="1.7" transform="rotate(-12 48 45.5)"/>
-                <ellipse cx="83" cy="53" rx="3.4" ry="1.7" transform="rotate(50 83 53)"/><ellipse cx="78" cy="48" rx="3.4" ry="1.7" transform="rotate(30 78 48)"/><ellipse cx="72" cy="45.5" rx="3.4" ry="1.7" transform="rotate(12 72 45.5)"/></g>
+              <path d="M27 64 C44 56 76 56 93 64 L92 71 C75 63 45 63 28 71 Z" fill="#FF5C7A"/>
+              <path d="M90 64 L102 58 L99 67 Z M90 66 L103 70 L96 73 Z" fill="#FF5C7A"/>
             </g>
             <g class="m-face">
-              <ellipse class="m-cheek" cx="40" cy="88" rx="6.2" ry="3.6" fill="#FF7A9C" opacity=".5"/>
-              <ellipse class="m-cheek" cx="80" cy="88" rx="6.2" ry="3.6" fill="#FF7A9C" opacity=".5"/>
-              <g class="m-eye m-eye-l"><ellipse cx="49" cy="76" rx="8.2" ry="9.4" fill="#fff"/><g class="m-pupil"><circle cx="49" cy="77.5" r="5" fill="#18202B"/><circle cx="51" cy="75.2" r="1.8" fill="#fff"/><circle cx="47.2" cy="80" r=".9" fill="#fff" opacity=".8"/></g></g>
-              <g class="m-eye m-eye-r"><ellipse cx="71" cy="76" rx="8.2" ry="9.4" fill="#fff"/><g class="m-pupil"><circle cx="71" cy="77.5" r="5" fill="#18202B"/><circle cx="73" cy="75.2" r="1.8" fill="#fff"/><circle cx="69.2" cy="80" r=".9" fill="#fff" opacity=".8"/></g></g>
-              <g class="m-closed"><path d="M42 77 Q49 81 56 77" /><path d="M64 77 Q71 81 78 77" /></g>
-              <g class="m-joy"><path d="M42 79 Q49 70 56 79" /><path d="M64 79 Q71 70 78 79" /></g>
-              <g class="m-dizzy"><path d="M44 72 L54 82 M54 72 L44 82"/><path d="M66 72 L76 82 M76 72 L66 82"/></g>
+              <ellipse class="m-cheek" cx="37" cy="88" rx="5.5" ry="3.4"/>
+              <ellipse class="m-cheek" cx="83" cy="88" rx="5.5" ry="3.4"/>
+              <g class="m-eye m-eye-l"><ellipse cx="47" cy="74" rx="9.5" ry="11" fill="#fff"/><g class="m-pupil"><circle cx="48.5" cy="76" r="6" fill="#1C1F2A"/><circle cx="51" cy="73" r="2.2" fill="#fff"/></g></g>
+              <g class="m-eye m-eye-r"><ellipse cx="73" cy="74" rx="9.5" ry="11" fill="#fff"/><g class="m-pupil"><circle cx="74.5" cy="76" r="6" fill="#1C1F2A"/><circle cx="77" cy="73" r="2.2" fill="#fff"/></g></g>
+              <g class="m-closed"><path d="M40 76 Q47 81 54 76" /><path d="M66 76 Q73 81 80 76" /></g>
+              <g class="m-joy"><path d="M40 78 Q47 68 54 78" /><path d="M66 78 Q73 68 80 78" /></g>
+              <g class="m-dizzy"><path d="M42 70 L52 80 M52 70 L42 80"/><path d="M68 70 L78 80 M78 70 L68 80"/></g>
               <path class="m-mouth" d="${MOUTHS.smile}"/>
             </g>
           </g>
-          <!-- Compagnon papillon (Forêt) -->
-          <g class="m-buddy"><g class="m-buddy-path"><g class="m-fly" transform="scale(1.5)">
-            <path d="M0 0 C-6 -8 -12 -4 -9 2 C-7 5 -3 4 0 0 Z" fill="#7FB8FF"/><path d="M0 0 C6 -8 12 -4 9 2 C7 5 3 4 0 0 Z" fill="#B49CFF"/>
-            <path d="M0 0 C-4 3 -6 7 -3 8 C-1 8 0 4 0 0 Z M0 0 C4 3 6 7 3 8 C1 8 0 4 0 0 Z" fill="#FF9AB4"/><ellipse cx="0" cy="1.5" rx=".9" ry="4" fill="#33264D"/></g></g></g>
-          <!-- Lucioles de régularité (30 jours et plus) -->
-          <g class="m-flies"><g class="m-orbit o1"><circle cx="12" cy="70" r="2.2"/></g><g class="m-orbit o2"><circle cx="108" cy="60" r="1.7"/></g><g class="m-orbit o3"><circle cx="60" cy="18" r="1.9"/></g></g>
+          <g class="m-glints"><path d="M40 22 l1.4 3.2 3.2 1.4 -3.2 1.4 -1.4 3.2 -1.4 -3.2 -3.2 -1.4 3.2 -1.4 z"/><path d="M82 14 l1.1 2.6 2.6 1.1 -2.6 1.1 -1.1 2.6 -1.1 -2.6 -2.6 -1.1 2.6 -1.1 z"/></g>
+          <g class="m-flies"><g class="m-orbit o1"><circle cx="12" cy="70" r="2.4"/></g><g class="m-orbit o2"><circle cx="108" cy="60" r="1.9"/></g><g class="m-orbit o3"><circle cx="60" cy="16" r="2.1"/></g></g>
         </g>
         <g class="m-zzz"><text x="88" y="40">z</text><text x="96" y="28">z</text><text x="104" y="16">Z</text></g>
         <g class="m-sparkles">
@@ -611,8 +577,8 @@
   }
   const RANK_LINES = {
     1: ['Ma coque a craqué ! Me voilà pousse.'], 2: ['Une troisième feuille ! Je deviens une vraie tige.'],
-    3: ['Regarde ma couronne de feuilles, et un bourgeon !'], 4: ['J’ai fleuri. C’est grâce à toi.'],
-    5: ['Un gland ! Je deviens un grand chêne.'], 6: ['Un papillon est venu habiter chez moi.'], 7: ['Une couronne dorée… Forêt ancienne, rien que ça.'],
+    3: ['Regarde : un bouton de fleur !'], 4: ['Je suis devenu un petit arbre en fleurs. Grâce à toi.'],
+    5: ['Des glands ! Je deviens un grand chêne.'], 6: ['Un oiseau s’est posé sur moi.'], 7: ['Une couronne… Forêt ancienne, rien que ça.'],
   };
   /* Pousse évolue aussi avec la régularité (série de jours) : reflets, halo, lucioles, halo irisé */
   function setVigor(streak) {
