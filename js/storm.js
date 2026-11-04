@@ -15,7 +15,9 @@
   const HEADERS = { 'Api-User-Agent': 'ArborStudyApp/1.0 (https://github.com/hmzr944/Landing-page)' };
 
   /* ---------- Requêtes : une à la fois, espacées, avec nouvel essai si Wikimedia demande de ralentir ---------- */
+  // Cache borné (les pages peuvent être longues : on garde les 40 dernières réponses)
   const cache = new Map();
+  const remember = (k, v) => { cache.set(k, v); if (cache.size > 40) cache.delete(cache.keys().next().value); };
   let lastCall = 0;
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   async function api(host, params) {
@@ -27,7 +29,7 @@
       lastCall = Date.now();
       let res;
       try { res = await fetch(url, { headers: HEADERS }); } catch (e) { res = null; }
-      if (res && res.ok) { const data = await res.json(); cache.set(url, data); return data; }
+      if (res && res.ok) { const data = await res.json(); remember(url, data); return data; }
       if (res && res.status !== 429 && res.status < 500) throw new Error(`${host} répond ${res.status}`);
       await sleep(1500 * 2 ** attempt); // 1,5 s, 3 s, 6 s, 12 s
     }
@@ -67,7 +69,8 @@
   async function pageText(site, title) {
     const d = await api(site.host, { action: 'query', prop: 'extracts|info', inprop: 'url', explaintext: '1', exsectionformat: 'wiki', redirects: '1', titles: title });
     const p = d.query && d.query.pages ? Object.values(d.query.pages)[0] : null;
-    return p && p.extract ? { site, title: p.title, url: p.fullurl || `https://${site.host}/wiki/${encodeURIComponent(p.title)}`, text: p.extract } : null;
+    // un livre entier (« Version imprimable ») peut peser plusieurs Mo : on n'en garde que le début
+    return p && p.extract ? { site, title: p.title, url: p.fullurl || `https://${site.host}/wiki/${encodeURIComponent(p.title)}`, text: p.extract.slice(0, 60000) } : null;
   }
   /* Pages candidates, notées : mots de la notion (titre ou extrait), mots du module, vocabulaire du domaine
      (tous les titres du parcours), longueur, source pédagogique. Une page hors sujet est écartée. */
@@ -101,7 +104,7 @@
         + (look.mod.length && !modHit && hit < ft.size ? -1.6 : 0);
     });
     if (window.Storm && Storm.debug) all.forEach((c) => console.log(`[cand] ${c.site.name} « ${c.title} » score=${c.score.toFixed(2)} relevant=${c.relevant} :: ${c.dbg}`));
-    return all.filter((c) => c.relevant).sort((a, b) => b.score - a.score);
+    return all.filter((c) => c.relevant && !/version imprimable|texte entier|livre complet|sommaire$/i.test(c.title)).sort((a, b) => b.score - a.score);
   }
 
   /* ---------- 2. Passages ---------- */
@@ -272,7 +275,7 @@
 
   async function withLocal(notion, r, ctx, local, onStatus) {
     const src = r.chosen.map((p, i) => `[${i + 1}] (${p.page.site.name}, « ${p.page.title} ») ${p.text}`).join('\n\n').slice(0, 3600);
-    const out = await LocalAI.writeNotion(notion, ctx.module || '', src, { id: local.id, onStatus, onProgress: (p, t) => onStatus && onStatus(p < 1 ? `${t} (${Math.round(p * 100)} %)` : 'le modèle local rédige…') });
+    const out = await LocalAI.writeNotion(notion, ctx.module || '', src, { id: local.id, onStatus, onProgress: (p, t) => onStatus && onStatus(p < 1 ? `${t} (${Math.round(p * 100)} %)` : 'rédaction en cours…') });
     const pr = practice(notion, r.action, ctx);
     if (pr) out.exercises.push(pr);
     return out;

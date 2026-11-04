@@ -43,12 +43,12 @@ Règles :
   }
 
   async function structure(file, apiKey, model, onStatus) {
-    onStatus && onStatus('Chargement du client Claude…');
+    onStatus && onStatus('Arbor se prépare…');
     const { default: Anthropic } = await import(SDK_URL);
     const client = new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     const data = toBase64(await file.arrayBuffer());
 
-    onStatus && onStatus('Claude lit ton document…');
+    onStatus && onStatus('Arbor lit ton document…');
     const stream = client.beta.messages.stream({
       model: model || 'claude-opus-5-5',
       max_tokens: 64000,
@@ -71,16 +71,16 @@ Règles :
     let chars = 0;
     stream.on('text', (t) => {
       chars += t.length;
-      onStatus && onStatus(`Claude structure le cours… (${Math.round(chars / 100) / 10} k caractères)`);
+      onStatus && onStatus(`Arbor structure le cours…`);
     });
     const msg = await stream.finalMessage();
 
-    if (msg.stop_reason === 'refusal') throw new Error('Claude a refusé de traiter ce document.');
+    if (msg.stop_reason === 'refusal') throw new Error('Ce document n’a pas pu être traité.');
     if (msg.stop_reason === 'max_tokens') throw new Error('Le document est trop long pour une seule passe : essaie l’analyse locale ou découpe le PDF.');
     const text = msg.content.filter((b) => b.type === 'text').map((b) => b.text).join('');
     let tree;
     try { tree = JSON.parse(text); }
-    catch (e) { throw new Error('Réponse illisible de Claude, réessaie.'); }
+    catch (e) { throw new Error('Réponse illisible, réessaie.'); }
     return tree;
   }
 
@@ -105,11 +105,11 @@ Réponds à la fin par UN SEUL bloc JSON, sans texte après, de la forme :
     const fenced = [...text.matchAll(/```(?:json)?\s*([\s\S]*?)```/g)].map((m) => m[1]);
     const cands = fenced.length ? fenced.reverse() : [text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1)];
     for (const c of cands) { try { return JSON.parse(c); } catch (e) { /* suivant */ } }
-    throw new Error('Réponse illisible de Claude, réessaie.');
+    throw new Error('Réponse illisible, réessaie.');
   }
 
   async function researchTopic(topic, context, apiKey, model, onStatus) {
-    onStatus && onStatus('Chargement du client Claude…');
+    onStatus && onStatus('Arbor se prépare…');
     const { default: Anthropic } = await import(SDK_URL);
     const client = new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     const messages = [{ role: 'user', content: `Sujet du programme : « ${topic} »\nCours : « ${context} »\nPrépare le module.` }];
@@ -117,7 +117,7 @@ Réponds à la fin par UN SEUL bloc JSON, sans texte après, de la forme :
     const found = new Map();
     // Les outils serveur peuvent mettre le tour en pause (pause_turn) : on relance, 4 fois au plus
     for (let round = 0; round < 4; round++) {
-      onStatus && onStatus(round ? 'Claude continue ses recherches…' : 'Claude cherche des sources fiables…');
+      onStatus && onStatus(round ? 'Arbor continue ses recherches…' : 'Arbor cherche des sources fiables…');
       const stream = client.beta.messages.stream({
         model: model || 'claude-opus-5-5',
         max_tokens: 32000,
@@ -128,7 +128,7 @@ Réponds à la fin par UN SEUL bloc JSON, sans texte après, de la forme :
         tools: [{ type: 'web_search_20260209', name: 'web_search', max_uses: 6 }],
         messages,
       });
-      stream.on('text', () => onStatus && onStatus('Claude construit ton module…'));
+      stream.on('text', () => onStatus && onStatus('Arbor construit ton module…'));
       msg = await stream.finalMessage();
       for (const b of msg.content) {
         if (b.type === 'web_search_tool_result' && Array.isArray(b.content)) b.content.forEach((r) => r.url && found.set(r.url, r.title || r.url));
@@ -136,7 +136,7 @@ Réponds à la fin par UN SEUL bloc JSON, sans texte après, de la forme :
       if (msg.stop_reason !== 'pause_turn') break;
       messages.push({ role: 'assistant', content: msg.content });
     }
-    if (msg.stop_reason === 'refusal') throw new Error('Claude a refusé de traiter ce sujet.');
+    if (msg.stop_reason === 'refusal') throw new Error('Ce sujet n’a pas pu être traité.');
     if (msg.stop_reason === 'max_tokens') throw new Error('Le module est trop long : essaie avec un sujet plus précis.');
     const text = msg.content.filter((b) => b.type === 'text').map((b) => b.text).join('');
     const data = lastJson(text);
@@ -149,12 +149,12 @@ Réponds à la fin par UN SEUL bloc JSON, sans texte après, de la forme :
   // Messages d'erreur compréhensibles
   function friendly(e) {
     const st = e && e.status;
-    if (st === 401) return new Error('Clé API refusée : vérifie-la dans les Réglages (elle commence par sk-ant-).');
-    if (st === 403) return new Error('Cette clé n’a pas accès à ce modèle.');
+    if (st === 401) return new Error('Clé d’accès refusée : vérifie-la dans les Réglages.');
+    if (st === 403) return new Error('Cette clé n’a pas accès à cette option.');
     if (st === 429) return new Error('Trop de demandes d’un coup : réessaie dans une minute.');
-    if (st === 529 || st === 503) return new Error('Claude est surchargé pour le moment : réessaie un peu plus tard.');
+    if (st === 529 || st === 503) return new Error('Le service est surchargé : réessaie un peu plus tard.');
     if (st === 400 && /credit|billing/i.test(e.message || '')) return new Error('Crédit API épuisé : recharge ton compte sur console.anthropic.com.');
-    if (!st && /connection|fetch|network/i.test((e && e.message) || '')) return new Error('Impossible de joindre Claude : vérifie ta connexion.');
+    if (!st && /connection|fetch|network/i.test((e && e.message) || '')) return new Error('Connexion impossible : vérifie ta connexion.');
     return e;
   }
   const safe = (fn) => async (...args) => { try { return await fn(...args); } catch (e) { throw friendly(e); } };

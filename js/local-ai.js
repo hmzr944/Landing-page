@@ -7,14 +7,19 @@
 (function () {
   const LIB = 'https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.86/+esm';
   const MODELS = [
-    { id: 'Qwen2.5-3B-Instruct-q4f16_1-MLC', label: 'Équilibré · Qwen 2.5 3B', size: '≈ 2 Go', vram: 2.5 },
-    { id: 'Qwen2.5-1.5B-Instruct-q4f16_1-MLC', label: 'Léger · Qwen 2.5 1,5B (téléphones)', size: '≈ 1 Go', vram: 1.6 },
-    { id: 'Qwen3.5-4B-q4f16_1-MLC', label: 'Plus précis · Qwen 3.5 4B', size: '≈ 2,8 Go', vram: 3.9, thinking: true },
+    { id: 'Qwen2.5-3B-Instruct-q4f16_1-MLC', label: 'Équilibré', size: '2 Go', vram: 2.5 },
+    { id: 'Qwen2.5-1.5B-Instruct-q4f16_1-MLC', label: 'Léger', size: '1 Go', vram: 1.6 },
+    { id: 'Qwen3.5-4B-q4f16_1-MLC', label: 'Plus précis', size: '2,8 Go', vram: 3.9, thinking: true },
   ];
   const DEFAULT = MODELS[0].id;
   let lib = null, engine = null, loadedId = null, loading = null, grammarBroken = false;
 
-  const supported = () => typeof navigator !== 'undefined' && !!navigator.gpu;
+  /* Un modèle de 1 à 3 Go fait planter Safari sur iPhone et beaucoup de téléphones : on ne le lance que sur ordinateur,
+     avec assez de mémoire. Et si un chargement précédent n'est jamais allé au bout (la page a planté), on n'insiste pas. */
+  const CRASH_KEY = 'arbor:llm-try';
+  const isMobile = () => /iPhone|iPad|iPod|Android|Mobile/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
+  const crashed = () => { try { return !!localStorage.getItem(CRASH_KEY); } catch (e) { return false; } };
+  const supported = () => typeof navigator !== 'undefined' && !!navigator.gpu && !isMobile() && !(navigator.deviceMemory && navigator.deviceMemory < 8) && !crashed();
   const info = (id) => MODELS.find((m) => m.id === id) || MODELS[0];
   async function getLib() { return lib || (lib = await import(LIB)); }
 
@@ -36,18 +41,21 @@
 
   // Charge le modèle (téléchargement la première fois). onProgress(fraction 0-1, texte)
   async function load(id = DEFAULT, onProgress) {
-    if (!supported()) throw new Error('Ton navigateur ne gère pas WebGPU : l’IA locale ne peut pas tourner ici. Essaie Chrome ou Edge à jour sur ordinateur.');
+    if (!supported()) throw new Error('Cette option n’est pas disponible sur cet appareil.');
     id = await resolve(id);
     if (engine && loadedId === id) return engine;
     if (loading && loading.id === id) return loading.p;
     const p = (async () => {
       const { CreateMLCEngine } = await getLib();
       if (engine) { try { await engine.unload(); } catch (e) { /* ignore */ } engine = null; }
-      const e = await CreateMLCEngine(id, {
-        initProgressCallback: (r) => onProgress && onProgress(r.progress || 0, frenchProgress(r.text || '')),
-      });
-      engine = e; loadedId = id;
-      return e;
+      try { localStorage.setItem(CRASH_KEY, String(Date.now())); } catch (e) { /* ignore */ }
+      try {
+        const e = await CreateMLCEngine(id, {
+          initProgressCallback: (r) => onProgress && onProgress(r.progress || 0, frenchProgress(r.text || '')),
+        });
+        engine = e; loadedId = id;
+        return e;
+      } finally { try { localStorage.removeItem(CRASH_KEY); } catch (e) { /* ignore */ } }
     })();
     loading = { id, p };
     try { return await p; }
@@ -57,17 +65,15 @@
 
   function frenchProgress(t) {
     const m = t.match(/(\d+)MB/i);
-    if (/fetch|download|loading model from cache/i.test(t)) return m ? `Téléchargement du modèle… ${m[1]} Mo` : 'Téléchargement du modèle…';
-    if (/shader|compil/i.test(t)) return 'Préparation de la carte graphique…';
-    if (/finish/i.test(t)) return 'Modèle prêt';
-    return 'Chargement du modèle…';
+    if (/finish/i.test(t)) return 'C’est prêt';
+    return 'Arbor se prépare…';
   }
 
   function friendly(err) {
     const m = String((err && err.message) || err);
-    if (/out of memory|OOM|device lost|maxBufferSize|exceeds/i.test(m)) return new Error('Pas assez de mémoire graphique pour ce modèle : choisis le modèle léger dans les Réglages.');
-    if (/quota|storage/i.test(m)) return new Error('Plus assez d’espace pour enregistrer le modèle sur cet appareil.');
-    if (/fetch|network/i.test(m)) return new Error('Téléchargement du modèle interrompu : vérifie ta connexion et réessaie.');
+    if (/out of memory|OOM|device lost|maxBufferSize|exceeds/i.test(m)) return new Error('Cet appareil manque de mémoire pour cette option : choisis « Léger » dans les Réglages.');
+    if (/quota|storage/i.test(m)) return new Error('Plus assez d’espace sur cet appareil.');
+    if (/fetch|network/i.test(m)) return new Error('Connexion interrompue : réessaie.');
     return err instanceof Error ? err : new Error(m);
   }
 
@@ -82,13 +88,13 @@
   function parseJson(text) {
     const t = text.replace(/```(?:json)?/g, '').trim();
     const start = t.indexOf('{');
-    if (start < 0) throw new Error('Réponse illisible du modèle local, réessaie.');
+    if (start < 0) throw new Error('Réponse illisible, réessaie.');
     const body = t.slice(start);
     for (const tail of ['', ']}', '"]}]}', '"}]}', ']}]}']) {
       const end = body.lastIndexOf('}');
       for (const cand of [body + tail, body.slice(0, end + 1) + tail]) { try { return JSON.parse(cand); } catch (e) { /* suivant */ } }
     }
-    throw new Error('Réponse illisible du modèle local, réessaie.');
+    throw new Error('Réponse illisible, réessaie.');
   }
 
   /* Une demande au modèle. On essaie d'abord une sortie JSON contrainte par le schéma ; si la contrainte
@@ -148,7 +154,7 @@ Rédige :
 
   async function writeCourse(topic, context, source, opts = {}) {
     const ref = source && source.text ? `\n\nTexte de référence (${source.title}) :\n"""${source.text.slice(0, 4200)}"""` : '\n\n(Aucun texte de référence : reste général et prudent, et ne donne que ce dont tu es sûr.)';
-    opts.onStatus && opts.onStatus('Le modèle local rédige le cours…');
+    opts.onStatus && opts.onStatus('Arbor rédige le cours…');
     const r = await ask(COURSE_SYSTEM, `Sujet : « ${topic} »${context ? `\nCours : « ${context} »` : ''}${ref}`, COURSE_SCHEMA, { ...opts, maxTokens: 1900 });
     return {
       overview: String(r.overview || ''),
@@ -183,7 +189,7 @@ On te donne une notion, le module dont elle fait partie et des extraits de sourc
 Écris en français.`;
   async function writeNotion(notion, module, sources, opts = {}) {
     const r = await ask(NOTION_SYSTEM, `Notion : « ${notion} »${module ? `\nModule : « ${module} »` : ''}\n\nExtraits :\n${sources}`, NOTION_SCHEMA, { ...opts, maxTokens: 1300 });
-    if (!r.notes || String(r.notes).length < 80) throw new Error('Le modèle local n’a rien rédigé.');
+    if (!r.notes || String(r.notes).length < 80) throw new Error('Rien n’a pu être rédigé.');
     return {
       notes: String(r.notes),
       keyPoints: (r.keyPoints || []).map(String).filter((k) => k.length > 8).slice(0, 4),

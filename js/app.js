@@ -603,7 +603,7 @@
             <select id="pgRhythm"><option value="1">par jour</option><option value="2" selected>tous les 2 jours</option><option value="3">tous les 3 jours</option><option value="7">par semaine</option></select>
           </div>
         </div>
-        <label class="check"><input type="checkbox" id="pgWrite" checked /> Rédiger le cours de chaque sujet (${state.settings.apiKey ? 'Claude cherche et rédige' : useLocal() ? 'l’IA locale rédige, gratuitement' : 'passages choisis dans Wikilivres, Wikiversité et Wikipédia pour chaque notion ; l’IA locale les reformule si tu l’actives'})</label>
+        <label class="check"><input type="checkbox" id="pgWrite" checked /> Rédiger le cours de chaque sujet (Arbor cherche des sources fiables pour chaque sujet)</label>
         ${pickers(sel.color, sel.icon)}
         <div class="row-btns end"><button type="button" class="btn ghost" data-close>Annuler</button><button class="btn">${ic('path')}Créer le parcours</button></div>
       </form>`, (el) => {
@@ -726,9 +726,7 @@
      Si la partie a déjà des sous-parties (ex. notions listées dans le programme), chacune reçoit son cours. */
   // Qui rédige les cours : Claude (clé API), l'IA locale (modèle open source dans le navigateur) ou Wikipédia
   const useLocal = () => !state.settings.apiKey && state.settings.localAI && window.LocalAI && LocalAI.supported();
-  const engineLabel = () => state.settings.apiKey ? 'avec Claude et des sources fiables'
-    : useLocal() ? 'avec l’IA locale, gratuite, qui reformule en cours les meilleurs passages de Wikilivres, Wikiversité et Wikipédia'
-    : 'à partir de Wikilivres, Wikiversité et Wikipédia (passages choisis pour chaque notion ; active l’IA locale gratuite dans les Réglages pour qu’ils soient reformulés en cours)';
+  const engineLabel = () => 'à partir de sources fiables, choisies pour chaque notion';
   async function fetchCourse(topic, context, onStatus) {
     if (state.settings.apiKey) {
       const r = await AI.researchTopic(topic, context, state.settings.apiKey, state.settings.model, onStatus);
@@ -740,10 +738,10 @@
       const r = await LocalAI.writeCourse(topic, context, src, {
         id: state.settings.localModel,
         onStatus,
-        onProgress: (p, t) => onStatus && onStatus(p < 1 ? `${t} (${Math.round(p * 100)} %)` : 'Le modèle local rédige le cours…'),
+        onProgress: (p) => onStatus && onStatus(p < 1 ? `Arbor se prépare… ${Math.round(p * 100)} %` : 'Arbor rédige le cours…'),
       });
-      if (!r.notions.length) throw new Error('Le modèle local n’a rien rédigé.');
-      r.overview = `${r.overview}\n\n_Cours rédigé par l’IA locale${src ? ` à partir de l’article Wikipédia « ${src.title} »` : ', sans texte de référence'}. Vérifie les points importants dans ton cours._`;
+      if (!r.notions.length) throw new Error('Rien n’a pu être rédigé.');
+      r.overview = `${r.overview}\n\n_Vérifie les points importants dans ton cours._`;
       return { ...r, sources: src ? [{ title: `Wikipédia : ${src.title}`, url: src.url }] : [], from: 'local' };
     }
     return Course.fromWikipedia(topic, context);
@@ -840,7 +838,7 @@
     openModal(`
       <div class="loading">
         <h2 id="modalTitle">Arbor rédige ton cours…</h2>
-        <p class="modal-lede" id="ldMsg">${state.settings.apiKey ? 'Claude cherche des sources fiables et rédige chaque module.' : useLocal() ? 'Pour chaque notion, Arbor choisit les meilleurs passages de Wikilivres, Wikiversité et Wikipédia, puis l’IA locale les reformule en cours. La première fois, le modèle se télécharge.' : 'Pour chaque notion, Arbor cherche dans Wikilivres, Wikiversité et Wikipédia, choisit les passages les plus pertinents et les assemble en cours.'}</p>
+        <p class="modal-lede" id="ldMsg">Arbor cherche des sources fiables et rédige chaque notion.</p>
         <div class="bar big" role="progressbar" aria-label="Progression" aria-valuemin="0" aria-valuemax="100"><span id="ldBar" style="transform:scaleX(.03)"></span></div>
         <p class="hint" id="ldCount">0 / ${nodes.length}</p>
       </div>`);
@@ -1757,7 +1755,7 @@
         src: [['FSRS, algorithme open source', 'https://github.com/open-spaced-repetition'], ['Dunlosky et al. (2013)', 'https://www.psychologicalscience.org/journals/pspi/1529100612453266/']], level: 'Très solide' },
       { icon: 'path', title: 'Un programme devient un parcours',
         text: 'Quand on n’a qu’une liste de sujets, le risque est de tout repousser puis de bachoter. Étaler l’apprentissage sur la durée, et tester ce qu’on sait avant de lire, sont deux des effets les mieux établis.',
-        arbor: 'Importe un programme : chaque sujet devient un module, réparti jusqu’à ton examen, et Arbor en rédige le cours (à partir de Wikipédia, ou avec Claude qui cherche des sources). Avant de le lire, tu écris ce que tu sais déjà ; ensuite tu ancres et tu te testes.',
+        arbor: 'Importe un programme : chaque sujet devient un module, réparti jusqu’à ton examen, et Arbor en rédige le cours à partir de sources fiables. Avant de le lire, tu écris ce que tu sais déjà ; ensuite tu ancres et tu te testes.',
         src: [['Dunlosky et al. (2013)', 'https://www.psychologicalscience.org/journals/pspi/1529100612453266/'], ['Revue sur l’effet de prétest (2022)', 'https://link.springer.com/article/10.3758/s13421-022-01392-1']], level: 'Solide' },
       { icon: 'pencil-simple-line', title: 'Essayer de répondre, même faux, aide',
         text: 'Tenter une réponse avant de voir la correction améliore la mémorisation, même quand la tentative est fausse. Condition : voir la bonne réponse juste après.',
@@ -2235,24 +2233,24 @@
         <label class="check switch-row"><input type="checkbox" id="calmOn" ${st.calm ? 'checked' : ''} /> Mode calme : moins de mouvement, pas de confettis, mascotte silencieuse</label>
         <label class="check switch-row"><input type="checkbox" id="mascotOn" ${st.mascot !== false ? 'checked' : ''} /> Afficher Pousse, la mascotte</label>
         <fieldset class="field local-ai">
-          <legend>IA locale <span class="optional">gratuite, open source</span></legend>
+          <legend>Rédaction améliorée <span class="optional">sur cet ordinateur</span></legend>
           ${window.LocalAI && LocalAI.supported() ? `
-          <label class="check switch-row"><input type="checkbox" id="localOn" ${st.localAI ? 'checked' : ''} /> Utiliser un modèle open source (Qwen, via WebLLM) qui tourne dans ce navigateur pour rédiger les cours et analyser les PDF</label>
+          <label class="check switch-row"><input type="checkbox" id="localOn" ${st.localAI ? 'checked' : ''} /> Des cours mieux rédigés, préparés sur cet ordinateur, sans rien envoyer</label>
           <select id="localModel" aria-label="Modèle local">${LocalAI.MODELS.map((m) => `<option value="${m.id}" ${st.localModel === m.id ? 'selected' : ''}>${m.label} (${m.size})</option>`).join('')}</select>
-          <div class="row-btns"><button type="button" class="btn ghost sm" id="localDl">${ic('download-simple')}Télécharger le modèle maintenant</button><span class="hint" id="localState"></span></div>
+          <div class="row-btns"><button type="button" class="btn ghost sm" id="localDl">${ic('download-simple')}Préparer maintenant</button><span class="hint" id="localState"></span></div>
           <div class="bar" id="localBarWrap" hidden><span id="localBar" style="transform:scaleX(0)"></span></div>
-          <p class="hint">Téléchargé une seule fois, puis gardé sur l’appareil. Rien n’est envoyé à un serveur. Moins précis que Claude : il reformule un article de référence plutôt que d’inventer.</p>`
-          : `<p class="hint">Ce navigateur ne gère pas WebGPU, nécessaire pour faire tourner une IA sur l’appareil. Essaie Chrome ou Edge à jour, sur ordinateur ou sur un téléphone récent.</p>`}
+          <p class="hint">Préparé une seule fois (quelques minutes), puis gardé sur l’ordinateur. Ta vie privée est respectée : rien n’est envoyé.</p>`
+          : `<p class="hint">Disponible sur ordinateur, avec Chrome ou Edge à jour.</p>`}
         </fieldset>
         <div class="field">
-          <label for="apiKey">Clé API Claude <span class="optional">facultatif</span></label>
+          <label for="apiKey">Clé d’accès <span class="optional">facultatif</span></label>
           <input id="apiKey" name="api-key" type="password" autocomplete="off" spellcheck="false" placeholder="sk-ant-…" value="${esc(st.apiKey || '')}" />
-          <p class="hint">Active l’import PDF par Claude. La clé reste dans ce navigateur et n’est envoyée qu’à l’API d’Anthropic. Évite de l’enregistrer sur un ordinateur partagé.</p>
+          <p class="hint">Pour l’analyse avancée et les cours les plus complets. La clé reste dans ce navigateur. Évite de l’enregistrer sur un ordinateur partagé.</p>
         </div>
         <div class="field">
           <label for="model">Modèle</label>
           <select id="model" name="model">
-            ${[['claude-opus-5-5', 'Claude Opus 5.5, le plus précis (recommandé)'], ['claude-sonnet-5-5', 'Claude Sonnet 5.5, plus rapide'], ['claude-haiku-5-5', 'Claude Haiku 5.5, très économique']]
+            ${[['claude-opus-5-5', 'Le plus précis (recommandé)'], ['claude-sonnet-5-5', 'Plus rapide'], ['claude-haiku-5-5', 'Économique']]
               .map(([v, l]) => `<option value="${v}" ${st.model === v ? 'selected' : ''}>${l}</option>`).join('')}
           </select>
         </div>
@@ -2365,10 +2363,10 @@
             <span><b>Analyse rapide</b><small>Instantanée : titres, définitions, exercices. Le fichier reste sur ton appareil.</small></span></label>
           <label class="mode ${llmOk ? '' : 'locked'}"><input type="radio" name="mode" value="llm" ${llmOk ? (hasKey ? '' : 'checked') : 'disabled'} />
             <span class="mode-ic" aria-hidden="true">${ic('cpu', true)}</span>
-            <span><b>IA locale</b><small>${llmOk ? 'Gratuite et privée : ajoute des points clés et des questions à chaque partie. Prend quelques minutes.' : window.LocalAI && LocalAI.supported() ? 'Active-la dans les réglages (gratuit).' : 'Navigateur non compatible (WebGPU).'}</small></span></label>
+            <span><b>Analyse intelligente</b><small>${llmOk ? 'Gratuite et privée : ajoute des points clés et des questions à chaque partie. Prend quelques minutes.' : window.LocalAI && LocalAI.supported() ? 'À activer dans les réglages.' : 'Disponible sur ordinateur.'}</small></span></label>
           <label class="mode ${hasKey ? '' : 'locked'}"><input type="radio" name="mode" value="ai" ${hasKey ? 'checked' : 'disabled'} />
             <span class="mode-ic" aria-hidden="true">${ic('sparkle', true)}</span>
-            <span><b>Analyse par Claude</b><small>${hasKey ? 'Résumés et points clés rédigés, découpage plus fin.' : 'Ajoute ta clé API dans les réglages pour l’activer.'}</small></span></label>
+            <span><b>Analyse avancée</b><small>${hasKey ? 'Résumés et points clés rédigés, découpage plus fin.' : 'Ajoute une clé d’accès dans les réglages.'}</small></span></label>
         </div>
       </fieldset>
       <label class="check"><input type="checkbox" id="asProgram" /> C’est un programme ou une liste de sujets : en faire un parcours de modules</label>
@@ -2403,11 +2401,11 @@
     const todo = parts.slice(0, 14);
     for (let i = 0; i < todo.length; i++) {
       const n = todo[i];
-      setMsg(`IA locale : « ${n.title} » (${i + 1}/${todo.length})`);
+      setMsg(`« ${n.title} » (${i + 1}/${todo.length})`);
       try {
         const r = await LocalAI.enrich(n.title, n.notes, {
           id: state.settings.localModel,
-          onProgress: (p, t) => { setMsg(`${t} (${Math.round(p * 100)} %)`); setPct(0.1 + p * 0.3); },
+          onProgress: (p) => { setMsg(`Arbor se prépare… ${Math.round(p * 100)} %`); setPct(0.1 + p * 0.3); },
         });
         const have = new Set((n.keyPoints || []).map((k) => k.toLowerCase()));
         n.keyPoints = [...(n.keyPoints || []), ...r.keyPoints.filter((k) => !have.has(k.toLowerCase()))].slice(0, 6);
