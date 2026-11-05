@@ -7,7 +7,8 @@
 
   const NUM_RE = /^((\d{1,2}(\.\d{1,2}){0,3})|[IVXLC]{1,6}|[A-H])[.)\-–]?\s+\S/;
   const KEYWORD_RE = /(?<!\p{L})(chapitre|partie|section|leçon|module|unité|annexe|introduction|conclusion|chapter|part)(?!\p{L})/iu;
-  const DEF_RE = /(?<!\p{L})(est (un|une|le|la|l['’]|ce qui|défini)|sont (des|les)|désigne|se définit|on appelle|on nomme|correspond à|signifie|consiste à|représente|permet de|is an?|refers to|means)(?!\p{L})/iu;
+  // « est l'ensemble » : après « l' » vient une lettre, d'où une alternative à part (sans le contrôle de fin de mot)
+  const DEF_RE = /(?<!\p{L})(?:(est (un|une|le|la|ce qui|défini)|sont (des|les)|désigne|se définit|on appelle|on nomme|correspond à|signifie|consiste à|représente|permet de|is an?|refers to|means)(?!\p{L})|est l['’](?=\p{L}))/iu;
   const IMPORTANT_RE = /(?<!\p{L})(important|essentiel|fondamental|à retenir|retenir|attention|clé|principe|règle|loi|théorème|propriété|définition|formule|toujours|jamais|obligatoire|remarque|notamment|conclusion|donc|ainsi|en résumé|key|must)(?!\p{L})/iu;
 
   /* Lecture d'une page :
@@ -149,7 +150,8 @@
     const bigger = line.size >= body * 1.15;
     const numbered = NUM_RE.test(t) && words <= 14 && !/[.:]\s*$/.test(t.replace(/^\S+\s/, ''));
     const keyword = KEYWORD_RE.test(t.split(' ').slice(0, 2).join(' ')) && words <= 12;
-    const allCaps = t.length > 4 && t === t.toUpperCase() && /[A-ZÀ-Ý]{3}/.test(t) && words <= 10;
+    // en capitales, sans point final (« DHCP. » dans une liste n'est pas un titre)
+    const allCaps = t.length > 4 && t === t.toUpperCase() && /[A-ZÀ-Ý]{3}/.test(t) && words <= 10 && !/[.;,]$/.test(t);
     if (!(bigger || (line.bold && (numbered || words <= 10)) || (numbered && (line.bold || bigger)) || keyword || allCaps)) return null;
     if (!bigger && !line.bold && !keyword && !allCaps) return null;
     if (/[.!?]$/.test(t) && !numbered && words > 6) return null;
@@ -178,6 +180,9 @@
     if (/\d/.test(s)) score += 0.5;
     if (boldSet.some((b) => s.includes(b))) score += 2.5;
     if (s.length < 35) score -= 2;
+    // Texte d'accompagnement (« Je vais être franc », « Ce n'est pas une critique ») : ce n'est pas à apprendre
+    if (/(?<!\p{L})(je|j['’]|me|m['’]|moi|mon|ma|mes)(?!\p{L})/iu.test(s) && !DEF_RE.test(s)) score -= 4;
+    if (/^(ce n['’]est pas|c['’]est probablement|voici|avant de|réponds|tu peux|n['’]h[ée]site)/i.test(s)) score -= 3;
     if (s.length > 260) score -= 2;
     return score;
   }
@@ -216,8 +221,17 @@
       .join('\n\n');
     if (notes.length > 6000) notes = notes.slice(0, 6000) + '…';
 
+    const head = [node._level ? `**Niveau estimé.** ${node._level}` : '', node._remark ? `**Constat.** ${node._remark}` : ''].filter(Boolean).join('\n\n');
+    const skills = node._skills || [];
+    if (skills.length) notes = [notes, `**À savoir faire**\n${skills.map((x) => `- ${x}`).join('\n')}`].filter((x) => x && x.trim()).join('\n\n');
+    if (head) notes = head + (notes.trim() ? '\n\n' + notes : '');
     node.notes = notes;
-    node.keyPoints = keyPoints;
+    // Une partie qui regroupe des notions : ses points clés sont ses notions, pas des phrases d'accompagnement
+    node.keyPoints = node.children.some((c) => c._notion) ? keyPoints.filter((k) => !/^(niveau|mon constat|constat)\b/i.test(k)).slice(0, 0) : keyPoints;
+    if (skills.length) node.objectives = skills.slice(0, 8);
+    // Savoir-faire et missions : des exercices pratiques, à faire dans son environnement de test
+    const practice = [...skills.map((x) => ({ q: `Mets en pratique : ${x.charAt(0).toLowerCase() + x.slice(1)}.`, a: 'Fais-le sans aide dans ton environnement de test, vérifie que ça marche, puis note les étapes.' })),
+      ...(node._missions || []).map((m) => ({ q: `Mission : ${m.t.charAt(0).toLowerCase() + m.t.slice(1)}.`, a: `Niveau indiqué dans le document : ${m.st}. Réalise la mission seul, de bout en bout, puis vérifie le résultat.` }))];
     let exs = (node._ex || []).filter((e) => e.q.length > 8);
     // QCM de 3 questions ou plus : une sous-partie par question, pour que chacune ait sa carte de révision
     const quizzes = exs.filter((e) => e.quiz);
@@ -231,7 +245,10 @@
       });
       exs = exs.filter((e) => !e.quiz);
     }
-    node.exercises = exs.map(({ q, a }) => ({ q, a }));
+    const seen = new Set();
+    const uniq = practice.filter((x) => { const k = x.q.replace(/^(Mets en pratique|Mission) : /, '').toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; });
+    node.exercises = [...exs.map(({ q, a }) => ({ q, a })), ...uniq.slice(0, 10)];
+    delete node._skills; delete node._missions; delete node._level; delete node._remark; delete node._notion; delete node._assess;
     delete node._blocks; delete node._bullets; delete node._bold; delete node._keys; delete node._ex;
     node.children.forEach(finalizeNode);
   }
@@ -264,6 +281,137 @@
     return { text, lines: new Set(used) };
   }
 
+
+  /* ---------- Compréhension du document ----------
+     Inspiré des outils open source d'analyse de documents (Docling d'IBM, unstructured) : avant de faire
+     des chapitres, on donne un RÔLE à chaque bloc et à chaque section.
+     - Listes à libellé : « Tu as découvert : » / « Notions : » → notions (sous-parties) ;
+       « Ce que tu ne maîtrises pas encore : » / « Compétences : » / « Objectifs : » → savoir-faire (objectifs + exercices).
+     - Sections : contenu (porte des notions), accompagnement (évaluation, avis, recommandation : texte à la
+       1re personne, sans notions), plan (étapes), tableau d'état (« mission : non acquis »), questions (QCM).
+     Seul le contenu devient des chapitres ; l'accompagnement va dans la vue d'ensemble, le plan ordonne
+     les chapitres, les missions deviennent des exercices du bon chapitre, les questions restent à part.
+     Un cours classique (sans ces signaux) n'est pas modifié. */
+  const NOTION_CORE = "(tu as (découvert|vu|abordé|étudié)|vous avez (découvert|vu|abordé)|notions?( abordées| vues| clés| à connaître| essentielles)?|vocabulaire( à connaître)?|concepts?( clés)?|au programme|points? abordés|ce que (tu vas|vous allez) (voir|découvrir|apprendre)|thèmes? abordés|contenus?)";
+  const SKILL_CORE = "(ce que (tu|vous) ne (maîtrises?|maîtrisez|sais|savez|connais|connaissez) pas( encore)?|à (acquérir|maîtriser|travailler|consolider)|compétences( visées| attendues| à acquérir)?|savoir-faire|objectifs?( pédagogiques| d['’]apprentissage)?|(tu dois|vous devez|tu devras|vous devrez) (savoir|être capables?)|être capables? de|capacités( visées)?)";
+  // le libellé termine l'introduction de la liste ; ce qui précède est rendu au texte
+  const labelCut = (intro, core) => { const m = intro.match(new RegExp(`(^|\\s)${core}\\s*:?\\s*$`, 'iu')); return m ? intro.slice(0, m.index).trim() : null; };
+  const META_TITLE = /(évaluation|avis|potentiel|orientation|recommandation|remerciements?|à propos|préambule|avant-propos|mode d['’]emploi|comment utiliser|échelle|grille|critères|bilan|mot de l['’]auteur|note de l['’]auteur)/i;
+  const ASSESS_TITLE = /(questions?|qcm|quiz|test de|auto-?évaluation|diagnostic de compréhension|vérifie|évalue tes)/i;
+  const PLAN_STEP = /^(étape|phase|semaine|jour|palier|niveau|sprint|séance)\s*\d{1,2}\b/i;
+  const STATUS_RE = /^(.{3,90}?)\s*:\s*((non )?acquis|en cours( d['’]acquisition)?|(non )?validée?s?|à revoir|à consolider|ok|ko|partiel(lement)?\b.*|.*\b(non (acquis|validée?)|pas encore)\b.*)$/i;
+  // tableau aplati en texte : « Configurer un DHCP Non acquis Calculer un sous-réseau Non acquis … »
+  const STATUS_INLINE = /([A-ZÀ-Ý][^.:!?]{2,80}?)\s+((?:[Nn]on )?[Aa]cquis(?: en pratique)?|[Ee]n cours|(?:[Nn]on )?[Vv]alidée?s?)(?=\s+[A-ZÀ-Ý]|\s*$|\s*[.])/g;
+  const PERSONA = /(?<!\p{L})(je|j['’]|me|m['’]|moi|mon|ma|mes)(?!\p{L})/giu;
+  const LEVEL_RE = /^(niveau( estimé| actuel)?)\s*:\s*/i;
+  const REMARK_RE = /^(mon constat|constat|remarque|à noter|en bref|bilan)\s*:\s*/i;
+  const cleanItem = (t) => String(t).replace(/\s+/g, ' ').replace(/\s*([;,])\s*/g, '$1 ').replace(/[.;,]\s*$/, '').trim();
+  const stemW = (w) => w.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '');
+  const near = (a, b) => a === b || (a.length >= 5 && b.length >= 5 && (a.slice(0, 5) === b.slice(0, 5) || a.includes(b) || b.includes(a)));
+  const bag = (t) => new Set(String(t).split(/[^\p{L}\p{N}]+/u).filter((w) => w.length >= 3 && !/^(les|des|une|dans|pour|avec|sur|tes|ton|ta|aux|par|qui|que|est|son|ses|leur|plus|sans|entre)$/i.test(w)).map(stemW));
+  const parasOf = (n) => n._blocks.filter((b) => typeof b === 'string');
+  const wordsOf = (t) => (t.match(/\p{L}+/gu) || []).length;
+  const personaRatio = (n) => { const t = parasOf(n).join(' '); return (t.match(PERSONA) || []).length / Math.max(1, wordsOf(t)); };
+  const hasNotions = (n) => n.children.some((c) => c._notion) || n.children.some(hasNotions);
+  const quizCount = (n) => n._ex.filter((e) => e.quiz).length + n.children.reduce((a, c) => a + quizCount(c), 0);
+  const textOf = (n) => [n.title, ...parasOf(n), ...n._blocks.filter((b) => b && b.list).flatMap((b) => [b.intro, ...b.list])].join('\n');
+
+  // 1. Dans chaque section : listes à libellé, niveau, constat
+  function labelLists(n) {
+    const keep = [];
+    const str = (b) => {
+      if (LEVEL_RE.test(b)) { const [lv, ...rest] = b.replace(LEVEL_RE, '').split(/(?<=\S)\s+(?=(?:Tu|Vous|Ce que|Mon constat)\b)/); n._level = cleanItem(lv); if (rest.length) keep.push(rest.join(' ')); return; }
+      if (REMARK_RE.test(b)) { n._remark = cleanItem(b.replace(REMARK_RE, '')) + '.'; return; }
+      keep.push(b);
+    };
+    n._blocks.forEach((b) => {
+      if (b && b.list && b.intro) {
+        // le libellé peut être collé à la phrase précédente (« … à consolider Tu as découvert : »)
+        const intro = b.intro.trim();
+        const before = labelCut(intro, NOTION_CORE);
+        if (before !== null && b.list.length >= 2 && !n.children.length) {
+          if (before) str(before);
+          b.list.forEach((it) => { const c = mk(cleanItem(it).slice(0, 120)); c._notion = true; n.children.push(c); });
+          n._bullets = n._bullets.filter((x) => !b.list.includes(x));
+          return;
+        }
+        const beforeS = labelCut(intro, SKILL_CORE);
+        if (beforeS !== null && b.list.length) {
+          if (beforeS) str(beforeS);
+          n._skills = (n._skills || []).concat(b.list.map(cleanItem));
+          n._bullets = n._bullets.filter((x) => !b.list.includes(x));
+          return;
+        }
+      }
+      if (typeof b === 'string') { str(b); return; }
+      keep.push(b);
+    });
+    n._blocks = keep;
+    n.children.forEach(labelLists);
+  }
+
+  // 2. Rôle d'une section de premier niveau
+  function roleOf(n) {
+    if (quizCount(n) >= 2 || (ASSESS_TITLE.test(n.title) && n._ex.length)) return 'assessment';
+    if (n.children.length >= 2 && n.children.filter((c) => PLAN_STEP.test(c.title)).length >= n.children.length * 0.6) return 'plan';
+    const items = n._blocks.filter((b) => b && b.list).flatMap((b) => b.list);
+    if (items.length >= 4 && items.filter((x) => STATUS_RE.test(x)).length >= items.length * 0.6 && !n.children.length) return 'status';
+    if (!n.children.length && (parasOf(n).join(' ').match(STATUS_INLINE) || []).length >= 3) return 'status';
+    if (hasNotions(n)) return 'content';
+    if (!n.children.length && (personaRatio(n) >= 0.012 || META_TITLE.test(n.title))) return 'meta';
+    return 'content';
+  }
+
+  function refine(root) {
+    labelLists(root);
+    const roles = root.children.map((c) => ({ c, role: roleOf(c) }));
+    const content = roles.filter((r) => r.role === 'content' && hasNotions(r.c));
+    if (!content.length) return; // pas de signal fiable : on garde la structure telle quelle
+    const metaMd = [];
+    let plan = [], missions = [];
+    const kept = [];
+    roles.forEach(({ c, role }) => {
+      if (role === 'meta' || (role === 'content' && !hasNotions(c) && personaRatio(c) >= 0.008)) {
+        const body = [...parasOf(c), ...c._blocks.filter((b) => b && b.list).map((b) => (b.intro ? b.intro + '\n' : '') + b.list.map((x) => `- ${x}`).join('\n'))].join('\n\n');
+        metaMd.push(`### ${c.title.replace(/^\s*\d{1,2}[.)]?\s+/, '')}\n\n${body}`);
+      } else if (role === 'plan') {
+        plan = c.children.map((s) => s.title.replace(PLAN_STEP, '').replace(/^\s*[—–:.-]\s*/, '').trim());
+        metaMd.push(`### ${c.title.replace(/^\s*\d{1,2}[.)]?\s+/, '')}\n\n${plan.map((p, i) => `${i + 1}. ${p}`).join('\n')}`);
+      } else if (role === 'status') {
+        c._blocks.filter((b) => b && b.list).forEach((b) => b.list.forEach((x) => { const m = x.match(STATUS_RE); if (m) missions.push({ t: cleanItem(m[1]), st: cleanItem(m[2]).toLowerCase() }); }));
+        if (!missions.length) [...parasOf(c).join(' ').matchAll(STATUS_INLINE)].forEach((m) => { const t = cleanItem(m[1]).replace(/^(mission( professionnelle)?|niveau( actuel)?( estimé)?)\s+/gi, ''); if (t.split(' ').length <= 12) missions.push({ t, st: m[2].toLowerCase() }); });
+        metaMd.push(`### ${c.title.replace(/^\s*\d{1,2}[.)]?\s+/, '')}\n\n${missions.map((m) => `- ${m.t} : ${m.st}`).join('\n')}`);
+      } else {
+        if (role === 'assessment') { c.title = /questions?|qcm|quiz|diagnostic|vérifie/i.test(c.title) ? 'Vérifie ta compréhension' : c.title; c._assess = true; }
+        kept.push(c);
+      }
+    });
+    // Une seule section de contenu qui regroupe les vrais chapitres (« Diagnostic détaillé par domaine ») : on la déplie
+    let chapters = kept.filter((c) => !c._assess);
+    const assess = kept.filter((c) => c._assess);
+    if (chapters.length === 1 && chapters[0].children.length >= 2 && chapters[0].children.some((x) => x.children.some((y) => y._notion))) {
+      const wrap = chapters[0];
+      const intro = parasOf(wrap).join(' ');
+      if (intro) metaMd.unshift(intro);
+      chapters = wrap.children;
+    }
+    // Le plan du document ordonne les chapitres (première étape qui les mentionne)
+    if (plan.length) {
+      const pb = plan.map(bag);
+      const rank = (ch) => { const b = bag(ch.title); let best = 99; pb.forEach((p, i) => { if ([...b].some((w) => [...p].some((x) => near(w, x)))) best = Math.min(best, i); }); return best; };
+      chapters = chapters.map((ch, i) => ({ ch, r: rank(ch), i })).sort((a, b) => a.r - b.r || a.i - b.i).map((x) => x.ch);
+    }
+    // Missions du tableau : rattachées au chapitre qui partage le plus de termes
+    missions.forEach((m) => {
+      const mb = bag(m.t);
+      let best = null, score = 0;
+      chapters.forEach((ch) => { const cb = bag(textOf(ch) + ' ' + ch.children.map((x) => x.title).join(' ') + ' ' + (ch._skills || []).join(' ')); const s = [...mb].filter((w) => [...cb].some((x) => near(w, x))).length; if (s > score) { score = s; best = ch; } });
+      (best || root)._missions = ((best || root)._missions || []).concat(m);
+    });
+    root.children = [...chapters, ...assess];
+    if (metaMd.length) root._blocks.push({ md: metaMd.join('\n\n') });
+  }
+
   function build(lines, fileTitle) {
     const body = bodySize(lines);
     const dt = docTitleOf(lines, body);
@@ -273,7 +421,11 @@
     // 1. Titres : style, numérotation, mots-clés. Une ligne qui commence par un libellé n'en est pas un.
     const heads = [];
     const cont = new Set();
+    const items = new Set(); // lignes d'une liste sans caractère de puce
+    let labelX = null;
     lines.forEach((l, i) => {
+      if (labelX !== null) { if (l.x > labelX + 6 && l.text.length <= 140) { items.add(i); return; } labelX = null; }
+      if (/:\s*$/.test(l.text) && l.text.length <= 90 && !BULLET_RE.test(l.text)) labelX = l.x;
       if (isTitle(l) || l.lead || QUESTION_RE.test(l.text) || LABEL_RE.test(l.text) && !EX_SECTION.test(l.text.replace(/[:.]$/, '')) && !SUM_SECTION.test(l.text.replace(/[:.]$/, ''))) return;
       const prev = lines[i - 1];
       if (prev && QUESTION_RE.test(prev.text) && !/\?\s*$/.test(prev.text)) return;
@@ -381,7 +533,9 @@
         if (newPara) flushBlock();
         else { block.text += (block.text.endsWith('-') ? '' : ' ') + t; return; }
       }
-      const bullet = t.match(BULLET_RE);
+      const bullet = t.match(BULLET_RE) || (items.has(i) ? [t, t] : null);
+      // élément sur deux lignes : la suite commence par une minuscule
+      if (items.has(i) && list && list.list.length && /^[a-zà-ÿ]/.test(t) && !/[.;]$/.test(list.list[list.list.length - 1])) { list.list[list.list.length - 1] += ' ' + t; return; }
       if (mode === 'sum') { flushPara(); root._keys.push((bullet ? bullet[1] : t).trim()); return; }
       if (mode === 'ex') {
         // énoncé sans libellé dans une section d'exercices : un exercice par paragraphe
@@ -425,6 +579,7 @@
       n.children = n.children.filter((c) => c.children.length || c._blocks.length || c._bullets.length || c._keys.length || c._ex.length);
     })(root);
 
+    refine(root);
     finalizeNode(root);
     return root;
   }

@@ -56,6 +56,7 @@
       ...(node.module && typeof node.module === 'object' ? { module: { pretest: String(node.module.pretest || ''), learned: !!node.module.learned, generated: !!node.module.generated, sources: Array.isArray(node.module.sources) ? node.module.sources : [], date: node.module.date || null, ...(node.module.lessonDone ? { lessonDone: lessonRes(node.module.lessonDone) } : {}) } } : {}),
       ...(node.lessonDone ? { lessonDone: lessonRes(node.lessonDone) } : {}),
       keyPoints: Array.isArray(node.keyPoints) ? node.keyPoints.map(String).filter(Boolean) : [],
+      ...(Array.isArray(node.objectives) && node.objectives.length ? { objectives: node.objectives.map(String).filter(Boolean).slice(0, 12) } : {}),
       status: ['todo', 'doing', 'done'].includes(node.status) ? node.status : 'todo',
     });
     if (keepIds && ID.test(String(node.id || ''))) n.id = node.id;

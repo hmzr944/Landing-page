@@ -1841,14 +1841,25 @@ a.xp:hover { transform: translateY(-1px); }
 .mascot[data-rank='6'] { --psize: 1.04; --pb: #2E9C88; --pd: #1C766A; --ph: #8CDAC8; --pbelly: #BDEDE2; --plimb: #6B4527; }
 .mascot[data-rank='7'] { --psize: 1.07; --pb: #5CC9A7; --pd: #2F9C82; --ph: #B6F0DF; --pbelly: #DAF8EE; --plimb: #2F9C82; --pca: #F5C84B; --pcb: #D9A31F; --pch: #FFF0B3; }
 
-/* Nuit : la peau passe au bleu (sauf la graine) et les feuilles au turquoise ; l'or reste or */
-:root[data-theme='dark'] .mascot:not([data-rank='0']) :is(.p-body, .p-shade, .p-belly, .p-hi, .p-arm-round, .p-foot) { filter: hue-rotate(95deg) saturate(1.15) brightness(1.05); }
-:root[data-theme='dark'] .mascot :is(.p-leaf, .p-arm-leaf, .p-belly-leaf, .p-stem) { filter: hue-rotate(35deg) saturate(1.1); }
-:root[data-theme='dark'] .mascot:not([data-rank='7']) .p-canopy { filter: hue-rotate(35deg) saturate(1.1); }
+/* Nuit : une vraie palette (et non un filtre : Safari n'applique pas hue-rotate aux éléments d'un SVG).
+   Peau bleu lune, feuilles turquoise, graine lavande ; la couronne dorée de la forêt ancienne reste dorée. */
+:root[data-theme='dark'] .mascot { --pb: #6EA8FF; --pd: #3F78E0; --ph: #B9D6FF; --pbelly: #D6E6FF; --plimb: #3F78E0; --pla: #5FE0D0; --plb: #2BB5A8; --pstem: #2BB5A8; --pca: #4FD3C4; --pcb: #26A89C; --pch: #A8F2E9; --ptrunk: #7A6390; --pcheek: #FF9EC0; --paura: #A9C4FF; }
+:root[data-theme='dark'] .mascot[data-rank='0'] { --pb: #C7A8F0; --pd: #9C7BD6; --ph: #E6D8FB; --pbelly: #EFE6FD; --plimb: #9C7BD6; }
+:root[data-theme='dark'] .mascot[data-rank='1'] { --pb: #8FC0FF; --pd: #5C93E8; --ph: #CFE2FF; --pbelly: #E2EDFF; --plimb: #5C93E8; }
+:root[data-theme='dark'] .mascot[data-rank='3'] { --pb: #5D97F7; --pd: #3570D6; --ph: #AFCDFF; --pbelly: #CBDFFF; --plimb: #3570D6; }
+:root[data-theme='dark'] .mascot[data-rank='4'] { --pb: #5A8DF0; --pd: #3466C9; --ph: #ABC7FB; --pbelly: #CADBFD; --plimb: #6E5A86; }
+:root[data-theme='dark'] .mascot[data-rank='5'] { --pb: #4F7FE0; --pd: #2E5CB8; --ph: #A2BCF5; --pbelly: #C3D3F8; --plimb: #65507F; }
+:root[data-theme='dark'] .mascot[data-rank='6'] { --pb: #4C74D6; --pd: #2C52A8; --ph: #A0B5EE; --pbelly: #C1CDF5; --plimb: #5C4775; }
+:root[data-theme='dark'] .mascot[data-rank='7'] { --pb: #7AA8FF; --pd: #4A7BE0; --ph: #C3D9FF; --pbelly: #DEE9FF; --plimb: #4A7BE0; --pca: #F5C84B; --pcb: #D9A31F; --pch: #FFF0B3; }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) .mascot:not([data-rank='0']) :is(.p-body, .p-shade, .p-belly, .p-hi, .p-arm-round, .p-foot) { filter: hue-rotate(95deg) saturate(1.15) brightness(1.05); }
-  :root:not([data-theme='light']) .mascot :is(.p-leaf, .p-arm-leaf, .p-belly-leaf, .p-stem) { filter: hue-rotate(35deg) saturate(1.1); }
-  :root:not([data-theme='light']) .mascot:not([data-rank='7']) .p-canopy { filter: hue-rotate(35deg) saturate(1.1); }
+  :root:not([data-theme='light']) .mascot { --pb: #6EA8FF; --pd: #3F78E0; --ph: #B9D6FF; --pbelly: #D6E6FF; --plimb: #3F78E0; --pla: #5FE0D0; --plb: #2BB5A8; --pstem: #2BB5A8; --pca: #4FD3C4; --pcb: #26A89C; --pch: #A8F2E9; --ptrunk: #7A6390; --pcheek: #FF9EC0; --paura: #A9C4FF; }
+  :root:not([data-theme='light']) .mascot[data-rank='0'] { --pb: #C7A8F0; --pd: #9C7BD6; --ph: #E6D8FB; --pbelly: #EFE6FD; --plimb: #9C7BD6; }
+  :root:not([data-theme='light']) .mascot[data-rank='1'] { --pb: #8FC0FF; --pd: #5C93E8; --ph: #CFE2FF; --pbelly: #E2EDFF; --plimb: #5C93E8; }
+  :root:not([data-theme='light']) .mascot[data-rank='3'] { --pb: #5D97F7; --pd: #3570D6; --ph: #AFCDFF; --pbelly: #CBDFFF; --plimb: #3570D6; }
+  :root:not([data-theme='light']) .mascot[data-rank='4'] { --pb: #5A8DF0; --pd: #3466C9; --ph: #ABC7FB; --pbelly: #CADBFD; --plimb: #6E5A86; }
+  :root:not([data-theme='light']) .mascot[data-rank='5'] { --pb: #4F7FE0; --pd: #2E5CB8; --ph: #A2BCF5; --pbelly: #C3D3F8; --plimb: #65507F; }
+  :root:not([data-theme='light']) .mascot[data-rank='6'] { --pb: #4C74D6; --pd: #2C52A8; --ph: #A0B5EE; --pbelly: #C1CDF5; --plimb: #5C4775; }
+  :root:not([data-theme='light']) .mascot[data-rank='7'] { --pb: #7AA8FF; --pd: #4A7BE0; --ph: #C3D9FF; --pbelly: #DEE9FF; --plimb: #4A7BE0; --pca: #F5C84B; --pcb: #D9A31F; --pch: #FFF0B3; }
 }
 
 /* =========================================================

@@ -54,6 +54,16 @@ La page **Méthode** de l'application détaille chaque point avec ses sources et
 - **Mes cours** : les sujets, l'import PDF, et pour chaque cours une barre qui montre l'état de ses notions.
 - **Ma progression** : notions par état, à retravailler, les plus solides, progression par matière, mémoire moyenne et fiabilité de ta confiance, révisions prévues sur 7 jours, calendrier d'activité sur 16 semaines, dernières sessions, examens, Pousse et trophées.
 
+### Analyse rapide d'un PDF : comprendre le document avant de le découper
+
+Comme les outils open source d'analyse de documents ([Docling](https://github.com/docling-project/docling) d'IBM, [unstructured](https://github.com/Unstructured-IO/unstructured)), Arbor donne un **rôle** à chaque bloc avant d'en faire des chapitres :
+
+- **Listes à libellé** : « Tu as découvert : », « Notions : », « Vocabulaire : » deviennent des notions (sous-parties) ; « Ce que tu ne maîtrises pas encore : », « Compétences : », « Objectifs : » deviennent les objectifs du chapitre et des exercices pratiques. Les puces dessinées en image (sans caractère, fréquent dans les exports Word) sont reconnues à leur retrait sous la ligne « … : ».
+- **Sections** : contenu (porte des notions), accompagnement (évaluation, avis, recommandation : texte à la première personne, sans notions), plan (étapes), tableau d'état (« mission : non acquis »), questions (QCM).
+- Seul le contenu devient des chapitres, ordonnés selon le plan du document s'il en a un. L'accompagnement reste lisible dans la vue d'ensemble, les missions deviennent des exercices du chapitre qui partage le plus de termes, et le QCM devient « Vérifie ta compréhension ». « Niveau estimé » et « Constat » sont gardés en tête du chapitre. Une phrase à la première personne n'est jamais un point clé.
+- Quand les notions n'ont que leur nom, l'aperçu propose de **rédiger leur cours** en arrière-plan.
+- Un cours classique, sans ces signaux, garde sa structure.
+
 ### Carte d'exploration
 
 Dès qu'un cours a au moins deux chapitres, l'onglet **Carte** (ouvert automatiquement après un import ou la création d'un parcours) le montre comme un sentier de **zones**, une par chapitre. Chaque zone affiche son domaine (réseau, systèmes, sécurité, données, vivant, maths, droit…), sa difficulté, ses objectifs, ses notions colorées selon leur état, et mène à une action : la leçon de la zone ou sa révision. La zone recommandée est celle de la prochaine leçon. Toucher une notion montre sur quoi elle s'appuie et ce qu'elle prépare, avec les mots du cours qui justifient chaque lien. L'arbre complet reste disponible.
@@ -139,6 +149,7 @@ npm i -D playwright && npx playwright install chromium
 node tests/data-safety.js
 node tests/learning-flow.js
 node tests/explore.js
+node tests/pdf-structure.js
 ```
 
 `tests/data-safety.js` sert le dépôt sur un port local et vérifie : données illisibles conservées, copie de secours, alerte de stockage plein, sauvegarde et restauration complètes, absence de doublons, liens `javascript:` neutralisés, écriture à la fermeture, et aucune erreur JavaScript sur les écrans principaux.
@@ -146,6 +157,8 @@ node tests/explore.js
 `tests/learning-flow.js` vérifie les six états des notions, le plan et le bouton « Commencer », l'enchaînement révision puis leçon, l'historique des sessions, Mes cours, Ma progression et les anciennes adresses.
 
 `tests/explore.js` vérifie l'analyse (prérequis justifiés, liens entre chapitres, thèmes, objectifs, pas de difficulté inventée) et la carte (zones, zone recommandée, détail d'une notion, lignes, leçon, bascule vers l'arbre, mobile).
+
+`tests/pdf-structure.js` fabrique deux PDF (un bilan et un cours classique) et vérifie les rôles des sections, les notions et objectifs, l'ordre du plan, les missions, l'absence de phrases d'accompagnement en points clés, le QCM, et qu'un cours classique n'est pas modifié.
 
 ## Structure
 

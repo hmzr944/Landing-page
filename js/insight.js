@@ -126,7 +126,9 @@
       const kn = ns.filter((n) => diff.get(n.id) > 0);
       const dAvg = kn.length ? kn.reduce((a, n) => a + diff.get(n.id), 0) / kn.length : 0;
       const objectives = [];
-      ns.forEach((n) => { const o = objective(n.title); if (!objectives.includes(o)) objectives.push(o); });
+      // objectifs écrits dans le document (« ce que tu dois savoir faire ») d'abord ; sinon formulés depuis les titres
+      (ch.objectives || []).forEach((o) => { const t = o.charAt(0).toUpperCase() + o.slice(1); if (!objectives.includes(t)) objectives.push(t); });
+      if (!objectives.length) ns.forEach((n) => { const o = objective(n.title); if (!objectives.includes(o)) objectives.push(o); });
       const ext = new Set(); ns.forEach((n) => rel.get(n.id).pre.forEach((p) => { const z = zoneOf.get(p.id); if (z !== zi && z >= 0) ext.add(z); }));
       return { i: zi, node: ch, notions: ns, theme: themeOf(ch), difficulty: !dAvg ? 0 : dAvg >= 2.3 ? 3 : dAvg >= 1.5 ? 2 : 1, objectives: objectives.slice(0, 4), needs: [...ext].sort((a, b) => a - b) };
     });

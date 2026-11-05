@@ -151,7 +151,7 @@
     return func >= 0.16 && code < 0.06;
   }
 
-  const DEF = /(?<!\p{L})(est (un|une|le|la|l['’]|ce qui)|sont (des|les)|désigne|se définit|on appelle|on nomme|correspond à|permet de|sert à|consiste à|signifie)(?!\p{L})/iu;
+  const DEF = /(?<!\p{L})(?:(est (un|une|le|la|ce qui)|sont (des|les)|désigne|se définit|on appelle|on nomme|correspond à|permet de|sert à|consiste à|signifie)(?!\p{L})|est l['’](?=\p{L}))/iu;
   // BM25 (k1 = 1,4 ; b = 0,75), titre de section et de page comptés en bonus
   function rank(list, weights) {
     const docs = list.map((p) => tokens(p.text));

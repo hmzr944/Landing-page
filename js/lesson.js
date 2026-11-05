@@ -3,7 +3,7 @@
    Le contenu est tiré automatiquement du cours (analyse rapide) ; une question ratée revient à la fin. */
 (function () {
   const STOP = new Set('les des une dans pour avec sans sont cette ces leur leurs elle elles ils qui que quoi dont mais donc ainsi plus moins très tout tous toute toutes autre autres même entre aussi peut fait être avoir comme lors chez sous vers après avant depuis pendant selon notre votre leurs alors'.split(' '));
-  const DEF = /(?<!\p{L})(est (un|une|le|la|l['’]|ce qui)|sont (des|les)|désigne|se définit|on appelle|correspond à|permet de|sert à|consiste à|signifie)(?!\p{L})/iu;
+  const DEF = /(?<!\p{L})(?:(est (un|une|le|la|ce qui)|sont (des|les)|désigne|se définit|on appelle|correspond à|permet de|sert à|consiste à|signifie)(?!\p{L})|est l['’](?=\p{L}))/iu;
   const clean = (t) => String(t || '').replace(/==|\*\*|__|`/g, '').replace(/^#+\s*/gm, '').replace(/\s+/g, ' ').trim();
   const sentences = (t) => clean(t).split(/(?<=[.!?])\s+(?=[A-ZÀ-ÝÉ«"(])/).map((x) => x.trim()).filter((x) => x.length > 25);
   // Raccourcit à une limite de phrase ou de virgule, jamais au milieu d'un mot

@@ -2704,6 +2704,9 @@
     let count = 0, kps = 0, exs = 0;
     walk(root, (n) => { count++; kps += n.keyPoints.length; exs += (n.exercises || []).length; });
     const sel = { color: PALETTE[state.subjects.length % PALETTE.length], icon: 'book-open' };
+    // Chapitres dont les notions n'ont que leur titre (bilan, programme détaillé) : Arbor peut en rédiger le cours
+    const toWrite = root.children.filter((c) => c.children.length >= 2 && c.children.filter((x) => !x.notes.trim() && !x.children.length).length >= 2);
+    const emptyN = toWrite.reduce((a, c) => a + c.children.filter((x) => !x.notes.trim()).length, 0);
     const outline = (n) => `<li><span>${esc(n.title)}</span>${n.keyPoints.length ? ` <em class="num">${ic('star', true)}${n.keyPoints.length}</em>` : ''}
       ${n.children.length ? `<ul>${n.children.map(outline).join('')}</ul>` : ''}</li>`;
     $('#modalBody').innerHTML = `
@@ -2715,6 +2718,7 @@
           <span class="label-like">Aperçu du plan</span>
           <div class="outline"><ul>${root.children.map(outline).join('') || '<li>Aucune partie détectée : le texte sera rangé dans la vue d’ensemble.</li>'}</ul></div>
         </div>
+        ${!into && emptyN >= 3 ? `<label class="check"><input type="checkbox" id="pvWrite" checked /> Rédiger le cours des ${emptyN} notions : le document ne donne que leur nom, Arbor écrit chaque cours à partir de sources fiables, en arrière-plan</label>` : ''}
         <div class="row-btns end"><button type="button" class="btn ghost" data-close>Annuler</button><button class="btn">${ic('check')}${into ? 'Ajouter ici' : 'Créer le cours'}</button></div>
       </form>`;
     const el = $('#modalBody');
@@ -2732,7 +2736,9 @@
         const title = $('#pvTitle', el).value.trim() || root.title;
         const s = makeSubject(title, { ...sel, root });
         state.subjects.push(s);
+        const write = $('#pvWrite', el) && $('#pvWrite', el).checked;
         save(); closeModal();
+        if (write) { const ids = new Set(toWrite.map((c) => c.id)); setTimeout(async () => { await writeCourses(s, s.root.children.filter((c) => ids.has(c.id))); render(view); }, 300); }
         // Plusieurs chapitres : on ouvre directement la carte, pour voir la structure du cours d'un coup d'œil
         const zones = s.root.children.filter((c) => c.children.length).length >= 2;
         mapMode = 'zones'; Explore.reset();
