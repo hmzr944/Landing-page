@@ -2445,3 +2445,171 @@ html.in-onboarding .mascot, html.in-onboarding .bottom-nav { visibility: hidden;
 .onb-fb p.ok b { color: var(--st-mastered); } .onb-fb p.ko b { color: var(--danger); }
 @media (min-width: 720px) { .onb-stage { justify-content: center; } .onb-foot { flex-direction: row; align-items: center; } .onb-foot .btn.big { width: auto; padding: 0 32px; } .onb-foot small { text-align: left; } }
 @media (prefers-reduced-motion: reduce) { .onb-stage.in > *, .onb-zones li { animation: none; } }
+
+/* =========================================================
+   Palette « Canopée » : émeraude, lagon, agrume, une note abricot
+   Harmonie analogue (lagon → émeraude → agrume) et une seule complémentaire chaude (abricot),
+   comme le trio vif des débuts, mais orientée vert. Clair et sombre réglés séparément.
+   Reflets : approximation web du verre d'Apple (dégradés, biseaux, balayage lumineux), pas un matériau officiel.
+   ========================================================= */
+:root {
+  --bg: #F3F8F6; --surface: #FFFFFF; --surface-2: #EAF3F0; --surface-3: #DCEAE5;
+  --line: #D6E5DF; --line-strong: #B7CCC4;
+  --text: #0E1F1B; --text-2: #46605A; --text-3: #5F7671;
+  --accent: #0A8460; --accent-ink: #087455; --on-accent: #FFFFFF;
+  --c1: #12A57B; --c2: #1F9FC0; --c3: #FF8F5E; --c4: #A8CF3F;
+  --btn-a: #0A8460; --btn-b: #0C7C8C;
+  --glow: rgb(10 132 96 / 0.34); --jade-glow: var(--glow);
+  --glint: color-mix(in oklab, var(--c1) 55%, var(--c2));
+  --shadow-1: 0 1px 2px rgb(12 60 52 / 0.07);
+  --shadow-2: 0 1px 2px rgb(12 60 52 / 0.06), 0 12px 30px -14px rgb(12 60 52 / 0.24);
+  --glass-shadow: 0 1px 1px rgb(12 60 52 / 0.05), 0 24px 52px -26px rgb(12 60 52 / 0.32);
+  --st-learning: #1C9AA8; --st-mastered: #0F9D6E; --done: #0F9D6E;
+}
+:root[data-theme='dark'] {
+  --bg: #0A1211; --surface: #111C1A; --surface-2: #172522; --surface-3: #20302C;
+  --line: #22322E; --line-strong: #344640;
+  --text: #E4F0EC; --text-2: #A0B6B0; --text-3: #849A94;
+  --accent: #2BC795; --accent-ink: #5ED6B0; --on-accent: #04170F;
+  --accent-soft: color-mix(in oklab, #2BC795 20%, transparent);
+  --c1: #2BC795; --c2: #3BB8D6; --c3: #FF9E70; --c4: #B6DB55;
+  --btn-a: #2BC795; --btn-b: #33B7C9;
+  --glow: rgb(43 199 149 / 0.32); --jade-glow: var(--glow);
+  --glint: #CFFFF0;
+  --st-learning: #3BB8C6; --st-mastered: #3FCF96; --done: #3FCF96;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme='light']) {
+  --bg: #0A1211; --surface: #111C1A; --surface-2: #172522; --surface-3: #20302C;
+  --line: #22322E; --line-strong: #344640;
+  --text: #E4F0EC; --text-2: #A0B6B0; --text-3: #849A94;
+  --accent: #2BC795; --accent-ink: #5ED6B0; --on-accent: #04170F;
+  --accent-soft: color-mix(in oklab, #2BC795 20%, transparent);
+  --c1: #2BC795; --c2: #3BB8D6; --c3: #FF9E70; --c4: #B6DB55;
+  --btn-a: #2BC795; --btn-b: #33B7C9;
+  --glow: rgb(43 199 149 / 0.32); --jade-glow: var(--glow);
+  --glint: #CFFFF0;
+  --st-learning: #3BB8C6; --st-mastered: #3FCF96; --done: #3FCF96;
+} }
+
+/* Fond : les quatre taches reprennent le trio, l'abricot reste discret */
+.b1 { background: var(--c1); }
+.b2 { background: var(--c2); opacity: 0.42; }
+.b3 { background: var(--c3); opacity: 0.22; }
+.b4 { background: var(--c4); opacity: 0.3; }
+.lf-l { fill: #FF7A6B; } .lf-r { fill: #FFB347; }
+.chip-btn[aria-pressed='true'], .lesson-card .lc-ic { color: var(--on-accent); }
+
+/* ---------- Reflets sur tous les boutons ----------
+   ::before = reflet qui suit le doigt ou la souris ; ::after = balayage lumineux (survol, appui, et de temps en temps sur l'action principale). */
+.btn, .icon-btn, .chip-btn, .seg, .pill-btn { position: relative; isolation: isolate; overflow: hidden; }
+.btn:not(.ghost):not(.danger):not(.warn) {
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.30), rgb(255 255 255 / 0.04) 50%, rgb(0 0 0 / 0.04)), linear-gradient(135deg, var(--btn-a), var(--btn-b));
+  color: var(--on-accent); border: 1px solid rgb(255 255 255 / 0.18);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.5), inset 0 -2px 6px rgb(0 0 0 / 0.10), 0 10px 24px -12px var(--glow), 0 1px 1px rgb(0 0 0 / 0.06);
+}
+.btn.ok { --btn-a: var(--done); --btn-b: var(--c1); }
+.btn.ghost, .btn.warn, .icon-btn, .chip-btn:not([aria-pressed='true']) {
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.55), rgb(255 255 255 / 0.10) 55%), color-mix(in oklab, var(--surface) 60%, transparent);
+  border: 1px solid var(--glass-edge);
+  box-shadow: inset 0 1px 0 var(--glass-hi), inset 0 -1px 0 rgb(12 60 52 / 0.05), 0 6px 16px -10px rgb(12 60 52 / 0.25);
+  backdrop-filter: blur(14px) saturate(170%); -webkit-backdrop-filter: blur(14px) saturate(170%);
+}
+:root[data-theme='dark'] :is(.btn.ghost, .btn.warn, .icon-btn, .chip-btn:not([aria-pressed='true'])) { background: linear-gradient(180deg, rgb(255 255 255 / 0.10), rgb(255 255 255 / 0.02) 55%), color-mix(in oklab, var(--surface) 70%, transparent); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.14), 0 8px 20px -12px rgb(0 0 0 / 0.6); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme='light']) :is(.btn.ghost, .btn.warn, .icon-btn, .chip-btn:not([aria-pressed='true'])) { background: linear-gradient(180deg, rgb(255 255 255 / 0.10), rgb(255 255 255 / 0.02) 55%), color-mix(in oklab, var(--surface) 70%, transparent); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.14), 0 8px 20px -12px rgb(0 0 0 / 0.6); } }
+.chip-btn[aria-pressed='true'] { background: linear-gradient(180deg, rgb(255 255 255 / 0.28), transparent 55%), linear-gradient(135deg, var(--btn-a), var(--btn-b)); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.45), 0 6px 14px -8px var(--glow); }
+.btn::before, .icon-btn::before, .chip-btn::before {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; z-index: -1; pointer-events: none;
+  background: radial-gradient(90px circle at var(--mx, 50%) var(--my, 0%), rgb(255 255 255 / 0.45), transparent 70%);
+  opacity: 0; transition: opacity 240ms ease;
+}
+.btn:hover::before, .icon-btn:hover::before, .chip-btn:hover::before, .btn:active::before { opacity: 1; }
+.btn::after, .icon-btn::after, .chip-btn::after {
+  content: ''; position: absolute; inset: -1px; border-radius: inherit; z-index: -1; pointer-events: none;
+  background: linear-gradient(105deg, transparent 30%, rgb(255 255 255 / 0.55) 48%, rgb(255 255 255 / 0.15) 54%, transparent 68%);
+  transform: translateX(-130%);
+}
+.btn:hover::after, .btn:focus-visible::after, .btn:active::after, .icon-btn:hover::after, .chip-btn:hover::after { transform: translateX(130%); transition: transform 800ms var(--spring); }
+/* l'action principale de l'écran attire l'œil : un reflet passe toutes les quelques secondes */
+.btn.big:not(.ghost):not(.danger)::after, .onb-foot .btn::after { animation: btn-sheen 6.5s ease-in-out 1.2s infinite; }
+@keyframes btn-sheen { 0%, 78% { transform: translateX(-130%); } 92%, 100% { transform: translateX(130%); } }
+.btn:not(.ghost):active { transform: translateY(1px) scale(0.985); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35), inset 0 2px 8px rgb(0 0 0 / 0.16), 0 4px 10px -8px var(--glow); }
+
+/* ---------- Titres : un éclat de lumière les traverse à l'arrivée ---------- */
+.page-head h1, .onb-hero h1, .onb-q h2:not(.onb-ask), .big-label.solo, .featured h2, .sec-title, .m-hero h1 {
+  background: linear-gradient(100deg, var(--text) 0 40%, var(--glint) 48%, color-mix(in oklab, var(--glint) 40%, var(--text)) 52%, var(--text) 60% 100%);
+  background-size: 280% 100%; background-position: 100% 0;
+  -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent;
+  animation: title-glint 2.2s var(--spring) 0.35s both;
+}
+@keyframes title-glint { from { background-position: 100% 0; } to { background-position: 0 0; } }
+:is(.page-head h1, .onb-hero h1, .featured h2):hover { animation: title-glint 1.6s var(--spring) both; }
+.big-num { background: linear-gradient(135deg, var(--text) 25%, var(--c1) 70%, var(--c2)); -webkit-background-clip: text; background-clip: text; }
+
+/* ---------- Onboarding : aurore, bento, verre lumineux ---------- */
+.onb {
+  background:
+    radial-gradient(60% 40% at 8% 0%, color-mix(in oklab, var(--c1) 26%, transparent), transparent 70%),
+    radial-gradient(50% 36% at 100% 12%, color-mix(in oklab, var(--c2) 22%, transparent), transparent 70%),
+    radial-gradient(60% 40% at 70% 108%, color-mix(in oklab, var(--c3) 18%, transparent), transparent 70%),
+    radial-gradient(40% 30% at 0% 90%, color-mix(in oklab, var(--c4) 16%, transparent), transparent 70%),
+    var(--bg);
+}
+.onb-bar { height: 7px; background: color-mix(in oklab, var(--text) 8%, transparent); box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.08); }
+.onb-bar span { background: linear-gradient(180deg, rgb(255 255 255 / 0.45), transparent 60%), linear-gradient(90deg, var(--c1), var(--c2)); box-shadow: 0 0 12px -2px var(--glow); }
+.onb-choice, .onb-card, .onb-opt, .onb-stats > div, .onb-zones li, .onb-fb p {
+  background: linear-gradient(160deg, rgb(255 255 255 / 0.5), rgb(255 255 255 / 0.06) 50%), var(--glass-bg);
+  border: 1px solid var(--glass-edge);
+  box-shadow: inset 0 1px 0 var(--glass-hi), 0 14px 30px -20px rgb(12 60 52 / 0.35);
+  backdrop-filter: blur(18px) saturate(170%); -webkit-backdrop-filter: blur(18px) saturate(170%);
+}
+:root[data-theme='dark'] :is(.onb-choice, .onb-card, .onb-opt, .onb-stats > div, .onb-zones li, .onb-fb p) { background: linear-gradient(160deg, rgb(255 255 255 / 0.08), rgb(255 255 255 / 0.01) 50%), var(--glass-bg); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12), 0 16px 36px -22px rgb(0 0 0 / 0.7); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme='light']) :is(.onb-choice, .onb-card, .onb-opt, .onb-stats > div, .onb-zones li, .onb-fb p) { background: linear-gradient(160deg, rgb(255 255 255 / 0.08), rgb(255 255 255 / 0.01) 50%), var(--glass-bg); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12), 0 16px 36px -22px rgb(0 0 0 / 0.7); } }
+.onb-choice, .onb-card { border-radius: 24px; }
+/* chaque tuile prend une couleur du trio pour son icône */
+.onb-choice:nth-child(4n+1), .onb-card[data-onb="pdf"], .onb-stats > div:nth-child(1) { --tc: var(--c1); }
+.onb-choice:nth-child(4n+2), .onb-card[data-onb="demo"], .onb-stats > div:nth-child(2) { --tc: var(--c2); }
+.onb-choice:nth-child(4n+3), .onb-card[data-onb="manual"], .onb-stats > div:nth-child(3) { --tc: var(--c3); }
+.onb-choice:nth-child(4n+4) { --tc: var(--c4); }
+.onb-choice > i, .onb-card > i {
+  color: #fff; border-radius: 15px;
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.38), transparent 55%), linear-gradient(140deg, color-mix(in oklab, var(--tc, var(--c1)) 80%, white), var(--tc, var(--c1)));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.5), 0 8px 16px -8px var(--tc, var(--c1));
+}
+/* Objectifs : bento 2 × 2 */
+.onb-choices { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.onb-choice { position: relative; flex-direction: column; align-items: flex-start; justify-content: space-between; gap: 18px; min-height: 132px; padding: 16px; font-weight: 600; line-height: 1.25; }
+.onb-choice[aria-pressed="true"] { border-color: var(--tc); background: linear-gradient(160deg, color-mix(in oklab, var(--tc) 22%, transparent), color-mix(in oklab, var(--tc) 6%, transparent) 60%), var(--glass-bg); box-shadow: inset 0 1px 0 var(--glass-hi), 0 0 0 1px var(--tc), 0 16px 30px -18px var(--tc); }
+.onb-choice[aria-pressed="true"]::after { content: ""; position: absolute; top: 14px; right: 14px; width: 22px; height: 22px; border-radius: 50%; margin: 0;
+  background: var(--tc) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 12.5l4 4 8-9' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 14px no-repeat; box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.5); }
+/* Premier cours : le PDF en grande tuile, démo et manuel côte à côte */
+.onb-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.onb-card { flex-direction: column; align-items: flex-start; gap: 14px; padding: 18px; min-height: 150px; justify-content: space-between; }
+.onb-card[data-onb="pdf"] { grid-column: 1 / -1; min-height: 168px;
+  background: linear-gradient(160deg, rgb(255 255 255 / 0.45), transparent 50%), radial-gradient(120% 120% at 100% 0%, color-mix(in oklab, var(--c2) 30%, transparent), transparent 60%), radial-gradient(100% 100% at 0% 100%, color-mix(in oklab, var(--c1) 30%, transparent), transparent 60%), var(--glass-bg); }
+.onb-card[data-onb="pdf"] b { font-size: 1.2rem; }
+.onb-card[data-onb="demo"] { border-color: color-mix(in oklab, var(--c2) 45%, var(--glass-edge)); }
+/* Le cours rangé : bento 1 grande tuile + 2 */
+.onb-stats { grid-template-columns: 1.25fr 1fr; grid-template-rows: auto auto; gap: 12px; }
+.onb-stats > div { border-radius: 22px; position: relative; overflow: hidden; }
+.onb-stats > div:first-child { grid-row: span 2; justify-content: flex-end; padding: 18px;
+  background: linear-gradient(160deg, rgb(255 255 255 / 0.4), transparent 50%), radial-gradient(120% 100% at 100% 0%, color-mix(in oklab, var(--c1) 34%, transparent), transparent 65%), radial-gradient(100% 90% at 0% 100%, color-mix(in oklab, var(--c2) 26%, transparent), transparent 65%), var(--glass-bg); }
+.onb-stats > div:first-child b { font-size: 3.4rem; }
+.onb-stats b { color: var(--text); background: linear-gradient(135deg, var(--text) 20%, var(--tc)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.onb-zones li i { color: var(--c1); }
+.onb-zones li:nth-child(3n+2) i { color: var(--c2); } .onb-zones li:nth-child(3n+3) i { color: var(--c3); }
+.onb-opt { border-radius: 18px; }
+@media (max-width: 340px) { .onb-choices, .onb-cards { grid-template-columns: minmax(0, 1fr); } }
+
+/* Mouvement réduit, mode calme, transparence réduite */
+@media (prefers-reduced-motion: reduce) {
+  .btn::after, .icon-btn::after, .chip-btn::after { animation: none !important; transition: none !important; }
+  .page-head h1, .onb-hero h1, .onb-q h2, .big-label.solo, .featured h2, .sec-title, .m-hero h1 { animation: none !important; background-position: 0 0; }
+}
+html.calm .btn::after, html.calm .onb-foot .btn::after { animation: none !important; }
+@media (prefers-reduced-transparency: reduce) {
+  .btn.ghost, .btn.warn, .icon-btn, .chip-btn, .onb-choice, .onb-card, .onb-opt, .onb-stats > div, .onb-zones li { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; background-color: var(--surface) !important; }
+}
+.btn-sub { border-left-color: color-mix(in oklab, currentColor 30%, transparent); }
+:root[data-theme='dark'] .logo .lg-a1 { stop-color: #5EE0B4; } :root[data-theme='dark'] .logo .lg-a2 { stop-color: #1FA3A8; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme='light']) .logo .lg-a1 { stop-color: #5EE0B4; } :root:not([data-theme='light']) .logo .lg-a2 { stop-color: #1FA3A8; } }
+.onb-hero { margin-block: auto; }

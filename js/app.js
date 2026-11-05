@@ -192,7 +192,7 @@
       if (raf) return;
       raf = requestAnimationFrame(() => {
         raf = 0;
-        const el = last.target.closest && last.target.closest('.glass');
+        const el = last.target.closest && last.target.closest('.btn, .icon-btn, .chip-btn, .glass');
         if (!el) return;
         const r = el.getBoundingClientRect();
         const x = (last.clientX - r.left) / r.width, y = (last.clientY - r.top) / r.height;
