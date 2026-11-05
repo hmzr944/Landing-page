@@ -2036,3 +2036,13 @@ html.in-lesson { overflow: hidden; }
 .ls-next { color: var(--text-3); margin: 0; }
 .calm .ls-orb i, .calm .ls-points li, .calm .ls-stage.in .ls-card { animation: none !important; }
 @media (prefers-reduced-motion: reduce) { .ls-orb i, .ls-points li, .ls-stage.in .ls-card, .ls-opt.wrong, .ls-feedback { animation: none !important; } }
+
+/* Alerte de sauvegarde : reste visible tant que l'écriture échoue */
+.save-alert { position: relative; z-index: 5; margin: 10px auto 0; width: min(640px, calc(100% - 24px)); box-sizing: border-box;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 14px; border-radius: 16px;
+  background: var(--surface); color: var(--text); border: 1.5px solid var(--danger); box-shadow: 0 12px 32px rgb(0 0 0 / .18); font-size: .95rem; }
+.save-alert > i { color: var(--danger); font-size: 1.3rem; flex: none; }
+.save-alert > span { flex: 1 1 220px; min-width: 0; }
+.restore-opts { display: grid; gap: 6px; margin-top: var(--s4); }
+.restore-opts .btn { justify-self: start; }
+.restore-opts small + .btn { margin-top: var(--s3); }

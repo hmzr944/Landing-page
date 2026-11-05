@@ -9,6 +9,8 @@
   const plural = (n, one, many) => `${fmt.format(n)} ${n > 1 ? many : one}`;
 
   const state = Store.load();
+  // Lien externe autorisé seulement en http(s) : un fichier importé ne doit pas pouvoir glisser du « javascript: »
+  const safeUrl = (u) => { try { return ['https:', 'http:'].includes(new URL(String(u)).protocol); } catch (e) { return false; } };
   const app = $('#app');
   let view = { name: 'home' };
   let treeFilter = '';
@@ -892,7 +894,7 @@
               <div class="md ${c.notes.length > 500 ? 'clamp' : ''}">${MD.render(c.notes)}</div>${c.notes.length > 500 ? `<button class="btn ghost sm more-btn" data-act="unclamp">${ic('caret-down')}Lire la suite</button>` : ''}
             </article>`).join('')}
         </div>
-        ${sources.length ? `<p class="course-src">Sources : ${sources.map((x) => `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title || x.url)}</a>`).join(', ')}</p>` : ''}
+        ${sources.length ? `<p class="course-src">Sources : ${sources.map((x) => (safeUrl(x.url) ? `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title || x.url)}</a>` : esc(x.title || x.url))).join(', ')}</p>` : ''}
       </section>`;
   }
 
@@ -2235,9 +2237,12 @@
         ${installBlock()}
         <fieldset class="field">
           <legend>Sauvegarde</legend>
+          <p class="hint">${state.stats.lastExport ? `Dernier fichier de sauvegarde : ${esc(dayLabelLong(state.stats.lastExport))}.` : 'Tes cours ne sont enregistrés que dans ce navigateur. Télécharge une sauvegarde de temps en temps.'}
+            ${Store.status.persisted === true ? ' Stockage protégé contre l’effacement automatique.' : ''}</p>
           <div class="row-btns">
-            <button type="button" class="btn ghost sm" id="expAll">${ic('download-simple')}Exporter tout</button>
-            <button type="button" class="btn ghost sm" id="impAll">${ic('upload-simple')}Importer un fichier</button>
+            <button type="button" class="btn ghost sm" id="expAll">${ic('download-simple')}Télécharger une sauvegarde</button>
+            <button type="button" class="btn ghost sm" id="impAll">${ic('upload-simple')}Restaurer un fichier</button>
+            ${Store.rescued() ? `<button type="button" class="btn ghost sm" id="rescueDl">${ic('lifebuoy')}Données illisibles mises de côté</button>` : ''}
           </div>
         </fieldset>
         <div class="row-btns end"><button class="btn">Enregistrer</button></div>
@@ -2260,7 +2265,8 @@
           dl.disabled = false;
         };
       }
-      $('#expAll', el).onclick = () => exportJSON({ subjects: state.subjects, xp: state.xp }, 'arbor-sauvegarde');
+      $('#expAll', el).onclick = () => exportBackup();
+      const rb = $('#rescueDl', el); if (rb) rb.onclick = () => downloadText(Store.rescued(), 'arbor-donnees-illisibles.json');
       $('#impAll', el).onclick = () => $('#jsonInput').click();
       $('#setForm', el).onsubmit = (e) => {
         e.preventDefault();
@@ -2286,6 +2292,21 @@
     return '';
   }
 
+  const dayLabelLong = (t) => new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' }).format(new Date(t));
+  function downloadText(text, file) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
+    a.download = file;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+  // Sauvegarde complète : cours, progression, statistiques, trophées, réglages (sans la clé)
+  function exportBackup() {
+    state.stats.lastExport = Date.now();
+    save(); Store.flush();
+    downloadText(JSON.stringify(Store.backup(state)), `arbor-sauvegarde-${SRS.dayKey()}.json`);
+    FX.toast('Sauvegarde complète téléchargée', 'success');
+  }
   function exportJSON(data, name) {
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
@@ -2300,22 +2321,34 @@
     const file = e.target.files[0];
     e.target.value = '';
     if (!file) return;
-    try {
-      const data = JSON.parse(await file.text());
-      const list = Array.isArray(data.subjects) ? data.subjects : data.root ? [data] : [];
-      if (!list.length) throw new Error('format');
-      list.forEach((s) => {
-        const ns = makeSubject(s.title || 'Sujet importé', { color: s.color, icon: s.icon, emoji: s.emoji, root: normalize(s.root) });
-        if (s.program) ns.program = s.program;
-        if (s.examDate) ns.examDate = s.examDate;
-        state.subjects.push(ns);
-      });
-      if (typeof data.xp === 'number') state.xp = Math.max(state.xp, data.xp);
-      save(); closeModal(); renderXP(); go('#/');
-      FX.toast(`${plural(list.length, 'sujet importé', 'sujets importés')}`, 'success');
-    } catch (err) {
-      FX.toast('Ce fichier n’est pas une sauvegarde Arbor. Choisis un fichier .json exporté depuis Arbor.', 'error', 4200);
-    }
+    let res = null;
+    try { res = Store.readFile(JSON.parse(await file.text())); } catch (err) { res = null; }
+    if (!res) { FX.toast('Ce fichier n’est pas une sauvegarde Arbor. Choisis un fichier .json exporté depuis Arbor.', 'error', 4200); return; }
+    const doMerge = () => {
+      const r = Store.merge(state, res.subjects);
+      if (res.xp != null) state.xp = Math.max(state.xp, res.xp);
+      save(); Store.flush(); closeModal(); renderXP(); go('#/');
+      const parts = [r.added && plural(r.added, 'sujet ajouté', 'sujets ajoutés'), r.updated && plural(r.updated, 'sujet mis à jour', 'sujets mis à jour'), r.kept && plural(r.kept, 'déjà à jour', 'déjà à jour')].filter(Boolean);
+      FX.toast(parts.join(', ') || 'Rien de nouveau', 'success', 3600);
+    };
+    if (res.kind !== 'full') { doMerge(); return; }
+    const when = res.exportedAt ? new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long', timeStyle: 'short' }).format(new Date(res.exportedAt)) : '';
+    openModal(`<h2 id="modalTitle">Restaurer la sauvegarde</h2>
+      <p class="modal-lede">${plural(res.subjects.length, 'sujet', 'sujets')}${when ? `, sauvegardés le ${esc(when)}` : ''}.</p>
+      <div class="restore-opts">
+        <button type="button" class="btn" id="rsReplace">${ic('arrow-counter-clockwise', true)}Tout remplacer</button>
+        <small class="hint">Retrouve exactement l’état sauvegardé : cours, progression, série, trophées. Ce qui est sur cet appareil est remplacé.</small>
+        <button type="button" class="btn ghost" id="rsMerge">${ic('plus', true)}Ajouter les cours</button>
+        <small class="hint">Garde ce qui est ici et ajoute les cours absents. Un cours déjà présent n’est remplacé que s’il est plus récent dans le fichier.</small>
+      </div>`, (el) => {
+      $('#rsMerge', el).onclick = doMerge;
+      $('#rsReplace', el).onclick = () => {
+        Store.replaceAll(state, res.data);
+        Store.save(state);
+        if (!Store.flush() && Store.status.lastError) return; // l'alerte de sauvegarde s'affiche déjà
+        location.hash = '#/'; location.reload();
+      };
+    });
   });
 
   /* ---------- Import PDF ---------- */
@@ -2807,5 +2840,30 @@
   // Trophées déjà mérités (anciens utilisateurs, ou activité hors session) : célébrés au démarrage
   setTimeout(checkTrophies, 1500);
   // À minuit (ou au retour sur l'onglet), les cartes dues changent
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) updateBadges(); });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) updateBadges(); else Store.flush(); });
+  addEventListener('pagehide', () => Store.flush());
+  Store.persist();
+  /* Bandeau qui reste tant que la sauvegarde échoue : l'étudiant doit le savoir avant de perdre son travail */
+  function saveAlert(kind) {
+    let b = $('#saveAlert');
+    if (!kind) { if (b) b.remove(); return; }
+    if (!b) { b = document.createElement('div'); b.id = 'saveAlert'; b.className = 'save-alert'; b.setAttribute('role', 'alert'); app.before(b); }
+    const msg = kind === 'quota' ? 'Le stockage de ce navigateur est plein : tes dernières modifications ne sont pas enregistrées.'
+      : kind === 'blocked' ? 'Tes données enregistrées étaient illisibles. Arbor ne les écrase pas : télécharge-les avant de continuer.'
+      : 'Arbor n’arrive pas à enregistrer tes modifications dans ce navigateur.';
+    b.innerHTML = `<i class="ph-fill ph-warning" aria-hidden="true"></i><span>${msg}</span><button type="button" class="btn sm">${kind === 'blocked' ? 'Télécharger' : 'Télécharger une sauvegarde'}</button>`;
+    b.querySelector('button').onclick = () => kind === 'blocked' ? downloadText(localStorage.getItem('arbor:v1') || '', 'arbor-donnees-illisibles.json') : exportBackup();
+  }
+  Store.onError(saveAlert);
+  if (Store.status.readOnly) saveAlert('blocked');
+  else if (Store.status.load !== 'ok') {
+    const day = Store.status.bakAt ? dayLabelLong(Store.status.bakAt + 'T12:00') : '';
+    setTimeout(() => openModal(`<h2 id="modalTitle">Tes données étaient abîmées</h2>
+      <p class="modal-lede">${Store.status.load === 'backup' ? `Arbor a rouvert la copie de secours du ${esc(day)}. Ce que tu as fait depuis n’y est peut-être pas.` : 'Arbor n’a trouvé aucune copie de secours lisible. Si tu as un fichier de sauvegarde, restaure-le.'}</p>
+      <p class="hint">Les données abîmées sont gardées à part : tu peux les télécharger depuis les Réglages, rubrique Sauvegarde.</p>
+      <div class="row-btns end">${Store.status.load === 'lost' ? `<button type="button" class="btn ghost" id="rcRestore">${ic('upload-simple')}Restaurer un fichier</button>` : ''}<button type="button" class="btn" id="rcOk">Compris</button></div>`, (el) => {
+      $('#rcOk', el).onclick = closeModal;
+      const r = $('#rcRestore', el); if (r) r.onclick = () => $('#jsonInput').click();
+    }), 400);
+  }
 })();

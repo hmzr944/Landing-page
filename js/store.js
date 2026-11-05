@@ -44,18 +44,22 @@
     return out ? out.charAt(0).toUpperCase() + out.slice(1) : String(t || '').trim();
   };
 
-  function normalize(node) {
+  const ID = /^[a-z0-9]{6,24}$/;
+  const lessonRes = (r) => (r && typeof r === 'object' ? { at: +r.at || Date.now(), good: +r.good || 0, asked: +r.asked || 0 } : undefined);
+  function normalize(node, keepIds = false) {
     const n = makeNode(cleanTitle(node.title || 'Sans titre').slice(0, 160), {
       notes: String(node.notes || ''),
       explain: String(node.explain || ''),
       exercises: Array.isArray(node.exercises) ? node.exercises.filter((e) => e && e.q).map((e) => ({ id: uid(), q: String(e.q), a: String(e.a || '') })) : [],
       srs: node.srs && typeof node.srs.s === 'number' ? node.srs : null,
       ...(node.course && typeof node.course === 'object' ? { course: { from: String(node.course.from || ''), sources: Array.isArray(node.course.sources) ? node.course.sources : [] } } : {}),
-      ...(node.module && typeof node.module === 'object' ? { module: { pretest: String(node.module.pretest || ''), learned: !!node.module.learned, generated: !!node.module.generated, sources: Array.isArray(node.module.sources) ? node.module.sources : [], date: node.module.date || null } } : {}),
+      ...(node.module && typeof node.module === 'object' ? { module: { pretest: String(node.module.pretest || ''), learned: !!node.module.learned, generated: !!node.module.generated, sources: Array.isArray(node.module.sources) ? node.module.sources : [], date: node.module.date || null, ...(node.module.lessonDone ? { lessonDone: lessonRes(node.module.lessonDone) } : {}) } } : {}),
+      ...(node.lessonDone ? { lessonDone: lessonRes(node.lessonDone) } : {}),
       keyPoints: Array.isArray(node.keyPoints) ? node.keyPoints.map(String).filter(Boolean) : [],
       status: ['todo', 'doing', 'done'].includes(node.status) ? node.status : 'todo',
     });
-    n.children = Array.isArray(node.children) ? node.children.map(normalize) : [];
+    if (keepIds && ID.test(String(node.id || ''))) n.id = node.id;
+    n.children = Array.isArray(node.children) ? node.children.map((c) => normalize(c, keepIds)) : [];
     return n;
   }
 
@@ -87,56 +91,172 @@
     return s;
   }
 
-  function load() {
-    try {
-      const raw = localStorage.getItem(KEY);
-      if (raw) {
-        const data = JSON.parse(raw);
-        if (data && Array.isArray(data.subjects)) {
-          data.settings = { ...DEFAULT_SETTINGS, ...(data.settings || {}) };
-          data.stats = data.stats || { days: {}, calib: {} };
-          data.subjects.forEach((s) => {
-            if (!ICONS.includes(s.icon)) s.icon = OLD_EMOJIS[s.emoji] || 'book-open';
-            s.color = OLD_COLORS[s.color] || s.color;
-            delete s.emoji;
-            // Anciennes parties marquées « maîtrisées » : on leur donne une mémoire de départ
-            walk(s.root, (n, depth) => {
-              if (depth > 0) n.title = cleanTitle(n.title);
-              if (n.explain === undefined) n.explain = '';
-              if (n.srs === undefined) n.srs = null;
-              if (!n.srs && n.status === 'done') {
-                const now = Date.now();
-                n.srs = { s: 7, d: 5, last: now - 2 * 86400000, due: now + (2 + Math.random() * 4) * 86400000, reps: 1, lapses: 0 };
-              }
-              if (!Array.isArray(n.exercises)) n.exercises = [];
-              // anciens exercices générés, trop longs : raccourcis (et retirés s'il n'y a rien à manipuler)
-              n.exercises = n.exercises.filter((e) => {
-                if (/^Mise en pratique : /.test(e.q)) {
-                  if (/^(comprendre|apprendre|maîtriser|découvrir|connaître|savoir|étudier|expliquer|définir|décrire)\b/i.test(n.title)) return false;
-                  e.q = `À toi : ${n.title.charAt(0).toLowerCase() + n.title.slice(1)} dans ton environnement de test.`; e.a = 'Note les étapes, puis vérifie que ça marche.';
-                } else if (/^Explique avec tes mots, sans regarder : /.test(e.q)) e.q = `En une phrase : c’est quoi, « ${n.title} » ?`;
-                return true;
-              });
-              // Statut calculé à partir de la mémoire mesurée, plus jamais déclaré à la main
-              n.status = !n.srs ? 'todo' : n.srs.s >= 21 ? 'done' : 'doing';
-            });
-          });
-          data.xp = data.xp || 0;
-          return data;
+  /* ---------- Lecture ----------
+     Règle d'or : des données illisibles ne sont JAMAIS écrasées. Elles sont mises de côté (RESCUE),
+     puis Arbor essaie la copie de secours du jour précédent (BAK), et seulement ensuite la démo. */
+  const BAK = KEY + ':bak', BAK_DAY = KEY + ':bakDay', RESCUE = KEY + ':rescue';
+  const status = { load: 'ok', bakAt: null, rescued: false, persisted: null, lastError: null };
+  const get = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+  const put = (k, v) => { localStorage.setItem(k, v); };
+
+  function migrate(data) {
+    data.settings = { ...DEFAULT_SETTINGS, ...(data.settings || {}) };
+    data.stats = data.stats || { days: {}, calib: {} };
+    data.subjects.forEach((s) => {
+      if (!ICONS.includes(s.icon)) s.icon = OLD_EMOJIS[s.emoji] || 'book-open';
+      s.color = OLD_COLORS[s.color] || s.color;
+      delete s.emoji;
+      walk(s.root, (n, depth) => {
+        if (depth > 0) n.title = cleanTitle(n.title);
+        if (n.explain === undefined) n.explain = '';
+        if (n.srs === undefined) n.srs = null;
+        if (!Array.isArray(n.children)) n.children = [];
+        if (!Array.isArray(n.keyPoints)) n.keyPoints = [];
+        // Anciennes parties marquées « maîtrisées » : on leur donne une mémoire de départ
+        if (!n.srs && n.status === 'done') {
+          const now = Date.now();
+          n.srs = { s: 7, d: 5, last: now - 2 * 86400000, due: now + (2 + Math.random() * 4) * 86400000, reps: 1, lapses: 0 };
         }
-      }
-    } catch (e) { console.warn('Lecture impossible', e); }
-    return { subjects: [demoSubject()], settings: { ...DEFAULT_SETTINGS }, stats: { days: {}, calib: {} }, xp: 0, firstRun: true };
+        if (!Array.isArray(n.exercises)) n.exercises = [];
+        // anciens exercices générés, trop longs : raccourcis (et retirés s'il n'y a rien à manipuler)
+        n.exercises = n.exercises.filter((e) => {
+          if (/^Mise en pratique : /.test(e.q)) {
+            if (/^(comprendre|apprendre|maîtriser|découvrir|connaître|savoir|étudier|expliquer|définir|décrire)\b/i.test(n.title)) return false;
+            e.q = `À toi : ${n.title.charAt(0).toLowerCase() + n.title.slice(1)} dans ton environnement de test.`; e.a = 'Note les étapes, puis vérifie que ça marche.';
+          } else if (/^Explique avec tes mots, sans regarder : /.test(e.q)) e.q = `En une phrase : c’est quoi, « ${n.title} » ?`;
+          return true;
+        });
+        // Statut calculé à partir de la mémoire mesurée, plus jamais déclaré à la main
+        n.status = !n.srs ? 'todo' : n.srs.s >= 21 ? 'done' : 'doing';
+      });
+    });
+    data.xp = data.xp || 0;
+    return data;
+  }
+  // Renvoie l'état, ou null si le texte n'est pas un état Arbor lisible
+  function parse(raw) {
+    try {
+      const data = JSON.parse(raw);
+      if (!data || !Array.isArray(data.subjects) || data.subjects.some((s) => !s || !s.root)) return null;
+      return migrate(data);
+    } catch (e) { return null; }
   }
 
-  let saveTimer = null;
-  function save(state) {
-    clearTimeout(saveTimer);
-    saveTimer = setTimeout(() => {
-      try { localStorage.setItem(KEY, JSON.stringify(state)); }
-      catch (e) { console.warn('Sauvegarde impossible', e); }
-    }, 150);
+  function load() {
+    const raw = get(KEY);
+    if (raw) {
+      const data = parse(raw);
+      if (data) return data;
+      // Illisible : on met l'original de côté (sans écraser un sauvetage plus ancien différent)
+      try { if (get(RESCUE) !== raw) put(RESCUE, raw); status.rescued = true; }
+      catch (e) { status.rescued = false; status.readOnly = true; } // impossible de mettre de côté : on n'écrit plus rien par-dessus
+      const bak = get(BAK) && parse(get(BAK));
+      if (bak) { status.load = 'backup'; status.bakAt = get(BAK_DAY); return bak; }
+      status.load = 'lost';
+    }
+    return { subjects: [demoSubject()], settings: { ...DEFAULT_SETTINGS }, stats: { days: {}, calib: {} }, xp: 0, firstRun: !raw };
   }
+
+  /* ---------- Écriture ----------
+     Une fois par jour, la dernière version lisible devient la copie de secours. Si le stockage est plein,
+     la copie de secours est sacrifiée d'abord ; si ça ne suffit pas, l'appli est prévenue (onError). */
+  let saveTimer = null, pending = null;
+  const listeners = [];
+  const dayKey = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+  function writeNow(state) {
+    if (status.readOnly) return fail('blocked', new Error('données illisibles non sauvegardées'));
+    let json;
+    try { json = JSON.stringify(state); } catch (e) { return fail('serialize', e); }
+    try {
+      if (get(BAK_DAY) !== dayKey()) {
+        const prev = get(KEY);
+        if (prev && parse(prev)) { try { put(BAK, prev); put(BAK_DAY, dayKey()); } catch (e) { try { localStorage.removeItem(BAK); } catch (_) { /* rien */ } } }
+      }
+    } catch (e) { /* la copie de secours est un bonus */ }
+    try { put(KEY, json); }
+    catch (e) {
+      try { localStorage.removeItem(BAK); localStorage.removeItem(BAK_DAY); put(KEY, json); }
+      catch (e2) { return fail(/quota/i.test(e2.name + e2.message) ? 'quota' : 'write', e2); }
+    }
+    if (status.lastError) { status.lastError = null; listeners.forEach((f) => f(null)); }
+    return true;
+  }
+  function fail(kind, err) {
+    console.warn('Sauvegarde impossible', err);
+    status.lastError = kind;
+    listeners.forEach((f) => f(kind));
+    return false;
+  }
+  function save(state) {
+    pending = state;
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(flush, 150);
+  }
+  // Écrit tout de suite ce qui attend (fermeture d'onglet, passage en arrière-plan)
+  function flush() {
+    clearTimeout(saveTimer);
+    if (!pending) return true;
+    const st = pending; pending = null;
+    return writeNow(st);
+  }
+  const onError = (fn) => listeners.push(fn);
+
+  // Demande au navigateur de ne pas effacer les données (Safari les efface sinon après 7 jours sans visite)
+  async function persist() {
+    try {
+      if (!navigator.storage || !navigator.storage.persist) { status.persisted = null; return null; }
+      status.persisted = (await navigator.storage.persisted()) || (await navigator.storage.persist());
+    } catch (e) { status.persisted = null; }
+    return status.persisted;
+  }
+
+  /* ---------- Sauvegarde complète (fichier) ---------- */
+  const FORMAT = 'arbor-backup';
+  function backup(state) {
+    const data = JSON.parse(JSON.stringify(state));
+    data.settings = { ...data.settings, apiKey: '' }; // la clé ne quitte jamais l'appareil
+    delete data.firstRun;
+    return { format: FORMAT, version: 1, exportedAt: new Date().toISOString(), data };
+  }
+  // Lit un fichier : sauvegarde complète, ancien export { subjects, xp }, ou un seul sujet
+  function readFile(obj) {
+    if (obj && obj.format === FORMAT && obj.data) {
+      const data = parse(JSON.stringify(obj.data));
+      return data ? { kind: 'full', data, subjects: data.subjects, exportedAt: obj.exportedAt } : null;
+    }
+    const list = obj && Array.isArray(obj.subjects) ? obj.subjects : obj && obj.root ? [obj] : [];
+    if (!list.length || list.some((x) => !x || !x.root)) return null;
+    return { kind: 'subjects', subjects: list, xp: typeof obj.xp === 'number' ? obj.xp : null };
+  }
+  // Sujets d'un fichier, nettoyés ; on garde les identifiants pour reconnaître un sujet déjà présent
+  function importSubject(s) {
+    const ns = makeSubject(s.title || 'Sujet importé', { color: s.color, icon: s.icon, emoji: s.emoji, root: normalize(s.root, true) });
+    if (ID.test(String(s.id || ''))) ns.id = s.id;
+    ns.updatedAt = +s.updatedAt || Date.now(); ns.createdAt = +s.createdAt || Date.now();
+    ['program', 'examDate'].forEach((k) => { if (s[k]) ns[k] = s[k]; });
+    return ns;
+  }
+  // Ajoute sans doublon : un sujet déjà présent n'est remplacé que si le fichier est plus récent
+  function merge(state, subjects) {
+    let added = 0, updated = 0, kept = 0;
+    subjects.forEach((raw) => {
+      const ns = importSubject(raw);
+      const i = state.subjects.findIndex((x) => x.id === ns.id);
+      if (i < 0) { state.subjects.push(ns); added++; }
+      else if (ns.updatedAt > (state.subjects[i].updatedAt || 0)) { state.subjects[i] = ns; updated++; }
+      else kept++;
+    });
+    return { added, updated, kept };
+  }
+  // Remplace tout l'état par une sauvegarde complète (en gardant la clé et les réglages de cet appareil)
+  function replaceAll(state, data) {
+    const keep = { apiKey: state.settings.apiKey, theme: state.settings.theme, localAI: state.settings.localAI, localModel: state.settings.localModel };
+    Object.keys(state).forEach((k) => delete state[k]);
+    Object.assign(state, data);
+    state.settings = { ...data.settings, ...keep };
+  }
+  const rescued = () => get(RESCUE);
+  const dropRescue = () => { try { localStorage.removeItem(RESCUE); } catch (e) { /* rien */ } };
 
   /* Outils d'arbre */
   function walk(node, fn, depth = 0, parent = null) {
@@ -172,5 +292,5 @@
     return found;
   }
 
-  window.Store = { cleanTitle, PALETTE, ICONS, uid, makeNode, makeSubject, normalize, load, save, walk, find, pathTo, stats, isDescendant };
+  window.Store = { cleanTitle, PALETTE, ICONS, uid, makeNode, makeSubject, normalize, load, save, flush, onError, persist, status, backup, readFile, merge, replaceAll, rescued, dropRescue, walk, find, pathTo, stats, isDescendant };
 })();

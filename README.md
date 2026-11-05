@@ -103,13 +103,33 @@ Aucune installation n'est nécessaire : il suffit d'ouvrir `index.html` dans un 
 
 Pour l'avoir en ligne, active **GitHub Pages** (Settings → Pages → branche `main`, dossier `/`).
 
+## Tes données
+
+Tout est enregistré dans ton navigateur, sans compte. Arbor protège ces données ainsi :
+
+- **Jamais d'écrasement** : si les données enregistrées sont illisibles, elles sont mises de côté (téléchargeables dans Réglages, Sauvegarde) et Arbor rouvre la copie de secours de la veille.
+- **Copie de secours quotidienne** : la dernière version lisible est copiée une fois par jour.
+- **Alerte visible** si l'enregistrement échoue (stockage plein), avec un bouton pour télécharger une sauvegarde.
+- **Écriture immédiate** quand tu quittes ou mets l'onglet en arrière-plan.
+- **Stockage persistant** demandé au navigateur (Safari efface sinon les données d'un site non installé après 7 jours sans visite).
+- **Sauvegarde complète** en fichier : cours, progression, statistiques, trophées et réglages, sans la clé API. La restauration propose de tout remplacer ou d'ajouter les cours sans doublon.
+
+## Tests
+
+```
+npm i -D playwright && npx playwright install chromium
+node tests/data-safety.js
+```
+
+`tests/data-safety.js` sert le dépôt sur un port local et vérifie : données illisibles conservées, copie de secours, alerte de stockage plein, sauvegarde et restauration complètes, absence de doublons, liens `javascript:` neutralisés, écriture à la fermeture, et aucune erreur JavaScript sur les écrans principaux.
+
 ## Structure
 
 | Fichier | Rôle |
 |---|---|
 | `index.html` | Squelette de la page |
 | `styles.css` | Design, thèmes et animations |
-| `js/store.js` | Modèle de données, sauvegarde, outils d'arbre |
+| `js/store.js` | Modèle de données, enregistrement sûr, copie de secours, sauvegarde et restauration, outils d'arbre |
 | `js/app.js` | Interface : accueil, arbre, fiche, carte, révision, modales |
 | `js/pdf-import.js` | Analyse locale des PDF (avec pdf.js) |
 | `js/ai.js` | Structuration d'un PDF et rédaction de cours par Claude (optionnelles) |
@@ -123,5 +143,6 @@ Pour l'avoir en ligne, active **GitHub Pages** (Settings → Pages → branche `
 | `js/mascot.js` | Pousse, la mascotte animée (SVG) |
 | `js/srs.js` | Répétition espacée (FSRS-5) et statistiques |
 | `js/pwa.js`, `sw.js`, `manifest.webmanifest`, `icons/` | Application installable et hors connexion |
+| `tests/` | Tests de bout en bout (Playwright) |
 
 > 🔐 La clé API Claude est stockée uniquement dans ton navigateur et n'est envoyée qu'à l'API d'Anthropic. Ne l'enregistre pas sur un ordinateur partagé.
