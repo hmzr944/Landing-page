@@ -32,7 +32,7 @@
         const fam = (content.styles[it.fontName] && content.styles[it.fontName].fontFamily) || '';
         const f = fontName + ' ' + fam;
         items.push({ x: it.transform[4], y: it.transform[5], w: it.width || it.str.length * size * 0.5, str: it.str, size,
-          bold: /bold|black|heavy|semibold|demi/i.test(f), italic: /italic|oblique|-it\b|bolditalic|boldi\b/i.test(f) });
+          bold: /bold|black|heavy|semibold|demi/i.test(f), italic: /italic|oblique|-it\b|bolditalic|boldi\b/i.test(f), mono: /mono|courier|cmtt|typewriter|consol|menlo|inconsolata|sfmono|code/i.test(f) });
       }
       // Segments : même ligne et morceaux contigus
       items.sort((a, b) => b.y - a.y || a.x - b.x);
@@ -88,8 +88,9 @@
       let prev = null;
       for (const g of ordered) {
         const parts = g.row ? g.parts : g.parts.sort((a, b) => a.x - b.x);
-        const text = (g.row ? parts.filter((x) => !x.cell).map((x) => x.str).join(' ') + ' : ' + parts.filter((x) => x.cell).map((x) => x.str).join(' ') : parts.map((x) => x.str).join(' ')).replace(/\s+/g, ' ').replace(/ ([,.;:)])/g, '$1').trim();
+        const text = fixAccents((g.row ? parts.filter((x) => !x.cell).map((x) => x.str).join(' ') + ' : ' + parts.filter((x) => x.cell).map((x) => x.str).join(' ') : parts.map((x) => x.str).join(' ')).replace(/\s+/g, ' ').replace(/ ([,.;:)])/g, '$1').trim());
         if (!text) continue;
+        const monoChars = parts.filter((x) => x.mono).reduce((a, x) => a + x.str.length, 0);
         const chars = parts.reduce((a, x) => a + x.str.length, 0) || 1;
         const size = Math.max(...parts.map((x) => x.size));
         const boldChars = parts.filter((x) => x.bold).reduce((a, x) => a + x.str.length, 0);
@@ -103,13 +104,21 @@
           else prev.text = `${prev.text} ${text}`;
           continue;
         }
-        const line = { row: !!g.row, text, size, bold: boldChars / chars > 0.6, italic: italChars / chars > 0.6, lead, page: p, y: g.y, x: g.x0, pageH: vp.height, gap, prevSize: prev ? prev.size : size, col: g.kind };
+        const line = { row: !!g.row, text, size, bold: boldChars / chars > 0.6, italic: italChars / chars > 0.6, mono: monoChars / (parts.reduce((a, x) => a + x.str.length, 0) || 1) > 0.6, lead, page: p, y: g.y, x: g.x0, pageH: vp.height, gap, prevSize: prev ? prev.size : size, col: g.kind };
         lines.push(line);
         prev = line;
       }
       onProgress && onProgress(p / pdf.numPages);
     }
     return lines;
+  }
+
+  /* Accents séparés de leur lettre (PDF produits par LaTeX avec des polices Type 1 : « r´ eseaux », « re¸ cu ») */
+  const ACC = { '´': '\u0301', '`': '\u0300', 'ˆ': '\u0302', '¨': '\u0308', '¸': '\u0327', '˜': '\u0303', '˚': '\u030A' };
+  function fixAccents(t) {
+    if (!/[´`ˆ¨¸˜˚ı]/.test(t)) return t;
+    return t.replace(/([´`ˆ¨])\s+(?=[´`ˆ¨])/g, '').replace(/([´`ˆ¨¸˜˚])\s?(\p{L})/gu, (m, a, l) => (l === 'ı' ? 'i' : l) + ACC[a])
+      .replace(/ı(?=[\u0300-\u036f])/g, 'i').normalize('NFC');
   }
 
   /* En-têtes, pieds de page, numéros de page : position dans la marge, petite taille, ou répétition */
@@ -146,10 +155,13 @@
     if (t.length > 110 || t.length < 2) return null;
     if (/[,;]$/.test(t)) return null;
     if (/^\s*[•●▪◦‣\-–*✓➢►○□☐]/.test(t) || line.row) return null;
+    // code, sortie de terminal, adresse ou mesure : ce n'est pas un titre
+    if (line.mono || /^;;|^\$ |^#\s|^\d{1,3}(\.\d{1,3}){3}\b|\b\d+(\.\d+)?\s?ms\b|[{}<>=]{2}|::/.test(t)) return null;
     const words = t.split(' ').length;
     const bigger = line.size >= body * 1.15;
-    const numbered = NUM_RE.test(t) && words <= 14 && !/[.:]\s*$/.test(t.replace(/^\S+\s/, ''));
-    const keyword = KEYWORD_RE.test(t.split(' ').slice(0, 2).join(' ')) && words <= 12;
+    // un titre peut finir par un point (habitude LaTeX : « 1 Adressage. »), pas par deux points
+    const numbered = NUM_RE.test(t) && words <= 14 && !/:\s*$/.test(t) && !(/\.\s*$/.test(t) && words > 9);
+    const keyword = KEYWORD_RE.test(t.split(' ')[0]) && words <= 12;
     // en capitales, sans point final (« DHCP. » dans une liste n'est pas un titre)
     const allCaps = t.length > 4 && t === t.toUpperCase() && /[A-ZÀ-Ý]{3}/.test(t) && words <= 10 && !/[.;,]$/.test(t);
     if (!(bigger || (line.bold && (numbered || words <= 10)) || (numbered && (line.bold || bigger)) || keyword || allCaps)) return null;
@@ -157,7 +169,7 @@
     if (/[.!?]$/.test(t) && !numbered && words > 6) return null;
     // profondeur suggérée par la numérotation
     let numDepth = null;
-    const m = t.match(/^(\d{1,2}(?:\.\d{1,2}){1,3}[.)]?|\d{1,2}[.)])\s/);
+    const m = t.match(/^(\d{1,2}(?:\.\d{1,2}){1,3}[.)]?|\d{1,2}[.)]|\d{1,2}(?=\s+\p{Lu}))\s/u);
     if (m) numDepth = m[1].replace(/[.)]$/, '').split('.').length;
     else if (/^[IVXLC]{1,6}[.)\-–]\s/.test(t)) numDepth = 1;
     else if (/^[A-H][.)]\s/.test(t)) numDepth = 2;
@@ -248,12 +260,16 @@
     const seen = new Set();
     const uniq = practice.filter((x) => { const k = x.q.replace(/^(Mets en pratique|Mission) : /, '').toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; });
     node.exercises = [...exs.map(({ q, a }) => ({ q, a })), ...uniq.slice(0, 10)];
+    const pages = [...(node._pg || [])].sort((a, b) => a - b);
+    const firstPara = (blocks.find((b) => typeof b === 'string') || node._quote || '').replace(/\s+/g, ' ');
+    if (pages.length) node.src = { pages: pages.slice(0, 12), quote: firstPara.length > 220 ? firstPara.slice(0, 217).replace(/\s+\S*$/, '') + '…' : firstPara };
+    delete node._pg; delete node._ip; delete node._quote;
     delete node._skills; delete node._missions; delete node._level; delete node._remark; delete node._notion; delete node._assess;
     delete node._blocks; delete node._bullets; delete node._bold; delete node._keys; delete node._ex;
     node.children.forEach(finalizeNode);
   }
 
-  const mk = (title) => ({ title, children: [], _blocks: [], _bullets: [], _bold: [], _keys: [], _ex: [] });
+  const mk = (title) => ({ title, children: [], _blocks: [], _bullets: [], _bold: [], _keys: [], _ex: [], _pg: new Set(), _ip: {} });
   const cap = (t) => (t ? t.charAt(0).toUpperCase() + t.slice(1) : t);
   const prominence = (h) => h.size * 10 + (h.bold ? 3 : 0) - (h.italic ? 2 : 0);
 
@@ -269,15 +285,21 @@
   function docTitleOf(lines, body) {
     const first = lines.filter((l) => l.page === 1 && l.text.length <= 120);
     if (!first.length) return null;
-    const big = first.reduce((a, b) => (b.size > a.size ? b : a));
-    if (big.size < body * 1.3) return null;
+    // Bandeau institutionnel (« Licence professionnelle… », « Université de… ») : jamais le titre si un autre grand texte existe
+    const INSTIT = /^(licence|master|bts|but|dut|l[123]\b|m[12]\b|universit|u\.?f\.?r|facult|d[ée]partement|iut|lyc[ée]e|[ée]cole|ann[ée]e|semestre|formation|module|ue\s*\d|e-?mail|web\s*:)/i;
+    const bigs = first.filter((l) => l.size >= body * 1.3);
+    const pool = bigs.filter((l) => !INSTIT.test(l.text.replace(/^[–—-]\s*/, '')) && !/@|https?:/.test(l.text));
+    if (!bigs.length) return null;
+    const framed = first.find((l) => /^[–—-]\s*\S.{2,80}\S\s*[–—-]$/.test(l.text) && l.size >= body * 1.15);
+    const big = framed || (pool.length ? pool : bigs).reduce((a, b) => (b.size > a.size ? b : a));
+    if (big.size < body * (framed ? 1.15 : 1.3)) return null;
     const used = [big];
     for (let i = lines.indexOf(big) + 1; i < lines.length; i++) {
       const l = lines[i];
       if (l.page !== big.page || Math.abs(l.size - big.size) > 0.5 || l.gap == null || l.gap > l.size * 1.8 || used.length >= 3) break;
       used.push(l);
     }
-    const text = unshout(used.map((l) => l.text).join(' ')).replace(/^(chapitre|chapter|leçon|cours)\s*\d+\s*[:.—–-]\s*/i, '');
+    const text = unshout(used.map((l) => l.text).join(' ')).replace(/^(chapitre|chapter|leçon|cours)\s*\d+\s*[:.—–-]\s*/i, '').replace(/^[–—-]\s*|\s*[–—-]$/g, '').trim();
     return { text, lines: new Set(used) };
   }
 
@@ -331,7 +353,7 @@
         const before = labelCut(intro, NOTION_CORE);
         if (before !== null && b.list.length >= 2 && !n.children.length) {
           if (before) str(before);
-          b.list.forEach((it) => { const c = mk(cleanItem(it).slice(0, 120)); c._notion = true; n.children.push(c); });
+          b.list.forEach((it) => { const c = mk(cleanItem(it).slice(0, 120)); c._notion = true; c._pg.add(n._ip[it] || [...n._pg][0] || 1); c._quote = cleanItem(it); n.children.push(c); });
           n._bullets = n._bullets.filter((x) => !b.list.includes(x));
           return;
         }
@@ -422,6 +444,7 @@
     const heads = [];
     const cont = new Set();
     const items = new Set(); // lignes d'une liste sans caractère de puce
+    const coverLines = new Set(); // page de garde : bandeau, auteur
     let labelX = null;
     lines.forEach((l, i) => {
       if (labelX !== null) { if (l.x > labelX + 6 && l.text.length <= 140) { items.add(i); return; } labelX = null; }
@@ -439,6 +462,20 @@
       if (h) heads.push({ i, size: l.size, bold: l.bold, italic: l.italic, numDepth: h.numDepth, keyword: h.keyword });
     });
 
+    const firstNum = heads.find((h) => h.numDepth);
+    if (firstNum && heads.filter((h) => h.numDepth).length >= 3) {
+      for (let k = heads.length - 1; k >= 0; k--) { const h = heads[k]; if (h.i < firstNum.i && lines[h.i].page === 1 && !h.numDepth) { coverLines.add(h.i); heads.splice(k, 1); } }
+    }
+    // Cours aux titres numérotés : un titre sans numéro doit être un mot-clé (Exercices, Conclusion…) ou en gras à la taille des titres
+    const numbered = heads.filter((h) => h.numDepth);
+    if (numbered.length >= 5) {
+      const minNum = Math.min(...numbered.map((h) => h.size));
+      for (let k = heads.length - 1; k >= 0; k--) {
+        const h = heads[k];
+        if (h.numDepth || h.keyword || PLAN_STEP.test(lines[h.i].text) || CHAP.test(lines[h.i].text) || EX_SECTION.test(lines[h.i].text.replace(/[:.]$/, '')) || SUM_SECTION.test(lines[h.i].text.replace(/[:.]$/, ''))) continue;
+        if (!(h.bold && h.size >= minNum - 0.2) || /[,`´]$/.test(lines[h.i].text)) heads.splice(k, 1);
+      }
+    }
     // 2. Niveaux : la numérotation d'abord (relative à la plus haute du document), puis le style
     const nums = heads.filter((h) => h.numDepth);
     const minNum = nums.length ? Math.min(...nums.map((h) => h.numDepth)) : 1;
@@ -454,7 +491,9 @@
     let para = '', paraSize = body, block = null, list = null, quiz = null;
     const flushList = () => { list = null; };
     const flushPara = () => { if (para.trim()) cur()._blocks.push(para.trim()); para = ''; flushList(); };
+    let curPage = 1;
     const addItem = (text) => {
+      cur()._ip[text] = curPage;
       if (para.trim()) { const pt = para.trim(); para = ''; if (/:$/.test(pt)) { list = { intro: pt, list: [] }; cur()._blocks.push(list); } else cur()._blocks.push(pt); }
       if (!list) { list = { intro: '', list: [] }; cur()._blocks.push(list); }
       list.list.push(text);
@@ -485,6 +524,8 @@
     lines.forEach((l, i) => {
       if (isTitle(l)) return;
       const t = l.text;
+      curPage = l.page;
+      if (!headAt.get(i)) cur()._pg.add(l.page); // source : pages où se trouve le contenu de la partie
       if (cont.has(i)) { if (lastNode) lastNode.title += ' ' + t; return; }
       const newPara = l.gap != null && (l.gap > l.size * 1.75 || (l.gap < 0 && /[.!?:]$/.test(lines[i - 1].text)));
       const h = headAt.get(i);
@@ -503,7 +544,8 @@
         level = Math.min(Math.max(level, 1), 4);
         if (h.numDepth || styleLevel.has(prominence(h))) lastNum = level;
         while (stack.length > 1 && stack[stack.length - 1].level >= level) stack.pop();
-        const node = mk(t);
+        const node = mk(t.replace(/(?<!etc)\.\s*$/, ''));
+        node._pg.add(l.page);
         lastNode = node;
         cur().children.push(node);
         stack.push({ node, level });
@@ -594,6 +636,8 @@
     const title = file.name.replace(/\.pdf$/i, '').replace(/[_-]+/g, ' ');
     const prog = programme(lines);
     const tree = build(lines, title);
+    // le nom du document accompagne chaque source (« tcpip.pdf, p. 12 »)
+    (function tag(n) { if (n.src) n.src.doc = file.name; n.children.forEach(tag); })(tree);
     return { tree, pages: pdf.numPages, title: prog.docTitle || (SKIP.test(tree.title) ? title : tree.title), topics: prog.topics, isProgramme: prog.isProgramme, hasPlan: prog.hasPlan, planCount: prog.planCount };
   }
 
@@ -692,5 +736,5 @@
       .sort((a, b) => b.score - a.score).slice(0, n).sort((a, b) => a.i - b.i).map((o) => o.x);
   }
 
-  window.PdfImport = { analyze, keySentences, splitSentences };
+  window.PdfImport = { analyze, keySentences, splitSentences, fixAccents };
 })();

@@ -64,6 +64,14 @@ Comme les outils open source d'analyse de documents ([Docling](https://github.co
 - Quand les notions n'ont que leur nom, l'aperçu propose de **rédiger leur cours** en arrière-plan.
 - Un cours classique, sans ces signaux, garde sa structure.
 
+### Fondations : sources, graphe, observations, maîtrise prouvée
+
+- **Sources** : chaque partie importée d'un PDF garde son document, ses pages et un extrait exact du texte d'origine, affichés dans la fiche (« tcpip · p. 24–26 »).
+- **Graphe de connaissances** : chaque lien entre notions a un identifiant stable (« A>B »), une provenance (règle) et un statut. Un lien calculé reste **proposé** (trait pointillé) tant que l'étudiant ne l'a pas validé ; un lien rejeté n'est plus jamais recalculé. Les décisions sont sauvegardées avec le cours.
+- **Journal d'observations** (`js/db.js`, IndexedDB) : chaque réponse en révision et chaque question de leçon devient une observation datée (activité, résultat, note, confiance, réponse tapée). La notion garde un résumé ; le détail reste dans le journal, inclus dans la sauvegarde complète.
+- **Maîtrise prouvée** : « maîtrisée » demande au moins deux rappels réussis, des jours différents espacés d'au moins 7 jours, une mémoire FSRS stable d'au moins 21 jours et aucune confusion repérée depuis le dernier succès. Chaque état affiche sa raison (« 1 rappel juste ; il en faut un deuxième, au moins 7 jours plus tard »). Les notions révisées avant le journal gardent leur état (historique FSRS).
+- **PDF produits par LaTeX** : accents recollés (« r´ eseaux » → « réseaux »), titre réel du document plutôt que le bandeau institutionnel, titres numérotés « 1 Adressage » reconnus, lignes de code et sorties de terminal jamais prises pour des titres.
+
 ### Carte d'exploration
 
 Dès qu'un cours a au moins deux chapitres, l'onglet **Carte** (ouvert automatiquement après un import ou la création d'un parcours) le montre comme un sentier de **zones**, une par chapitre. Chaque zone affiche son domaine (réseau, systèmes, sécurité, données, vivant, maths, droit…), sa difficulté, ses objectifs, ses notions colorées selon leur état, et mène à une action : la leçon de la zone ou sa révision. La zone recommandée est celle de la prochaine leçon. Toucher une notion montre sur quoi elle s'appuie et ce qu'elle prépare, avec les mots du cours qui justifient chaque lien. L'arbre complet reste disponible.
@@ -150,6 +158,7 @@ node tests/data-safety.js
 node tests/learning-flow.js
 node tests/explore.js
 node tests/pdf-structure.js
+node tests/foundations.js
 ```
 
 `tests/data-safety.js` sert le dépôt sur un port local et vérifie : données illisibles conservées, copie de secours, alerte de stockage plein, sauvegarde et restauration complètes, absence de doublons, liens `javascript:` neutralisés, écriture à la fermeture, et aucune erreur JavaScript sur les écrans principaux.
@@ -159,6 +168,8 @@ node tests/pdf-structure.js
 `tests/explore.js` vérifie l'analyse (prérequis justifiés, liens entre chapitres, thèmes, objectifs, pas de difficulté inventée) et la carte (zones, zone recommandée, détail d'une notion, lignes, leçon, bascule vers l'arbre, mobile).
 
 `tests/pdf-structure.js` fabrique deux PDF (un bilan et un cours classique) et vérifie les rôles des sections, les notions et objectifs, l'ordre du plan, les missions, l'absence de phrases d'accompagnement en points clés, le QCM, et qu'un cours classique n'est pas modifié.
+
+`tests/foundations.js` vérifie la maîtrise prouvée (un seul rappel ne suffit pas, deux rappels espacés oui, une confusion rend fragile, pas de régression des anciennes données), le journal alimenté par une vraie révision, la validation et le rejet d'un lien persistants, la sauvegarde et la restauration du journal, les pages sources et les accents LaTeX.
 
 ## Structure
 
@@ -181,6 +192,7 @@ node tests/pdf-structure.js
 | `js/srs.js` | Répétition espacée (FSRS-5) et statistiques |
 | `js/insight.js` | Analyse du cours : termes, liens entre notions, difficulté, objectifs, thèmes |
 | `js/explore.js` | Carte d'exploration par zones |
+| `js/db.js` | Journal des observations (IndexedDB) |
 | `js/mastery.js` | États des notions, prochaine leçon, plan de la session du jour, prévisions |
 | `js/pwa.js`, `sw.js`, `manifest.webmanifest`, `icons/` | Application installable et hors connexion |
 | `tests/` | Tests de bout en bout (Playwright) |

@@ -50,7 +50,7 @@
       if (!points.some((q) => q.slice(0, 30) === p.slice(0, 30)) && !idea.startsWith(p.slice(0, 40))) points.push(p);
       if (points.length >= 3) break;
     }
-    return { title: n.title, idea, points, all: [idea, ...points] };
+    return { id: n.id, title: n.title, idea, points, all: [idea, ...points] };
   }
 
   // Question 1 : une phrase, « de quelle notion parle-t-elle ? » (réponses courtes : les titres)
@@ -96,7 +96,7 @@
 
   /* ---------- Lecteur ---------- */
   let el = null;
-  function start({ module, subject, color, onFinish }) {
+  function start({ module, subject, color, onFinish, onAnswer }) {
     const { ds, steps } = build(module);
     if (!ds.length) return false;
     const queue = [{ kind: 'intro' }, ...steps, { kind: 'end' }];
@@ -165,6 +165,7 @@
       if (st.kind === 'quiz' && !checked) {
         checked = true; asked++;
         const ok = choice === st.q.right;
+        if (onAnswer && st.d && st.d.id) onAnswer({ nid: st.d.id, ok });
         if (ok) { good++; xp += 2; } else if (!st.retry && !retried.has(st)) { retried.add(st); queue.splice(queue.length - 1, 0, { ...st, retry: true }); }
         stage.querySelectorAll('.ls-opt').forEach((b) => { const v = st.q.opts[+b.dataset.k]; b.classList.add(v === st.q.right ? 'right' : b.classList.contains('on') ? 'wrong' : 'dim'); b.disabled = true; });
         foot.innerHTML = `<div class="ls-feedback ${ok ? 'ok' : 'ko'}"><span class="ls-fb-ic" aria-hidden="true"><i class="ph-fill ph-${ok ? 'check-circle' : 'x-circle'}"></i></span>

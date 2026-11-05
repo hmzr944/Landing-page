@@ -39,8 +39,9 @@
 
   /* Normalise un arbre venant d'un import (PDF, IA, JSON) */
   const NUMBERING = /^\s*(?:(?:chapitre|partie|section|leçon)\s+)?(?:\d{1,2}(?:\.\d{1,2})*[.)]|\d{1,2}(?:\.\d{1,2})+|[IVXLC]{1,5}[.)]|[A-H][.)])\s+(?=\S)/i;
+  const NUM_SPACE = /^\s*\d{1,2}\s+(?=\p{Lu})/u; // « 1 Adressage » (LaTeX), mais pas « 3 trucs à voir »
   const cleanTitle = (t) => {
-    const out = String(t || '').replace(NUMBERING, '').trim();
+    const out = String(t || '').replace(NUMBERING, '').replace(NUM_SPACE, '').trim();
     return out ? out.charAt(0).toUpperCase() + out.slice(1) : String(t || '').trim();
   };
 
@@ -56,6 +57,12 @@
       ...(node.module && typeof node.module === 'object' ? { module: { pretest: String(node.module.pretest || ''), learned: !!node.module.learned, generated: !!node.module.generated, sources: Array.isArray(node.module.sources) ? node.module.sources : [], date: node.module.date || null, ...(node.module.lessonDone ? { lessonDone: lessonRes(node.module.lessonDone) } : {}) } } : {}),
       ...(node.lessonDone ? { lessonDone: lessonRes(node.lessonDone) } : {}),
       keyPoints: Array.isArray(node.keyPoints) ? node.keyPoints.map(String).filter(Boolean) : [],
+      // résumé des observations (le détail est dans le journal) : nombre, succès, jours de rappel réussi, confusions
+      ...(node.ev && typeof node.ev === 'object' ? { ev: { n: +node.ev.n || 0, ok: +node.ev.ok || 0, miss: +node.ev.miss || 0, last: +node.ev.last || 0, lastOkAt: +node.ev.lastOkAt || 0,
+        recall: Array.isArray(node.ev.recall) ? node.ev.recall.filter((k) => /^\d{4}-\d{2}-\d{2}$/.test(k)).slice(-10) : [],
+        ...(Array.isArray(node.ev.mis) ? { mis: node.ev.mis.slice(-5).map((m) => ({ label: String(m.label || '').slice(0, 120), at: +m.at || 0 })) } : {}) } } : {}),
+      // passage d'origine dans le document importé : pages et extrait exact
+      ...(node.src && Array.isArray(node.src.pages) ? { src: { pages: node.src.pages.filter((x) => Number.isInteger(x) && x > 0).slice(0, 12), quote: String(node.src.quote || '').slice(0, 300), doc: String(node.src.doc || '').slice(0, 120) } } : {}),
       ...(Array.isArray(node.objectives) && node.objectives.length ? { objectives: node.objectives.map(String).filter(Boolean).slice(0, 12) } : {}),
       status: ['todo', 'doing', 'done'].includes(node.status) ? node.status : 'todo',
     });
@@ -235,6 +242,12 @@
     if (ID.test(String(s.id || ''))) ns.id = s.id;
     ns.updatedAt = +s.updatedAt || Date.now(); ns.createdAt = +s.createdAt || Date.now();
     ['program', 'examDate'].forEach((k) => { if (s[k]) ns[k] = s[k]; });
+    // décisions de l'étudiant sur les liens du graphe (validé / rejeté)
+    if (s.graph && s.graph.decisions && typeof s.graph.decisions === 'object') {
+      const decisions = {};
+      Object.entries(s.graph.decisions).forEach(([k, v]) => { if (/^[a-z0-9]{6,24}>[a-z0-9]{6,24}$/.test(k) && v && ['valide', 'rejete'].includes(v.status)) decisions[k] = { status: v.status, at: +v.at || Date.now(), by: 'utilisateur' }; });
+      ns.graph = { v: 1, decisions };
+    }
     return ns;
   }
   // Ajoute sans doublon : un sujet déjà présent n'est remplacé que si le fichier est plus récent

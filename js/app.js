@@ -569,6 +569,7 @@
 
         <section class="sec">
           <div class="sec-head"><h2>Notes</h2>
+            ${node.src && node.src.pages.length ? `<span class="src-tag" title="${esc(node.src.quote || '')}">${ic('file-text')}${esc(node.src.doc ? node.src.doc.replace(/\.pdf$/i, '') : 'Document')} · p. ${node.src.pages.length > 2 ? `${node.src.pages[0]}–${node.src.pages[node.src.pages.length - 1]}` : node.src.pages.join(', ')}</span>` : ''}
             <div class="mini-seg" role="group" aria-label="Mode des notes">
               <button data-act="notes-mode" data-m="preview" aria-pressed="${notesMode === 'preview'}">Aperçu</button>
               <button data-act="notes-mode" data-m="edit" aria-pressed="${notesMode === 'edit'}">Éditer</button>
@@ -1057,10 +1058,12 @@
     const leech = isLeech(node) ? `<div class="leech">
         ${ic('warning-circle', true)}
         <div><b>Partie difficile pour toi</b><p>Oubliée ${node.srs.lapses} fois${node.srs.illusions ? `, dont ${node.srs.illusions} fois alors que tu te disais certain` : ''}. Une partie trop grosse s’oublie plus vite : découpe-la en idées plus petites, ou explique-la avec tes mots.</p>
-        <div class="row-btns"><button class="btn sm" data-act="bulk-add" data-id="${node.id}">${ic('tree-structure')}Découper en sous-parties</button><button class="btn ghost sm" data-act="focus-explain">${ic('chat-circle-text')}L’expliquer</button></div></div>
+        <div class="row-btns"><button class="btn sm" data-act="bulk-add" data-id="${node.id}">${ic('tree-structure')}Découper en sous-parties</button></div></div>
       </div>` : '';
     const when = node.srs.due <= Date.now() ? 'à revoir maintenant' : days <= 0 ? 'prochaine révision aujourd’hui' : `prochaine révision dans ${plural(days, 'jour', 'jours')}`;
-    return `<div class="memory">
+    const ms = !node.children.length && Mastery.notions(s).find((x) => x.n.id === node.id);
+    const why = ms ? `<p class="mem-reason"><span class="st-dot" style="--sc:${Mastery.STATES[ms.state].c}" aria-hidden="true"></span><b>${Mastery.STATES[ms.state].label}</b> · ${esc(Mastery.reasonOf(node, ms.state))}</p>` : '';
+    return why + `<div class="memory">
       <span class="mem-text">${ic('brain')}Mémoire <b class="num">${pct} %</b><span class="mem-bar" aria-hidden="true"><span style="transform:scaleX(${r})" class="${pct < 85 ? 'low' : ''}"></span></span><span class="muted">${when}</span></span>
       <a class="btn ghost sm" href="${link(s.id, node.id, 'revision')}">${ic('play', true)}Réviser cette partie</a>
     </div>${leech}`;
@@ -1080,7 +1083,13 @@
     const zonesOk = s.root.children.filter((c) => c.children.length).length >= 2;
     if (zonesOk && mapMode === 'zones') {
       $('#paneBody').innerHTML = `<div class="map-wrap"><div class="map-switch" role="group" aria-label="Affichage"><button class="seg" aria-pressed="true">${ic('map-trifold')}Zones</button><button class="seg" data-act="map-tree" aria-pressed="false">${ic('tree-structure')}Arbre</button></div><div id="xmapHost"></div></div>`;
-      Explore.render($('#xmapHost'), s, { ic, esc, link, canLesson, stateBar });
+      Explore.render($('#xmapHost'), s, { ic, esc, link, canLesson, stateBar, onDecide: (rid, status) => {
+        // décision de l'étudiant sur un lien : gardée avec sa date, et jamais écrasée par un nouveau calcul
+        s.graph = s.graph || { v: 1, decisions: {} };
+        s.graph.decisions[rid] = { status, at: Date.now(), by: 'utilisateur' };
+        touch(); renderMap();
+        FX.toast(status === 'valide' ? 'Lien validé' : 'Lien retiré de la carte', 'success');
+      } });
       return;
     }
     const node = (n, depth) => `
@@ -1497,6 +1506,9 @@
     // Illusion de maîtrise : « certain » puis oublié. On le compte pour te le montrer.
     node.srs.illusions = (prevSrs.illusions || 0) + (study.conf === 'sure' && g === 1 ? 1 : 0);
     node.srs.lastG = g;
+    // Observation : un fait daté (réponse, note, confiance), versé au journal ; la notion garde un résumé
+    const obs = { sid: s.id, nid: node.id, activity: 'rappel', outcome: g >= 3 ? 'juste' : g === 2 ? 'partiel' : 'faux', grade: g, confidence: study.conf || null, answer: study.typed || '', prompt: (study.prompt && study.prompt.type) || 'recall' };
+    Obs.summarize(node, { ...obs, at: Date.now() }); Obs.add(obs);
     if (study.conf === 'sure' && g === 1) node.srs.illusionAt = Date.now(); else if (prevSrs.illusionAt) node.srs.illusionAt = prevSrs.illusionAt;
     if (study.conf === 'sure' && g === 1) {
       state.stats.illusions = (state.stats.illusions || 0) + 1;
@@ -1643,7 +1655,11 @@
   }
   function runLesson(sj, nd) {
     state.lastVisit = { sid: sj.id, nid: nd.id, at: Date.now(), kind: 'lesson' };
-    Lesson.start({ module: nd, subject: sj, color: sj.color, onFinish: (r) => {
+    Lesson.start({ module: nd, subject: sj, color: sj.color, onAnswer: ({ nid, ok }) => {
+      const f = find(sj.root, nid); if (!f) return;
+      const obs = { sid: sj.id, nid, activity: 'lecon', outcome: ok ? 'juste' : 'faux' };
+      Obs.summarize(f.node, { ...obs, at: Date.now() }); Obs.add(obs);
+    }, onFinish: (r) => {
       const res = { at: Date.now(), good: r.good, asked: r.asked };
       if (nd.module) { nd.module.lessonDone = res; nd.module.learned = true; } else nd.lessonDone = res;
       state.stats.counters = state.stats.counters || {}; state.stats.counters.lessons = (state.stats.counters.lessons || 0) + 1;
@@ -2497,10 +2513,12 @@
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
   // Sauvegarde complète : cours, progression, statistiques, trophées, réglages (sans la clé)
-  function exportBackup() {
+  async function exportBackup() {
     state.stats.lastExport = Date.now();
     save(); Store.flush();
-    downloadText(JSON.stringify(Store.backup(state)), `arbor-sauvegarde-${SRS.dayKey()}.json`);
+    const b = Store.backup(state);
+    b.obs = await Obs.all(); // journal des observations (preuves de maîtrise)
+    downloadText(JSON.stringify(b), `arbor-sauvegarde-${SRS.dayKey()}.json`);
     FX.toast('Sauvegarde complète téléchargée', 'success');
   }
   function exportJSON(data, name) {
@@ -2517,10 +2535,11 @@
     const file = e.target.files[0];
     e.target.value = '';
     if (!file) return;
-    let res = null;
-    try { res = Store.readFile(JSON.parse(await file.text())); } catch (err) { res = null; }
+    let res = null, rawObs = [];
+    try { const raw = JSON.parse(await file.text()); res = Store.readFile(raw); rawObs = Array.isArray(raw.obs) ? raw.obs : []; } catch (err) { res = null; }
     if (!res) { FX.toast('Ce fichier n’est pas une sauvegarde Arbor. Choisis un fichier .json exporté depuis Arbor.', 'error', 4200); return; }
-    const doMerge = () => {
+    const doMerge = async () => {
+      if (rawObs.length) await Obs.putMany(rawObs); // même identifiant = même observation : pas de doublon
       const r = Store.merge(state, res.subjects);
       if (res.xp != null) state.xp = Math.max(state.xp, res.xp);
       save(); Store.flush(); closeModal(); renderXP(); go('#/cours');
@@ -2538,7 +2557,8 @@
         <small class="hint">Garde ce qui est ici et ajoute les cours absents. Un cours déjà présent n’est remplacé que s’il est plus récent dans le fichier.</small>
       </div>`, (el) => {
       $('#rsMerge', el).onclick = doMerge;
-      $('#rsReplace', el).onclick = () => {
+      $('#rsReplace', el).onclick = async () => {
+        await Obs.clear(); await Obs.putMany(rawObs);
         Store.replaceAll(state, res.data);
         Store.save(state);
         if (!Store.flush() && Store.status.lastError) return; // l'alerte de sauvegarde s'affiche déjà

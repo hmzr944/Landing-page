@@ -70,7 +70,9 @@
   const cache = new WeakMap();
   function analyze(s) {
     const c = cache.get(s);
-    if (c && c.at === s.updatedAt) return c.res;
+    const decisions = (s.graph && s.graph.decisions) || {};
+    const sig = `${s.updatedAt}:${Object.keys(decisions).length}`;
+    if (c && c.at === sig) return c.res;
     const chapters = s.root.children.filter((ch) => ch.children.length);
     const order = []; // toutes les notions, dans l'ordre du cours
     const zoneOf = new Map();
@@ -96,8 +98,13 @@
       cands.sort((x, y) => y.w - x.w).slice(0, 3).forEach(({ a, w, why }) => {
         const before = idx.get(a.id) < idx.get(b.id);
         const r = rel.get(b.id);
-        if (before) { r.pre.push({ id: a.id, why, w }); rel.get(a.id).next.push({ id: b.id, why, w }); }
-        else if (!r.links.some((x) => x.id === a.id)) { r.links.push({ id: a.id, why, w }); }
+        // identifiant stable (« A>B ») ; l'étudiant peut valider ou rejeter : un rejet n'est jamais recalculé
+        const rid = `${a.id}>${b.id}`;
+        const dec = decisions[rid] || decisions[`${b.id}>${a.id}`];
+        if (dec && dec.status === 'rejete') return;
+        const meta = { rid, why, w, provenance: 'regle', status: dec ? dec.status : 'propose' };
+        if (before) { r.pre.push({ id: a.id, ...meta }); rel.get(a.id).next.push({ id: b.id, ...meta }); }
+        else if (!r.links.some((x) => x.id === a.id)) { r.links.push({ id: a.id, ...meta }); }
       });
     });
 
@@ -133,7 +140,7 @@
       return { i: zi, node: ch, notions: ns, theme: themeOf(ch), difficulty: !dAvg ? 0 : dAvg >= 2.3 ? 3 : dAvg >= 1.5 ? 2 : 1, objectives: objectives.slice(0, 4), needs: [...ext].sort((a, b) => a - b) };
     });
     const res = { zones, rel, diff, terms: T, byId: new Map(order.map((n) => [n.id, n])), zoneOf, order };
-    cache.set(s, { at: s.updatedAt, res });
+    cache.set(s, { at: sig, res });
     return res;
   }
 

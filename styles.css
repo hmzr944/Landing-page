@@ -2228,3 +2228,14 @@ html.calm .zone.reco .zone-pin { animation: none; }
 }
 html.xp-open .mascot { opacity: 0; pointer-events: none; transition: opacity .2s ease; }
 @media (min-width: 900px) { html.xp-open .mascot { opacity: 1; pointer-events: auto; } }
+/* Source d'origine d'une partie importée */
+.src-tag { display: inline-flex; align-items: center; gap: 5px; max-width: 100%; margin-left: auto; margin-right: 8px; padding: 3px 9px; border-radius: 99px; font-size: .78rem; color: var(--text-2); background: var(--surface-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Liens du graphe : proposés (calculés) ou validés par l'étudiant */
+.xpanel li.xrel { position: relative; padding-right: 64px; }
+.xrel-act { position: absolute; right: 0; top: 0; display: inline-flex; gap: 2px; }
+.xrel.valide small i { color: var(--st-mastered); margin-right: 2px; }
+.xl.propose { stroke-opacity: .55; stroke-dasharray: 4 4; }
+.xl.valide { stroke-width: 2.6; stroke-dasharray: none; }
+.mem-reason { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; margin: 0 0 6px; font-size: .88rem; color: var(--text-2); }
+.mem-reason b { color: var(--text); font-weight: 600; }
+.xp-reason { margin: 0 0 6px; font-size: .84rem; color: var(--text-2); }

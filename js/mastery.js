@@ -17,15 +17,54 @@
 
   const lessonOf = (n) => !!(n && ((n.module && (n.module.lessonDone || n.module.learned)) || n.lessonDone));
 
+  /* Preuve de maîtrise : au moins 2 rappels réussis, des jours différents, espacés d'au moins 7 jours,
+     et aucune confusion repérée depuis le dernier succès. Données anciennes (avant le journal) : 3 révisions au moins. */
+  const toT = (k) => new Date(k + 'T12:00').getTime();
+  function proven(n) {
+    const ev = n.ev;
+    if (!ev) return !!(n.srs && n.srs.reps >= 3);
+    const days = ev.recall || [];
+    if (days.length < 2) return false;
+    if ((toT(days[days.length - 1]) - toT(days[0])) / DAY < 7) return false;
+    return !openMisconception(n);
+  }
+  const openMisconception = (n) => !!(n.ev && (n.ev.mis || []).some((m) => m.at > (n.ev.lastOkAt || 0)));
+
+  /* Pourquoi cet état : une phrase fondée sur les observations, sans prétendre mesurer le cerveau */
+  const fmtD = (t) => new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short' }).format(new Date(t));
+  function reasonOf(n, state, now = Date.now()) {
+    const c = n.srs, ev = n.ev || null;
+    const days = (ev && ev.recall) || [];
+    const recalls = days.length ? `${days.length} rappel${days.length > 1 ? 's' : ''} juste${days.length > 1 ? 's' : ''}${days.length > 1 ? ` (du ${fmtD(toT(days[0]))} au ${fmtD(toT(days[days.length - 1]))})` : ''}` : 'aucun rappel juste pour l’instant';
+    const mem = c ? Math.round(SRS.retrievability(c, now) * 100) : null;
+    switch (state) {
+      case 'new': return 'Pas encore vue.';
+      case 'seen': return 'Leçon faite, mais pas encore retrouvée de mémoire en révision.';
+      case 'mastered': return ev ? `${recalls}, mémoire estimée stable ${Math.round(c.s)} jours.` : `Révisée ${c.reps} fois avec succès, mémoire estimée stable ${Math.round(c.s)} jours.`;
+      case 'due': return `Révision prévue : la mémoire estimée est à ${mem} %.`;
+      case 'fragile': {
+        if (openMisconception(n)) return `Confusion repérée : ${n.ev.mis[n.ev.mis.length - 1].label}.`;
+        if (c.illusionAt && now - c.illusionAt < 30 * DAY) return `Répondu « certain » puis faux le ${fmtD(c.illusionAt)}.`;
+        if ((c.lapses || 0) >= 2) return `Oubliée ${c.lapses} fois.`;
+        if (c.lastG === 1) return 'Oubliée à la dernière révision.';
+        return `Mémoire estimée à ${mem} %.`;
+      }
+      default: {
+        const need = days.length >= 2 ? 'il faut encore que la mémoire tienne plus longtemps' : days.length === 1 ? 'il en faut un deuxième, au moins 7 jours plus tard' : 'il faut 2 rappels justes espacés d’au moins 7 jours';
+        return `${recalls.charAt(0).toUpperCase() + recalls.slice(1)} ; ${need}.`;
+      }
+    }
+  }
+
   /* État d'une notion. discovered : une leçon couvrant la notion (elle-même ou un parent) est faite */
   function stateOf(n, discovered, now = Date.now()) {
     const c = n.srs;
     if (!c || c.last == null) return discovered || lessonOf(n) ? 'seen' : 'new';
     const r = SRS.retrievability(c, now);
     const recentIllusion = c.illusions && c.illusionAt && now - c.illusionAt < 30 * DAY;
-    if (c.s >= 21 && r >= 0.85 && (c.lastG == null || c.lastG >= 3) && !SRS.isDue(c, now)) return 'mastered';
+    if (c.s >= 21 && r >= 0.85 && (c.lastG == null || c.lastG >= 3) && !SRS.isDue(c, now) && proven(n)) return 'mastered';
     if (SRS.isDue(c, now)) return 'due';
-    if (((c.lapses || 0) >= 2 && c.s < 21) || recentIllusion || r < 0.7 || c.lastG === 1) return 'fragile';
+    if (openMisconception(n) || ((c.lapses || 0) >= 2 && c.s < 21) || recentIllusion || r < 0.7 || c.lastG === 1) return 'fragile';
     return 'learning';
   }
 
@@ -107,5 +146,5 @@
     return out;
   }
 
-  window.Mastery = { STATES, ORDER, stateOf, notions, counts, summary, nextLesson, plan, forecast, lessonOf };
+  window.Mastery = { STATES, ORDER, stateOf, reasonOf, proven, notions, counts, summary, nextLesson, plan, forecast, lessonOf };
 })();

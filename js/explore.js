@@ -66,23 +66,27 @@
       const r = A.rel.get(selected);
       const c = (e) => { const b = e.getBoundingClientRect(); return [b.left - box.left + b.width / 2, b.top - box.top + b.height / 2]; };
       const [x1, y1] = c(from);
-      [...r.pre.map((x) => [x.id, 'pre']), ...r.next.map((x) => [x.id, 'next']), ...r.links.map((x) => [x.id, 'link'])].forEach(([id, kind]) => {
+      [...r.pre.map((x) => [x.id, 'pre', x.status]), ...r.next.map((x) => [x.id, 'next', x.status]), ...r.links.map((x) => [x.id, 'link', x.status])].forEach(([id, kind, status]) => {
         const to = map.querySelector(`.xn[data-id="${id}"]`); if (!to) return;
         const [x2, y2] = c(to);
         const mx = (x1 + x2) / 2 + (Math.abs(y2 - y1) < 30 ? 0 : (x2 > x1 ? 40 : -40)), my = (y1 + y2) / 2 - (Math.abs(y2 - y1) < 30 ? 36 : 0);
-        svg.insertAdjacentHTML('beforeend', `<path class="xl ${kind}" d="M${x1},${y1} Q${mx},${my} ${x2},${y2}"/>`);
+        svg.insertAdjacentHTML('beforeend', `<path class="xl ${kind} ${status}" d="M${x1},${y1} Q${mx},${my} ${x2},${y2}"/>`);
       });
     }
 
     function showPanel(id) {
       const n = A.byId.get(id); if (!n) return;
       const st = states.get(id), r = A.rel.get(id);
-      const item = (x) => { const m = A.byId.get(x.id); return `<li><button type="button" class="xn-link" data-id="${x.id}"><span class="st-dot" style="--sc:${Mastery.STATES[states.get(x.id)].c}" aria-hidden="true"></span>${d.esc(m.title)}</button><small>par : ${x.why.map(d.esc).join(', ')}</small></li>`; };
+      // Un lien calculé reste « proposé » tant que l'étudiant ne l'a pas validé : on montre d'où il vient
+      const item = (x) => { const m = A.byId.get(x.id); return `<li class="xrel ${x.status}"><button type="button" class="xn-link" data-id="${x.id}"><span class="st-dot" style="--sc:${Mastery.STATES[states.get(x.id)].c}" aria-hidden="true"></span>${d.esc(m.title)}</button>
+        <small>${x.status === 'valide' ? `${d.ic('check-circle', true)}validé` : 'proposé'} · mots communs : ${x.why.map(d.esc).join(', ')}</small>
+        ${x.status === 'valide' ? '' : `<span class="xrel-act"><button type="button" class="icon-btn sm" data-rel="${x.rid}" data-st="valide" aria-label="Valider le lien avec ${d.esc(m.title)}">${d.ic('check')}</button><button type="button" class="icon-btn sm" data-rel="${x.rid}" data-st="rejete" aria-label="Rejeter le lien avec ${d.esc(m.title)}">${d.ic('x')}</button></span>`}</li>`; };
       panel.classList.remove('empty');
       panel.innerHTML = `
         <button type="button" class="icon-btn sm xpanel-close" aria-label="Fermer">${d.ic('x')}</button>
         <small class="xp-state" style="--sc:${Mastery.STATES[st].c}"><span class="st-dot" aria-hidden="true"></span>${Mastery.STATES[st].label}${A.diff.get(id) ? ` · ${Insight.DIFF[A.diff.get(id)]}` : ''}</small>
         <h3>${d.esc(n.title)}</h3>
+        <p class="xp-reason">${d.esc(Mastery.reasonOf(n, st))}</p>
         ${A.terms.get(id).length ? `<p class="xp-terms">${A.terms.get(id).slice(0, 5).map((t) => `<span>${d.esc(t.w)}</span>`).join('')}</p>` : ''}
         ${r.pre.length ? `<h4>${d.ic('arrow-bend-up-left')}S’appuie sur</h4><ul>${r.pre.map(item).join('')}</ul>` : ''}
         ${r.next.length ? `<h4>${d.ic('arrow-bend-down-right')}Prépare à</h4><ul>${r.next.map(item).join('')}</ul>` : ''}
@@ -94,6 +98,7 @@
         </div>`;
       panel.querySelector('.xpanel-close').onclick = () => select(null);
       panel.querySelectorAll('.xn-link').forEach((b) => { b.onclick = () => select(b.dataset.id, true); });
+      panel.querySelectorAll('[data-rel]').forEach((b) => { b.onclick = () => { d.onDecide && d.onDecide(b.dataset.rel, b.dataset.st); }; });
     }
 
     function select(id, scroll) {
