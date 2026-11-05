@@ -90,7 +90,7 @@
       const cands = [];
       order.forEach((a) => {
         if (a === b) return;
-        const shared = T.get(a.id).filter(({ k }) => textStems.get(b.id).has(k) && df.get(k) <= Math.max(2, order.length * 0.25));
+        const shared = T.get(a.id).filter(({ k }) => textStems.get(b.id).has(k) && df.get(k) <= Math.max(3, order.length * 0.25));
         if (!shared.length) return;
         const w = shared.reduce((acc, { k }) => acc + 1 / df.get(k), 0);
         if (w >= 0.34) cands.push({ a, w, why: shared.slice(0, 3).map((x) => x.w) });

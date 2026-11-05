@@ -42,6 +42,15 @@ function sampleState() {
     return { ctx, page };
   }
   const settle = (page, ms = 900) => page.waitForTimeout(ms);
+  // Un profil neuf ouvre l'introduction : on la passe pour tester le reste
+  const skipOnb = async (page) => { const b = await page.$('[data-onb="skip"]'); if (b) { await b.click(); await page.waitForTimeout(400); } };
+  // Action qui enregistre : changer l'apparence dans les réglages (le thème se règle là, plus dans l'en-tête)
+  const uiSave = async (page, theme) => {
+    await page.click('#settingsBtn'); await page.waitForTimeout(300);
+    const cur = await page.$eval('#theme', (e) => e.value);
+    await page.selectOption('#theme', theme || (cur === 'dark' ? 'light' : 'dark'));
+    await page.click('#modalBody .row-btns.end .btn');
+  };
 
   /* A. Données illisibles : jamais écrasées, mises de côté, et l'étudiant est prévenu */
   {
@@ -49,7 +58,7 @@ function sampleState() {
     await page.goto(URL0); await settle(page);
     check('A1 une fenêtre explique que les données étaient abîmées', /abîmées/.test(await page.textContent('#modalBody').catch(() => '')));
     await page.click('#rcOk').catch(() => {});
-    await page.click('#themeBtn'); await settle(page, 500);
+    await uiSave(page); await settle(page, 500);
     const rescue = await page.evaluate((k) => localStorage.getItem(k + ':rescue'), KEY);
     check('A2 l’original illisible est gardé à part', !!rescue && rescue.includes('Mon cours précieux'));
     await page.click('#settingsBtn'); await settle(page, 400);
@@ -75,14 +84,16 @@ function sampleState() {
   /* C. Stockage plein : bandeau visible, qui disparaît quand l'écriture réussit à nouveau */
   {
     const { ctx, page } = await fresh();
-    await page.goto(URL0); await settle(page);
+    await page.goto(URL0); await settle(page); await skipOnb(page);
+    // la copie de secours serait sacrifiée en premier : on l'enlève pour tester le cas vraiment plein
+    await page.evaluate(() => Object.keys(localStorage).filter((k) => k.endsWith(':bak')).forEach((k) => localStorage.removeItem(k)));
     await page.evaluate(() => { const big = 'x'.repeat(256 * 1024); for (let i = 0; i < 80; i++) { try { localStorage.setItem('fill' + i, big); } catch (e) { break; } } });
     // remplir le dernier octet disponible
-    await page.evaluate(() => { let n = 16384; while (n >= 1) { try { localStorage.setItem('fillz' + n + Math.random(), 'x'.repeat(n)); } catch (e) { n = Math.floor(n / 2); } } });
-    await page.click('#themeBtn'); await settle(page, 600);
+    await page.evaluate(() => { let n = 16384; while (n >= 1) { try { localStorage.setItem('fill0', localStorage.getItem('fill0') + 'x'.repeat(n)); } catch (e) { n = Math.floor(n / 2); } } });
+    await uiSave(page, 'light'); await settle(page, 600); // « auto » → « light » : un caractère de plus, qui ne tient plus
     check('C1 un bandeau prévient que la sauvegarde a échoué', await page.isVisible('#saveAlert'), await page.textContent('#saveAlert').catch(() => 'absent'));
     await page.evaluate(() => Object.keys(localStorage).filter((k) => k.startsWith('fill')).forEach((k) => localStorage.removeItem(k)));
-    await page.click('#themeBtn'); await settle(page, 600);
+    await uiSave(page, 'dark'); await settle(page, 600);
     check('C2 le bandeau disparaît quand ça remarche', !(await page.$('#saveAlert')));
     await ctx.close();
   }
@@ -105,7 +116,7 @@ function sampleState() {
     await ctx.close();
 
     const f2 = await fresh();
-    await f2.page.goto(URL0); await settle(f2.page);
+    await f2.page.goto(URL0); await settle(f2.page); await skipOnb(f2.page);
     await f2.page.setInputFiles('#jsonInput', backupFile); await settle(f2.page, 500);
     await Promise.all([f2.page.waitForNavigation().catch(() => {}), f2.page.click('#rsReplace')]);
     await settle(f2.page);
@@ -129,7 +140,7 @@ function sampleState() {
 
     /* G. Modification juste avant de quitter la page : rien n'est perdu */
     const before = await f2.page.evaluate((k) => JSON.parse(localStorage.getItem(k)).settings.theme, KEY);
-    await f2.page.click('#themeBtn');
+    await uiSave(f2.page);
     await f2.page.reload(); // moins de 150 ms après : seule l'écriture à la fermeture peut la sauver
     const after = await f2.page.evaluate((k) => JSON.parse(localStorage.getItem(k)).settings.theme, KEY);
     check('G1 la dernière modification survit à une fermeture immédiate', before !== after, `${before} → ${after}`);

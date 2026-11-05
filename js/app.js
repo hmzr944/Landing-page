@@ -41,9 +41,6 @@
   function applyTheme() {
     if (state.settings.theme === 'auto') delete document.documentElement.dataset.theme;
     else document.documentElement.dataset.theme = state.settings.theme;
-    const dark = effectiveTheme() === 'dark';
-    $('#themeBtn').innerHTML = ic(dark ? 'sun' : 'moon');
-    $('#themeBtn').setAttribute('aria-label', dark ? 'Passer en thème clair' : 'Passer en thème sombre');
   }
   prefersDark.addEventListener('change', applyTheme);
   function applyCalm() {
@@ -57,6 +54,9 @@
     const lvl = L.lvl;
     const rank = Trophies.RANKS[Trophies.rankOf(lvl)];
     $('#xpLevel').textContent = `Niv. ${lvl}`;
+    // le niveau est représenté par la médaille de son rang : bronze (rangs 1-2), argent, or, platine
+    const ri = Trophies.rankOf(lvl);
+    $('#xpMedal').innerHTML = Trophies.medal(rank.icon, Math.min(3, Math.floor(ri / 2)), 26);
     $('#xp').title = `${rank.name} · ${L.into}/${L.need} XP avant le niveau ${lvl + 1}`;
     $('#xp').style.setProperty('--rank', rank.c);
     $('#xpFill').style.transform = `scaleX(${L.into / L.need})`;
@@ -754,6 +754,7 @@
         const write = $('#pgWrite', el).checked;
         closeModal();
         Mascot.react('created');
+        if (onbAfterCourse(s)) { if (write) setTimeout(async () => { await writeCourses(s, s.root.children.filter((c) => c.module)); }, 250); return; }
         mapMode = 'zones'; Explore.reset();
         go(link(s.id, s.root.id, s.root.children.filter((c) => c.children.length).length >= 2 ? 'carte' : 'fiche'));
         if (write) setTimeout(async () => { await writeCourses(s, s.root.children.filter((c) => c.module)); render(view); }, 250);
@@ -1464,6 +1465,7 @@
   let popping = false;
   function celebrate(item) { pops.push(item); if (!popping) nextPop(); }
   function nextPop() {
+    if (document.documentElement.classList.contains('in-onboarding')) { popping = true; setTimeout(nextPop, 1500); return; }
     const item = pops.shift();
     if (!item) { popping = false; return; }
     popping = true;
@@ -1646,6 +1648,43 @@
       </section>`;
     if (!study || study.scope.type !== 'all' || (study.i >= study.queue.length && study.celebrated)) buildSession({ type: 'all' });
     renderStudy();
+  }
+
+  /* ---------- Onboarding ---------- */
+  // Le sujet « Découvrir Arbor » créé au premier lancement, jamais utilisé : il laisse la place au vrai premier cours
+  const untouchedDemo = (x) => x.title === 'Découvrir Arbor' && !(() => { let used = false; walk(x.root, (n) => { if (n.srs) used = true; }); return used; })();
+  const dropUntouchedDemo = () => { state.subjects = state.subjects.filter((x) => !untouchedDemo(x)); };
+  function onbAfterCourse(s) {
+    if (!window.Onboarding || !Onboarding.pending()) return false;
+    dropUntouchedDemo(); save();
+    return Onboarding.afterImport(s);
+  }
+  function openOnboarding() {
+    Onboarding.open({
+      profile: state.profile,
+      addCourse(tree, examDate) {
+        const s = makeSubject(tree.title, { root: normalize(tree), color: PALETTE[0], icon: 'globe-hemisphere-west' });
+        if (examDate) s.examDate = examDate;
+        dropUntouchedDemo();
+        state.subjects.push(s); save();
+        return s;
+      },
+      importPdf: () => pdfModal(),
+      newCourse: () => { dropUntouchedDemo(); save(); render(view); newSubjectModal(); },
+      // Première réponse : une vraie observation, la notion devient « découverte »
+      firstAnswer(s, node, ok) {
+        node.lessonDone = { at: Date.now(), good: ok ? 1 : 0, asked: 1 };
+        const obs = { sid: s.id, nid: node.id, activity: 'lecon', outcome: ok ? 'juste' : 'faux' };
+        Obs.summarize(node, { ...obs, at: Date.now() }); Obs.add(obs);
+        s.updatedAt = Date.now(); save();
+      },
+      go(s) {
+        mapMode = 'zones'; Explore.reset();
+        go(link(s.id, s.root.id, s.root.children.filter((c) => c.children.length).length >= 2 ? 'carte' : 'fiche'));
+        setTimeout(checkTrophies, 900);
+      },
+      saveProfile(p) { state.profile = p; delete state.firstRun; save(); Store.flush(); },
+    });
   }
 
   /* ---------- Pratiquer avec Pousse : dialogue socratique et Enseigne-moi ---------- */
@@ -2429,10 +2468,11 @@
       <h2 id="modalTitle">Réglages</h2>
       <form id="setForm" class="form">
         <div class="field">
-          <label for="theme">Thème</label>
+          <label for="theme">Apparence</label>
           <select id="theme" name="theme">
-            ${[['auto', 'Automatique (comme le système)'], ['light', 'Clair'], ['dark', 'Sombre']].map(([v, l]) => `<option value="${v}" ${st.theme === v ? 'selected' : ''}>${l}</option>`).join('')}
+            ${[['auto', 'Automatique (comme le téléphone)'], ['light', 'Jour'], ['dark', 'Nuit']].map(([v, l]) => `<option value="${v}" ${st.theme === v ? 'selected' : ''}>${l}</option>`).join('')}
           </select>
+          <p class="hint">Version ${esc(window.ARBOR_VERSION || '')} · <button type="button" class="link-btn" id="onbAgain">Revoir l’introduction</button></p>
         </div>
         <div class="field-row">
           <div class="field">
@@ -2446,16 +2486,16 @@
         </div>
         <label class="check switch-row"><input type="checkbox" id="calmOn" ${st.calm ? 'checked' : ''} /> Mode calme : moins de mouvement, pas de confettis, mascotte silencieuse</label>
         <label class="check switch-row"><input type="checkbox" id="mascotOn" ${st.mascot !== false ? 'checked' : ''} /> Afficher Pousse, la mascotte</label>
-        <fieldset class="field local-ai">
+        <details class="field advanced">
+          <summary>Réglages avancés</summary>
+        ${window.LocalAI && LocalAI.supported() ? `<fieldset class="field local-ai">
           <legend>Rédaction améliorée <span class="optional">sur cet ordinateur</span></legend>
-          ${window.LocalAI && LocalAI.supported() ? `
           <label class="check switch-row"><input type="checkbox" id="localOn" ${st.localAI ? 'checked' : ''} /> Des cours mieux rédigés, préparés sur cet ordinateur, sans rien envoyer</label>
           <select id="localModel" aria-label="Modèle local">${LocalAI.MODELS.map((m) => `<option value="${m.id}" ${st.localModel === m.id ? 'selected' : ''}>${m.label} (${m.size})</option>`).join('')}</select>
           <div class="row-btns"><button type="button" class="btn ghost sm" id="localDl">${ic('download-simple')}Préparer maintenant</button><span class="hint" id="localState"></span></div>
           <div class="bar" id="localBarWrap" hidden><span id="localBar" style="transform:scaleX(0)"></span></div>
-          <p class="hint">Préparé une seule fois (quelques minutes), puis gardé sur l’ordinateur. Ta vie privée est respectée : rien n’est envoyé.</p>`
-          : `<p class="hint">Disponible sur ordinateur, avec Chrome ou Edge à jour.</p>`}
-        </fieldset>
+          <p class="hint">Préparé une seule fois (quelques minutes), puis gardé sur l’ordinateur. Ta vie privée est respectée : rien n’est envoyé.</p>
+        </fieldset>` : ''}
         <div class="field">
           <label for="apiKey">Clé d’accès <span class="optional">facultatif</span></label>
           <input id="apiKey" name="api-key" type="password" autocomplete="off" spellcheck="false" placeholder="sk-ant-…" value="${esc(st.apiKey || '')}" />
@@ -2468,6 +2508,7 @@
               .map(([v, l]) => `<option value="${v}" ${st.model === v ? 'selected' : ''}>${l}</option>`).join('')}
           </select>
         </div>
+        </details>
         ${installBlock()}
         <fieldset class="field">
           <legend>Compte et tuteur</legend>
@@ -2505,6 +2546,7 @@
         };
       }
       $('#expAll', el).onclick = () => exportBackup();
+      $('#onbAgain', el).onclick = () => { closeModal(); openOnboarding(); };
       const out = $('#acctOut', el); if (out) out.onclick = () => { Tutor.signOut(); closeModal(); FX.toast('Déconnecté', 'success'); };
       if (window.Tutor && Tutor.signedIn()) Promise.all([Tutor.email(), Tutor.usage()]).then(([mail, used]) => { const e = $('#acctState', el); if (e) e.textContent = `Connecté${mail ? ` : ${mail}` : ''}.${used != null ? ` ${used} échange${used > 1 ? 's' : ''} avec Pousse ce mois-ci.` : ''}`; }).catch(() => {});
       const rb = $('#rescueDl', el); if (rb) rb.onclick = () => downloadText(Store.rescued(), 'arbor-donnees-illisibles.json');
@@ -2788,6 +2830,7 @@
         const write = $('#pvWrite', el) && $('#pvWrite', el).checked;
         save(); closeModal();
         if (write) { const ids = new Set(toWrite.map((c) => c.id)); setTimeout(async () => { await writeCourses(s, s.root.children.filter((c) => ids.has(c.id))); render(view); }, 300); }
+        if (onbAfterCourse(s)) return;
         // Plusieurs chapitres : on ouvre directement la carte, pour voir la structure du cours d'un coup d'œil
         const zones = s.root.children.filter((c) => c.children.length).length >= 2;
         mapMode = 'zones'; Explore.reset();
@@ -3034,10 +3077,6 @@
   /* Boutons globaux */
   $('#importPdfBtn').onclick = pdfModal;
   $('#settingsBtn').onclick = settingsModal;
-  $('#themeBtn').onclick = () => {
-    state.settings.theme = effectiveTheme() === 'dark' ? 'light' : 'dark';
-    applyTheme(); save();
-  };
   // Tiroir de l'arbre (mobile) : bouton pour ouvrir, tap à côté pour fermer
   document.addEventListener('click', (e) => {
     const pane = $('#treePane');
@@ -3110,6 +3149,7 @@
   }
   Store.onError(saveAlert);
   if (window.Tutor) { const n = Tutor.notice(); if (n) setTimeout(() => FX.toast(n.ok ? 'Connecté : tu peux parler à Pousse' : n.msg, n.ok ? 'success' : 'error', 4200), 500); }
+  if (window.Onboarding && !state.profile && Store.status.load === 'ok' && state.subjects.every(untouchedDemo)) setTimeout(openOnboarding, 250);
   if (Store.status.readOnly) saveAlert('blocked');
   else if (Store.status.load !== 'ok') {
     const day = Store.status.bakAt ? dayLabelLong(Store.status.bakAt + 'T12:00') : '';

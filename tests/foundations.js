@@ -95,6 +95,7 @@ function sample() {
   check('D1 la sauvegarde contient le journal et les décisions du graphe', Array.isArray(b.obs) && b.obs.length >= 1 && !!b.data.subjects[0].graph);
   const ctx2 = await browser.newContext({ serviceWorkers: 'block' }); const p2 = await ctx2.newPage(); p2.on('pageerror', (e) => errors.push(e.message));
   await p2.goto(URL0); await p2.waitForTimeout(900);
+  { const sk = await p2.$('[data-onb="skip"]'); if (sk) { await sk.click(); await p2.waitForTimeout(400); } }
   await p2.setInputFiles('#jsonInput', file); await p2.waitForTimeout(500);
   await Promise.all([p2.waitForNavigation().catch(() => {}), p2.click('#rsReplace')]); await p2.waitForTimeout(1000);
   const restored = await p2.evaluate(async () => ({ obs: (await Obs.all()).length, graph: !!JSON.parse(localStorage.getItem('arbor:v1')).subjects[0].graph, ev: !!JSON.parse(localStorage.getItem('arbor:v1')).subjects[0].root.children[0].children[1].ev }));
