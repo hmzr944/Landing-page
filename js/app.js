@@ -123,6 +123,8 @@
     }
     const navOf = { home: 'home', study: 'home', courses: 'courses', subject: 'courses', progress: 'progress', trophies: 'progress' }[view.name];
     $$('[data-nav]').forEach((a) => { if (a.dataset.nav === navOf) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+    // la pastille de l'onglet actif glisse vers sa nouvelle place
+    $$('.topnav, .bottom-nav').forEach((n) => n.style.setProperty('--ni', ['home', 'courses', 'progress'].indexOf(navOf)));
     render(prev);
   }
   const link = (sid, nid, mode = 'fiche') => `#/s/${sid}/${nid}/${mode}`;
@@ -133,6 +135,12 @@
     // Transition seulement quand on change d'écran ou d'onglet (pas à chaque clic dans l'arbre)
     const bigChange = prev.name !== view.name || prev.id !== view.id;
     const modeChange = !bigChange && prev.mode !== view.mode;
+    // sens du glissement : ordre des onglets, puis profondeur (liste → détail)
+    const TAB = { home: 0, study: 0, method: 0, courses: 1, subject: 1, progress: 2, trophies: 2 };
+    const DEPTH = { home: 0, courses: 0, progress: 0, study: 1, method: 1, subject: 1, trophies: 1 };
+    const slide = !prev.name ? 'page'
+      : TAB[view.name] !== TAB[prev.name] ? (TAB[view.name] > TAB[prev.name] ? 'slide-next' : 'slide-prev')
+      : DEPTH[view.name] !== DEPTH[prev.name] ? (DEPTH[view.name] > DEPTH[prev.name] ? 'slide-next' : 'slide-prev') : 'page';
     const paint = () => { try { paintNow(); } catch (err) { console.error(err); throw err; } };
     const paintNow = () => {
       if (view.name === 'home') renderHome();
@@ -143,17 +151,21 @@
       else if (view.name === 'progress') renderProgress();
       else renderSubject(bigChange);
       updateBadges();
-      if (bigChange) { app.classList.remove('enter'); void app.offsetWidth; app.classList.add('enter'); window.scrollTo({ top: 0 }); }
+      if (bigChange) {
+        app.classList.remove('enter', 'from-next', 'from-prev'); void app.offsetWidth;
+        app.classList.add('enter'); if (slide !== 'page') app.classList.add(slide === 'slide-next' ? 'from-next' : 'from-prev');
+        window.scrollTo({ top: 0 });
+      }
       afterPaint();
     };
     if ((bigChange || modeChange) && document.startViewTransition && !reducedMotion() && prev.name) {
-      document.documentElement.dataset.vt = bigChange ? 'page' : (['fiche', 'carte', 'revision'].indexOf(view.mode) > ['fiche', 'carte', 'revision'].indexOf(prev.mode) ? 'forward' : 'back');
+      document.documentElement.dataset.vt = bigChange ? slide : (['fiche', 'carte', 'revision'].indexOf(view.mode) > ['fiche', 'carte', 'revision'].indexOf(prev.mode) ? 'forward' : 'back');
       const vt = document.startViewTransition(paint);
       // Une transition interrompue par une autre navigation est normale : on ignore son rejet
       vt.ready.catch(() => {});
       vt.updateCallbackDone.catch(() => {});
       // la transition a déjà animé l'entrée : on retire « enter » avant, sinon le fondu CSS repartirait de zéro
-      vt.finished.catch(() => {}).then(() => { app.classList.remove('enter'); delete document.documentElement.dataset.vt; });
+      vt.finished.catch(() => {}).then(() => { app.classList.remove('enter', 'from-next', 'from-prev'); delete document.documentElement.dataset.vt; });
     } else paint();
   }
 
@@ -2472,7 +2484,7 @@
           <select id="theme" name="theme">
             ${[['auto', 'Automatique (comme le téléphone)'], ['light', 'Jour'], ['dark', 'Nuit']].map(([v, l]) => `<option value="${v}" ${st.theme === v ? 'selected' : ''}>${l}</option>`).join('')}
           </select>
-          <p class="hint">Version ${esc(window.ARBOR_VERSION || '')} · <button type="button" class="link-btn" id="onbAgain">Revoir l’introduction</button></p>
+          <p class="hint">Version ${esc(window.ARBOR_VERSION || '')} <span class="hide-desktop">· <button type="button" class="link-btn" id="onbAgain">Revoir l’introduction</button></span></p>
         </div>
         <div class="field-row">
           <div class="field">
@@ -3149,7 +3161,8 @@
   }
   Store.onError(saveAlert);
   if (window.Tutor) { const n = Tutor.notice(); if (n) setTimeout(() => FX.toast(n.ok ? 'Connecté : tu peux parler à Pousse' : n.msg, n.ok ? 'success' : 'error', 4200), 500); }
-  if (window.Onboarding && !state.profile && Store.status.load === 'ok' && state.subjects.every(untouchedDemo)) setTimeout(openOnboarding, 250);
+  const isDesktop = () => matchMedia('(min-width: 901px) and (hover: hover) and (pointer: fine)').matches;
+  if (window.Onboarding && !isDesktop() && !state.profile && Store.status.load === 'ok' && state.subjects.every(untouchedDemo)) setTimeout(openOnboarding, 250);
   if (Store.status.readOnly) saveAlert('blocked');
   else if (Store.status.load !== 'ok') {
     const day = Store.status.bakAt ? dayLabelLong(Store.status.bakAt + 'T12:00') : '';
