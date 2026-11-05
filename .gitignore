@@ -1,0 +1,3 @@
+# Fichier de verrou créé par les tests Deno de supabase/functions
+deno.lock
+node_modules/
