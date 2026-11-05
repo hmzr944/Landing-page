@@ -15,7 +15,7 @@
 
   function confetti(x = window.innerWidth / 2, y = window.innerHeight / 3, n = 60, colors) {
     if (reduced() || document.documentElement.classList.contains('calm')) return;
-    const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#3451D1';
+    const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#1E7A57';
     const palette = colors || [accent, '#12A150', '#E08A00', '#D93A40', '#0369A1'];
     for (let i = 0; i < n; i++) {
       const a = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.2;

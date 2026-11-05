@@ -34,7 +34,7 @@
     let busy = false, finished = false, errors = 0;
     el = document.createElement('div');
     el.className = 'lesson dlg';
-    el.style.setProperty('--lc', s.color || '#3451D1');
+    el.style.setProperty('--lc', 'var(--accent)');
     el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true');
     el.setAttribute('aria-label', `${mode === 'socratique' ? 'Dialogue' : 'Enseigne-moi'} : ${node.title}`);
     el.innerHTML = `<div class="ls-top"><button class="icon-btn ls-close" aria-label="Fermer">${d.ic('x')}</button>
@@ -48,7 +48,8 @@
     const feed = el.querySelector('.dlg-feed'), form = el.querySelector('.dlg-form'), input = el.querySelector('#dlgInput');
     const scroll = () => { feed.scrollTop = feed.scrollHeight; };
     const add = (html, cls) => { const b = document.createElement('div'); b.className = cls; b.innerHTML = html; feed.appendChild(b); scroll(); return b; };
-    const pousse = (text) => add(`<span class="dlg-av" aria-hidden="true">${d.ic('plant', true)}</span><p>${d.esc(text)}</p>`, 'dlg-msg pousse');
+    const avatar = (mood = 'smile') => `<span class="dlg-av">${(window.Mascot && Mascot.mini({ size: 34, mood })) || d.ic('plant', true)}</span>`;
+    const pousse = (text, mood) => add(`${avatar(mood)}<p>${d.esc(text)}</p>`, 'dlg-msg pousse');
 
     const st = () => { const x = Mastery.notions(s).find((y) => y.n.id === node.id); return x ? x.state : 'new'; };
     const learner = () => ({
@@ -104,7 +105,7 @@
         if (last) last.insertAdjacentHTML('beforeend', `<span class="dlg-verdict v-${r.verdict}">${d.ic(VERDICT[r.verdict][1], true)}${VERDICT[r.verdict][0]}</span>`);
       }
       if (r.refused) { pousse(r.reply); return; }
-      const b = pousse(r.reply);
+      const b = pousse(r.reply, r.verdict === 'juste' ? 'happy' : 'smile');
       if (r.citations && r.citations.length) b.insertAdjacentHTML('beforeend', `<div class="dlg-cites">${r.citations.map((c) => `<span class="dlg-cite">${d.ic('quotes', true)}${c.page ? `p. ${c.page}` : pageLabel || 'cours'} · « ${d.esc(c.quote)} »</span>`).join('')}</div>`);
       if (mode === 'enseigne' && answer && ((r.correct_points || []).length || (r.missing || []).length)) {
         add(`${(r.correct_points || []).length ? `<p class="ok">${d.ic('check-circle', true)}<b>Juste</b></p><ul>${r.correct_points.map((x) => `<li>${d.esc(x)}</li>`).join('')}</ul>` : ''}
@@ -129,6 +130,7 @@
         const pane = box.querySelector('.dlg-passage'); pane.hidden = false;
         pane.innerHTML = `<small>${p.page ? `Cours, p. ${p.page}` : pageLabel ? `Cours, ${pageLabel}` : 'Cours'}</small><p>${d.esc(p.text.slice(0, 900))}${p.text.length > 900 ? '…' : ''}</p>`;
         rr.remove();
+        scroll(); // le passage reste visible au-dessus du champ de réponse
       };
       if (pre) box.querySelector('a').addEventListener('click', () => close());
     }
@@ -147,7 +149,8 @@
       busy = true;
       const answer = text && text.trim();
       if (answer) { add(`<p>${d.esc(answer)}</p>`, 'dlg-msg me'); history.push({ role: 'student', text: answer }); }
-      const wait = add('<span class="dlg-dots" aria-label="Pousse réfléchit"><i></i><i></i><i></i></span>', 'dlg-msg pousse typing');
+      // Pousse écrit : la mascotte, un crayon qui s'agite et trois points, le temps que la réponse arrive
+      const wait = add(`${(window.Mascot && Mascot.mini({ size: 46, mood: 'smile', writing: true })) || ''}<span class="sr-only">Pousse écrit sa réponse</span>`, 'dlg-msg pousse typing');
       try {
         const r = await Tutor.ask({ mode, notion: { title: node.title, course: s.title }, passages, history: history.slice(0, -1).concat(answer ? [] : history.slice(-1)).filter(Boolean), message: answer || '', hint: !!hint, learner: learner() });
         wait.remove();

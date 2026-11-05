@@ -635,5 +635,16 @@
 
   function setCalm(on) { calm = on; if (root) root.classList.toggle('calm', on); }
 
-  window.Mascot = { init, react, say: (t, ms) => say(t, ms, true), setLevel, setVigor, info, evolve: (a, b) => evolve(a, b), setEnabled, setThirst, setFocus, setCalm };
+  /* Pousse miniature (fiche, dialogue) : clone du dessin vivant, même rang et même palette jour/nuit.
+     writing = Pousse écrit (petit crayon et trois points) pendant que le tuteur prépare sa réponse. */
+  function mini({ size = 44, mood = 'smile', writing = false } = {}) {
+    const live = document.querySelector('.mascot');
+    const src = document.querySelector('.mascot .mascot-svg');
+    if (!src) return '';
+    const svg = src.outerHTML.replace(/ style="[^"]*"/g, '').replace('class="mascot-svg"', 'class="mascot-svg pm-svg"').replace(/ id="[^"]*"/g, '');
+    const rank = (live && live.dataset.rank) || '0', vigor = (live && live.dataset.vigor) || '2';
+    return `<span class="mascot pousse-mini${writing ? ' writing' : ''}" style="--pm:${size}px" data-rank="${rank}" data-vigor="${vigor}" data-mood="${mood}" aria-hidden="true">${svg}${writing ? '<span class="pm-pen"><i class="ph-fill ph-pencil-simple"></i></span><span class="pm-dots"><i></i><i></i><i></i></span>' : ''}</span>`;
+  }
+
+  window.Mascot = { init, react, mini, say: (t, ms) => say(t, ms, true), setLevel, setVigor, info, evolve: (a, b) => evolve(a, b), setEnabled, setThirst, setFocus, setCalm };
 })();

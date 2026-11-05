@@ -104,7 +104,7 @@
     let pos = 0, done = 0, good = 0, asked = 0, retried = new Set(), choice = null, checked = false;
     el = document.createElement('div');
     el.className = 'lesson';
-    el.style.setProperty('--lc', color || '#3451D1');
+    el.style.setProperty('--lc', 'var(--accent)');
     el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-label', `Leçon : ${module.title}`);
     el.innerHTML = `<div class="ls-top"><button class="icon-btn ls-close" aria-label="Quitter la leçon"><i class="ph ph-x" aria-hidden="true"></i></button>
       <div class="ls-bar" aria-hidden="true"><span></span></div><span class="ls-xp num"><i class="ph-fill ph-lightning" aria-hidden="true"></i><b>0</b></span></div>

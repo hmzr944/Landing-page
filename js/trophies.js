@@ -18,7 +18,7 @@
     { from: 3, name: 'Pousse', icon: 'plant', c: '#3FBF6A' },
     { from: 5, name: 'Tige', icon: 'leaf', c: '#12A150' },
     { from: 8, name: 'Arbuste', icon: 'flower-tulip', c: '#0B7F75' },
-    { from: 12, name: 'Arbre', icon: 'tree', c: '#3451D1' },
+    { from: 12, name: 'Arbre', icon: 'tree', c: '#1E7A57' },
     { from: 17, name: 'Grand chêne', icon: 'tree-evergreen', c: '#9333B8' },
     { from: 24, name: 'Forêt', icon: 'tree-structure', c: '#C2255C' },
     { from: 32, name: 'Forêt ancienne', icon: 'crown-simple', c: '#C27803' },

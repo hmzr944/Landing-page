@@ -28,7 +28,7 @@
     doing: { label: 'En cours' },
     done: { label: 'Maîtrisé' },
   };
-  const COLOR_NAMES = ['Cobalt', 'Corail', 'Orange brûlé', 'Sarcelle', 'Océan', 'Orchidée', 'Framboise', 'Olive'];
+  const COLOR_NAMES = ['Jade', 'Bois de rose', 'Cuivre', 'Sarcelle', 'Ardoise', 'Prune', 'Forêt', 'Olive'];
   const ICON_NAMES = {
     'book-open': 'Livre', brain: 'Cerveau', flask: 'Chimie', atom: 'Physique', 'globe-hemisphere-west': 'Géographie',
     bank: 'Histoire', scales: 'Droit', heartbeat: 'Médecine', calculator: 'Maths', 'chart-line-up': 'Économie',
@@ -448,7 +448,8 @@
   function renderSubject(bigChange) {
     const s = subjectById(view.id);
     const st = stats(s.root);
-    document.documentElement.style.setProperty('--accent', s.color);
+    // un seul accent (le jade) dans toute l'appli : la couleur du sujet ne marque que son icône
+    document.documentElement.style.removeProperty('--accent');
     const scroll = bigChange ? 0 : ($('#tree') ? $('#tree').scrollTop : 0);
     const tab = (mode, icon, label) =>
       `<a class="tab" href="${link(s.id, view.nodeId, mode)}" ${view.mode === mode ? 'aria-current="page"' : ''}>${ic(icon)}<span>${label}</span></a>`;
@@ -1656,7 +1657,7 @@
   function practiceCard(s, node) {
     if (node.children.length || !window.Dialogue || !Dialogue.canTalk(node)) return '';
     return `<section class="practice-card glass">
-      <span class="lc-ic" aria-hidden="true">${ic('chats-circle', true)}</span>
+      <span class="pc-pousse">${(window.Mascot && Mascot.mini({ size: 64, mood: 'happy' })) || ic('plant', true)}</span>
       <div class="lc-txt"><b>Pratiquer avec Pousse</b><small>Questions sur ton cours, sources citées</small></div>
       <div class="row-btns"><button class="btn sm" data-act="talk" data-mode="socratique" data-id="${node.id}">${ic('chat-circle-text', true)}Dialogue</button>
       <button class="btn ghost sm" data-act="talk" data-mode="enseigne" data-id="${node.id}">${ic('chalkboard-teacher')}Enseigne-moi</button></div>

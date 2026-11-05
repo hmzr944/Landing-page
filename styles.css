@@ -6,22 +6,22 @@
    ========================================================= */
 :root {
   /* Couleurs (clair) */
-  --bg: #F5F6F8;
+  --bg: #F2F6F3;
   --surface: #FFFFFF;
-  --surface-2: #EEF0F4;
-  --surface-3: #E4E7ED;
-  --line: #E1E4EA;
-  --line-strong: #C9CED8;
-  --text: #15171C;
-  --text-2: #545B6A;
-  --text-3: #6B7280;
-  --accent: #3451D1;
+  --surface-2: #EAF1EC;
+  --surface-3: #DCE7E0;
+  --line: #D8E3DB;
+  --line-strong: #BCCBC1;
+  --text: #11201A;
+  --text-2: #4A5D53;
+  --text-3: #63766C;
+  --accent: #1E7A57;
   --accent-ink: var(--accent);
   --accent-soft: color-mix(in oklab, var(--accent) 11%, transparent);
   --on-accent: #FFFFFF;
-  --todo: #8A919E;
+  --todo: #86958C;
   --doing: #C27803;
-  --done: #12A150;
+  --done: #1F9A62;
   --danger: #D12C33;
   --highlight: color-mix(in oklab, #F5B70A 42%, transparent);
 
@@ -43,9 +43,9 @@
   --r-ctl: 10px;
   --r-panel: 16px;
   --r-pill: 999px;
-  --shadow-1: 0 1px 2px rgb(20 26 45 / 0.06);
-  --shadow-2: 0 1px 2px rgb(20 26 45 / 0.05), 0 10px 28px -14px rgb(20 26 45 / 0.22);
-  --shadow-3: 0 24px 60px -20px rgb(20 26 45 / 0.35);
+  --shadow-1: 0 1px 2px rgb(16 48 34 / 0.07);
+  --shadow-2: 0 1px 2px rgb(16 48 34 / 0.06), 0 12px 30px -14px rgb(16 48 34 / 0.24);
+  --shadow-3: 0 26px 64px -22px rgb(16 48 34 / 0.36);
   --ring: 0 0 0 3px color-mix(in oklab, var(--accent) 35%, transparent);
 
   /* Mouvement */
@@ -60,20 +60,20 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --bg: #111318;
-    --surface: #181B21;
-    --surface-2: #20242C;
-    --surface-3: #2A2F39;
-    --line: #2A2F38;
-    --line-strong: #3A404B;
-    --text: #ECEEF2;
-    --text-2: #A9B0BC;
-    --text-3: #8C93A0;
-    --accent-ink: color-mix(in oklab, var(--accent) 55%, white);
+    --bg: #0B1310;
+    --surface: #121C18;
+    --surface-2: #19251F;
+    --surface-3: #22302A;
+    --line: #233029;
+    --line-strong: #33443B;
+    --text: #E6EFEA;
+    --text-2: #A3B6AB;
+    --text-3: #86998F;
+    --accent-ink: color-mix(in oklab, var(--accent) 45%, #A8F0CF);
     --accent-soft: color-mix(in oklab, var(--accent) 22%, transparent);
-    --todo: #7D8592;
+    --todo: #7A8C82;
     --doing: #F0A020;
-    --done: #2FBF6B;
+    --done: #3FCB86;
     --danger: #FF6B70;
     --highlight: color-mix(in oklab, #F5B70A 30%, transparent);
     --shadow-1: 0 1px 2px rgb(0 0 0 / 0.3);
@@ -83,20 +83,20 @@
   }
 }
 :root[data-theme='dark'] {
-  --bg: #111318;
-  --surface: #181B21;
-  --surface-2: #20242C;
-  --surface-3: #2A2F39;
-  --line: #2A2F38;
-  --line-strong: #3A404B;
-  --text: #ECEEF2;
-  --text-2: #A9B0BC;
-  --text-3: #8C93A0;
-  --accent-ink: color-mix(in oklab, var(--accent) 55%, white);
+  --bg: #0B1310;
+  --surface: #121C18;
+  --surface-2: #19251F;
+  --surface-3: #22302A;
+  --line: #233029;
+  --line-strong: #33443B;
+  --text: #E6EFEA;
+  --text-2: #A3B6AB;
+  --text-3: #86998F;
+  --accent-ink: color-mix(in oklab, var(--accent) 45%, #A8F0CF);
   --accent-soft: color-mix(in oklab, var(--accent) 22%, transparent);
-  --todo: #7D8592;
+  --todo: #7A8C82;
   --doing: #F0A020;
-  --done: #2FBF6B;
+  --done: #3FCB86;
   --danger: #FF6B70;
   --highlight: color-mix(in oklab, #F5B70A 30%, transparent);
   --shadow-1: 0 1px 2px rgb(0 0 0 / 0.3);
@@ -641,9 +641,9 @@ html:not([data-vt]) #app.enter > * { animation: enter 260ms var(--ease-out) both
 .bg-par { position: absolute; inset: -60px; will-change: transform; }
 .blob { position: absolute; border-radius: 50%; filter: blur(70px); opacity: 0.55; will-change: transform; transition: background-color 900ms ease; animation: drift-a 26s ease-in-out infinite alternate; }
 .b1 { width: 46vmax; height: 46vmax; left: -12vmax; top: -16vmax; background: var(--accent); }
-.b2 { width: 38vmax; height: 38vmax; right: -10vmax; top: 4vmax; background: color-mix(in oklab, var(--accent) 35%, #FF5C8A); animation-name: drift-b; animation-duration: 31s; }
-.b3 { width: 34vmax; height: 34vmax; left: 28vw; bottom: -18vmax; background: #FFB020; opacity: 0.4; animation-duration: 23s; animation-delay: -9s; }
-.b4 { width: 26vmax; height: 26vmax; left: 8vw; bottom: 6vmax; background: color-mix(in oklab, var(--accent) 40%, #22C3E6); opacity: 0.4; animation-name: drift-b; animation-duration: 35s; animation-delay: -14s; }
+.b2 { width: 38vmax; height: 38vmax; right: -10vmax; top: 4vmax; background: color-mix(in oklab, var(--accent) 45%, #9ED9B8); animation-name: drift-b; animation-duration: 31s; }
+.b3 { width: 34vmax; height: 34vmax; left: 28vw; bottom: -18vmax; background: #F2C66B; opacity: 0.3; animation-duration: 23s; animation-delay: -9s; }
+.b4 { width: 26vmax; height: 26vmax; left: 8vw; bottom: 6vmax; background: color-mix(in oklab, var(--accent) 40%, #7FC6B4); opacity: 0.4; animation-name: drift-b; animation-duration: 35s; animation-delay: -14s; }
 @keyframes drift-a { from { transform: translate3d(0, 0, 0) scale(1); } to { transform: translate3d(9vmax, 7vmax, 0) scale(1.15); } }
 @keyframes drift-b { from { transform: translate3d(0, 0, 0) scale(1.1); } to { transform: translate3d(-8vmax, 9vmax, 0) scale(0.9); } }
 :root[data-theme='dark'] .blob { opacity: 0.32; }
@@ -739,7 +739,7 @@ html:not([data-vt]) #app.enter > * { animation: enter 260ms var(--ease-out) both
 .mascot.off { opacity: 0; transform: translateY(30px) scale(0.9); pointer-events: none; visibility: hidden; transition: opacity 200ms ease, transform 200ms ease, visibility 0s 200ms; }
 .mascot-btn { display: block; width: 96px; height: 96px; border-radius: 50%; cursor: pointer; }
 .mascot-btn:focus-visible { outline-offset: -4px; border-radius: 50%; }
-.mascot-svg { width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 6px 14px rgb(20 26 45 / 0.18)); }
+.mascot-svg { width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 6px 14px rgb(16 48 34 / 0.18)); }
 .m-sprite, .m-body, .m-leaves, .m-arm, .m-eye, .m-sparkles, .m-shadow { transform-box: fill-box; }
 .m-sprite { transform-origin: 50% 100%; }
 .m-shadow { fill: #000; opacity: 0.14; transform-origin: center; }
@@ -1319,9 +1319,9 @@ h2, h3, .sec-head h2, .home-head h2, .mi-head h2, .subject-card h3, .back-title,
   --glass-bg: color-mix(in oklab, var(--surface) 52%, transparent);
   --glass-edge: rgb(255 255 255 / 0.62);
   --glass-hi: rgb(255 255 255 / 0.75);
-  --glass-shadow: 0 1px 1px rgb(30 40 90 / 0.04), 0 22px 50px -26px rgb(30 40 90 / 0.38);
+  --glass-shadow: 0 1px 1px rgb(16 48 34 / 0.05), 0 24px 52px -26px rgb(16 48 34 / 0.34);
   --spring: cubic-bezier(0.16, 1, 0.3, 1);
-  --c1: #3451D1; --c2: #FF5C7A; --c3: #FFB020; /* les trois feuilles du logo */
+  --c1: #1E7A57; --c2: #6FBF73; --c3: #E8B04B; /* jade, vert tendre, soleil doux : une seule note chaude */
 }
 :root[data-theme='dark'] { --glass-bg: color-mix(in oklab, var(--surface) 46%, transparent); --glass-edge: rgb(255 255 255 / 0.12); --glass-hi: rgb(255 255 255 / 0.16); --glass-shadow: 0 22px 60px -24px rgb(0 0 0 / 0.65); }
 @media (prefers-color-scheme: dark) { :root:not([data-theme='light']) { --glass-bg: color-mix(in oklab, var(--surface) 46%, transparent); --glass-edge: rgb(255 255 255 / 0.12); --glass-hi: rgb(255 255 255 / 0.16); --glass-shadow: 0 22px 60px -24px rgb(0 0 0 / 0.65); } }
@@ -1528,7 +1528,7 @@ h2, h3, .sec-head h2, .home-head h2, .mi-head h2, .subject-card h3, .back-title,
    ========================================================= */
 .mascot {
   --mb1: #7EE09A; --mb2: #3FBF6A; --mb3: #249652; --ml1: #2FA85C; --ml2: #8BE36A;
-  --mlimb: #2FA85C; --mfeet: #249652; --mstem: #2FA85C; --mbelly: #B9F5C7; --mglow: rgb(20 26 45 / 0.18);
+  --mlimb: #2FA85C; --mfeet: #249652; --mstem: #2FA85C; --mbelly: #B9F5C7; --mglow: rgb(16 48 34 / 0.18);
 }
 .mascot .mb1 { stop-color: var(--mb1); } .mascot .mb2 { stop-color: var(--mb2); } .mascot .mb3 { stop-color: var(--mb3); }
 .mascot .ml1 { stop-color: var(--ml1); } .mascot .ml2 { stop-color: var(--ml2); }
@@ -1752,8 +1752,8 @@ a.xp:hover { transform: translateY(-1px); }
   .brand:hover .lg-leaf-s { transform: rotate(12deg) scale(1.08); }
   .brand:hover .lg-stem { transform: rotate(-3deg); }
 }
-:root[data-theme='dark'] .logo .lg-a1 { stop-color: #8FA2FF; } :root[data-theme='dark'] .logo .lg-a2 { stop-color: #5866F0; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme='light']) .logo .lg-a1 { stop-color: #8FA2FF; } :root:not([data-theme='light']) .logo .lg-a2 { stop-color: #5866F0; } }
+:root[data-theme='dark'] .logo .lg-a1 { stop-color: #6FD9AE; } :root[data-theme='dark'] .logo .lg-a2 { stop-color: #2A9C72; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme='light']) .logo .lg-a1 { stop-color: #6FD9AE; } :root:not([data-theme='light']) .logo .lg-a2 { stop-color: #2A9C72; } }
 @media (prefers-reduced-motion: reduce) { .logo .lg-bowl, .logo .lg-stem, .logo .lg-leaf { animation: none; } }
 
 /* =========================================================
@@ -1842,24 +1842,24 @@ a.xp:hover { transform: translateY(-1px); }
 .mascot[data-rank='7'] { --psize: 1.07; --pb: #5CC9A7; --pd: #2F9C82; --ph: #B6F0DF; --pbelly: #DAF8EE; --plimb: #2F9C82; --pca: #F5C84B; --pcb: #D9A31F; --pch: #FFF0B3; }
 
 /* Nuit : une vraie palette (et non un filtre : Safari n'applique pas hue-rotate aux éléments d'un SVG).
-   Peau bleu lune, feuilles turquoise, graine lavande ; la couronne dorée de la forêt ancienne reste dorée. */
-:root[data-theme='dark'] .mascot { --pb: #6EA8FF; --pd: #3F78E0; --ph: #B9D6FF; --pbelly: #D6E6FF; --plimb: #3F78E0; --pla: #5FE0D0; --plb: #2BB5A8; --pstem: #2BB5A8; --pca: #4FD3C4; --pcb: #26A89C; --pch: #A8F2E9; --ptrunk: #7A6390; --pcheek: #FF9EC0; --paura: #A9C4FF; }
-:root[data-theme='dark'] .mascot[data-rank='0'] { --pb: #C7A8F0; --pd: #9C7BD6; --ph: #E6D8FB; --pbelly: #EFE6FD; --plimb: #9C7BD6; }
-:root[data-theme='dark'] .mascot[data-rank='1'] { --pb: #8FC0FF; --pd: #5C93E8; --ph: #CFE2FF; --pbelly: #E2EDFF; --plimb: #5C93E8; }
-:root[data-theme='dark'] .mascot[data-rank='3'] { --pb: #5D97F7; --pd: #3570D6; --ph: #AFCDFF; --pbelly: #CBDFFF; --plimb: #3570D6; }
-:root[data-theme='dark'] .mascot[data-rank='4'] { --pb: #5A8DF0; --pd: #3466C9; --ph: #ABC7FB; --pbelly: #CADBFD; --plimb: #6E5A86; }
-:root[data-theme='dark'] .mascot[data-rank='5'] { --pb: #4F7FE0; --pd: #2E5CB8; --ph: #A2BCF5; --pbelly: #C3D3F8; --plimb: #65507F; }
-:root[data-theme='dark'] .mascot[data-rank='6'] { --pb: #4C74D6; --pd: #2C52A8; --ph: #A0B5EE; --pbelly: #C1CDF5; --plimb: #5C4775; }
-:root[data-theme='dark'] .mascot[data-rank='7'] { --pb: #7AA8FF; --pd: #4A7BE0; --ph: #C3D9FF; --pbelly: #DEE9FF; --plimb: #4A7BE0; --pca: #F5C84B; --pcb: #D9A31F; --pch: #FFF0B3; }
+   Nuit bioluminescente : peau aigue-marine, feuilles menthe lumineuses, accordées au vert d'Arbor ; la couronne dorée reste dorée. */
+:root[data-theme='dark'] .mascot { --pb: #56C4B4; --pd: #2A9888; --ph: #A6EADF; --pbelly: #D2F6EF; --plimb: #2A9888; --pla: #9BE8B0; --plb: #4FCB86; --pstem: #4FCB86; --pca: #7FDDA0; --pcb: #3DB877; --pch: #C8F5D4; --ptrunk: #4E6B60; --pcheek: #FF9EC0; --paura: #A6F0D0; }
+:root[data-theme='dark'] .mascot[data-rank='0'] { --pb: #8ED6C9; --pd: #5BAE9F; --ph: #C9F0E8; --pbelly: #E3F8F3; --plimb: #5BAE9F; }
+:root[data-theme='dark'] .mascot[data-rank='1'] { --pb: #7DD3C4; --pd: #45AE9E; --ph: #BDEFE6; --pbelly: #DCF7F1; --plimb: #45AE9E; }
+:root[data-theme='dark'] .mascot[data-rank='3'] { --pb: #4BBCAB; --pd: #28917F; --ph: #A0E6D9; --pbelly: #CBF3EB; --plimb: #28917F; }
+:root[data-theme='dark'] .mascot[data-rank='4'] { --pb: #43B3A3; --pd: #248876; --ph: #9BE2D5; --pbelly: #C7F1E8; --plimb: #4E6B60; }
+:root[data-theme='dark'] .mascot[data-rank='5'] { --pb: #3CA898; --pd: #1F7E6E; --ph: #94DCCE; --pbelly: #C1EEE5; --plimb: #486257; }
+:root[data-theme='dark'] .mascot[data-rank='6'] { --pb: #379E8F; --pd: #1C7466; --ph: #8FD6C8; --pbelly: #BDEBE2; --plimb: #425A50; }
+:root[data-theme='dark'] .mascot[data-rank='7'] { --pb: #66CDBD; --pd: #33A090; --ph: #B3EDE3; --pbelly: #DDF8F2; --plimb: #33A090; --pca: #F5C84B; --pcb: #D9A31F; --pch: #FFF0B3; }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) .mascot { --pb: #6EA8FF; --pd: #3F78E0; --ph: #B9D6FF; --pbelly: #D6E6FF; --plimb: #3F78E0; --pla: #5FE0D0; --plb: #2BB5A8; --pstem: #2BB5A8; --pca: #4FD3C4; --pcb: #26A89C; --pch: #A8F2E9; --ptrunk: #7A6390; --pcheek: #FF9EC0; --paura: #A9C4FF; }
-  :root:not([data-theme='light']) .mascot[data-rank='0'] { --pb: #C7A8F0; --pd: #9C7BD6; --ph: #E6D8FB; --pbelly: #EFE6FD; --plimb: #9C7BD6; }
-  :root:not([data-theme='light']) .mascot[data-rank='1'] { --pb: #8FC0FF; --pd: #5C93E8; --ph: #CFE2FF; --pbelly: #E2EDFF; --plimb: #5C93E8; }
-  :root:not([data-theme='light']) .mascot[data-rank='3'] { --pb: #5D97F7; --pd: #3570D6; --ph: #AFCDFF; --pbelly: #CBDFFF; --plimb: #3570D6; }
-  :root:not([data-theme='light']) .mascot[data-rank='4'] { --pb: #5A8DF0; --pd: #3466C9; --ph: #ABC7FB; --pbelly: #CADBFD; --plimb: #6E5A86; }
-  :root:not([data-theme='light']) .mascot[data-rank='5'] { --pb: #4F7FE0; --pd: #2E5CB8; --ph: #A2BCF5; --pbelly: #C3D3F8; --plimb: #65507F; }
-  :root:not([data-theme='light']) .mascot[data-rank='6'] { --pb: #4C74D6; --pd: #2C52A8; --ph: #A0B5EE; --pbelly: #C1CDF5; --plimb: #5C4775; }
-  :root:not([data-theme='light']) .mascot[data-rank='7'] { --pb: #7AA8FF; --pd: #4A7BE0; --ph: #C3D9FF; --pbelly: #DEE9FF; --plimb: #4A7BE0; --pca: #F5C84B; --pcb: #D9A31F; --pch: #FFF0B3; }
+  :root:not([data-theme='light']) .mascot { --pb: #56C4B4; --pd: #2A9888; --ph: #A6EADF; --pbelly: #D2F6EF; --plimb: #2A9888; --pla: #9BE8B0; --plb: #4FCB86; --pstem: #4FCB86; --pca: #7FDDA0; --pcb: #3DB877; --pch: #C8F5D4; --ptrunk: #4E6B60; --pcheek: #FF9EC0; --paura: #A6F0D0; }
+  :root:not([data-theme='light']) .mascot[data-rank='0'] { --pb: #8ED6C9; --pd: #5BAE9F; --ph: #C9F0E8; --pbelly: #E3F8F3; --plimb: #5BAE9F; }
+  :root:not([data-theme='light']) .mascot[data-rank='1'] { --pb: #7DD3C4; --pd: #45AE9E; --ph: #BDEFE6; --pbelly: #DCF7F1; --plimb: #45AE9E; }
+  :root:not([data-theme='light']) .mascot[data-rank='3'] { --pb: #4BBCAB; --pd: #28917F; --ph: #A0E6D9; --pbelly: #CBF3EB; --plimb: #28917F; }
+  :root:not([data-theme='light']) .mascot[data-rank='4'] { --pb: #43B3A3; --pd: #248876; --ph: #9BE2D5; --pbelly: #C7F1E8; --plimb: #4E6B60; }
+  :root:not([data-theme='light']) .mascot[data-rank='5'] { --pb: #3CA898; --pd: #1F7E6E; --ph: #94DCCE; --pbelly: #C1EEE5; --plimb: #486257; }
+  :root:not([data-theme='light']) .mascot[data-rank='6'] { --pb: #379E8F; --pd: #1C7466; --ph: #8FD6C8; --pbelly: #BDEBE2; --plimb: #425A50; }
+  :root:not([data-theme='light']) .mascot[data-rank='7'] { --pb: #66CDBD; --pd: #33A090; --ph: #B3EDE3; --pbelly: #DDF8F2; --plimb: #33A090; --pca: #F5C84B; --pcb: #D9A31F; --pch: #FFF0B3; }
 }
 
 /* =========================================================
@@ -2286,3 +2286,58 @@ html.xp-open .mascot { opacity: 0; pointer-events: none; transition: opacity .2s
 @keyframes dlgdot { 50% { transform: translateY(-4px); opacity: .5; } }
 @media (prefers-reduced-motion: reduce) { .dlg-dots i { animation: none; } }
 .mem-reason span { grid-column: 2; }
+
+/* =========================================================
+   Identité Arbor : jade sur neutres sauge, verre en relief
+   Une seule couleur d'accent (le jade). Le trio des anneaux et du logo reste dans la même famille,
+   avec une seule note chaude (soleil doux). Les états pédagogiques gardent leur sens, en tons accordés.
+   ========================================================= */
+:root { --st-seen: #8FB0D2; --st-learning: #2FA58F; --st-mastered: #1F9A62; --jade-glow: rgb(30 122 87 / 0.22); }
+:root[data-theme='dark'] { --c1: #43C08F; --c2: #9FDB86; --c3: #EFC56A; --st-seen: #7FA3CC; --st-learning: #3DBFA7; --st-mastered: #3FCB86; --jade-glow: rgb(67 192 143 / 0.18); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme='light']) { --c1: #43C08F; --c2: #9FDB86; --c3: #EFC56A; --st-seen: #7FA3CC; --st-learning: #3DBFA7; --st-mastered: #3FCB86; --jade-glow: rgb(67 192 143 / 0.18); } }
+/* la nuit, le jade de l'accent s'éclaircit pour rester lisible sur le fond forêt */
+:root[data-theme='dark'] { --accent: #2E9C6F; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme='light']) { --accent: #2E9C6F; } }
+
+/* Verre en relief : biseau clair en haut, ombre interne en bas, profondeur teintée de vert */
+.glass, .sec, .module-panel, .study-card, .modal, .summary-card {
+  box-shadow: inset 0 1px 0 var(--glass-hi), inset 0 -1px 0 rgb(16 48 34 / 0.05), 0 1px 0 rgb(255 255 255 / 0.4), var(--glass-shadow);
+}
+.glass::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: -1;
+  background: radial-gradient(120% 60% at 15% -10%, rgb(255 255 255 / 0.35), transparent 55%);
+  mix-blend-mode: soft-light;
+}
+:root[data-theme='dark'] .glass::before { background: radial-gradient(120% 60% at 15% -10%, rgb(160 240 200 / 0.08), transparent 55%); mix-blend-mode: normal; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme='light']) .glass::before { background: radial-gradient(120% 60% at 15% -10%, rgb(160 240 200 / 0.08), transparent 55%); mix-blend-mode: normal; } }
+/* boutons principaux : relief doux, teinte jade, enfoncement au clic */
+.btn:not(.ghost) { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.22), 0 6px 16px -8px var(--jade-glow), 0 1px 0 rgb(0 0 0 / 0.05); }
+.btn:not(.ghost):active { transform: translateY(1px) scale(0.99); }
+/* transparence réduite : surfaces pleines, aucun flou */
+@media (prefers-reduced-transparency: reduce) {
+  .glass, .sec, .module-panel, .study-card, .modal, .summary-card, .zone-card, .xpanel { background: var(--surface) !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+  .glass::before { display: none; }
+}
+
+/* Pousse miniature (fiche et dialogue) : même dessin, même palette, sans bulle ni décor */
+.pousse-mini { position: relative !important; inset: auto !important; right: auto !important; bottom: auto !important; z-index: auto; display: inline-block; width: var(--pm) !important; height: var(--pm); pointer-events: none; transform: none !important; opacity: 1 !important; visibility: visible !important; flex: none; }
+.pousse-mini .pm-svg { width: var(--pm); height: var(--pm); display: block; overflow: visible; filter: drop-shadow(0 4px 8px rgb(16 48 34 / 0.18)); }
+.pousse-mini .m-bubble, .pousse-mini .m-zzz, .pousse-mini .m-sparkles, .pousse-mini .m-book, .pousse-mini .m-band, .pousse-mini .m-shadow { display: none; }
+.pc-pousse { width: 64px; height: 64px; display: grid; place-items: center; border-radius: 20px; background: radial-gradient(circle at 50% 70%, color-mix(in oklab, var(--accent) 16%, transparent), transparent 70%); flex: none; }
+.dlg-av { width: 34px; height: 34px; display: grid; place-items: center; background: none; }
+
+/* Pousse écrit : il se penche, le crayon gratte, trois points patientent */
+.pousse-mini.writing { margin-right: 46px; }
+.pousse-mini.writing .pm-svg { animation: pm-lean 1.6s ease-in-out infinite; transform-origin: 50% 90%; }
+.pm-pen { position: absolute; right: -10px; bottom: 2px; font-size: 15px; color: var(--accent-ink); animation: pm-scribble 0.5s ease-in-out infinite alternate; }
+.pm-dots { position: absolute; left: calc(100% + 14px); top: 50%; transform: translateY(-50%); display: inline-flex; gap: 4px; }
+.pm-dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); opacity: 0.35; animation: pm-dot 1.2s ease-in-out infinite; }
+.pm-dots i:nth-child(2) { animation-delay: 0.15s; } .pm-dots i:nth-child(3) { animation-delay: 0.3s; }
+@keyframes pm-lean { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg) translateY(1px); } }
+@keyframes pm-scribble { from { transform: translate(0, 0) rotate(-12deg); } to { transform: translate(-4px, 2px) rotate(8deg); } }
+@keyframes pm-dot { 0%, 100% { opacity: 0.3; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-4px); } }
+.dlg-msg.pousse.typing { display: flex; align-items: center; padding: 8px 12px; }
+@media (prefers-reduced-motion: reduce) { .pousse-mini.writing .pm-svg, .pm-pen, .pm-dots i { animation: none; } .pm-dots i { opacity: 0.7; } }
+html.calm .pousse-mini.writing .pm-svg, html.calm .pm-pen { animation: none; }
+/* le champ de réponse ne recouvre jamais le dernier message */
+.dlg-feed { scroll-padding-bottom: 24px; padding-bottom: 28px; }
