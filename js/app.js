@@ -1832,7 +1832,7 @@
               ${steps.length ? `<button class="btn big" data-act="session-start">${ic('play', true)}Commencer<span class="btn-sub num">${mins} min</span></button>` : `<button class="btn big" data-act="import-pdf">${ic('file-arrow-up')}Importer un cours</button>`}
               ${n > 5 ? `<button class="btn ghost big" data-act="quick-start">${ic('lightning', true)}2 min</button>` : `<button class="btn ghost big" data-act="focus-open">${ic('timer', true)}Focus</button>`}
             </div>
-            <div class="hero-links">${planLine()}</div>
+            <div class="hero-links">${planLine()}${n > 5 ? `<button type="button" class="pill-btn show-mobile" data-act="focus-open" style="--c:var(--accent)">${ic('timer', true)}<span class="focus-nav-label">Focus</span></button>` : ''}</div>
           </div>
           <a class="corner-link" href="#/methode" aria-label="Pourquoi cette méthode marche">${ic('lightbulb', true)}</a>
         </div>
