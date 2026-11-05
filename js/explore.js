@@ -94,11 +94,13 @@
         ${!r.pre.length && !r.next.length && !r.links.length ? '<p class="muted">Aucun lien net avec les autres notions dans le texte du cours.</p>' : ''}
         <div class="row-btns">
           <a class="btn sm" href="${d.link(s.id, id)}">${d.ic('book-open-text')}Fiche</a>
+          ${window.Dialogue && Dialogue.canTalk(n) && d.onTalk ? `<button type="button" class="btn ghost sm" data-talk="${id}">${d.ic('chat-circle-text', true)}Dialogue</button>` : ''}
           ${n.srs || st !== 'new' ? `<a class="btn ghost sm" href="${d.link(s.id, id, 'revision')}">${d.ic('cards')}Réviser</a>` : ''}
         </div>`;
       panel.querySelector('.xpanel-close').onclick = () => select(null);
       panel.querySelectorAll('.xn-link').forEach((b) => { b.onclick = () => select(b.dataset.id, true); });
       panel.querySelectorAll('[data-rel]').forEach((b) => { b.onclick = () => { d.onDecide && d.onDecide(b.dataset.rel, b.dataset.st); }; });
+      const tk = panel.querySelector('[data-talk]'); if (tk) tk.onclick = () => d.onTalk(tk.dataset.talk);
     }
 
     function select(id, scroll) {

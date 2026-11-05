@@ -1,10 +1,10 @@
 /* Service worker d'Arbor : l'application fonctionne hors connexion.
    Fichiers de l'app : réseau d'abord (pour les mises à jour), cache en secours.
    Bibliothèques des CDN (polices Fontshare, icônes, pdf.js) : cache d'abord. */
-const VERSION = 'arbor-v25';
+const VERSION = 'arbor-v26';
 const SHELL = [
   './', './index.html', './styles.css', './manifest.webmanifest',
-  './js/srs.js', './js/store.js', './js/db.js', './js/markdown.js', './js/fx.js', './js/trophies.js', './js/pousse-dex.js', './js/lesson.js', './js/mastery.js', './js/insight.js', './js/explore.js', './js/pdf-import.js', './js/ai.js', './js/course.js', './js/storm.js', './js/local-ai.js',
+  './js/srs.js', './js/store.js', './js/db.js', './js/tutor.js', './js/markdown.js', './js/fx.js', './js/trophies.js', './js/pousse-dex.js', './js/lesson.js', './js/mastery.js', './js/insight.js', './js/explore.js', './js/dialogue.js', './js/pdf-import.js', './js/ai.js', './js/course.js', './js/storm.js', './js/local-ai.js',
   './js/mascot.js', './js/pwa.js', './js/app.js',
   './icons/icon-192.png', './icons/icon-512.png',
 ];

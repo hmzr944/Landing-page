@@ -548,6 +548,7 @@
         </div>
 
         ${isModule(s, node) ? modulePanel(s, node) : node.children.length >= 2 ? lessonCard(s, node, false) : ''}
+        ${practiceCard(s, node)}
         ${memoryLine(s, node, isRoot)}
         ${isRoot && s.program ? programPanel(s) : ''}
 
@@ -1062,7 +1063,7 @@
       </div>` : '';
     const when = node.srs.due <= Date.now() ? 'à revoir maintenant' : days <= 0 ? 'prochaine révision aujourd’hui' : `prochaine révision dans ${plural(days, 'jour', 'jours')}`;
     const ms = !node.children.length && Mastery.notions(s).find((x) => x.n.id === node.id);
-    const why = ms ? `<p class="mem-reason"><span class="st-dot" style="--sc:${Mastery.STATES[ms.state].c}" aria-hidden="true"></span><b>${Mastery.STATES[ms.state].label}</b> · ${esc(Mastery.reasonOf(node, ms.state))}</p>` : '';
+    const why = ms ? `<p class="mem-reason"><span class="st-dot" style="--sc:${Mastery.STATES[ms.state].c}" aria-hidden="true"></span><b>${Mastery.STATES[ms.state].label}</b><span>${esc(Mastery.reasonOf(node, ms.state))}</span></p>` : '';
     return why + `<div class="memory">
       <span class="mem-text">${ic('brain')}Mémoire <b class="num">${pct} %</b><span class="mem-bar" aria-hidden="true"><span style="transform:scaleX(${r})" class="${pct < 85 ? 'low' : ''}"></span></span><span class="muted">${when}</span></span>
       <a class="btn ghost sm" href="${link(s.id, node.id, 'revision')}">${ic('play', true)}Réviser cette partie</a>
@@ -1083,7 +1084,7 @@
     const zonesOk = s.root.children.filter((c) => c.children.length).length >= 2;
     if (zonesOk && mapMode === 'zones') {
       $('#paneBody').innerHTML = `<div class="map-wrap"><div class="map-switch" role="group" aria-label="Affichage"><button class="seg" aria-pressed="true">${ic('map-trifold')}Zones</button><button class="seg" data-act="map-tree" aria-pressed="false">${ic('tree-structure')}Arbre</button></div><div id="xmapHost"></div></div>`;
-      Explore.render($('#xmapHost'), s, { ic, esc, link, canLesson, stateBar, onDecide: (rid, status) => {
+      Explore.render($('#xmapHost'), s, { ic, esc, link, canLesson, stateBar, onTalk: (nid) => { const f = find(s.root, nid); if (f) openTalk(s, f.node, 'socratique'); }, onDecide: (rid, status) => {
         // décision de l'étudiant sur un lien : gardée avec sa date, et jamais écrasée par un nouveau calcul
         s.graph = s.graph || { v: 1, decisions: {} };
         s.graph.decisions[rid] = { status, at: Date.now(), by: 'utilisateur' };
@@ -1644,6 +1645,26 @@
       </section>`;
     if (!study || study.scope.type !== 'all' || (study.i >= study.queue.length && study.celebrated)) buildSession({ type: 'all' });
     renderStudy();
+  }
+
+  /* ---------- Pratiquer avec Pousse : dialogue socratique et Enseigne-moi ---------- */
+  function prereqsOf(s, node) {
+    if (!window.Insight) return [];
+    const A = Insight.analyze(s), r = A.rel.get(node.id);
+    return r ? r.pre.map((x) => ({ id: x.id, title: A.byId.get(x.id).title })) : [];
+  }
+  function practiceCard(s, node) {
+    if (node.children.length || !window.Dialogue || !Dialogue.canTalk(node)) return '';
+    return `<section class="practice-card glass">
+      <span class="lc-ic" aria-hidden="true">${ic('chats-circle', true)}</span>
+      <div class="lc-txt"><b>Pratiquer avec Pousse</b><small>Questions sur ton cours, sources citées</small></div>
+      <div class="row-btns"><button class="btn sm" data-act="talk" data-mode="socratique" data-id="${node.id}">${ic('chat-circle-text', true)}Dialogue</button>
+      <button class="btn ghost sm" data-act="talk" data-mode="enseigne" data-id="${node.id}">${ic('chalkboard-teacher')}Enseigne-moi</button></div>
+    </section>`;
+  }
+  function openTalk(sj, nd, mode) {
+    state.lastVisit = { sid: sj.id, nid: nd.id, at: Date.now(), kind: mode };
+    Dialogue.open({ mode, s: sj, node: nd, d: { ic, esc, link, prereqs: prereqsOf(sj, nd), save: () => { sj.updatedAt = Date.now(); save(); } } });
   }
 
   /* ---------- Session du jour : un bouton, la bonne activité ---------- */
@@ -2448,6 +2469,11 @@
         </div>
         ${installBlock()}
         <fieldset class="field">
+          <legend>Compte et tuteur</legend>
+          <p class="hint" id="acctState">${window.Tutor && Tutor.signedIn() ? 'Connecté.' : 'Non connecté. Le compte sert seulement au tuteur Pousse : tes cours restent sur cet appareil.'}</p>
+          <div class="row-btns">${window.Tutor && Tutor.signedIn() ? `<button type="button" class="btn ghost sm" id="acctOut">${ic('sign-out')}Se déconnecter</button>` : ''}</div>
+        </fieldset>
+        <fieldset class="field">
           <legend>Sauvegarde</legend>
           <p class="hint">${state.stats.lastExport ? `Dernier fichier de sauvegarde : ${esc(dayLabelLong(state.stats.lastExport))}.` : 'Tes cours ne sont enregistrés que dans ce navigateur. Télécharge une sauvegarde de temps en temps.'}
             ${Store.status.persisted === true ? ' Stockage protégé contre l’effacement automatique.' : ''}</p>
@@ -2478,6 +2504,8 @@
         };
       }
       $('#expAll', el).onclick = () => exportBackup();
+      const out = $('#acctOut', el); if (out) out.onclick = () => { Tutor.signOut(); closeModal(); FX.toast('Déconnecté', 'success'); };
+      if (window.Tutor && Tutor.signedIn()) Promise.all([Tutor.email(), Tutor.usage()]).then(([mail, used]) => { const e = $('#acctState', el); if (e) e.textContent = `Connecté${mail ? ` : ${mail}` : ''}.${used != null ? ` ${used} échange${used > 1 ? 's' : ''} avec Pousse ce mois-ci.` : ''}`; }).catch(() => {});
       const rb = $('#rescueDl', el); if (rb) rb.onclick = () => downloadText(Store.rescued(), 'arbor-donnees-illisibles.json');
       $('#impAll', el).onclick = () => $('#jsonInput').click();
       $('#setForm', el).onsubmit = (e) => {
@@ -2863,6 +2891,7 @@
       case 'session-start': startDaySession(); break;
       case 'map-tree': mapMode = 'tree'; renderMap(); break;
       case 'map-zones': mapMode = 'zones'; renderMap(); break;
+      case 'talk': { const sj = subjectById(view.id); const f = sj && find(sj.root, t.dataset.id); if (f) openTalk(sj, f.node, t.dataset.mode); break; }
       case 'lesson-next': { const l = Mastery.nextLesson(state, canLesson); if (l) runLesson(l.s, l.n); break; }
       case 'mod-learned': { const n = currentNode().node; n.module.learned = true; gainXP(3); touch(); renderFiche(); break; }
       case 'mod-research': { const c = currentNode(); researchModule(subjectById(view.id), c.node); break; }
@@ -3079,6 +3108,7 @@
     b.querySelector('button').onclick = () => kind === 'blocked' ? downloadText(localStorage.getItem('arbor:v1') || '', 'arbor-donnees-illisibles.json') : exportBackup();
   }
   Store.onError(saveAlert);
+  if (window.Tutor) { const n = Tutor.notice(); if (n) setTimeout(() => FX.toast(n.ok ? 'Connecté : tu peux parler à Pousse' : n.msg, n.ok ? 'success' : 'error', 4200), 500); }
   if (Store.status.readOnly) saveAlert('blocked');
   else if (Store.status.load !== 'ok') {
     const day = Store.status.bakAt ? dayLabelLong(Store.status.bakAt + 'T12:00') : '';

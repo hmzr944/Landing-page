@@ -64,6 +64,16 @@ Comme les outils open source d'analyse de documents ([Docling](https://github.co
 - Quand les notions n'ont que leur nom, l'aperçu propose de **rédiger leur cours** en arrière-plan.
 - Un cours classique, sans ces signaux, garde sa structure.
 
+### Pratiquer avec Pousse : dialogue socratique et Enseigne-moi
+
+Sur chaque notion qui a du contenu, la fiche (et le panneau de la carte) propose **Dialogue** et **Enseigne-moi**.
+
+- Le tuteur ne reçoit que les passages de cette notion (texte du cours, points clés, extrait d'origine avec sa page) et la liste de ses prérequis tirée du graphe. Il répond en citant le cours ; le serveur vérifie que chaque citation figure mot pour mot dans le passage et retire les autres. Sans source, il ne corrige pas.
+- **Socratique** : une question ouverte à la fois, indices progressifs sur demande, verdict sur chaque réponse. **Enseigne-moi** : l'étudiant explique, Arbor indique ce qui est juste et ce qui manque.
+- Une **confusion nommée** (« confond masque et passerelle ») est journalisée, rend la notion **fragile** avec cette raison, avance sa révision à moins de 12 heures et déclenche une **activité corrective** : revoir le prérequis concerné ou relire le passage. Une bonne réponse ensuite la répare.
+- Connexion par lien e-mail (ou code). Le compte ne sert qu'au tuteur : les cours restent sur l'appareil. Hors ligne, quota atteint ou session expirée : message clair, le reste d'Arbor continue de marcher.
+- Serveur : voir [`supabase/README.md`](supabase/README.md) (mise en place, secrets, coût, tests).
+
 ### Fondations : sources, graphe, observations, maîtrise prouvée
 
 - **Sources** : chaque partie importée d'un PDF garde son document, ses pages et un extrait exact du texte d'origine, affichés dans la fiche (« tcpip · p. 24–26 »).
@@ -159,6 +169,7 @@ node tests/learning-flow.js
 node tests/explore.js
 node tests/pdf-structure.js
 node tests/foundations.js
+node tests/tutor.js
 ```
 
 `tests/data-safety.js` sert le dépôt sur un port local et vérifie : données illisibles conservées, copie de secours, alerte de stockage plein, sauvegarde et restauration complètes, absence de doublons, liens `javascript:` neutralisés, écriture à la fermeture, et aucune erreur JavaScript sur les écrans principaux.
@@ -192,6 +203,9 @@ node tests/foundations.js
 | `js/srs.js` | Répétition espacée (FSRS-5) et statistiques |
 | `js/insight.js` | Analyse du cours : termes, liens entre notions, difficulté, objectifs, thèmes |
 | `js/explore.js` | Carte d'exploration par zones |
+| `js/tutor.js` | Connexion (Supabase Auth) et appel du tuteur |
+| `js/dialogue.js` | Dialogue socratique et Enseigne-moi |
+| `supabase/` | Serveur du tuteur : SQL (quotas, coûts, RLS) et fonction `tutor` |
 | `js/db.js` | Journal des observations (IndexedDB) |
 | `js/mastery.js` | États des notions, prochaine leçon, plan de la session du jour, prévisions |
 | `js/pwa.js`, `sw.js`, `manifest.webmanifest`, `icons/` | Application installable et hors connexion |
