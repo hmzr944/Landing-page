@@ -5,7 +5,7 @@
    - Hors connexion ou sans compte, tout Arbor fonctionne ; seul le tuteur est indisponible. */
 (function () {
   const URL = 'https://nnqtgwgwalbbhqzceged.supabase.co';
-  const KEY = 'sb_publishable_2H_e1XdjMLrcv5Q2TT9vjg_-KJaAZ0c';
+  const KEY = 'CLE';
   const SKEY = 'arbor:auth';
   const SITE = location.origin + location.pathname;
 
