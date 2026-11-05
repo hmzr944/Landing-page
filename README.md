@@ -48,6 +48,18 @@ La page **Méthode** de l'application détaille chaque point avec ses sources et
 
 ## Fonctionnalités
 
+### Trois espaces
+
+- **Aujourd'hui** : un seul bouton, « Commencer ». Arbor enchaîne dans cet ordre les révisions dues, les notions fragiles, puis la prochaine leçon (proposée à la fin de la session). Au plus trois missions : reprendre la dernière partie ouverte, la prochaine leçon, une notion à consolider ou l'examen le plus proche.
+- **Mes cours** : les sujets, l'import PDF, et pour chaque cours une barre qui montre l'état de ses notions.
+- **Ma progression** : notions par état, à retravailler, les plus solides, progression par matière, mémoire moyenne et fiabilité de ta confiance, révisions prévues sur 7 jours, calendrier d'activité sur 16 semaines, dernières sessions, examens, Pousse et trophées.
+
+### États d'une notion
+
+Calculés à partir du planificateur FSRS (inspirés des états New, Learning, Review et Relearning de [open-spaced-repetition](https://github.com/open-spaced-repetition)) : **non étudiée**, **découverte** (leçon faite, jamais rappelée), **en apprentissage**, **fragile** (oubliée au moins deux fois sans être consolidée, « certain » puis faux dans le mois, ou mémoire estimée sous 70 %), **à réviser** (révision échue) et **maîtrisée** (stabilité d'au moins 21 jours, dernière réponse juste). Finir une leçon ne rend jamais une notion maîtrisée.
+
+### Détail
+
 - **Aujourd'hui** : les cartes à revoir et les nouvelles cartes du jour, l'objectif quotidien, la série et l'activité de la semaine.
 - **Révision du jour** : tous les sujets sont mélangés (entrelacement). Quatre types de questions : phrase à compléter, rappel libre, rappel de la branche, exercice. Tu écris ta réponse, tu peux demander un indice, tu indiques ta confiance, tu vois la correction et tu coches ce que tu avais retrouvé ; Arbor propose une note (Oublié, Difficile, Bien ou Facile) que tu peux changer. L'intervalle avant le prochain passage s'affiche sous chaque bouton. Raccourcis clavier : Entrée et 1 à 4. Sur mobile, glisse la carte à droite ou à gauche.
 - **Sujets en arbre** : parties et sous-parties à profondeur illimitée, glisser-déposer, plan collé.
@@ -119,9 +131,12 @@ Tout est enregistré dans ton navigateur, sans compte. Arbor protège ces donné
 ```
 npm i -D playwright && npx playwright install chromium
 node tests/data-safety.js
+node tests/learning-flow.js
 ```
 
 `tests/data-safety.js` sert le dépôt sur un port local et vérifie : données illisibles conservées, copie de secours, alerte de stockage plein, sauvegarde et restauration complètes, absence de doublons, liens `javascript:` neutralisés, écriture à la fermeture, et aucune erreur JavaScript sur les écrans principaux.
+
+`tests/learning-flow.js` vérifie les six états des notions, le plan et le bouton « Commencer », l'enchaînement révision puis leçon, l'historique des sessions, Mes cours, Ma progression et les anciennes adresses.
 
 ## Structure
 
@@ -142,6 +157,7 @@ node tests/data-safety.js
 | `js/fx.js` | Confettis et notifications |
 | `js/mascot.js` | Pousse, la mascotte animée (SVG) |
 | `js/srs.js` | Répétition espacée (FSRS-5) et statistiques |
+| `js/mastery.js` | États des notions, prochaine leçon, plan de la session du jour, prévisions |
 | `js/pwa.js`, `sw.js`, `manifest.webmanifest`, `icons/` | Application installable et hors connexion |
 | `tests/` | Tests de bout en bout (Playwright) |
 

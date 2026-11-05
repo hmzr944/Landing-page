@@ -65,6 +65,8 @@ function sampleState() {
     const { ctx, page } = await fresh({ fn: ([k, g]) => { if (!sessionStorage.getItem('s')) { sessionStorage.setItem('s', 1); localStorage.setItem(k, '{broken'); localStorage.setItem(k + ':bak', g); localStorage.setItem(k + ':bakDay', '2026-11-03'); } }, arg: [KEY, good] });
     await page.goto(URL0); await settle(page);
     check('B1 la copie de secours est rouverte', /copie de secours/.test(await page.textContent('#modalBody').catch(() => '')));
+    await page.click('#rcOk').catch(() => {});
+    await page.goto(URL0 + '#/cours'); await settle(page, 1500);
     const titles = await page.evaluate(() => [...document.querySelectorAll('#app h2, #app h3, #app a')].map((e) => e.textContent).join(' '));
     check('B2 le cours de la copie est affiché', titles.includes('TSSR'));
     await ctx.close();

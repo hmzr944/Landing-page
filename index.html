@@ -50,13 +50,17 @@
       <span class="brand-name" translate="no">Arbor</span>
     </a>
     <div class="topbar-actions">
-      <a class="xp" id="xp" href="#/trophees" title="Niveau et trophées">
+      <a class="xp" id="xp" href="#/progression" title="Ma progression">
         <i class="ph-fill ph-lightning" aria-hidden="true"></i>
         <span class="xp-level" id="xpLevel">Niv. 1</span>
         <span class="xp-bar" aria-hidden="true"><span id="xpFill"></span></span>
         <span class="xp-num" id="xpNum">0 XP</span>
       </a>
-      <a class="btn ghost hide-mobile" href="#/reviser" data-nav="study"><i class="ph ph-cards" aria-hidden="true"></i><span>Réviser</span><b class="badge due-count" hidden></b></a>
+      <nav class="topnav hide-mobile" aria-label="Navigation principale">
+        <a href="#/" data-nav="home"><i class="ph ph-sun-horizon" aria-hidden="true"></i><span>Aujourd’hui</span><b class="badge due-count" hidden></b></a>
+        <a href="#/cours" data-nav="courses"><i class="ph ph-books" aria-hidden="true"></i><span>Mes cours</span></a>
+        <a href="#/progression" data-nav="progress"><i class="ph ph-plant" aria-hidden="true"></i><span>Progression</span></a>
+      </nav>
       <button class="icon-btn hide-mobile" data-act="focus-open" aria-label="Mode Focus"><i class="ph ph-timer" aria-hidden="true"></i></button>
       <button class="btn ghost hide-mobile" id="importPdfBtn"><i class="ph ph-file-arrow-up" aria-hidden="true"></i><span class="hide-sm">Importer un PDF</span></button>
       <button class="icon-btn" id="themeBtn" aria-label="Changer de thème"><i class="ph ph-moon" aria-hidden="true"></i></button>
@@ -78,10 +82,9 @@
   </button>
 
   <nav class="bottom-nav" aria-label="Navigation principale">
-    <a href="#/" data-nav="home"><i class="ph ph-house" aria-hidden="true"></i><span>Accueil</span></a>
-    <a href="#/reviser" data-nav="study"><i class="ph ph-cards" aria-hidden="true"></i><span>Réviser</span><b class="nav-badge due-count" hidden></b></a>
-    <button type="button" data-act="focus-open" data-nav="focus"><i class="ph ph-timer" aria-hidden="true"></i><span class="focus-nav-label">Focus</span></button>
-    <a href="#/methode" data-nav="method"><i class="ph ph-lightbulb" aria-hidden="true"></i><span>Méthode</span></a>
+    <a href="#/" data-nav="home"><i class="ph ph-sun-horizon" aria-hidden="true"></i><span>Aujourd’hui</span><b class="nav-badge due-count" hidden></b></a>
+    <a href="#/cours" data-nav="courses"><i class="ph ph-books" aria-hidden="true"></i><span>Mes cours</span></a>
+    <a href="#/progression" data-nav="progress"><i class="ph ph-plant" aria-hidden="true"></i><span>Progression</span></a>
   </nav>
 
   <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
@@ -97,6 +100,7 @@
   <script src="js/trophies.js"></script>
   <script src="js/pousse-dex.js"></script>
   <script src="js/lesson.js"></script>
+  <script src="js/mastery.js"></script>
   <script src="js/pdf-import.js"></script>
   <script src="js/ai.js"></script>
   <script src="js/course.js"></script>

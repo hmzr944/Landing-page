@@ -107,16 +107,22 @@
       const nodeId = parts[2] && find(s.root, parts[2]) ? parts[2] : s.root.id;
       const mode = ['fiche', 'carte', 'revision'].includes(parts[3]) ? parts[3] : 'fiche';
       view = { name: 'subject', id: s.id, nodeId, mode };
+      if (nodeId !== s.root.id) state.lastVisit = { sid: s.id, nid: nodeId, at: Date.now(), kind: 'fiche' };
     } else if (parts[0] === 'reviser') {
       view = { name: 'study' };
     } else if (parts[0] === 'methode') {
       view = { name: 'method' };
     } else if (parts[0] === 'trophees') {
       view = { name: 'trophies' };
+    } else if (parts[0] === 'cours') {
+      view = { name: 'courses' };
+    } else if (parts[0] === 'progression') {
+      view = { name: 'progress' };
     } else {
       view = { name: 'home' };
     }
-    $$('[data-nav]').forEach((a) => { if (a.dataset.nav === view.name) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+    const navOf = { home: 'home', study: 'home', courses: 'courses', subject: 'courses', progress: 'progress', trophies: 'progress' }[view.name];
+    $$('[data-nav]').forEach((a) => { if (a.dataset.nav === navOf) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
     render(prev);
   }
   const link = (sid, nid, mode = 'fiche') => `#/s/${sid}/${nid}/${mode}`;
@@ -132,6 +138,8 @@
       else if (view.name === 'study') renderGlobalStudy();
       else if (view.name === 'method') renderMethod();
       else if (view.name === 'trophies') renderTrophies();
+      else if (view.name === 'courses') renderCourses();
+      else if (view.name === 'progress') renderProgress();
       else renderSubject(bigChange);
       updateBadges();
       if (bigChange) { app.classList.remove('enter'); void app.offsetWidth; app.classList.add('enter'); window.scrollTo({ top: 0 }); }
@@ -143,7 +151,8 @@
       // Une transition interrompue par une autre navigation est normale : on ignore son rejet
       vt.ready.catch(() => {});
       vt.updateCallbackDone.catch(() => {});
-      vt.finished.catch(() => {}).then(() => { delete document.documentElement.dataset.vt; });
+      // la transition a déjà animé l'entrée : on retire « enter » avant, sinon le fondu CSS repartirait de zéro
+      vt.finished.catch(() => {}).then(() => { app.classList.remove('enter'); delete document.documentElement.dataset.vt; });
     } else paint();
   }
 
@@ -214,43 +223,74 @@
     return next;
   }
 
-  function renderHome() {
-    document.documentElement.style.removeProperty('--accent');
-    const subjects = state.subjects.slice().sort((a, b) => b.updatedAt - a.updatedAt);
-    if (!subjects.length) {
-      app.innerHTML = `
+  function emptyHome() {
+    return `
         <section class="home">
           <div class="empty-state">
             <span class="tile big">${ic('tree', true)}</span>
             <h1>Fais pousser ton premier arbre</h1>
-            <p>Crée un sujet et découpe-le en parties, ou importe un PDF de cours pour qu’Arbor le structure à ta place.</p>
+            <p>Importe un PDF de cours : Arbor le découpe en leçons courtes, puis te fait réviser au bon moment.</p>
             <div class="row-btns center">
-              <button class="btn" data-act="new-subject">${ic('plus')}Nouveau sujet</button>
-              <button class="btn ghost" data-act="import-pdf">${ic('file-arrow-up')}Importer un PDF</button>
+              <button class="btn" data-act="import-pdf">${ic('file-arrow-up')}Importer un PDF</button>
+              <button class="btn ghost" data-act="new-subject">${ic('plus')}Nouveau sujet</button>
             </div>
           </div>
         </section>`;
-      return;
+  }
+
+  /* AUJOURD'HUI : ce qu'il faut faire maintenant, en un bouton */
+  function renderHome() {
+    document.documentElement.style.removeProperty('--accent');
+    if (!state.subjects.length) { app.innerHTML = emptyHome(); return; }
+    app.innerHTML = `<section class="home">${todayPanel()}${missionsPanel()}</section>`;
+  }
+
+  // Missions : jamais plus de trois, chacune liée à un objectif précis
+  function missionsPanel() {
+    const ov = overview({ type: 'all' });
+    const p = Mastery.plan(state, ov, canLesson);
+    const items = [];
+    const lv = state.lastVisit && subjectById(state.lastVisit.sid);
+    const lvn = lv && find(lv.root, state.lastVisit.nid);
+    if (lvn && Date.now() - state.lastVisit.at < 14 * SRS.DAY) items.push(`<a class="mission glass" href="${link(lv.id, lvn.node.id)}" style="--c:${lv.color}">${ic('arrow-u-up-left', true)}<span><small>Reprendre</small><b>${esc(lvn.node.title)}</b></span></a>`);
+    if (p.lesson) items.push(`<button class="mission glass" data-act="lesson-next" style="--c:${p.lesson.s.color}">${ic('play-circle', true)}<span><small>${p.lesson.late ? 'Leçon en retard' : 'Prochaine leçon'}</small><b>${esc(p.lesson.n.title)}</b></span></button>`);
+    if (p.fragile[0]) { const f = p.fragile[0]; items.push(`<a class="mission glass" href="${link(f.s.id, f.n.id)}" style="--c:var(--st-fragile)">${ic('warning-circle', true)}<span><small>À consolider</small><b>${esc(f.n.title)}</b></span></a>`); }
+    const exam = state.subjects.filter((x) => x.examDate && x.examDate >= SRS.dayKey()).sort((a, b) => a.examDate.localeCompare(b.examDate))[0];
+    if (exam && items.length < 3) {
+      const d = Math.round((new Date(exam.examDate + 'T00:00') - new Date(SRS.dayKey() + 'T00:00')) / SRS.DAY);
+      const c = Mastery.counts(Mastery.notions(exam));
+      items.push(`<a class="mission glass" href="#/progression" style="--c:${exam.color}">${ic('flag-checkered', true)}<span><small>Examen dans ${plural(d, 'jour', 'jours')}</small><b>${esc(exam.title)} · ${c.pct} % maîtrisé</b></span></a>`);
     }
-    const total = subjects.reduce((a, s) => a + stats(s.root).total, 0);
-    const done = subjects.reduce((a, s) => a + stats(s.root).done, 0);
+    if (!items.length) return '';
+    return `<section class="missions" aria-label="Pour toi aujourd’hui">${items.slice(0, 3).join('')}</section>`;
+  }
+
+  // Une barre empilée : la part de chaque état
+  function stateBar(c, big) {
+    if (!c.total) return '';
+    return `<div class="state-bar ${big ? 'big' : ''}" role="img" aria-label="${Mastery.ORDER.filter((k) => c[k]).map((k) => `${c[k]} ${Mastery.STATES[k].label.toLowerCase()}`).join(', ')}">
+      ${Mastery.ORDER.filter((k) => c[k]).map((k) => `<span style="--w:${(c[k] / c.total) * 100}%;--sc:${Mastery.STATES[k].c}"></span>`).join('')}</div>`;
+  }
+
+  /* MES COURS : les sujets, l'import, puis chaque cours */
+  function renderCourses() {
+    document.documentElement.style.removeProperty('--accent');
+    const subjects = state.subjects.slice().sort((a, b) => b.updatedAt - a.updatedAt);
+    if (!subjects.length) { app.innerHTML = emptyHome(); return; }
     const [first, ...rest] = subjects;
     const fs = stats(first.root);
     const next = nextStep(first.root);
     const branches = first.root.children.slice(0, 5);
-
+    const mc = (x) => Mastery.counts(Mastery.notions(x));
     app.innerHTML = `
-      <section class="home">
-        ${todayPanel()}
-        ${weakPanel()}
-        <header class="home-head">
-          <h2>Tes sujets <span class="muted num">${subjects.length}</span></h2>
+      <section class="home courses-page">
+        <header class="page-head">
+          <h1>Mes cours <span class="muted num">${subjects.length}</span></h1>
           <div class="row-btns">
-            <button class="btn ghost show-mobile" data-act="import-pdf" aria-label="Importer un PDF">${ic('file-arrow-up')}PDF</button>
-            <button class="btn" data-act="new-subject">${ic('plus')}Sujet</button>
+            <button class="btn ghost" data-act="import-pdf">${ic('file-arrow-up')}<span>Importer un PDF</span></button>
+            <button class="btn" data-act="new-subject">${ic('plus')}<span class="hide-sm">Sujet</span></button>
           </div>
         </header>
-
         <div class="subject-grid bento">
           <article class="featured glass tilt" style="--c:${first.color};--i:4" data-open="${first.id}">
             <span class="t-blob" aria-hidden="true"></span>
@@ -262,7 +302,8 @@
               ${ring(fs.pct, 120)}
               <div>
                 <h2><a href="${link(first.id, first.root.id)}" class="stretched">${esc(first.title)}</a></h2>
-                <p class="tile-cap num">${fs.done}/${fs.total} parties</p>
+                <p class="tile-cap num">${mc(first).mastered}/${mc(first).total} maîtrisées</p>
+                ${stateBar(mc(first))}
               </div>
             </div>
             ${branches.length ? `<ul class="branches" aria-label="Grandes parties">
@@ -286,6 +327,7 @@
                 <button class="icon-btn sm" data-act="edit-subject" data-id="${s.id}" aria-label="Modifier « ${esc(s.title)} »">${ic('pencil-simple')}</button>
               </div>
               <h3><a href="${link(s.id, s.root.id)}" class="stretched">${esc(s.title)}</a></h3>
+              ${stateBar(mc(s))}
               <div class="card-foot">
                 ${ring(st.pct, 52)}
                 <span class="tile-cap num">${st.total} parties${memAvg(s) !== null ? ` · ${memAvg(s)} % mémoire` : ''}</span>
@@ -300,6 +342,107 @@
       </section>`;
   }
 
+  /* MA PROGRESSION : ce que tu sais vraiment, et ce qui reste à travailler */
+  function renderProgress() {
+    document.documentElement.style.removeProperty('--accent');
+    if (!state.subjects.length) { app.innerHTML = emptyHome(); return; }
+    const sum = Mastery.summary(state);
+    const c = sum.c;
+    const lvl = Trophies.levelOf(state.xp), rank = Trophies.RANKS[Trophies.rankOf(lvl.lvl)];
+    const work = sum.all.filter((x) => x.state === 'fragile' || x.state === 'due')
+      .sort((a, b) => (a.state === 'fragile' ? 0 : 1) - (b.state === 'fragile' ? 0 : 1) || SRS.retrievability(a.n.srs) - SRS.retrievability(b.n.srs)).slice(0, 8);
+    const mastered = sum.all.filter((x) => x.state === 'mastered').sort((a, b) => b.n.srs.s - a.n.srs.s).slice(0, 6);
+    const rs = sum.all.filter((x) => x.n.srs).map((x) => SRS.retrievability(x.n.srs));
+    const avgR = rs.length ? Math.round((rs.reduce((a, b) => a + b, 0) / rs.length) * 100) : null;
+    const cal = (state.stats.calib && state.stats.calib.sure) || [0, 0];
+    const calPct = cal[1] >= 5 ? Math.round((cal[0] / cal[1]) * 100) : null;
+    const fc = Mastery.forecast(state, 7);
+    const fmax = Math.max(1, ...fc.map((d) => d.n));
+    const wd = new Intl.DateTimeFormat('fr-FR', { weekday: 'narrow' });
+    const sessions = (state.stats.sessions || []).slice(0, 6);
+    const exams = state.subjects.filter((x) => x.examDate && x.examDate >= SRS.dayKey()).sort((a, b) => a.examDate.localeCompare(b.examDate));
+    const rel = new Intl.RelativeTimeFormat('fr-FR', { numeric: 'auto' });
+    const ago = (t) => { const d = Math.round((Date.now() - t) / SRS.DAY); return d < 1 ? 'aujourd’hui' : rel.format(-d, 'day'); };
+    const row = (x) => `<li><a href="${link(x.s.id, x.n.id)}"><span class="st-dot" style="--sc:${Mastery.STATES[x.state].c}" aria-hidden="true"></span><span class="pg-t">${esc(x.n.title)}</span><small>${esc(x.s.title)} · ${Mastery.STATES[x.state].short}</small></a></li>`;
+    app.innerHTML = `
+      <section class="home progress-page">
+        <header class="page-head"><h1>Ma progression</h1></header>
+        <div class="pg-hero glass">
+          <div class="pg-big"><b class="num">${c.mastered}</b><span>notion${c.mastered > 1 ? 's' : ''} maîtrisée${c.mastered > 1 ? 's' : ''}<br><small class="muted">sur ${c.total}</small></span></div>
+          ${stateBar(c, true)}
+          <ul class="st-legend">${Mastery.ORDER.map((k) => `<li><span class="st-dot" style="--sc:${Mastery.STATES[k].c}" aria-hidden="true"></span>${Mastery.STATES[k].label}<b class="num">${c[k]}</b></li>`).join('')}</ul>
+          <p class="hint">« Maîtrisée » veut dire retrouvée en révision pendant au moins 3 semaines, et juste la dernière fois. Finir une leçon ne suffit pas.</p>
+        </div>
+
+        <div class="pg-grid">
+          <section class="pg-card glass">
+            <h2>${ic('warning-circle', true)}À retravailler</h2>
+            ${work.length ? `<ul class="pg-list">${work.map(row).join('')}</ul><button class="btn sm" data-act="session-start">${ic('play', true)}Travailler maintenant</button>` : '<p class="muted">Rien de fragile pour l’instant.</p>'}
+          </section>
+          <section class="pg-card glass">
+            <h2>${ic('seal-check', true)}Les plus solides</h2>
+            ${mastered.length ? `<ul class="pg-list">${mastered.map(row).join('')}</ul>` : '<p class="muted">Tes premières notions maîtrisées apparaîtront ici, après quelques semaines de révisions réussies.</p>'}
+          </section>
+        </div>
+
+        <section class="pg-card glass">
+          <h2>${ic('books', true)}Par matière</h2>
+          <ul class="pg-subjects">${sum.per.map(({ s: sj, c: sc }) => `<li><a href="${link(sj.id, sj.root.id)}"><span class="tile sm" style="--c:${sj.color}">${ic(sj.icon, true)}</span><span class="pg-t">${esc(sj.title)}</span><span class="num muted">${sc.pct} %</span></a>${stateBar(sc)}</li>`).join('')}</ul>
+        </section>
+
+        <div class="pg-grid">
+          <section class="pg-card glass">
+            <h2>${ic('brain', true)}Mémoire</h2>
+            <div class="pg-stats">
+              <div><b class="num">${avgR === null ? '–' : avgR + ' %'}</b><small>chance de t’en souvenir maintenant (moyenne)</small></div>
+              <div><b class="num">${calPct === null ? '–' : calPct + ' %'}</b><small>de bonnes réponses quand tu te dis « certain »</small></div>
+            </div>
+            <div class="forecast" aria-label="Révisions prévues ces 7 prochains jours">
+              ${fc.map((d, i) => `<div title="${d.n} cartes"><span style="--h:${d.n ? Math.max(8, (d.n / fmax) * 100) : 4}%"></span><small>${i ? wd.format(new Date(d.k + 'T12:00')) : 'auj.'}</small><b class="num">${d.n || ''}</b></div>`).join('')}
+            </div>
+            <p class="tile-cap">Révisions prévues cette semaine</p>
+          </section>
+          <section class="pg-card glass">
+            <h2>${ic('calendar-dots', true)}Régularité</h2>
+            ${heatmap()}
+            <p class="tile-cap">16 dernières semaines · série record : <b class="num">${Math.max(SRS.streak(state.stats), state.stats.bestStreak || 0)}</b> jours</p>
+          </section>
+        </div>
+
+        <div class="pg-grid">
+          <section class="pg-card glass">
+            <h2>${ic('clock-counter-clockwise', true)}Dernières sessions</h2>
+            ${sessions.length ? `<ul class="pg-list">${sessions.map((x) => `<li><span class="pg-ses">${ic(x.kind === 'lesson' ? 'play-circle' : 'cards', true)}<span class="pg-t">${x.kind === 'lesson' ? `Leçon : ${esc(x.title || '')}` : `Révision · ${plural(x.n, 'carte', 'cartes')}`}</span><small>${x.n ? `${Math.round((x.ok / x.n) * 100)} % juste · ` : ''}${ago(x.at)}</small></span></li>`).join('')}</ul>` : '<p class="muted">Tes sessions apparaîtront ici.</p>'}
+          </section>
+          <section class="pg-card glass">
+            <h2>${ic('flag-checkered', true)}Examens</h2>
+            ${exams.length ? `<ul class="pg-list">${exams.map((x) => { const d = Math.round((new Date(x.examDate + 'T00:00') - new Date(SRS.dayKey() + 'T00:00')) / SRS.DAY); const xc = Mastery.counts(Mastery.notions(x)); return `<li><a href="${link(x.id, x.root.id)}"><span class="pg-t">${esc(x.title)}</span><small>dans ${plural(d, 'jour', 'jours')} · ${xc.pct} % maîtrisé · ${xc.new + xc.seen} à voir</small></a></li>`; }).join('')}</ul>` : '<p class="muted">Ajoute une date d’examen dans un sujet pour voir ici ce qu’il reste à préparer.</p>'}
+          </section>
+        </div>
+
+        <a class="pg-card glass pg-pousse" href="#/trophees">
+          <span class="tile" style="--c:${rank.c}">${ic(rank.icon, true)}</span>
+          <span><small>Pousse · niveau ${lvl.lvl}</small><b>${rank.name}</b></span>
+          <span class="muted num">${Trophies.owned(state)}/${Trophies.total()} trophées ${ic('caret-right')}</span>
+        </a>
+      </section>`;
+  }
+
+  // Calendrier d'activité façon « contributions » de GitHub : une case par jour, 16 semaines
+  function heatmap() {
+    const days = state.stats.days || {};
+    const end = new Date(); end.setHours(12, 0, 0, 0);
+    const start = new Date(end); start.setDate(start.getDate() - ((end.getDay() + 6) % 7) - 15 * 7); // lundi, 15 semaines avant celle-ci
+    const cells = [];
+    for (let t = new Date(start); t <= end; t.setDate(t.getDate() + 1)) {
+      const k = SRS.dayKey(t.getTime()), d = days[k] || {};
+      const v = (d.reviews || 0) + Math.round((d.focusMin || 0) / 5);
+      const lv = !v ? 0 : v < 5 ? 1 : v < 15 ? 2 : v < 30 ? 3 : 4;
+      cells.push(`<i class="l${lv}" title="${k} : ${d.reviews || 0} cartes"></i>`);
+    }
+    return `<div class="heatmap" role="img" aria-label="Activité des 16 dernières semaines">${cells.join('')}</div>`;
+  }
+
   function renderSubject(bigChange) {
     const s = subjectById(view.id);
     const st = stats(s.root);
@@ -311,7 +454,7 @@
       <section class="subject">
         <aside class="tree-pane" id="treePane" aria-label="Arborescence du sujet">
           <div class="tp-head">
-            <a class="back-link" href="#/">${ic('arrow-left')}Sujets</a>
+            <a class="back-link" href="#/cours">${ic('arrow-left')}Mes cours</a>
             <div class="tp-title">
               <span class="tile" style="--c:${s.color}">${ic(s.icon, true)}</span>
               <div>
@@ -1245,12 +1388,16 @@
           ${calPct !== null && cal[1] >= 5 ? `<p>${ic('scales')}Quand tu te dis <b>certain</b>, tu as raison <b>${calPct} %</b> du temps.${calPct < 80 ? ' Méfie-toi de l’impression de déjà-vu : vérifie-toi davantage.' : ' Tu te connais bien !'}</p>` : `<p>${ic('scales')}Indique ta confiance avant de retourner les cartes : Arbor te dira si tu te surestimes.</p>`}
           <p>${ic('calendar-check')}${tomorrow ? `${plural(tomorrow, 'carte reviendra', 'cartes reviendront')} d’ici demain.` : 'Rien de prévu demain : profite !'}</p>
         </div>
+        ${(() => { const l = Mastery.nextLesson(state, canLesson); return l ? `<div class="next-lesson glass"><span class="tile sm" style="--c:${l.s.color}">${ic('play-circle', true)}</span><div><small>Ensuite</small><b>Leçon : ${esc(l.n.title)}</b></div><button class="btn" data-act="lesson-next">${ic('play', true)}Continuer</button></div>` : ''; })()}
         <div class="row-btns center">
-          <button class="btn" data-act="study-start">${ic('arrow-counter-clockwise')}${study.quick ? 'Continuer' : 'Nouvelle session'}</button>
-          <a class="btn ghost" href="#/">${ic('house')}Accueil</a>
+          <button class="btn ${study.session ? 'ghost' : ''}" data-act="study-start">${ic('arrow-counter-clockwise')}${study.quick ? 'Continuer' : 'Nouvelle session'}</button>
+          <a class="btn ghost" href="#/">${ic('house')}Aujourd’hui</a>
         </div>
       </div>`;
-    if (n && !study.celebrated) { study.celebrated = true; FX.confetti(undefined, undefined, 110); Mascot.react('finished'); }
+    if (n && !study.celebrated) {
+      study.celebrated = true; FX.confetti(undefined, undefined, 110); Mascot.react('finished');
+      logSession({ kind: 'review', n, ok }); save();
+    }
   }
 
   function reveal() {
@@ -1337,6 +1484,8 @@
     node.srs.missed = g === 1;
     // Illusion de maîtrise : « certain » puis oublié. On le compte pour te le montrer.
     node.srs.illusions = (prevSrs.illusions || 0) + (study.conf === 'sure' && g === 1 ? 1 : 0);
+    node.srs.lastG = g;
+    if (study.conf === 'sure' && g === 1) node.srs.illusionAt = Date.now(); else if (prevSrs.illusionAt) node.srs.illusionAt = prevSrs.illusionAt;
     if (study.conf === 'sure' && g === 1) {
       state.stats.illusions = (state.stats.illusions || 0) + 1;
       Mascot.say('Tu étais certain… c’est l’illusion de maîtrise. Elle revient très vite, tu verras.', 3600);
@@ -1463,7 +1612,7 @@
     app.innerHTML = `
       <section class="study-page">
         <header class="study-head">
-          <a class="back-link" href="#/">${ic('arrow-left')}Accueil</a>
+          <a class="back-link" href="#/">${ic('arrow-left')}Aujourd’hui</a>
           <h1>Révision du jour</h1>
           <p class="muted">Sujets mélangés, pour mieux retenir.</p>
         </header>
@@ -1471,6 +1620,42 @@
       </section>`;
     if (!study || study.scope.type !== 'all' || (study.i >= study.queue.length && study.celebrated)) buildSession({ type: 'all' });
     renderStudy();
+  }
+
+  /* ---------- Session du jour : un bouton, la bonne activité ---------- */
+  const canLesson = (n) => !!(window.Lesson && Lesson.canStart(n));
+  function logSession(e) {
+    state.stats.sessions = state.stats.sessions || [];
+    state.stats.sessions.unshift({ at: Date.now(), ...e });
+    state.stats.sessions.length = Math.min(state.stats.sessions.length, 120);
+  }
+  function runLesson(sj, nd) {
+    state.lastVisit = { sid: sj.id, nid: nd.id, at: Date.now(), kind: 'lesson' };
+    Lesson.start({ module: nd, subject: sj, color: sj.color, onFinish: (r) => {
+      const res = { at: Date.now(), good: r.good, asked: r.asked };
+      if (nd.module) { nd.module.lessonDone = res; nd.module.learned = true; } else nd.lessonDone = res;
+      state.stats.counters = state.stats.counters || {}; state.stats.counters.lessons = (state.stats.counters.lessons || 0) + 1;
+      logSession({ kind: 'lesson', sid: sj.id, nid: nd.id, title: nd.title, n: r.asked, ok: r.good });
+      sj.updatedAt = Date.now();
+      gainXP(r.xp); save(); render(view);
+    } });
+  }
+  // Révisions dues, puis notions fragiles, puis nouvelles cartes ; sans carte, la prochaine leçon
+  function startDaySession() {
+    const ov = overview({ type: 'all' });
+    const p = Mastery.plan(state, ov, canLesson);
+    if (!ov.due && !p.fragile.length && !ov.newToday) {
+      if (p.lesson) { runLesson(p.lesson.s, p.lesson.n); return; }
+      FX.toast('Tout est à jour. Importe un cours ou ajoute des parties pour continuer.', 'info', 3600);
+      return;
+    }
+    buildSession({ type: 'all' });
+    const inQ = new Set(study.queue.map((q) => q.nid));
+    const frag = p.fragile.filter((x) => !inQ.has(x.n.id)).slice(0, 8).map((x) => ({ sid: x.s.id, nid: x.n.id }));
+    study.queue.splice(ov.due, 0, ...frag);
+    study.session = true;
+    preparePrompt();
+    go('#/reviser');
   }
 
   /* Nombre de cartes dues (pastilles de navigation) */
@@ -1630,7 +1815,9 @@
       state.subjects.forEach((s) => walk(s.root, (x) => { if (x.srs && x.srs.due > Date.now()) t = Math.min(t, x.srs.due); }));
       return t === Infinity ? null : t;
     })();
-    const mins = Math.max(2, Math.round(n * 0.4));
+    const plan = Mastery.plan(state, ov, canLesson);
+    const steps = plan.steps;
+    const mins = Math.max(2, Math.round((ov.due + Math.min(8, plan.fragile.length) + ov.newToday) * 0.4 + (plan.lesson ? Lesson.minutes(plan.lesson.n) : 0)));
     const wk = week.reduce((a, d) => a + d.reviews, 0);
     return `
       <section class="today bento" aria-labelledby="todayTitle">
@@ -1638,18 +1825,14 @@
           <div class="orb" aria-hidden="true"><i></i><i></i><i></i><b></b></div>
           <div class="hero-copy">
             <p class="hello">${greeting()}</p>
-            <h1 id="todayTitle">${n
-              ? `<span class="big-num num" data-count="${n}">${n}</span><span class="big-label">${n > 1 ? 'cartes' : 'carte'}<br>à réviser</span>`
-              : `<span class="big-label solo">${ov.total ? 'Mémoire à jour' : 'Prêt ?'}</span>`}</h1>
-            <div class="pills">
-              ${n ? `${ov.due ? `<span class="pill warn">${ic('warning', true)}${ov.due} à revoir</span>` : ''}${ov.newToday ? `<span class="pill">${ic('sparkle', true)}${ov.newToday} nouvelles</span>` : ''}<span class="pill">${ic('clock', true)}${mins} min</span>`
-                : ov.total && nextDue ? `<span class="pill">${ic('calendar-blank', true)}${new Intl.RelativeTimeFormat('fr-FR', { numeric: 'auto' }).format(Math.max(1, Math.round((nextDue - Date.now()) / SRS.DAY)), 'day')}</span>` : ''}
-            </div>
+            <h1 id="todayTitle">${steps.length ? `<span class="big-label solo">Ta session</span>` : `<span class="big-label solo">${ov.total ? 'Tout est à jour' : 'Prêt ?'}</span>`}</h1>
+            ${steps.length ? `<ol class="plan-steps">${steps.map((x) => `<li class="ps-${x.kind}">${ic({ review: 'clock-counter-clockwise', fragile: 'warning-circle', lesson: 'play-circle', new: 'sparkle' }[x.kind], true)}<span>${esc(x.label)}</span></li>`).join('')}</ol>`
+              : `<p class="muted">${ov.total && nextDue ? `Prochaine révision ${new Intl.RelativeTimeFormat('fr-FR', { numeric: 'auto' }).format(Math.max(1, Math.round((nextDue - Date.now()) / SRS.DAY)), 'day')}.` : 'Importe un cours pour commencer.'}</p>`}
             <div class="row-btns">
-              ${n ? `<a class="btn big" href="#/reviser">${ic('play', true)}Réviser</a>` : `<button class="btn big" data-act="new-subject">${ic('plus')}Nouveau sujet</button>`}
+              ${steps.length ? `<button class="btn big" data-act="session-start">${ic('play', true)}Commencer<span class="btn-sub num">${mins} min</span></button>` : `<button class="btn big" data-act="import-pdf">${ic('file-arrow-up')}Importer un cours</button>`}
               ${n > 5 ? `<button class="btn ghost big" data-act="quick-start">${ic('lightning', true)}2 min</button>` : `<button class="btn ghost big" data-act="focus-open">${ic('timer', true)}Focus</button>`}
             </div>
-            <div class="hero-links">${planLine()}${moduleLine()}${examLine()}<a class="pill-btn" href="#/trophees" style="--c:#C27803">${ic('trophy', true)}<span>${Trophies.owned(state)}/${Trophies.total()}</span></a></div>
+            <div class="hero-links">${planLine()}</div>
           </div>
           <a class="corner-link" href="#/methode" aria-label="Pourquoi cette méthode marche">${ic('lightbulb', true)}</a>
         </div>
@@ -1804,7 +1987,7 @@
     app.innerHTML = `
       <section class="method">
         <header class="method-head">
-          <a class="back-link" href="#/">${ic('arrow-left')}Accueil</a>
+          <a class="back-link" href="#/">${ic('arrow-left')}Aujourd’hui</a>
           <h1>Pourquoi tu oublies</h1>
           <p class="lede">Ce que dit la recherche, et ce qu’Arbor en fait.</p>
         </header>
@@ -1827,7 +2010,7 @@
     app.innerHTML = `
       <section class="trophies">
         <header class="method-head">
-          <a class="back-link" href="#/">${ic('arrow-left')}Accueil</a>
+          <a class="back-link" href="#/progression">${ic('arrow-left')}Ma progression</a>
           <h1>Trophées</h1>
         </header>
         <div class="bento tr-top">
@@ -2147,7 +2330,7 @@
       $('#esDel', el).onclick = () => {
         if (!confirm(`Supprimer « ${s.title} » et toutes ses parties ? Cette action est définitive.`)) return;
         state.subjects = state.subjects.filter((x) => x.id !== id);
-        save(); closeModal(); FX.toast('Sujet supprimé'); go('#/');
+        save(); closeModal(); FX.toast('Sujet supprimé'); go('#/cours');
       };
       $('#esForm', el).onsubmit = (e) => {
         e.preventDefault();
@@ -2327,7 +2510,7 @@
     const doMerge = () => {
       const r = Store.merge(state, res.subjects);
       if (res.xp != null) state.xp = Math.max(state.xp, res.xp);
-      save(); Store.flush(); closeModal(); renderXP(); go('#/');
+      save(); Store.flush(); closeModal(); renderXP(); go('#/cours');
       const parts = [r.added && plural(r.added, 'sujet ajouté', 'sujets ajoutés'), r.updated && plural(r.updated, 'sujet mis à jour', 'sujets mis à jour'), r.kept && plural(r.kept, 'déjà à jour', 'déjà à jour')].filter(Boolean);
       FX.toast(parts.join(', ') || 'Rien de nouveau', 'success', 3600);
     };
@@ -2631,15 +2814,11 @@
       case 'mod-skip-pretest': { const n = currentNode().node; n.module.skipPretest = true; touch(); renderFiche(); break; }
       case 'start-lesson': {
         const sj = subjectById(view.id); const f = find(sj.root, t.dataset.id); if (!f) break;
-        const nd = f.node;
-        Lesson.start({ module: nd, subject: sj, color: sj.color, onFinish: (r) => {
-          const res = { at: Date.now(), good: r.good, asked: r.asked };
-          if (nd.module) { nd.module.lessonDone = res; nd.module.learned = true; } else nd.lessonDone = res;
-          state.stats.counters = state.stats.counters || {}; state.stats.counters.lessons = (state.stats.counters.lessons || 0) + 1;
-          gainXP(r.xp); touch(); render(view);
-        } });
+        runLesson(sj, f.node);
         break;
       }
+      case 'session-start': startDaySession(); break;
+      case 'lesson-next': { const l = Mastery.nextLesson(state, canLesson); if (l) runLesson(l.s, l.n); break; }
       case 'mod-learned': { const n = currentNode().node; n.module.learned = true; gainXP(3); touch(); renderFiche(); break; }
       case 'mod-research': { const c = currentNode(); researchModule(subjectById(view.id), c.node); break; }
       case 'write-course': { const c = currentNode(); const sj = subjectById(view.id); writeCourses(sj, [c.node]).then(() => render(view)); break; }
