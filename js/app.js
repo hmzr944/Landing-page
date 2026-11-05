@@ -129,6 +129,7 @@
 
   /* ---------- Rendu ---------- */
   function render(prev = {}) {
+    document.documentElement.classList.remove('xp-open');
     // Transition seulement quand on change d'écran ou d'onglet (pas à chaque clic dans l'arbre)
     const bigChange = prev.name !== view.name || prev.id !== view.id;
     const modeChange = !bigChange && prev.mode !== view.mode;
@@ -313,6 +314,7 @@
                 return `<li title="${esc(b.title)}"><span class="mini-ring" style="--p:${pc}" aria-hidden="true"></span><span class="b-title">${esc(b.title)}</span></li>`;
               }).join('')}
             </ul>` : ''}
+            ${first.root.children.filter((c) => c.children.length).length >= 2 ? `<a class="btn ghost sm map-btn" href="${link(first.id, first.root.id, 'carte')}">${ic('map-trifold')}Explorer la carte</a>` : ''}
             ${next ? `<a class="btn next-btn" href="${link(first.id, next.id)}">${ic('arrow-right')}<span>${esc(next.title)}</span></a>`
               : fs.total ? `<p class="all-done">${ic('trophy', true)}Tout est maîtrisé</p>` : ''}
           </article>
@@ -749,7 +751,8 @@
         const write = $('#pgWrite', el).checked;
         closeModal();
         Mascot.react('created');
-        go(link(s.id, s.root.id));
+        mapMode = 'zones'; Explore.reset();
+        go(link(s.id, s.root.id, s.root.children.filter((c) => c.children.length).length >= 2 ? 'carte' : 'fiche'));
         if (write) setTimeout(async () => { await writeCourses(s, s.root.children.filter((c) => c.module)); render(view); }, 250);
         else FX.toast(`${plural(s.root.children.length, 'module créé', 'modules créés')}`, 'success');
       };
@@ -1070,8 +1073,16 @@
   }
 
   /* ----- Carte mentale ----- */
+  let mapMode = 'zones';
   function renderMap() {
     const s = subjectById(view.id);
+    // Plusieurs chapitres : la carte d'exploration par zones ; sinon (ou au choix) l'arbre complet
+    const zonesOk = s.root.children.filter((c) => c.children.length).length >= 2;
+    if (zonesOk && mapMode === 'zones') {
+      $('#paneBody').innerHTML = `<div class="map-wrap"><div class="map-switch" role="group" aria-label="Affichage"><button class="seg" aria-pressed="true">${ic('map-trifold')}Zones</button><button class="seg" data-act="map-tree" aria-pressed="false">${ic('tree-structure')}Arbre</button></div><div id="xmapHost"></div></div>`;
+      Explore.render($('#xmapHost'), s, { ic, esc, link, canLesson, stateBar });
+      return;
+    }
     const node = (n, depth) => `
       <div class="mm-branch">
         <a class="mm-node st-${n.status} ${n.id === view.nodeId ? 'active' : ''}" href="${link(s.id, n.id)}" style="--d:${Math.min(depth, 6)}">
@@ -1082,6 +1093,7 @@
       </div>`;
     $('#paneBody').innerHTML = `
       <div class="map-wrap">
+        ${zonesOk ? `<div class="map-switch" role="group" aria-label="Affichage"><button class="seg" data-act="map-zones" aria-pressed="false">${ic('map-trifold')}Zones</button><button class="seg" aria-pressed="true">${ic('tree-structure')}Arbre</button></div>` : ''}
         <div class="legend" aria-label="Légende">
           ${Object.entries(STATUS).map(([k, v]) => `<span><span class="sdot st-${k}" aria-hidden="true"></span>${v.label}</span>`).join('')}
         </div>
@@ -2299,7 +2311,8 @@
         closeModal();
         FX.toast('Sujet créé', 'success');
         Mascot.react('created');
-        go(link(s.id, s.root.id));
+        mapMode = 'zones'; Explore.reset();
+        go(link(s.id, s.root.id, s.root.children.filter((c) => c.children.length).length >= 2 ? 'carte' : 'fiche'));
       };
     });
   }
@@ -2719,7 +2732,11 @@
         const title = $('#pvTitle', el).value.trim() || root.title;
         const s = makeSubject(title, { ...sel, root });
         state.subjects.push(s);
-        save(); closeModal(); go(link(s.id, s.root.id));
+        save(); closeModal();
+        // Plusieurs chapitres : on ouvre directement la carte, pour voir la structure du cours d'un coup d'œil
+        const zones = s.root.children.filter((c) => c.children.length).length >= 2;
+        mapMode = 'zones'; Explore.reset();
+        go(link(s.id, s.root.id, zones ? 'carte' : 'fiche'));
       }
       FX.toast('Cours importé', 'success');
     };
@@ -2818,6 +2835,8 @@
         break;
       }
       case 'session-start': startDaySession(); break;
+      case 'map-tree': mapMode = 'tree'; renderMap(); break;
+      case 'map-zones': mapMode = 'zones'; renderMap(); break;
       case 'lesson-next': { const l = Mastery.nextLesson(state, canLesson); if (l) runLesson(l.s, l.n); break; }
       case 'mod-learned': { const n = currentNode().node; n.module.learned = true; gainXP(3); touch(); renderFiche(); break; }
       case 'mod-research': { const c = currentNode(); researchModule(subjectById(view.id), c.node); break; }

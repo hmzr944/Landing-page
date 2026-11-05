@@ -54,6 +54,12 @@ La page **Méthode** de l'application détaille chaque point avec ses sources et
 - **Mes cours** : les sujets, l'import PDF, et pour chaque cours une barre qui montre l'état de ses notions.
 - **Ma progression** : notions par état, à retravailler, les plus solides, progression par matière, mémoire moyenne et fiabilité de ta confiance, révisions prévues sur 7 jours, calendrier d'activité sur 16 semaines, dernières sessions, examens, Pousse et trophées.
 
+### Carte d'exploration
+
+Dès qu'un cours a au moins deux chapitres, l'onglet **Carte** (ouvert automatiquement après un import ou la création d'un parcours) le montre comme un sentier de **zones**, une par chapitre. Chaque zone affiche son domaine (réseau, systèmes, sécurité, données, vivant, maths, droit…), sa difficulté, ses objectifs, ses notions colorées selon leur état, et mène à une action : la leçon de la zone ou sa révision. La zone recommandée est celle de la prochaine leçon. Toucher une notion montre sur quoi elle s'appuie et ce qu'elle prépare, avec les mots du cours qui justifient chaque lien. L'arbre complet reste disponible.
+
+L'analyse (`js/insight.js`) ne fait appel à aucune IA : termes clés (titre, sigles fiables, gras et surlignés), liens entre notions qui partagent des termes rares du cours (prérequis si la notion vient avant), difficulté relative au cours (longueur, densité technique, prérequis, oublis réels ; non affichée tant que le texte manque), objectifs formulés à partir des titres. Le même cours donne toujours la même carte.
+
 ### États d'une notion
 
 Calculés à partir du planificateur FSRS (inspirés des états New, Learning, Review et Relearning de [open-spaced-repetition](https://github.com/open-spaced-repetition)) : **non étudiée**, **découverte** (leçon faite, jamais rappelée), **en apprentissage**, **fragile** (oubliée au moins deux fois sans être consolidée, « certain » puis faux dans le mois, ou mémoire estimée sous 70 %), **à réviser** (révision échue) et **maîtrisée** (stabilité d'au moins 21 jours, dernière réponse juste). Finir une leçon ne rend jamais une notion maîtrisée.
@@ -132,11 +138,14 @@ Tout est enregistré dans ton navigateur, sans compte. Arbor protège ces donné
 npm i -D playwright && npx playwright install chromium
 node tests/data-safety.js
 node tests/learning-flow.js
+node tests/explore.js
 ```
 
 `tests/data-safety.js` sert le dépôt sur un port local et vérifie : données illisibles conservées, copie de secours, alerte de stockage plein, sauvegarde et restauration complètes, absence de doublons, liens `javascript:` neutralisés, écriture à la fermeture, et aucune erreur JavaScript sur les écrans principaux.
 
 `tests/learning-flow.js` vérifie les six états des notions, le plan et le bouton « Commencer », l'enchaînement révision puis leçon, l'historique des sessions, Mes cours, Ma progression et les anciennes adresses.
+
+`tests/explore.js` vérifie l'analyse (prérequis justifiés, liens entre chapitres, thèmes, objectifs, pas de difficulté inventée) et la carte (zones, zone recommandée, détail d'une notion, lignes, leçon, bascule vers l'arbre, mobile).
 
 ## Structure
 
@@ -157,6 +166,8 @@ node tests/learning-flow.js
 | `js/fx.js` | Confettis et notifications |
 | `js/mascot.js` | Pousse, la mascotte animée (SVG) |
 | `js/srs.js` | Répétition espacée (FSRS-5) et statistiques |
+| `js/insight.js` | Analyse du cours : termes, liens entre notions, difficulté, objectifs, thèmes |
+| `js/explore.js` | Carte d'exploration par zones |
 | `js/mastery.js` | États des notions, prochaine leçon, plan de la session du jour, prévisions |
 | `js/pwa.js`, `sw.js`, `manifest.webmanifest`, `icons/` | Application installable et hors connexion |
 | `tests/` | Tests de bout en bout (Playwright) |
