@@ -58,7 +58,7 @@ Ce qui a changé pour l'utilisateur : l'ancienne « analyse avancée » faisait 
 redécouper le cours. L'offre gratuite limite chaque minute le volume de texte traité, donc le découpage reste celui de
 l'analyse locale ; le serveur ajoute ensuite points clés et questions, partie par partie, sans toucher au texte du cours.
 
-## D4. Traçabilité des connaissances Business (validée, à construire)
+## D4. Traçabilité des connaissances Business (validée ; schéma en place, migration 003)
 
 Chaque connaissance d'une organisation est reliée à :
 
@@ -88,3 +88,18 @@ Une connaissance de type `sensible` n'est jamais utilisée dans un scénario san
 - **Confiance déclarée** aux décisions clés (« Je devine », « Je sais », « C'est un réflexe ») : une erreur annoncée
   comme un réflexe est une fausse certitude, prioritaire dans le diagnostic.
 - Une simulation réussie ne rend jamais une compétence « maîtrisée » à elle seule : il faut des preuves répétées dans le temps.
+
+## D6. Cloisonnement des organisations (appliqué, migration 003)
+
+- Chaque ligne porte `org_id`. Les clés étrangères composites `(id, org_id)` empêchent de rattacher une ligne
+  d'une organisation à un parent d'une autre, même par le serveur.
+- L'appartenance se lit toujours depuis `auth.uid()` dans la base (`arbor_private.is_member`, `has_role`), jamais
+  depuis une valeur envoyée par le client.
+- Rôles : `admin` (tout, y compris les rôles et le journal), `manager` (invitations, validation, preuves de l'équipe),
+  `expert` (contenu, validation hors informations sensibles), `member` (connaissances validées, ses propres preuves).
+- Les preuves ne sont écrites que par le serveur, après évaluation : un collaborateur ne peut pas s'attribuer un résultat.
+  Elles ne sont jamais modifiées ; l'effacement (RGPD) demande une autorisation explicite dans la transaction.
+- Opérations sensibles par fonctions contrôlées et journalisées : `create_organization`, `create_invitation`,
+  `accept_invitation`, `set_knowledge_status`, `set_member`.
+- Le test `tests/db-rls.js` part des droits par défaut de Supabase (tout ouvert sur `public`) pour prouver que
+  les retraits de droits et les règles d'accès suffisent.

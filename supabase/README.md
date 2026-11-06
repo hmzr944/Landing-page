@@ -11,7 +11,9 @@ Projet : `https://nnqtgwgwalbbhqzceged.supabase.co` (adresse et clé publiable d
 
 ## Mise en place (une fois, dans le tableau de bord Supabase)
 
-1. **Base de données** : *SQL Editor* → nouvelle requête → coller `migrations/001_tutor.sql` → *Run*, puis de même `migrations/002_generation.sql`.
+1. **Base de données** : *SQL Editor* → nouvelle requête → coller `migrations/001_tutor.sql` → *Run*, puis de même `migrations/002_generation.sql`
+   et `migrations/003_organizations.sql` (espace Business : organisations, rôles, invitations, sources versionnées,
+   connaissances traçables, compétences, preuves en ajout seul, journal d'audit, stockage privé « org-sources »).
    Crée `ai_usage` et `ai_calls` (RLS activé : chacun ne lit que ses lignes, personne n'écrit depuis le navigateur)
    et la fonction `ai_record_call`, réservée au serveur.
 2. **Connexion par e-mail** : *Authentication* → *URL Configuration*
@@ -42,6 +44,18 @@ Si un jour tu passes à une offre payante, `AI_PRICE_INPUT` et `AI_PRICE_OUTPUT`
 font apparaître le coût réel dans `ai_calls`.
 
 ## Tests
+
+Base de données (règles d'accès et cloisonnement, sur un PostgreSQL local avec un bouchon des fonctions Supabase) :
+
+```
+node tests/db-rls.js
+```
+54 vérifications : chaque organisation ne voit que ses données, invitations liées à l'adresse e-mail et à usage unique,
+connaissances proposées invisibles des collaborateurs, information sensible validée par admin ou manager seulement,
+preuves écrites par le serveur uniquement et jamais modifiées, personne membre de deux organisations sans fuite entre elles.
+Non couvert localement : les règles du module Storage (fichiers), à vérifier sur le vrai projet.
+
+Fonction serveur :
 
 ```
 deno test --allow-net --allow-env --allow-read supabase/functions/tutor/
