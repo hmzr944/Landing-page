@@ -1,7 +1,6 @@
 // Tests de la fonction « tutor » (Deno) :  deno test --allow-net --allow-env supabase/functions/tutor/
-// Aucune clé ni aucun réseau réel : un faux serveur Anthropic local reçoit la requête du vrai SDK.
+// Aucune clé ni aucun réseau réel : un faux serveur local « compatible OpenAI » (comme Groq) reçoit les requêtes.
 import { assert, assertEquals } from "jsr:@std/assert@1";
-import Anthropic from "npm:@anthropic-ai/sdk@1.4.0";
 import { buildPrompt, checkCitations, type Deps, handle, validate } from "./handler.ts";
 import { makeCallModel } from "./model.ts";
 
@@ -24,7 +23,7 @@ function fakeDeps(over: Partial<Deps> = {}, modelOut: Record<string, unknown> = 
       text: JSON.stringify({ reply: "Le masque ne transporte rien : à quoi sert-il quand on compare deux adresses ?", verdict: "faux", misconception: "confond masque et passerelle", hint_level: 0,
         citations: [{ passage: 1, quote: "nombre de bits constituant l'identifiant de réseau" }, { passage: 2, quote: "phrase inventée qui n'est pas dans le cours" }],
         correct_points: [], missing: ["le masque sépare réseau et machine"], done: false, next_activity: "relire_passage", ...modelOut }),
-      stop: "end_turn", model: "claude-opus-5-5", inputTokens: 1000, outputTokens: 200,
+      stop: "end_turn", model: "openai/gpt-oss-120b", inputTokens: 1000, outputTokens: 200,
     }),
     ...over,
   };
@@ -43,7 +42,7 @@ Deno.test("une confusion est nommée et les citations inventées sont retirées"
   assertEquals(j.citations_dropped, 1);
   assertEquals(j.usage, { used: 1, limit: 3 });
   // coût : 1000 × 4 $ + 200 × 20 $ par million = 0,008 $
-  assertEquals((recorded[0] as { costUsd: number }).costUsd, 0.008);
+  assertEquals((recorded[0] as { costUsd: number }).costUsd, 0);
 });
 
 Deno.test("sans connexion : 401, sans appel au modèle", async () => {
@@ -70,7 +69,7 @@ Deno.test("sans passage du cours, le tuteur refuse de répondre", async () => {
 });
 
 Deno.test("refus de sécurité : enregistré, message neutre, pas de contenu", async () => {
-  const { deps, recorded } = fakeDeps({ callModel: async () => ({ text: "", stop: "refusal", model: "claude-opus-5-5", inputTokens: 500, outputTokens: 0 }) });
+  const { deps, recorded } = fakeDeps({ callModel: async () => ({ text: "", stop: "refusal", model: "openai/gpt-oss-120b", inputTokens: 500, outputTokens: 0 }) });
   const j = await (await handle(req(body), deps)).json();
   assert(j.refused);
   assertEquals((recorded[0] as { refused: boolean }).refused, true);
@@ -106,24 +105,51 @@ Deno.test("citations : accents et guillemets tolérés, extraits inventés refus
   assertEquals(c.map((x) => x.passage), [1, 2]);
 });
 
-Deno.test("le vrai SDK envoie le bon modèle, le schéma strict et la bascule de sécurité", async () => {
-  let seen: Record<string, unknown> | null = null, headers: Headers | null = null;
-  const server = Deno.serve({ port: 0, onListen() {} }, async (r) => {
-    seen = await r.json(); headers = r.headers;
-    return Response.json({ id: "msg_1", type: "message", role: "assistant", model: "claude-opus-5-5", stop_reason: "end_turn", stop_sequence: null,
-      content: [{ type: "text", text: JSON.stringify({ reply: "ok", verdict: "juste", misconception: "", hint_level: 0, citations: [], correct_points: [], missing: [], done: true, next_activity: "terminer" }) }],
-      usage: { input_tokens: 42, output_tokens: 7 } });
-  });
-  try {
-    const claude = new Anthropic({ apiKey: "cle-de-test", baseURL: `http://localhost:${server.addr.port}`, maxRetries: 0 });
-    const out = await makeCallModel(claude)({ system: "s", user: "u", schema: { type: "object" }, effort: "low" });
-    const s = seen as unknown as Record<string, any>;
-    assertEquals(s.model, "claude-opus-5-5");
-    assertEquals(s.fallbacks, "default");
-    assertEquals(s.output_config, { effort: "low", format: { type: "json_schema", schema: { type: "object" } } });
-    assert(!("betas" in s), "les betas passent en en-tête, pas dans le corps");
-    assert(String((headers as unknown as Headers).get("anthropic-beta")).includes("server-side-fallback-2026-07-01"));
+const ok = { reply: "ok", verdict: "juste", misconception: "", hint_level: 0, citations: [], correct_points: [], missing: [], done: true, next_activity: "terminer" };
+async function fakeApi(handler: (b: Record<string, any>, n: number) => Response, run: (base: string, seen: Record<string, any>[]) => Promise<void>) {
+  const seen: Record<string, any>[] = [];
+  const server = Deno.serve({ port: 0, onListen() {} }, async (r) => { const b = await r.json(); b._auth = r.headers.get("authorization"); b._path = new URL(r.url).pathname; seen.push(b); return handler(b, seen.length); });
+  try { await run(`http://localhost:${server.addr.port}/openai/v1`, seen); } finally { await server.shutdown(); }
+}
+const completion = (model: string, content: string, finish = "stop") => Response.json({ model, choices: [{ message: { role: "assistant", content }, finish_reason: finish }], usage: { prompt_tokens: 42, completion_tokens: 7 } });
+
+Deno.test("gpt-oss reçoit le schéma JSON strict, la clé en en-tête et l'effort de raisonnement", async () => {
+  await fakeApi((b) => completion(b.model, JSON.stringify(ok)), async (base, seen) => {
+    const out = await makeCallModel({ baseUrl: base, apiKey: "cle-de-test", models: ["openai/gpt-oss-120b", "llama-3.3-70b-versatile"] })({ system: "s", user: "u", schema: { type: "object" }, effort: "low" });
+    assertEquals(seen.length, 1);
+    assertEquals(seen[0]._path, "/openai/v1/chat/completions");
+    assertEquals(seen[0]._auth, "Bearer cle-de-test");
+    assertEquals(seen[0].model, "openai/gpt-oss-120b");
+    assertEquals(seen[0].response_format, { type: "json_schema", json_schema: { name: "tutor_reply", strict: true, schema: { type: "object" } } });
+    assertEquals(seen[0].reasoning_effort, "low");
     assertEquals(out.inputTokens, 42);
     assertEquals(JSON.parse(out.text).verdict, "juste");
-  } finally { await server.shutdown(); }
+  });
+});
+
+Deno.test("modèle saturé (429) : bascule sur le modèle de secours, en mode JSON simple", async () => {
+  await fakeApi((b, n) => n === 1 ? new Response("{}", { status: 429 }) : completion(b.model, JSON.stringify(ok)), async (base, seen) => {
+    const out = await makeCallModel({ baseUrl: base, apiKey: "k", models: ["openai/gpt-oss-120b", "llama-3.3-70b-versatile"] })({ system: "s", user: "u", schema: { type: "object" }, effort: "low" });
+    assertEquals(seen.map((x) => x.model), ["openai/gpt-oss-120b", "llama-3.3-70b-versatile"]);
+    assertEquals(seen[1].response_format, { type: "json_object" });
+    assert(String(seen[1].messages[0].content).includes("objet JSON"), "le schéma est rappelé dans la consigne");
+    assert(!("reasoning_effort" in seen[1]));
+    assertEquals(out.model, "llama-3.3-70b-versatile");
+  });
+});
+
+Deno.test("schéma refusé (400) : même modèle, en mode JSON simple ; filtre de contenu = refus", async () => {
+  await fakeApi((b, n) => n === 1 ? Response.json({ error: { message: "schema" } }, { status: 400 }) : completion(b.model, "", "content_filter"), async (base, seen) => {
+    const out = await makeCallModel({ baseUrl: base, apiKey: "k", models: ["openai/gpt-oss-120b"] })({ system: "s", user: "u", schema: { type: "object" }, effort: "medium" });
+    assertEquals(seen.length, 2);
+    assertEquals(seen[1].response_format, { type: "json_object" });
+    assertEquals(out.stop, "refusal");
+  });
+});
+
+Deno.test("coût nul par défaut, prix réglable", async () => {
+  const a = fakeDeps(); await handle(req(body), a.deps);
+  assertEquals((a.recorded[0] as { costUsd: number }).costUsd, 0);
+  const b = fakeDeps({ price: { input: 1, output: 2 } }); await handle(req(body), b.deps);
+  assertEquals((b.recorded[0] as { costUsd: number }).costUsd, 0.0014);
 });

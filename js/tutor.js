@@ -1,6 +1,6 @@
 /* Connexion (Supabase Auth) et appel du tuteur (fonction serveur « tutor »).
    - Seules l'adresse du projet et la clé publiable sont ici : elles sont faites pour être publiques.
-     La clé Claude n'existe que côté serveur (secret Supabase) ; elle n'arrive jamais dans le navigateur.
+     La clé de l'API du modèle (Groq, modèles open source) n'existe que côté serveur (secret Supabase) ; elle n'arrive jamais dans le navigateur.
    - Connexion par lien e-mail (ou code à 6 chiffres si le modèle d'e-mail le contient). Session dans ce navigateur.
    - Hors connexion ou sans compte, tout Arbor fonctionne ; seul le tuteur est indisponible. */
 (function () {

@@ -1,7 +1,9 @@
 # Serveur du tuteur Pousse (Supabase)
 
 Le site reste statique sur GitHub Pages et marche sans compte. Supabase ne sert qu'au tuteur :
-connexion par e-mail, quota mensuel, appel au modèle avec la clé gardée côté serveur, mesure du coût.
+connexion par e-mail, quota mensuel, appel au modèle avec la clé gardée côté serveur, mesure de l'usage.
+Le modèle est open source et gratuit : `openai/gpt-oss-120b` (github.com/openai/gpt-oss, Apache 2.0), avec
+`llama-3.3-70b-versatile` (Meta) en secours, servis par l'offre gratuite de Groq. Toute API compatible OpenAI convient.
 Aucun cours ni aucune réponse n'est stocké sur le serveur : seulement des compteurs (appels, jetons, coût).
 
 Projet : `https://nnqtgwgwalbbhqzceged.supabase.co` (adresse et clé publiable dans `js/tutor.js`, publiques par conception).
@@ -20,22 +22,28 @@ Projet : `https://nnqtgwgwalbbhqzceged.supabase.co` (adresse et clé publiable d
    Laisser *Verify JWT* activé.
    Avec la ligne de commande, c'est équivalent : `supabase functions deploy tutor --project-ref nnqtgwgwalbbhqzceged`.
 4. **Secrets** : *Edge Functions* → *Secrets*
-   - `ANTHROPIC_API_KEY` : ta clé de l'API Claude (console.anthropic.com). À saisir toi-même ici, jamais ailleurs.
-   - `TUTOR_MONTHLY_LIMIT` : échanges par utilisateur et par mois (60 par défaut).
-   - `TUTOR_ORIGINS` : facultatif, par défaut `https://hmzr944.github.io`.
+   - `AI_API_KEY` : ta clé Groq (gratuite, sans carte bancaire : console.groq.com → *API Keys*). À saisir toi-même ici, jamais ailleurs.
+   - Facultatifs : `AI_MODEL` (par défaut `openai/gpt-oss-120b`), `AI_FALLBACK_MODEL` (par défaut `llama-3.3-70b-versatile`),
+     `AI_BASE_URL` (par défaut `https://api.groq.com/openai/v1` ; OpenRouter, Cerebras, Ollama ou vLLM marchent aussi),
+     `TUTOR_MONTHLY_LIMIT` (60 par défaut), `TUTOR_ORIGINS` (par défaut `https://hmzr944.github.io`).
+
+Pour coller la fonction en une fois dans l'éditeur du tableau de bord, `index.ts`, `handler.ts` et `model.ts`
+peuvent être assemblés en un seul fichier (imports relatifs retirés).
 
 ## Coût
 
-Modèle `claude-opus-5-5` (4 $ par million de jetons en entrée, 20 $ en sortie). Un échange de dialogue envoie
-la notion, ses passages et l'historique récent : de l'ordre de 1 500 à 3 000 jetons en entrée et 300 à 600 en sortie,
-soit environ 1 à 2,4 centimes. Le coût réel de chaque appel est enregistré dans `ai_calls` ; à consulter avant de fixer les quotas.
-En cas de refus de sécurité, l'API rebascule automatiquement sur un autre modèle (`fallbacks: "default"`).
+Zéro avec l'offre gratuite de Groq. Ses limites s'appliquent au compte entier (pas par élève) : de l'ordre de
+1 000 requêtes et 200 000 jetons par jour pour gpt-oss-120b (à vérifier sur console.groq.com/settings/limits).
+Un échange consomme environ 2 000 à 3 500 jetons : compter une soixantaine d'échanges par jour au total.
+Quand le modèle principal est saturé (429), la fonction bascule seule sur le modèle de secours.
+Si un jour tu passes à une offre payante, `AI_PRICE_INPUT` et `AI_PRICE_OUTPUT` (dollars par million de jetons)
+font apparaître le coût réel dans `ai_calls`.
 
 ## Tests
 
 ```
 deno test --allow-net --allow-env --allow-read supabase/functions/tutor/
 ```
-11 tests : citations inventées retirées, connexion exigée, quota vérifié avant l'appel, refus et pannes,
-CORS, bornes des entrées, et forme exacte de la requête envoyée par le vrai SDK (faux serveur Anthropic local).
+14 tests : citations inventées retirées, connexion exigée, quota vérifié avant l'appel, refus et pannes,
+CORS, bornes des entrées, schéma JSON strict, bascule sur le modèle de secours (faux serveur compatible OpenAI local).
 Côté site, `node tests/tutor.js` déroule le scénario complet avec un Supabase simulé.

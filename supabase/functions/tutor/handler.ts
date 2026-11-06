@@ -34,13 +34,12 @@ export interface Deps {
   callModel(p: { system: string; user: string; schema: Record<string, unknown>; effort: "low" | "medium" }): Promise<ModelResult>;
   limit: number;
   origins: string[];
+  price?: { input: number; output: number }; // dollars par million de jetons ; 0 avec une offre gratuite
   now?: () => Date;
 }
 
-// Prix de Claude Opus 5.5 (dollars par million de jetons) : sert à estimer le coût de chaque appel.
-// Si une bascule de sécurité a servi la réponse avec un autre modèle, le coût réel peut différer légèrement.
-export const PRICE = { input: 4, output: 20 };
-export const MODEL = "claude-opus-5-5";
+// Coût par défaut : nul (modèles open source sur une offre gratuite). Réglable par deps.price si on passe à une offre payante.
+export const PRICE = { input: 0, output: 0 };
 
 export const SCHEMA = {
   type: "object",
@@ -185,7 +184,8 @@ export async function handle(request: Request, deps: Deps): Promise<Response> {
   } catch (e) {
     return json(502, { error: "le tuteur ne répond pas pour l'instant", detail: String((e as Error)?.message || e).slice(0, 200) });
   }
-  const cost = Math.round(((res.inputTokens * PRICE.input + res.outputTokens * PRICE.output) / 1e6) * 1e5) / 1e5;
+  const price = deps.price || PRICE;
+  const cost = Math.round(((res.inputTokens * price.input + res.outputTokens * price.output) / 1e6) * 1e5) / 1e5;
   const refused = res.stop === "refusal";
   await deps.record({ userId: user.id, month: m, mode: req.mode, model: res.model, inputTokens: res.inputTokens, outputTokens: res.outputTokens, costUsd: cost, refused });
   const usage = { used: used + 1, limit: deps.limit };

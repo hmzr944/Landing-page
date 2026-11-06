@@ -1,20 +1,23 @@
 // Fonction serveur Supabase « tutor » : branche la logique (handler.ts) sur les vrais services.
 // Secrets attendus (Supabase > Edge Functions > Secrets) :
-//   ANTHROPIC_API_KEY      clé Claude, jamais envoyée au navigateur
+//   AI_API_KEY             clé de l'API du modèle (par défaut Groq, gratuite), jamais envoyée au navigateur
+//   AI_BASE_URL            facultatif, API compatible OpenAI (par défaut https://api.groq.com/openai/v1)
+//   AI_MODEL               facultatif, modèle principal (par défaut openai/gpt-oss-120b)
+//   AI_FALLBACK_MODEL      facultatif, modèle de secours (par défaut llama-3.3-70b-versatile)
 //   TUTOR_MONTHLY_LIMIT    nombre d'échanges par utilisateur et par mois (par défaut 60)
 //   TUTOR_ORIGINS          origines autorisées, séparées par des virgules (par défaut le site GitHub Pages)
 // SUPABASE_URL et SUPABASE_SERVICE_ROLE_KEY sont fournis automatiquement par Supabase.
-import Anthropic from "npm:@anthropic-ai/sdk@1.4.0";
 import { createClient } from "npm:@supabase/supabase-js@2.119.0";
 import { handle, type Deps } from "./handler.ts";
 import { makeCallModel } from "./model.ts";
 
-const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth: { persistSession: false } });
-const claude = new Anthropic({ apiKey: Deno.env.get("ANTHROPIC_API_KEY") });
+const env = (k: string, d = "") => (Deno.env.get(k) || d).trim();
+const admin = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), { auth: { persistSession: false } });
 
 export const deps: Deps = {
-  limit: Number(Deno.env.get("TUTOR_MONTHLY_LIMIT") || 60),
-  origins: (Deno.env.get("TUTOR_ORIGINS") || "https://hmzr944.github.io").split(",").map((s) => s.trim()).filter(Boolean),
+  limit: Number(env("TUTOR_MONTHLY_LIMIT", "60")),
+  origins: env("TUTOR_ORIGINS", "https://hmzr944.github.io").split(",").map((s) => s.trim()).filter(Boolean),
+  price: { input: Number(env("AI_PRICE_INPUT", "0")), output: Number(env("AI_PRICE_OUTPUT", "0")) },
   async getUser(jwt) {
     const { data, error } = await admin.auth.getUser(jwt);
     return error || !data?.user ? null : { id: data.user.id };
@@ -26,7 +29,11 @@ export const deps: Deps = {
   async record(e) {
     await admin.rpc("ai_record_call", { p_user: e.userId, p_month: e.month, p_mode: e.mode, p_model: e.model, p_in: e.inputTokens, p_out: e.outputTokens, p_cost: e.costUsd, p_refused: e.refused });
   },
-  callModel: makeCallModel(claude),
+  callModel: makeCallModel({
+    baseUrl: env("AI_BASE_URL", "https://api.groq.com/openai/v1"),
+    apiKey: env("AI_API_KEY") || env("GROQ_API_KEY"),
+    models: [env("AI_MODEL", "openai/gpt-oss-120b"), env("AI_FALLBACK_MODEL", "llama-3.3-70b-versatile")].filter(Boolean),
+  }),
 };
 
 Deno.serve((req) => handle(req, deps));
