@@ -852,36 +852,53 @@
 
   /* Rédiger le cours d'une partie à partir de son titre.
      Si la partie a déjà des sous-parties (ex. notions listées dans le programme), chacune reçoit son cours. */
-  // Qui rédige les cours : Claude (clé API), l'IA locale (modèle open source dans le navigateur) ou Wikipédia
-  const useLocal = () => !state.settings.apiKey && state.settings.localAI && window.LocalAI && LocalAI.supported();
+  /* Qui rédige les cours : le serveur Arbor si l'étudiant est connecté (modèles open source, aucune clé dans le navigateur),
+     sinon l'IA locale (ordinateur avec WebGPU), sinon les sources seules (Wikipédia, Wikilivres) sans reformulation. */
+  const useLocal = () => !!(state.settings.localAI && window.LocalAI && LocalAI.supported());
+  function writer() {
+    if (window.AI && AI.available()) return { kind: 'serveur', writeCourse: AI.writeCourse, writeNotion: AI.writeNotion, enrich: AI.enrich };
+    if (useLocal()) {
+      const id = state.settings.localModel;
+      return {
+        kind: 'local',
+        writeCourse: (t, c, src, o = {}) => LocalAI.writeCourse(t, c, src, { id, ...o }),
+        writeNotion: (n, m, src, o = {}) => LocalAI.writeNotion(n, m, src, { id, ...o }),
+        enrich: (t, x, o = {}) => LocalAI.enrich(t, x, { id, ...o }),
+      };
+    }
+    return null;
+  }
   const engineLabel = () => 'à partir de sources fiables, choisies pour chaque notion';
   async function fetchCourse(topic, context, onStatus) {
-    if (state.settings.apiKey) {
-      const r = await AI.researchTopic(topic, context, state.settings.apiKey, state.settings.model, onStatus);
-      return { ...r, from: 'claude' };
-    }
-    if (useLocal()) {
+    const w = writer();
+    if (w) {
       onStatus && onStatus('Recherche d’un texte de référence…');
       const src = await Course.wikiSource(topic, context).catch(() => null);
-      const r = await LocalAI.writeCourse(topic, context, src, {
-        id: state.settings.localModel,
-        onStatus,
-        onProgress: (p) => onStatus && onStatus(p < 1 ? `Arbor se prépare… ${Math.round(p * 100)} %` : 'Arbor rédige le cours…'),
-      });
-      if (!r.notions.length) throw new Error('Rien n’a pu être rédigé.');
-      r.overview = `${r.overview}\n\n_Vérifie les points importants dans ton cours._`;
-      return { ...r, sources: src ? [{ title: `Wikipédia : ${src.title}`, url: src.url }] : [], from: 'local' };
+      let r = null;
+      try {
+        r = await w.writeCourse(topic, context, src, {
+          onStatus,
+          onProgress: (p) => onStatus && onStatus(p < 1 ? `Arbor se prépare… ${Math.round(p * 100)} %` : 'Arbor rédige le cours…'),
+        });
+      } catch (err) {
+        // compte requis, quota atteint ou service saturé : on prévient ; sinon on se replie sur la source seule
+        if (['auth', 'quota'].includes(err.kind)) throw err;
+        console.warn('Rédaction indisponible, repli sur Wikipédia :', err.message);
+      }
+      if (r && r.notions.length) {
+        r.overview = `${r.overview}\n\n_Vérifie les points importants dans ton cours._`;
+        return { ...r, sources: src ? [{ title: `Wikipédia : ${src.title}`, url: src.url }] : [], from: w.kind };
+      }
     }
     return Course.fromWikipedia(topic, context);
   }
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
   /* Rédiger le cours d'une partie à partir de son titre.
-     - Avec une clé Claude : Claude cherche sur le web et rédige.
-     - Sinon, méthode inspirée de STORM (voir storm.js) : chaque notion est rédigée à partir de ses meilleurs
-       passages (Wikilivres, Wikiversité, Wikipédia), reformulés par l'IA locale si elle est activée.
+     Méthode inspirée de STORM (voir storm.js) : chaque notion est rédigée à partir de ses meilleurs passages
+     (Wikilivres, Wikiversité, Wikipédia), reformulés par le serveur Arbor ou l'IA locale quand ils sont disponibles.
      Une partie sans sous-parties reçoit d'abord un plan, tiré des sections de la meilleure source. */
   async function writeNotionInto(ch, ctx, onStatus) {
-    const r = await Storm.buildNotion(ch.title, ctx, { local: useLocal() ? { id: state.settings.localModel } : null, onStatus });
+    const r = await Storm.buildNotion(ch.title, ctx, { ai: writer(), onStatus });
     ch.notes = r.notes;
     ch.keyPoints = [...(ch.keyPoints || []), ...r.keyPoints].slice(0, 5);
     ch.exercises = (ch.exercises || []).concat(r.exercises.map((e) => ({ id: Store.uid(), q: String(e.q || ''), a: String(e.a || '') })));
@@ -890,33 +907,8 @@
   }
   async function writeCourse(s, node, onStatus) {
     const ctx = node === s.root ? '' : s.title;
-    if (state.settings.apiKey) {
-      if (node.children.length) {
-        let n = 0;
-        for (const ch of node.children) {
-          if (ch.notes.trim()) continue;
-          onStatus && onStatus(`« ${ch.title} »`);
-          const r = await fetchCourse(ch.title, node.title, onStatus);
-          ch.notes = [r.overview, ...r.notions.slice(0, 4).map((x) => `### ${x.title}\n${x.notes}`)].filter(Boolean).join('\n\n');
-          ch.keyPoints = r.notions.flatMap((x) => x.keyPoints || []).slice(0, 4);
-          ch.exercises = (ch.exercises || []).concat(r.notions.flatMap((x) => (x.exercises || []).map((e) => ({ id: Store.uid(), q: String(e.q || ''), a: String(e.a || '') }))).slice(0, 3));
-          ch.course = { from: r.from, sources: r.sources };
-          n++;
-        }
-        if (node.module) node.module.generated = true;
-        return n;
-      }
-      onStatus && onStatus(`« ${node.title} »`);
-      const r = await fetchCourse(node.title, ctx, onStatus);
-      if (r.overview && !node.notes.trim()) node.notes = r.overview;
-      r.notions.forEach((x) => node.children.push(normalize(x)));
-      node.course = { from: r.from, sources: r.sources };
-      node.collapsed = false;
-      if (node.module) { node.module.sources = r.sources; node.module.generated = true; }
-      return r.notions.length;
-    }
 
-    // Sans clé : un plan si la partie n'a pas de notions, puis une rédaction notion par notion
+    // Un plan si la partie n'a pas de notions, puis une rédaction notion par notion
     let planResearch = null;
     if (!node.children.length) {
       onStatus && onStatus(`plan de « ${node.title} »`);
@@ -924,7 +916,7 @@
       const plan = await Storm.outline(node.title, { module: ctx, domain: dom.join(' ') }).catch(() => []);
       planResearch = Storm.outline.last || null;
       if (plan.length < 2) {
-        const r = await Course.fromWikipedia(node.title, ctx); // repli : la fiche Wikipédia
+        const r = await fetchCourse(node.title, ctx, onStatus); // repli : la fiche Wikipédia, reformulée si un moteur est disponible
         if (r.overview && !node.notes.trim()) node.notes = r.overview;
         r.notions.forEach((x) => node.children.push(normalize(x)));
         node.course = { from: r.from, sources: r.sources };
@@ -1014,7 +1006,7 @@
       </div>`);
     Mascot.react('reading');
     try {
-      const r = await AI.researchTopic(node.title, s.title, state.settings.apiKey, state.settings.model, (m) => { const e = $('#ldMsg'); if (e) e.textContent = m; });
+      const r = await fetchCourse(node.title, s.title, (m) => { const e = $('#ldMsg'); if (e) e.textContent = m; });
       if (r.overview && !node.notes.trim()) node.notes = r.overview;
       r.notions.forEach((n) => node.children.push(normalize(n)));
       node.module.sources = r.sources;
@@ -1025,7 +1017,7 @@
     } catch (err) {
       console.error(err);
       Mascot.react('stop-reading');
-      const msg = err && err.status === 401 ? 'La clé API est refusée. Vérifie-la dans les réglages.' : (err && err.message) || 'Erreur inconnue.';
+      const msg = (err && err.message) || 'Erreur inconnue.';
       $('#modalBody').innerHTML = `<div class="loading"><span class="tile big danger-tile">${ic('warning-circle', true)}</span><h2 id="modalTitle">Recherche impossible</h2><p class="modal-lede">${esc(msg)} Tu peux utiliser les liens de recherche à la place.</p></div>`;
     }
   }
@@ -2498,34 +2490,25 @@
         </div>
         <label class="check switch-row"><input type="checkbox" id="calmOn" ${st.calm ? 'checked' : ''} /> Mode calme : moins de mouvement, pas de confettis, mascotte silencieuse</label>
         <label class="check switch-row"><input type="checkbox" id="mascotOn" ${st.mascot !== false ? 'checked' : ''} /> Afficher Pousse, la mascotte</label>
-        <details class="field advanced">
-          <summary>Réglages avancés</summary>
-        ${window.LocalAI && LocalAI.supported() ? `<fieldset class="field local-ai">
+        ${window.LocalAI && LocalAI.supported() ? `<details class="field advanced">
+          <summary>Réglages avancés</summary><fieldset class="field local-ai">
           <legend>Rédaction améliorée <span class="optional">sur cet ordinateur</span></legend>
           <label class="check switch-row"><input type="checkbox" id="localOn" ${st.localAI ? 'checked' : ''} /> Des cours mieux rédigés, préparés sur cet ordinateur, sans rien envoyer</label>
           <select id="localModel" aria-label="Modèle local">${LocalAI.MODELS.map((m) => `<option value="${m.id}" ${st.localModel === m.id ? 'selected' : ''}>${m.label} (${m.size})</option>`).join('')}</select>
           <div class="row-btns"><button type="button" class="btn ghost sm" id="localDl">${ic('download-simple')}Préparer maintenant</button><span class="hint" id="localState"></span></div>
           <div class="bar" id="localBarWrap" hidden><span id="localBar" style="transform:scaleX(0)"></span></div>
           <p class="hint">Préparé une seule fois (quelques minutes), puis gardé sur l’ordinateur. Ta vie privée est respectée : rien n’est envoyé.</p>
-        </fieldset>` : ''}
-        <div class="field">
-          <label for="apiKey">Clé d’accès <span class="optional">facultatif</span></label>
-          <input id="apiKey" name="api-key" type="password" autocomplete="off" spellcheck="false" placeholder="sk-ant-…" value="${esc(st.apiKey || '')}" />
-          <p class="hint">Pour l’analyse avancée et les cours les plus complets. La clé reste dans ce navigateur. Évite de l’enregistrer sur un ordinateur partagé.</p>
-        </div>
-        <div class="field">
-          <label for="model">Modèle</label>
-          <select id="model" name="model">
-            ${[['claude-opus-5-5', 'Le plus précis (recommandé)'], ['claude-sonnet-5-5', 'Plus rapide'], ['claude-haiku-5-5', 'Économique']]
-              .map(([v, l]) => `<option value="${v}" ${st.model === v ? 'selected' : ''}>${l}</option>`).join('')}
-          </select>
-        </div>
-        </details>
+        </fieldset></details>` : ''}
         ${installBlock()}
         <fieldset class="field">
-          <legend>Compte et tuteur</legend>
-          <p class="hint" id="acctState">${window.Tutor && Tutor.signedIn() ? 'Connecté.' : 'Non connecté. Le compte sert seulement au tuteur Pousse : tes cours restent sur cet appareil.'}</p>
-          <div class="row-btns">${window.Tutor && Tutor.signedIn() ? `<button type="button" class="btn ghost sm" id="acctOut">${ic('sign-out')}Se déconnecter</button>` : ''}</div>
+          <legend>Compte</legend>
+          <p class="hint" id="acctState">${window.Tutor && Tutor.signedIn() ? 'Connecté. Pousse et l’analyse avancée des PDF sont disponibles.' : 'Gratuit. Le compte sert au tuteur Pousse et à l’analyse avancée des PDF ; tes cours restent sur cet appareil.'}</p>
+          ${window.Tutor && Tutor.signedIn() ? `<div class="row-btns"><button type="button" class="btn ghost sm" id="acctOut">${ic('sign-out')}Se déconnecter</button></div>` : window.Tutor ? `
+          <label for="acctEmail">Adresse e-mail</label>
+          <div class="row-btns"><input id="acctEmail" type="email" autocomplete="email" value="${esc(Tutor.lastEmail())}" placeholder="toi@exemple.fr" /><button type="button" class="btn sm" id="acctSend">${ic('envelope-simple')}Recevoir le lien</button></div>
+          <div id="acctCodeRow" hidden><label for="acctCode">Ou colle le code reçu par e-mail</label>
+          <div class="row-btns"><input id="acctCode" inputmode="numeric" autocomplete="one-time-code" placeholder="123456" /><button type="button" class="btn ghost sm" id="acctVerify">Valider le code</button></div></div>
+          <p class="hint" id="acctErr" role="alert"></p>` : ''}
         </fieldset>
         <fieldset class="field">
           <legend>Sauvegarde</legend>
@@ -2560,6 +2543,20 @@
       $('#expAll', el).onclick = () => exportBackup();
       $('#onbAgain', el).onclick = () => { closeModal(); openOnboarding(); };
       const out = $('#acctOut', el); if (out) out.onclick = () => { Tutor.signOut(); closeModal(); FX.toast('Déconnecté', 'success'); };
+      const send = $('#acctSend', el);
+      if (send) {
+        const err = $('#acctErr', el);
+        send.onclick = async () => {
+          const email = $('#acctEmail', el).value.trim();
+          if (!/^\S+@\S+\.\S+$/.test(email)) { err.textContent = 'Saisis une adresse e-mail valide.'; return; }
+          try { await Tutor.signIn(email); err.textContent = 'Lien envoyé. Ouvre-le sur cet appareil, ou colle le code ci-dessous.'; $('#acctCodeRow', el).hidden = false; send.textContent = 'Lien envoyé'; }
+          catch (e) { err.textContent = e.message; }
+        };
+        $('#acctVerify', el).onclick = async () => {
+          try { await Tutor.verifyCode($('#acctEmail', el).value.trim(), $('#acctCode', el).value); closeModal(); FX.toast('Connecté', 'success'); }
+          catch (e) { err.textContent = e.message; }
+        };
+      }
       if (window.Tutor && Tutor.signedIn()) Promise.all([Tutor.email(), Tutor.usage()]).then(([mail, used]) => { const e = $('#acctState', el); if (e) e.textContent = `Connecté${mail ? ` : ${mail}` : ''}.${used != null ? ` ${used} échange${used > 1 ? 's' : ''} avec Pousse ce mois-ci.` : ''}`; }).catch(() => {});
       const rb = $('#rescueDl', el); if (rb) rb.onclick = () => downloadText(Store.rescued(), 'arbor-donnees-illisibles.json');
       $('#impAll', el).onclick = () => $('#jsonInput').click();
@@ -2572,8 +2569,6 @@
         st.dailyGoal = +$('#dailyGoal', el).value;
         st.newPerDay = +$('#newPerDay', el).value;
         Mascot.setEnabled(st.mascot);
-        st.apiKey = $('#apiKey', el).value.trim();
-        st.model = $('#model', el).value;
         if ($('#localOn', el)) { st.localAI = $('#localOn', el).checked; st.localModel = $('#localModel', el).value; }
         applyTheme(); save(); closeModal(); FX.toast('Réglages enregistrés', 'success');
       };
@@ -2654,7 +2649,7 @@
   let pdfFile = null;
   function pdfModal() {
     pdfFile = null;
-    const hasKey = !!state.settings.apiKey;
+    const hasKey = !!(window.AI && AI.available()); // connecté : analyse avancée par le serveur Arbor
     const llmOk = !!(state.settings.localAI && window.LocalAI && LocalAI.supported());
     const inSubject = view.name === 'subject';
     openModal(`
@@ -2676,7 +2671,7 @@
             <span><b>Analyse intelligente</b><small>${llmOk ? 'Gratuite et privée : ajoute des points clés et des questions à chaque partie. Prend quelques minutes.' : window.LocalAI && LocalAI.supported() ? 'À activer dans les réglages.' : 'Disponible sur ordinateur.'}</small></span></label>
           <label class="mode ${hasKey ? '' : 'locked'}"><input type="radio" name="mode" value="ai" ${hasKey ? 'checked' : 'disabled'} />
             <span class="mode-ic" aria-hidden="true">${ic('sparkle', true)}</span>
-            <span><b>Analyse avancée</b><small>${hasKey ? 'Résumés et points clés rédigés, découpage plus fin.' : 'Ajoute une clé d’accès dans les réglages.'}</small></span></label>
+            <span><b>Analyse avancée</b><small>${hasKey ? 'Ajoute à chaque partie des points clés et des questions, vérifiés sur ton document. Seul le texte extrait est envoyé, pas le fichier.' : 'Connecte-toi gratuitement (Réglages, puis Compte) pour l’activer.'}</small></span></label>
         </div>
       </fieldset>
       <label class="check"><input type="checkbox" id="asProgram" /> C’est un programme ou une liste de sujets : en faire un parcours de modules</label>
@@ -2705,7 +2700,7 @@
 
   /* IA locale sur un PDF : le texte du cours reste celui du document ;
      le modèle ajoute des points clés reformulés et des questions à chaque partie qui a du contenu. */
-  async function enrichTree(tree, setMsg, setPct) {
+  async function enrichTree(tree, setMsg, setPct, w) {
     const parts = [];
     (function w(n) { if ((n.notes || '').length >= 250) parts.push(n); (n.children || []).forEach(w); })(tree);
     const todo = parts.slice(0, 14);
@@ -2713,15 +2708,15 @@
       const n = todo[i];
       setMsg(`« ${n.title} » (${i + 1}/${todo.length})`);
       try {
-        const r = await LocalAI.enrich(n.title, n.notes, {
-          id: state.settings.localModel,
+        const r = await w.enrich(n.title, n.notes, {
+          onStatus: setMsg,
           onProgress: (p) => { setMsg(`Arbor se prépare… ${Math.round(p * 100)} %`); setPct(0.1 + p * 0.3); },
         });
         const have = new Set((n.keyPoints || []).map((k) => k.toLowerCase()));
         n.keyPoints = [...(n.keyPoints || []), ...r.keyPoints.filter((k) => !have.has(k.toLowerCase()))].slice(0, 6);
         n.exercises = [...(n.exercises || []), ...r.exercises.map((e) => ({ q: String(e.q), a: String(e.a) }))];
       } catch (err) {
-        if (i === 0) throw err; // le modèle ne se charge pas : on prévient
+        if (i === 0 || ['auth', 'quota'].includes(err.kind)) throw err; // le moteur ne répond pas du tout : on prévient
         console.warn(err);
       }
       setPct(0.4 + ((i + 1) / todo.length) * 0.6);
@@ -2754,17 +2749,16 @@
         programModal(res.topics, res.title);
         return;
       }
-      if (mode === 'ai') {
-        let fake = 0.05;
-        const t = setInterval(() => { fake = Math.min(0.92, fake + (0.95 - fake) * 0.04); setPct(fake); }, 400);
-        try { tree = await AI.structure(file, state.settings.apiKey, state.settings.model, setMsg); }
-        finally { clearInterval(t); }
-      } else {
-        const res = await PdfImport.analyze(file, (p) => { setPct(p * 0.9); setMsg(`Lecture des pages… ${Math.round(p * 100)} %`); });
+      {
+        const res = await PdfImport.analyze(file, (p) => { setPct(p * (mode === 'local' ? 0.9 : 0.4)); setMsg(`Lecture des pages… ${Math.round(p * 100)} %`); });
         setMsg('Classement des informations…');
         tree = res.tree;
         if ((res.isProgramme || res.hasPlan) && !into) { Mascot.react('stop-reading'); return programChoice(res); }
-        if (mode === 'llm') await enrichTree(tree, setMsg, setPct);
+        // analyse intelligente (IA locale) ou avancée (serveur) : le texte du cours reste celui du document
+        if (mode === 'llm' || mode === 'ai') {
+          const w = mode === 'ai' ? (window.AI && AI.available() ? { kind: 'serveur', enrich: AI.enrich } : null) : (useLocal() ? writer() : null);
+          if (w) await enrichTree(tree, setMsg, setPct, w);
+        }
       }
       setPct(1);
       Mascot.react('imported');
@@ -2773,7 +2767,7 @@
     } catch (err) {
       console.error(err);
       Mascot.react('stop-reading');
-      const msg = err && err.status === 401 ? 'La clé API est refusée. Vérifie-la dans les réglages.' : (err && err.message) || 'Erreur inconnue.';
+      const msg = (err && err.message) || 'Erreur inconnue.';
       $('#modalBody').innerHTML = `
         <div class="loading">
           <span class="tile big danger-tile">${ic('warning-circle', true)}</span>

@@ -23,7 +23,7 @@ export function makeCallModel(cfg: ModelConfig): Deps["callModel"] {
     const system = strict ? p.system : `${p.system}\n\nRéponds uniquement par un objet JSON conforme à ce schéma :\n${JSON.stringify(p.schema)}`;
     const body: Record<string, unknown> = {
       model,
-      max_tokens: 2500,
+      max_tokens: p.maxTokens || 2500,
       temperature: 0.3,
       messages: [{ role: "system", content: system }, { role: "user", content: p.user }],
       response_format: strict
@@ -40,6 +40,7 @@ export function makeCallModel(cfg: ModelConfig): Deps["callModel"] {
 
   return async (p) => {
     let last = "aucun modèle configuré";
+    if (!cfg.models.length) throw new Error(last);
     for (const model of cfg.models) {
       let strict = STRICT.test(model);
       let res = await once(model, p, strict);
@@ -58,6 +59,7 @@ export function makeCallModel(cfg: ModelConfig): Deps["callModel"] {
       };
       return out;
     }
-    throw new Error(last);
+    // tous les modèles saturés : le client peut réessayer un peu plus tard
+    const busy = new Error(last); busy.name = "Busy"; throw busy;
   };
 }

@@ -73,7 +73,7 @@
   }
   function signOut() { const s = read(); write(null); if (s) call('/auth/v1/logout', { token: s.access_token }).catch(() => {}); }
 
-  /* Une question au tuteur. Erreurs typées pour un message clair : offline, auth, quota, server, refused */
+  /* Une demande au serveur (dialogue ou génération). Erreurs typées pour un message clair : offline, auth, quota, busy, server */
   async function ask(payload) {
     if (!navigator.onLine) { const e = new Error('offline'); e.kind = 'offline'; throw e; }
     const t = await token();
@@ -83,6 +83,7 @@
     catch (err) { const e = new Error('offline'); e.kind = 'offline'; throw e; }
     if (r.status === 401) { write(null); const e = new Error('auth'); e.kind = 'auth'; throw e; }
     if (r.status === 429) { const e = new Error('quota'); e.kind = 'quota'; e.limit = r.data && r.data.limit; throw e; }
+    if (r.status === 503) { const e = new Error('busy'); e.kind = 'busy'; throw e; }
     if (!r.ok) { const e = new Error((r.data && r.data.error) || 'Le tuteur ne répond pas.'); e.kind = 'server'; throw e; }
     return r.data;
   }

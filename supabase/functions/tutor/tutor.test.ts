@@ -2,6 +2,7 @@
 // Aucune clé ni aucun réseau réel : un faux serveur local « compatible OpenAI » (comme Groq) reçoit les requêtes.
 import { assert, assertEquals } from "jsr:@std/assert@1";
 import { buildPrompt, checkCitations, type Deps, handle, validate } from "./handler.ts";
+import { support } from "./generate.ts";
 import { makeCallModel } from "./model.ts";
 
 const passages = [
@@ -152,4 +153,68 @@ Deno.test("coût nul par défaut, prix réglable", async () => {
   assertEquals((a.recorded[0] as { costUsd: number }).costUsd, 0);
   const b = fakeDeps({ price: { input: 1, output: 2 } }); await handle(req(body), b.deps);
   assertEquals((b.recorded[0] as { costUsd: number }).costUsd, 0.0014);
+});
+
+/* ---------- Génération de contenu (remplace l'appel direct depuis le navigateur) ---------- */
+const extrait = "Le protocole DHCP attribue automatiquement une adresse IP, un masque de sous-réseau et une passerelle par défaut à chaque poste qui rejoint le réseau. Le client envoie une requête DHCPDISCOVER en diffusion, le serveur répond par une offre DHCPOFFER.";
+function genDeps(modelOut: Record<string, unknown>, over: Partial<Deps> = {}) {
+  const calls: { kind: string }[] = [], recorded: unknown[] = [], seen: Record<string, unknown>[] = [];
+  const { deps } = fakeDeps({
+    usedThisMonth: async (_u, _m, kind) => { calls.push({ kind }); return 0; },
+    record: async (e) => { recorded.push(e); },
+    callModel: async (p) => { seen.push(p as unknown as Record<string, unknown>); return { text: JSON.stringify(modelOut), stop: "stop", model: "openai/gpt-oss-120b", inputTokens: 300, outputTokens: 120 }; },
+    ...over,
+  });
+  return { deps, calls, recorded, seen };
+}
+
+Deno.test("enrichir : points ancrés gardés, inventions écartées, quota de génération séparé", async () => {
+  const g = genDeps({
+    keyPoints: ["DHCP attribue automatiquement l'adresse IP, le masque et la passerelle par défaut.", "Kerberos chiffre les tickets avec AES256 dans Active Directory."],
+    exercises: [{ q: "Que fournit DHCP ?", a: "Une adresse IP, un masque de sous-réseau et une passerelle par défaut." }, { q: "Quel port ?", a: "Kerberos utilise toujours le port 88 sur Windows Server." }],
+  });
+  const r = await handle(req({ task: "enrichir", title: "DHCP", text: extrait }), g.deps);
+  assertEquals(r.status, 200);
+  const d = await r.json();
+  assertEquals(d.keyPoints.length, 1);
+  assertEquals(d.exercises.length, 1);
+  assertEquals(d.dropped, 2);
+  assertEquals(g.calls[0].kind, "generation");
+  assertEquals((g.recorded[0] as { mode: string }).mode, "enrichir");
+  assertEquals(g.seen[0].maxTokens, 800);
+  assert(String(g.seen[0].user).includes("DHCPDISCOVER"));
+});
+
+Deno.test("génération : connexion exigée, quota vérifié avant l'appel, texte source obligatoire pour enrichir", async () => {
+  const g = genDeps({}, { usedThisMonth: async () => 150 });
+  assertEquals((await handle(req({ task: "enrichir", title: "DHCP", text: extrait }, "faux"), g.deps)).status, 401);
+  const q = await handle(req({ task: "enrichir", title: "DHCP", text: extrait }), g.deps);
+  assertEquals(q.status, 429);
+  assertEquals(g.seen.length, 0);
+  const g2 = genDeps({});
+  assertEquals((await handle(req({ task: "enrichir", title: "DHCP", text: "trop court" }), g2.deps)).status, 400);
+  assertEquals((await handle(req({ task: "inconnue", title: "x", text: extrait }), g2.deps)).status, 400);
+});
+
+Deno.test("rédiger un cours : notions hors du texte de référence écartées", async () => {
+  const g = genDeps({ overview: "DHCP configure les postes.", notions: [
+    { title: "Rôle de DHCP", notes: "Le protocole DHCP attribue automatiquement une adresse IP, un masque de sous-réseau et une passerelle par défaut à chaque poste du réseau.", keyPoints: [], exercises: [] },
+    { title: "Histoire", notes: "Inventé par Ralph Droms en 1993 à Bucknell University, standardisé ensuite par IETF dans la RFC 2131 publiée en mars 1997.", keyPoints: [], exercises: [] },
+  ] });
+  const d = await (await handle(req({ task: "rediger_cours", title: "DHCP", text: extrait, sourceTitle: "Wikipédia : DHCP" }), g.deps)).json();
+  assertEquals(d.notions.map((n: { title: string }) => n.title), ["Rôle de DHCP"]);
+  assertEquals(d.dropped, 1);
+  assert(String(g.seen[0].user).includes("Wikipédia : DHCP"));
+});
+
+Deno.test("modèles saturés : 503 « occupe », rien n'est enregistré", async () => {
+  const g = genDeps({}, { callModel: async () => { const e = new Error("429"); e.name = "Busy"; throw e; } });
+  const r = await handle(req({ task: "rediger_notion", title: "DHCP", text: extrait }), g.deps);
+  assertEquals(r.status, 503);
+  assertEquals(g.recorded.length, 0);
+});
+
+Deno.test("ancrage lexical : reformulation fidèle acceptée, invention refusée", () => {
+  assert(support("DHCP attribue une adresse IP et un masque automatiquement", extrait) >= 0.5);
+  assert(support("Kerberos chiffre les tickets avec AES256", extrait) < 0.5);
 });

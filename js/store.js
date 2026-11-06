@@ -12,7 +12,7 @@
   const OLD_COLORS = { '#7c5cff': '#6B5BA8', '#ff5c8a': '#A8455A', '#ffb020': '#9A5A22', '#22c55e': '#1E7A57', '#06b6d4': '#2F6F8F', '#f97316': '#9A5A22', '#e879f9': '#6B5BA8', '#3b82f6': '#2F6F8F', '#3451D1': '#1E7A57', '#D93A40': '#A8455A', '#C2550A': '#9A5A22', '#0B7F75': '#0F766E', '#0369A1': '#2F6F8F', '#9333B8': '#6B5BA8', '#C2255C': '#3E5C4B', '#5B7A1E': '#5F7224' };
   const OLD_EMOJIS = { '🧠': 'brain', '📚': 'book-open', '🧪': 'flask', '🌍': 'globe-hemisphere-west', '⚙️': 'code', '🎨': 'palette', '🧬': 'heartbeat', '📐': 'calculator', '💡': 'brain', '🏛️': 'bank', '🎵': 'music-notes', '💻': 'code', '⚖️': 'scales', '🩺': 'heartbeat', '📈': 'chart-line-up', '🪐': 'planet', '🌱': 'leaf' };
 
-  const DEFAULT_SETTINGS = { theme: 'auto', apiKey: '', model: 'claude-opus-5-5', mascot: true, dailyGoal: 15, newPerDay: 10, focusMin: 25, breakMin: 5, calm: false, plan: null, localAI: false, localModel: 'Qwen2.5-3B-Instruct-q4f16_1-MLC' };
+  const DEFAULT_SETTINGS = { theme: 'auto', mascot: true, dailyGoal: 15, newPerDay: 10, focusMin: 25, breakMin: 5, calm: false, plan: null, localAI: false, localModel: 'Qwen2.5-3B-Instruct-q4f16_1-MLC' };
   const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
   function makeNode(title = 'Nouvelle partie', extra = {}) {
@@ -111,6 +111,8 @@
 
   function migrate(data) {
     data.settings = { ...DEFAULT_SETTINGS, ...(data.settings || {}) };
+    // Ancienne version : une clé d'IA pouvait être enregistrée dans le navigateur. Elle est effacée pour de bon.
+    delete data.settings.apiKey; delete data.settings.model;
     data.stats = data.stats || { days: {}, calib: {} };
     data.subjects.forEach((s) => {
       if (!ICONS.includes(s.icon)) s.icon = OLD_EMOJIS[s.emoji] || 'book-open';
@@ -224,7 +226,7 @@
   const FORMAT = 'arbor-backup';
   function backup(state) {
     const data = JSON.parse(JSON.stringify(state));
-    data.settings = { ...data.settings, apiKey: '' }; // la clé ne quitte jamais l'appareil
+    delete data.settings.apiKey; delete data.settings.model; // aucune clé dans une sauvegarde
     delete data.firstRun;
     return { format: FORMAT, version: 1, exportedAt: new Date().toISOString(), data };
   }
@@ -266,7 +268,7 @@
   }
   // Remplace tout l'état par une sauvegarde complète (en gardant la clé et les réglages de cet appareil)
   function replaceAll(state, data) {
-    const keep = { apiKey: state.settings.apiKey, theme: state.settings.theme, localAI: state.settings.localAI, localModel: state.settings.localModel };
+    const keep = { theme: state.settings.theme, localAI: state.settings.localAI, localModel: state.settings.localModel };
     Object.keys(state).forEach((k) => delete state[k]);
     Object.assign(state, data);
     state.settings = { ...data.settings, ...keep };

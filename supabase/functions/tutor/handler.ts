@@ -8,7 +8,10 @@
 // - Quota mensuel vérifié AVANT l'appel ; jetons et coût enregistrés APRÈS, refus compris.
 // - Aucun contenu (passages, réponses) n'est stocké côté serveur.
 
+import { cleanGen, GEN_TASKS, type GenTask, genPrompt, validateGen } from "./generate.ts";
+
 export type Mode = "socratique" | "enseigne";
+export type Kind = "dialogue" | "generation";
 export interface Passage { page?: number; text: string }
 export interface Turn { role: "tutor" | "student"; text: string }
 export interface TutorRequest {
@@ -29,10 +32,11 @@ export interface ModelResult {
 }
 export interface Deps {
   getUser(jwt: string): Promise<{ id: string } | null>;
-  usedThisMonth(userId: string, month: string): Promise<number>;
-  record(e: { userId: string; month: string; mode: Mode; model: string; inputTokens: number; outputTokens: number; costUsd: number; refused: boolean }): Promise<void>;
-  callModel(p: { system: string; user: string; schema: Record<string, unknown>; effort: "low" | "medium" }): Promise<ModelResult>;
-  limit: number;
+  usedThisMonth(userId: string, month: string, kind: Kind): Promise<number>;
+  record(e: { userId: string; month: string; mode: Mode | GenTask; model: string; inputTokens: number; outputTokens: number; costUsd: number; refused: boolean }): Promise<void>;
+  callModel(p: { system: string; user: string; schema: Record<string, unknown>; effort: "low" | "medium"; maxTokens?: number }): Promise<ModelResult>;
+  limit: number; // échanges de dialogue par mois
+  genLimit?: number; // générations de contenu par mois (enrichir un PDF, rédiger un cours)
   origins: string[];
   price?: { input: number; output: number }; // dollars par million de jetons ; 0 avec une offre gratuite
   now?: () => Date;
@@ -170,18 +174,20 @@ export async function handle(request: Request, deps: Deps): Promise<Response> {
 
   let body: unknown;
   try { body = await request.json(); } catch { return json(400, { error: "JSON invalide" }); }
+  const m = month((deps.now || (() => new Date()))());
+  if (GEN_TASKS.includes((body as { task?: GenTask })?.task as GenTask)) return generate(body, user.id, m, deps, json);
   const v = validate(body);
   if (!v.ok) return json(400, { error: v.error });
   const req = v.req;
 
-  const m = month((deps.now || (() => new Date()))());
-  const used = await deps.usedThisMonth(user.id, m);
+  const used = await deps.usedThisMonth(user.id, m, "dialogue");
   if (used >= deps.limit) return json(429, { error: "quota", used, limit: deps.limit });
 
   let res: ModelResult;
   try {
     res = await deps.callModel({ system: SYSTEM, user: buildPrompt(req), schema: SCHEMA as unknown as Record<string, unknown>, effort: req.mode === "enseigne" ? "medium" : "low" });
   } catch (e) {
+    if ((e as Error)?.name === "Busy") return json(503, { error: "occupe" });
     return json(502, { error: "le tuteur ne répond pas pour l'instant", detail: String((e as Error)?.message || e).slice(0, 200) });
   }
   const price = deps.price || PRICE;
@@ -210,4 +216,32 @@ export async function handle(request: Request, deps: Deps): Promise<Response> {
     next_activity: nexts.includes(String(out.next_activity)) ? out.next_activity : "continuer",
     usage,
   });
+}
+
+/* Génération de contenu (enrichir une partie de PDF, rédiger un cours ou une notion).
+   Mêmes garanties que le dialogue : connexion, quota vérifié avant l'appel, usage enregistré après, sortie revérifiée. */
+async function generate(body: unknown, userId: string, m: string, deps: Deps, json: (s: number, d: unknown) => Response): Promise<Response> {
+  const v = validateGen(body);
+  if (!v.ok) return json(400, { error: v.error });
+  const req = v.req;
+  const limit = deps.genLimit ?? 150;
+  const used = await deps.usedThisMonth(userId, m, "generation");
+  if (used >= limit) return json(429, { error: "quota", used, limit });
+  const p = genPrompt(req);
+  let res: ModelResult;
+  try {
+    res = await deps.callModel({ system: p.system, user: p.user, schema: p.schema, effort: req.task === "enrichir" ? "low" : "medium", maxTokens: p.maxTokens });
+  } catch (e) {
+    if ((e as Error)?.name === "Busy") return json(503, { error: "occupe" });
+    return json(502, { error: "la génération ne répond pas pour l'instant", detail: String((e as Error)?.message || e).slice(0, 200) });
+  }
+  const price = deps.price || PRICE;
+  const cost = Math.round(((res.inputTokens * price.input + res.outputTokens * price.output) / 1e6) * 1e5) / 1e5;
+  const refused = res.stop === "refusal";
+  await deps.record({ userId, month: m, mode: req.task, model: res.model, inputTokens: res.inputTokens, outputTokens: res.outputTokens, costUsd: cost, refused });
+  const usage = { used: used + 1, limit };
+  if (refused) return json(200, { refused: true, usage });
+  let out: Record<string, unknown>;
+  try { out = JSON.parse(res.text); } catch { return json(502, { error: "réponse illisible", usage }); }
+  return json(200, { ...cleanGen(req, out), usage });
 }

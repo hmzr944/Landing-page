@@ -281,24 +281,28 @@
     return { notes, keyPoints: keys, exercises };
   }
 
-  async function withLocal(notion, r, ctx, local, onStatus) {
+  async function withWriter(notion, r, ctx, ai, onStatus) {
     const src = r.chosen.map((p, i) => `[${i + 1}] (${p.page.site.name}, « ${p.page.title} ») ${p.text}`).join('\n\n').slice(0, 3600);
-    const out = await LocalAI.writeNotion(notion, ctx.module || '', src, { id: local.id, onStatus, onProgress: (p, t) => onStatus && onStatus(p < 1 ? `${t} (${Math.round(p * 100)} %)` : 'rédaction en cours…') });
+    const out = await ai.writeNotion(notion, ctx.module || '', src, { onStatus, onProgress: (p, t) => onStatus && onStatus(p < 1 ? `${t} (${Math.round(p * 100)} %)` : 'rédaction en cours…') });
     const pr = practice(notion, r.action, ctx);
     if (pr) out.exercises.push(pr);
     return out;
   }
 
-  /* Une notion : recherches, passages, rédaction. local = { id } pour utiliser l'IA locale. */
+  /* Une notion : recherches, passages, rédaction. ai = { kind, writeNotion } : serveur Arbor ou IA locale.
+     Si la reformulation échoue ou s'éloigne des sources, le cours est assemblé à partir des extraits eux-mêmes. */
   async function buildNotion(notion, ctx = {}, opts = {}) {
     const r = await research(notion, ctx, opts.onStatus);
     if (!r.chosen.length) throw new Error(`Rien trouvé de fiable sur « ${notion} ».`);
-    let out;
-    if (opts.local) {
-      try { out = await withLocal(notion, r, ctx, opts.local, opts.onStatus); }
-      catch (e) { console.warn('IA locale indisponible, cours assemblé à partir des sources :', e.message); out = extractive(notion, r, ctx); }
+    let out, from = 'sources';
+    if (opts.ai) {
+      try { out = await withWriter(notion, r, ctx, opts.ai, opts.onStatus); from = opts.ai.kind; }
+      catch (e) {
+        if (['auth', 'quota'].includes(e.kind)) throw e;
+        console.warn('Rédaction indisponible, cours assemblé à partir des sources :', e.message); out = extractive(notion, r, ctx);
+      }
     } else out = extractive(notion, r, ctx);
-    return { ...out, sources: sourcesOf(r.chosen), from: opts.local ? 'local' : 'sources' };
+    return { ...out, sources: sourcesOf(r.chosen), from };
   }
 
   /* Introduction d'un module (la « section d'introduction » de STORM) : un passage qui situe le thème */

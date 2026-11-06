@@ -5,6 +5,7 @@
 //   AI_MODEL               facultatif, modèle principal (par défaut openai/gpt-oss-120b)
 //   AI_FALLBACK_MODEL      facultatif, modèle de secours (par défaut llama-3.3-70b-versatile)
 //   TUTOR_MONTHLY_LIMIT    nombre d'échanges par utilisateur et par mois (par défaut 60)
+//   GEN_MONTHLY_LIMIT      générations de contenu par utilisateur et par mois (par défaut 150)
 //   TUTOR_ORIGINS          origines autorisées, séparées par des virgules (par défaut le site GitHub Pages)
 // SUPABASE_URL et SUPABASE_SERVICE_ROLE_KEY sont fournis automatiquement par Supabase.
 import { createClient } from "npm:@supabase/supabase-js@2.119.0";
@@ -16,15 +17,19 @@ const admin = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY")
 
 export const deps: Deps = {
   limit: Number(env("TUTOR_MONTHLY_LIMIT", "60")),
+  genLimit: Number(env("GEN_MONTHLY_LIMIT", "150")),
   origins: env("TUTOR_ORIGINS", "https://hmzr944.github.io").split(",").map((s) => s.trim()).filter(Boolean),
   price: { input: Number(env("AI_PRICE_INPUT", "0")), output: Number(env("AI_PRICE_OUTPUT", "0")) },
   async getUser(jwt) {
     const { data, error } = await admin.auth.getUser(jwt);
     return error || !data?.user ? null : { id: data.user.id };
   },
-  async usedThisMonth(userId, month) {
-    const { data } = await admin.from("ai_usage").select("calls").eq("user_id", userId).eq("month", month).maybeSingle();
-    return data?.calls ?? 0;
+  // quota séparé pour le dialogue et pour la génération : on compte les appels du mois dans le journal
+  async usedThisMonth(userId, month, kind) {
+    const modes = kind === "dialogue" ? ["socratique", "enseigne"] : ["enrichir", "rediger_cours", "rediger_notion"];
+    const { count } = await admin.from("ai_calls").select("id", { count: "exact", head: true })
+      .eq("user_id", userId).in("mode", modes).gte("at", `${month}-01T00:00:00Z`);
+    return count ?? 0;
   },
   async record(e) {
     await admin.rpc("ai_record_call", { p_user: e.userId, p_month: e.month, p_mode: e.mode, p_model: e.model, p_in: e.inputTokens, p_out: e.outputTokens, p_cost: e.costUsd, p_refused: e.refused });
