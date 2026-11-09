@@ -66,6 +66,8 @@
       // passage d'origine dans le document importé : pages et extrait exact
       ...(node.src && Array.isArray(node.src.pages) ? { src: { pages: node.src.pages.filter((x) => Number.isInteger(x) && x > 0).slice(0, 12), quote: String(node.src.quote || '').slice(0, 300), doc: String(node.src.doc || '').slice(0, 120) } } : {}),
       ...(Array.isArray(node.objectives) && node.objectives.length ? { objectives: node.objectives.map(String).filter(Boolean).slice(0, 12) } : {}),
+      // ce que dit le document en dehors du cours (évaluation, conseil, commentaire, annexe) : gardé à part, jamais appris
+      ...(Array.isArray(node.context) && node.context.length ? { context: node.context.filter((c) => c && c.text && /^(evaluation|recommandation|commentaire|annexe)$/.test(c.kind)).slice(0, 40).map((c) => ({ kind: c.kind, ...(c.title ? { title: String(c.title).slice(0, 200) } : {}), text: String(c.text).slice(0, 4000), pages: (Array.isArray(c.pages) ? c.pages : []).filter((p) => Number.isInteger(p) && p > 0).slice(0, 12), ...(c.why ? { why: String(c.why).slice(0, 80) } : {}) })) } : {}),
       status: ['todo', 'doing', 'done'].includes(node.status) ? node.status : 'todo',
     });
     if (keepIds && ID.test(String(node.id || ''))) n.id = node.id;

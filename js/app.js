@@ -597,6 +597,7 @@
               : `<button class="notes-empty" data-act="notes-mode" data-m="edit">${ic('pencil-simple')}Écrire des notes</button>`}
         </section>
 
+        ${contextBox(node)}
         ${courseSection(s, node, isRoot)}
 
         <section class="sec">
@@ -1020,6 +1021,22 @@
       const msg = (err && err.message) || 'Erreur inconnue.';
       $('#modalBody').innerHTML = `<div class="loading"><span class="tile big danger-tile">${ic('warning-circle', true)}</span><h2 id="modalTitle">Recherche impossible</h2><p class="modal-lede">${esc(msg)} Tu peux utiliser les liens de recherche à la place.</p></div>`;
     }
+  }
+
+  /* Ce que le document dit en dehors du cours : évaluation, conseils, commentaires, annexes.
+     Affiché pour être lu (et corrigé si le tri s'est trompé), jamais utilisé pour les leçons, les questions ou Pousse. */
+  const CTX = { evaluation: ['Évaluation', 'chart-bar'], recommandation: ['Conseils', 'signpost'], commentaire: ['Commentaires', 'chat-circle-text'], annexe: ['Annexes', 'paperclip'] };
+  function contextBox(node) {
+    const c = node.context || [];
+    if (!c.length) return '';
+    const kinds = [...new Set(c.map((x) => x.kind))];
+    const pagesOf = (x) => (x.pages && x.pages.length ? ` <small class="num">p. ${x.pages.join(', ')}</small>` : '');
+    return `<details class="sec ctx-box">
+      <summary><span>${ic('folder-simple-dashed')}<b>Ce que dit ce document</b> <small>hors cours : ${kinds.map((k) => CTX[k][0].toLowerCase()).join(', ')}</small></span></summary>
+      <p class="hint">Arbor a mis ces passages de côté : ils parlent de l’apprenant ou du document, pas du sujet. Ils ne servent ni aux leçons, ni aux questions, ni à Pousse.</p>
+      ${kinds.map((k) => `<div class="ctx-kind"><h3>${ic(CTX[k][1])}${CTX[k][0]}</h3><ul>${c.filter((x) => x.kind === k).map((x, i) => `<li>${x.title ? `<b>${esc(x.title)}</b>${pagesOf(x)}<div class="md">${MD.render(x.text)}</div>` : `${esc(x.text)}${pagesOf(x)}`}</li>`).join('')}</ul></div>`).join('')}
+      <div class="row-btns"><button class="btn ghost sm" data-act="ctx-restore">${ic('arrow-u-up-left')}C’est du cours : le remettre dans les notes</button></div>
+    </details>`;
   }
 
   // Le cours, lisible d'une traite : introduction, puis chaque notion avec ses points clés
@@ -2723,7 +2740,9 @@
     }
   }
 
+  let importMeta = {};
   async function runPdf(file, mode, into) {
+    importMeta = {};
     $('#modalBody').innerHTML = `
       <div class="loading">
         <h2 id="modalTitle">Analyse en cours…</h2>
@@ -2753,6 +2772,7 @@
         const res = await PdfImport.analyze(file, (p) => { setPct(p * (mode === 'local' ? 0.9 : 0.4)); setMsg(`Lecture des pages… ${Math.round(p * 100)} %`); });
         setMsg('Classement des informations…');
         tree = res.tree;
+        importMeta = { setAside: res.setAside, topicsOnly: res.topicsOnly, form: res.form, unreadable: res.unreadable };
         if ((res.isProgramme || res.hasPlan) && !into) { Mascot.react('stop-reading'); return programChoice(res); }
         // analyse intelligente (IA locale) ou avancée (serveur) : le texte du cours reste celui du document
         if (mode === 'llm' || mode === 'ai') {
@@ -2763,7 +2783,7 @@
       setPct(1);
       Mascot.react('imported');
       count('pdf');
-      previewImport(normalize(tree), into);
+      previewImport(normalize(tree), into, importMeta);
     } catch (err) {
       console.error(err);
       Mascot.react('stop-reading');
@@ -2794,10 +2814,23 @@
         <button class="btn" id="asProg">${ic('path')}Créer un parcours de modules</button>
       </div>`;
     $('#asProg').onclick = () => programModal(res.topics, res.title);
-    $('#asCourse').onclick = () => previewImport(normalize(res.tree), false);
+    $('#asCourse').onclick = () => previewImport(normalize(res.tree), false, { setAside: res.setAside, topicsOnly: res.topicsOnly, form: res.form, unreadable: res.unreadable });
   }
 
-  function previewImport(root, into) {
+  /* Bilan de l'analyse, affiché avant de créer le cours : ce qui a été écarté et pourquoi, avec les pages */
+  function importReport(meta) {
+    const out = [];
+    const pp = (ps) => (ps && ps.length ? ` (p. ${ps.join(', ')})` : '');
+    if (meta.unreadable && meta.unreadable.length) out.push(`<p class="ir-warn">${ic('warning')}Pages illisibles, écartées${pp(meta.unreadable)} : le texte du PDF y est mal encodé ou scanné.</p>`);
+    if (meta.form) out.push(`<p class="ir-warn">${ic('clipboard-text')}Ce document ressemble à un formulaire ou à une grille à remplir : il y a peu de contenu à apprendre.</p>`);
+    if (meta.topicsOnly) out.push(`<p class="ir-info">${ic('list-checks')}Ce document liste des sujets sans les expliquer. Arbor les garde comme notions à apprendre, avec leur page, et peut en rédiger le cours.</p>`);
+    const sa = meta.setAside || {};
+    const kinds = Object.keys(sa);
+    if (kinds.length) out.push(`<div class="ir-aside"><b>${ic('folder-simple-dashed')}Mis de côté (pas du cours)</b><ul>${kinds.map((k) => `<li><span>${CTX[k][0]}</span> <small>${sa[k].count} passage${sa[k].count > 1 ? 's' : ''}${pp(sa[k].pages)}${sa[k].titles.length ? ` · ${sa[k].titles.map(esc).join(' · ')}` : ''}</small></li>`).join('')}</ul><small>Tu les retrouveras dans « Ce que dit ce document », sur la page du cours.</small></div>`);
+    return out.length ? `<div class="field import-report">${out.join('')}</div>` : '';
+  }
+
+  function previewImport(root, into, meta = {}) {
     let count = 0, kps = 0, exs = 0;
     walk(root, (n) => { count++; kps += n.keyPoints.length; exs += (n.exercises || []).length; });
     const sel = { color: PALETTE[state.subjects.length % PALETTE.length], icon: 'book-open' };
@@ -2810,12 +2843,14 @@
       <h2 id="modalTitle">Cours structuré</h2>
       <p class="modal-lede">${plural(count - 1, 'partie', 'parties')} et ${plural(kps, 'point clé extrait', 'points clés extraits')}${exs ? `, ${plural(exs, 'exercice', 'exercices')}` : ''}. Tu pourras tout modifier ensuite.</p>
       <form id="pvForm" class="form">
+        ${importReport(meta)}
         ${into ? '' : `<div class="field"><label for="pvTitle">Titre du sujet</label><input id="pvTitle" name="title" autocomplete="off" value="${esc(root.title)}" /></div>${pickers(sel.color, sel.icon)}`}
         <div class="field">
           <span class="label-like">Aperçu du plan</span>
           <div class="outline"><ul>${root.children.map(outline).join('') || '<li>Aucune partie détectée : le texte sera rangé dans la vue d’ensemble.</li>'}</ul></div>
         </div>
         ${!into && emptyN >= 3 ? `<label class="check"><input type="checkbox" id="pvWrite" checked /> Rédiger le cours des ${emptyN} notions : le document ne donne que leur nom, Arbor écrit chaque cours à partir de sources fiables, en arrière-plan</label>` : ''}
+        ${Object.keys(meta.setAside || {}).length ? `<label class="check"><input type="checkbox" id="pvKeepAside" /> Arbor s’est trompé : remettre ces passages dans le cours</label>` : ''}
         <div class="row-btns end"><button type="button" class="btn ghost" data-close>Annuler</button><button class="btn">${ic('check')}${into ? 'Ajouter ici' : 'Créer le cours'}</button></div>
       </form>`;
     const el = $('#modalBody');
@@ -2823,6 +2858,9 @@
     $('[data-close]', el).onclick = closeModal;
     $('#pvForm', el).onsubmit = (e) => {
       e.preventDefault();
+      if ($('#pvKeepAside', el) && $('#pvKeepAside', el).checked) {
+        walk(root, (n) => { if (n.context && n.context.length) { n.notes = [n.notes.trim(), ...n.context.map((x) => (x.title ? `### ${x.title}\n${x.text}` : x.text))].filter(Boolean).join('\n\n'); delete n.context; } });
+      }
       if (into) {
         const s = subjectById(view.id);
         const parent = find(s.root, view.nodeId).node;
@@ -2945,6 +2983,14 @@
       case 'lesson-next': { const l = Mastery.nextLesson(state, canLesson); if (l) runLesson(l.s, l.n); break; }
       case 'mod-learned': { const n = currentNode().node; n.module.learned = true; gainXP(3); touch(); renderFiche(); break; }
       case 'mod-research': { const c = currentNode(); researchModule(subjectById(view.id), c.node); break; }
+      case 'ctx-restore': {
+        const c = currentNode(); const n = c.node;
+        if (!n.context || !n.context.length) break;
+        n.notes = [n.notes.trim(), ...n.context.map((x) => (x.title ? `### ${x.title}\n${x.text}` : x.text))].filter(Boolean).join('\n\n');
+        delete n.context;
+        touch(); render(view); FX.toast('Remis dans les notes', 'success');
+        break;
+      }
       case 'write-course': { const c = currentNode(); const sj = subjectById(view.id); writeCourses(sj, [c.node]).then(() => render(view)); break; }
       case 'write-all': { const sj = subjectById(view.id); writeCourses(sj, sj.root.children.filter((c) => c.module && !c.module.generated && !c.children.some((x) => x.notes.trim()))).then(() => render(view)); break; }
       case 'course-reveal': { pretestSeen.add(t.dataset.id + ':course'); renderFiche(); const el = $('#course'); el && el.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth' }); break; }

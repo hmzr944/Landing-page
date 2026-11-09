@@ -62,13 +62,15 @@ const COURS = `<!doctype html><meta charset="utf-8">${STYLE}<h1>La photosynthès
   check('A3 « Tu as découvert » devient des notions', JSON.stringify(adr.children.map((c) => c.title)) === JSON.stringify(['Adresse IP et masque', 'Passerelle par défaut', 'Notation CIDR']), JSON.stringify(adr.children.map((c) => c.title)));
   check('A4 « Ce que tu ne maîtrises pas encore » devient des objectifs', JSON.stringify(adr.objectives) === JSON.stringify(['Calculer un sous-réseau', 'Configurer une adresse statique']), JSON.stringify(adr.objectives));
   check('A5 les savoir-faire deviennent des exercices pratiques', adr.exercises.some((e) => /^Mets en pratique : calculer un sous-réseau/.test(e.q)));
-  check('A6 le niveau et le constat sont gardés dans les notes', /\*\*Niveau estimé\.\*\* Débutant/.test(adr.notes) && /\*\*Constat\.\*\*/.test(adr.notes));
+  // Le niveau et le constat parlent de l'apprenant, pas du sujet : gardés à part (avec leur page), jamais dans les notes
+  const ctxOf = (n) => (n.context || []).map((c) => `${c.kind}:${c.title ? c.title + " " : ""}${c.text}`).join('\n');
+  check('A6 le niveau et le constat sont gardés à part, hors des notes', /evaluation:Niveau estimé : Débutant/.test(ctxOf(adr)) && /evaluation:Constat/.test(ctxOf(adr)) && !/Niveau estimé|Constat/.test(adr.notes) && (adr.context || []).every((c) => c.pages.length));
   const svc = t.children.find((c) => /Services/.test(c.title));
   check('A7 les missions du tableau vont au bon chapitre', svc.exercises.some((e) => /Mission : configurer un DHCP/.test(e.q)), svc.exercises.map((e) => e.q).join(' | '));
   check('A8 une mission identique à un savoir-faire n’est pas en double', adr.exercises.filter((e) => /calculer un sous-réseau/i.test(e.q)).length === 1);
   const allKeys = JSON.stringify(t).match(/"keyPoints":\[[^\]]*\]/g).join(' ');
   check('A9 aucune phrase d’accompagnement en point clé', !/critique|Je vais|Je pense|Mon conseil/.test(allKeys));
-  check('A10 l’accompagnement reste lisible dans la vue d’ensemble', /Mon évaluation/.test(t.notes) && /potentiel/.test(t.notes));
+  check('A10 l’accompagnement reste consultable (« Ce que dit ce document »), mais hors du cours', /Mon évaluation/.test(ctxOf(t)) && /potentiel/i.test(ctxOf(t)) && !/Mon évaluation|potentiel/i.test(t.notes));
   const q = t.children[t.children.length - 1];
   const qs = q.children.length ? q.children.flatMap((x) => x.exercises) : q.exercises;
   check('A11 les questions du QCM gardent leur correction', qs.length === 2 && /attribuer automatiquement/i.test(qs[0].a), JSON.stringify(qs.map((x) => x.a)));

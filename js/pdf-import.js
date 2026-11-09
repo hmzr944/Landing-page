@@ -233,17 +233,17 @@
       .join('\n\n');
     if (notes.length > 6000) notes = notes.slice(0, 6000) + '…';
 
-    const head = [node._level ? `**Niveau estimé.** ${node._level}` : '', node._remark ? `**Constat.** ${node._remark}` : ''].filter(Boolean).join('\n\n');
     const skills = node._skills || [];
-    if (skills.length) notes = [notes, `**À savoir faire**\n${skills.map((x) => `- ${x}`).join('\n')}`].filter((x) => x && x.trim()).join('\n\n');
-    if (head) notes = head + (notes.trim() ? '\n\n' + notes : '');
     node.notes = notes;
+    // Ce que le document dit en dehors du cours : gardé à part, avec la page d'origine et la raison du tri
+    const aside = (node._aside || []).filter((a) => a.text && a.text.trim());
+    if (aside.length) node.context = aside.slice(0, 40).map((a) => ({ kind: a.kind, ...(a.title ? { title: a.title } : {}), text: String(a.text).slice(0, 4000), pages: [...new Set(a.pages || (a.page ? [a.page] : []))].sort((x, y) => x - y).slice(0, 12), ...(a.why ? { why: a.why } : {}) }));
     // Une partie qui regroupe des notions : ses points clés sont ses notions, pas des phrases d'accompagnement
     node.keyPoints = node.children.some((c) => c._notion) ? keyPoints.filter((k) => !/^(niveau|mon constat|constat)\b/i.test(k)).slice(0, 0) : keyPoints;
     if (skills.length) node.objectives = skills.slice(0, 8);
     // Savoir-faire et missions : des exercices pratiques, à faire dans son environnement de test
     const practice = [...skills.map((x) => ({ q: `Mets en pratique : ${x.charAt(0).toLowerCase() + x.slice(1)}.`, a: 'Fais-le sans aide dans ton environnement de test, vérifie que ça marche, puis note les étapes.' })),
-      ...(node._missions || []).map((m) => ({ q: `Mission : ${m.t.charAt(0).toLowerCase() + m.t.slice(1)}.`, a: `Niveau indiqué dans le document : ${m.st}. Réalise la mission seul, de bout en bout, puis vérifie le résultat.` }))];
+      ...(node._missions || []).map((m) => ({ q: `Mission : ${m.t.charAt(0).toLowerCase() + m.t.slice(1)}.`, a: 'Réalise la mission seul, de bout en bout, puis vérifie le résultat.' }))];
     let exs = (node._ex || []).filter((e) => e.q.length > 8);
     // QCM de 3 questions ou plus : une sous-partie par question, pour que chacune ait sa carte de révision
     const quizzes = exs.filter((e) => e.quiz);
@@ -264,12 +264,12 @@
     const firstPara = (blocks.find((b) => typeof b === 'string') || node._quote || '').replace(/\s+/g, ' ');
     if (pages.length) node.src = { pages: pages.slice(0, 12), quote: firstPara.length > 220 ? firstPara.slice(0, 217).replace(/\s+\S*$/, '') + '…' : firstPara };
     delete node._pg; delete node._ip; delete node._quote;
-    delete node._skills; delete node._missions; delete node._level; delete node._remark; delete node._notion; delete node._assess;
+    delete node._skills; delete node._missions; delete node._level; delete node._remark; delete node._notion; delete node._assess; delete node._aside; delete node._pp;
     delete node._blocks; delete node._bullets; delete node._bold; delete node._keys; delete node._ex;
     node.children.forEach(finalizeNode);
   }
 
-  const mk = (title) => ({ title, children: [], _blocks: [], _bullets: [], _bold: [], _keys: [], _ex: [], _pg: new Set(), _ip: {} });
+  const mk = (title) => ({ title, children: [], _blocks: [], _bullets: [], _bold: [], _keys: [], _ex: [], _pg: new Set(), _ip: {}, _pp: new Map(), _aside: [] });
   const cap = (t) => (t ? t.charAt(0).toUpperCase() + t.slice(1) : t);
   const prominence = (h) => h.size * 10 + (h.bold ? 3 : 0) - (h.italic ? 2 : 0);
 
@@ -342,8 +342,9 @@
   function labelLists(n) {
     const keep = [];
     const str = (b) => {
-      if (LEVEL_RE.test(b)) { const [lv, ...rest] = b.replace(LEVEL_RE, '').split(/(?<=\S)\s+(?=(?:Tu|Vous|Ce que|Mon constat)\b)/); n._level = cleanItem(lv); if (rest.length) keep.push(rest.join(' ')); return; }
-      if (REMARK_RE.test(b)) { n._remark = cleanItem(b.replace(REMARK_RE, '')) + '.'; return; }
+      const pg = n._pp.get(b) || [...n._pg][0];
+      if (LEVEL_RE.test(b)) { const [lv, ...rest] = b.replace(LEVEL_RE, '').split(/(?<=\S)\s+(?=(?:Tu|Vous|Ce que|Mon constat)\b)/); n._aside.push({ kind: 'evaluation', text: `Niveau estimé : ${cleanItem(lv)}`, page: pg, why: 'niveau de l’apprenant' }); if (rest.length) { const r = rest.join(' '); n._pp.set(r, pg); keep.push(r); } return; }
+      if (REMARK_RE.test(b)) { n._aside.push({ kind: 'evaluation', text: `Constat : ${cleanItem(b.replace(REMARK_RE, ''))}.`, page: pg, why: 'constat de l’auteur' }); return; }
       keep.push(b);
     };
     n._blocks.forEach((b) => {
@@ -384,25 +385,82 @@
     return 'content';
   }
 
-  function refine(root) {
+  /* Type d'une section mise de côté : son titre d'abord, sinon la majorité de ses phrases */
+  function sectionKind(c, body) {
+    const t = window.DocClassify && DocClassify.titleKind(c.title);
+    if (t) return t;
+    if (!window.DocClassify) return 'commentaire';
+    const count = {};
+    DocClassify.split(body).forEach((s) => { const k = DocClassify.sentence(s, true).kind; if (k !== 'cours') count[k] = (count[k] || 0) + 1; });
+    return Object.entries(count).sort((a, b) => b[1] - a[1])[0]?.[0] || 'commentaire';
+  }
+
+  /* Ne garde dans le cours que ce qui parle du sujet. Le reste (évaluation, conseil, commentaire, annexe)
+     est rangé à part, avec sa page et la raison du tri, pour être affiché et éventuellement réintégré. */
+  function sortContent(n, prof) {
+    if (!window.DocClassify) return;
+    const personal = !!(prof && prof.personal);
+    const keep = [];
+    let afterToc = false;
+    // Table des matières : des entrées numérotées qui reprennent les titres du document
+    const heads = new Set();
+    (function h(x) { x.children.forEach((c) => { heads.add(DocClassify.plain(c.title).replace(/^[\d.\s]+/, '')); h(c); }); })(n);
+    const isToc = (list) => list.length >= 3 && list.filter((x) => /^\s*(\d{1,2}(\.\d{1,2})*|[ivxlc]{1,5})[.)]?\s+\S/i.test(x)).length >= list.length * 0.6;
+    n._blocks.forEach((b) => {
+      if (typeof b === 'string') {
+        const r = DocClassify.paragraph(b, personal);
+        const pg = n._pp.get(b) || [...n._pg][0];
+        r.aside.forEach((a) => n._aside.push({ ...a, page: pg }));
+        afterToc = r.aside.some((a) => a.why === 'sommaire') && !r.cours.trim();
+        if (r.cours.trim()) keep.push(r.cours.trim());
+        return;
+      }
+      if (b && b.list) {
+        const pg = n._ip[b.list[0]] || [...n._pg][0];
+        if (afterToc || isToc(b.list) && b.list.filter((x) => heads.has(DocClassify.plain(x).replace(/^[\d.\s]+/, ''))).length >= 2 || (afterToc = false)) {
+          afterToc = false;
+          n._aside.push({ kind: 'annexe', text: b.list.map((x) => `- ${x}`).join('\n'), page: pg, why: 'sommaire' });
+          n._bullets = n._bullets.filter((x) => !b.list.includes(x));
+          return;
+        }
+        const intro = b.intro ? DocClassify.sentence(b.intro, personal) : { kind: 'cours' };
+        const sideIntro = intro.kind !== 'cours' && (personal || intro.kind === 'annexe');
+        if (sideIntro) { n._aside.push({ kind: intro.kind, text: `${b.intro}\n${b.list.map((x) => `- ${x}`).join('\n')}`, page: pg, why: intro.why }); n._bullets = n._bullets.filter((x) => !b.list.includes(x)); return; }
+        const items = b.list.filter((x) => {
+          const k = DocClassify.sentence(x, personal);
+          if (k.kind === 'cours' || (!personal && k.kind !== 'annexe')) return true;
+          n._aside.push({ kind: k.kind, text: x, page: n._ip[x] || pg, why: k.why });
+          n._bullets = n._bullets.filter((y) => y !== x);
+          return false;
+        });
+        if (items.length) keep.push({ ...b, list: items });
+        return;
+      }
+      keep.push(b);
+    });
+    n._blocks = keep;
+    n.children.forEach((c) => sortContent(c, prof));
+  }
+
+  function refine(root, prof) {
     labelLists(root);
     const roles = root.children.map((c) => ({ c, role: roleOf(c) }));
     const content = roles.filter((r) => r.role === 'content' && hasNotions(r.c));
-    if (!content.length) return; // pas de signal fiable : on garde la structure telle quelle
+    if (!content.length) { sortContent(root, prof); return; } // pas de signal de rôles : seulement le tri phrase par phrase
     const metaMd = [];
     let plan = [], missions = [];
     const kept = [];
     roles.forEach(({ c, role }) => {
       if (role === 'meta' || (role === 'content' && !hasNotions(c) && personaRatio(c) >= 0.008)) {
         const body = [...parasOf(c), ...c._blocks.filter((b) => b && b.list).map((b) => (b.intro ? b.intro + '\n' : '') + b.list.map((x) => `- ${x}`).join('\n'))].join('\n\n');
-        metaMd.push(`### ${c.title.replace(/^\s*\d{1,2}[.)]?\s+/, '')}\n\n${body}`);
+        metaMd.push({ kind: sectionKind(c, body), title: c.title.replace(/^\s*\d{1,2}[.)]?\s+/, ''), text: body, pages: [...c._pg] });
       } else if (role === 'plan') {
         plan = c.children.map((s) => s.title.replace(PLAN_STEP, '').replace(/^\s*[—–:.-]\s*/, '').trim());
-        metaMd.push(`### ${c.title.replace(/^\s*\d{1,2}[.)]?\s+/, '')}\n\n${plan.map((p, i) => `${i + 1}. ${p}`).join('\n')}`);
+        metaMd.push({ kind: 'recommandation', title: c.title.replace(/^\s*\d{1,2}[.)]?\s+/, ''), text: plan.map((p, i) => `${i + 1}. ${p}`).join('\n'), pages: [...c._pg, ...c.children.flatMap((x) => [...x._pg])] });
       } else if (role === 'status') {
         c._blocks.filter((b) => b && b.list).forEach((b) => b.list.forEach((x) => { const m = x.match(STATUS_RE); if (m) missions.push({ t: cleanItem(m[1]), st: cleanItem(m[2]).toLowerCase() }); }));
         if (!missions.length) [...parasOf(c).join(' ').matchAll(STATUS_INLINE)].forEach((m) => { const t = cleanItem(m[1]).replace(/^(mission( professionnelle)?|niveau( actuel)?( estimé)?)\s+/gi, ''); if (t.split(' ').length <= 12) missions.push({ t, st: m[2].toLowerCase() }); });
-        metaMd.push(`### ${c.title.replace(/^\s*\d{1,2}[.)]?\s+/, '')}\n\n${missions.map((m) => `- ${m.t} : ${m.st}`).join('\n')}`);
+        metaMd.push({ kind: 'evaluation', title: c.title.replace(/^\s*\d{1,2}[.)]?\s+/, ''), text: missions.map((m) => `- ${m.t} : ${m.st}`).join('\n'), pages: [...c._pg] });
       } else {
         if (role === 'assessment') { c.title = /questions?|qcm|quiz|diagnostic|vérifie/i.test(c.title) ? 'Vérifie ta compréhension' : c.title; c._assess = true; }
         kept.push(c);
@@ -413,8 +471,8 @@
     const assess = kept.filter((c) => c._assess);
     if (chapters.length === 1 && chapters[0].children.length >= 2 && chapters[0].children.some((x) => x.children.some((y) => y._notion))) {
       const wrap = chapters[0];
-      const intro = parasOf(wrap).join(' ');
-      if (intro) metaMd.unshift(intro);
+      // son introduction rejoint celle du document : elle sera triée avec le reste
+      parasOf(wrap).forEach((t) => { root._blocks.push(t); root._pp.set(t, wrap._pp.get(t)); });
       chapters = wrap.children;
     }
     // Le plan du document ordonne les chapitres (première étape qui les mentionne)
@@ -431,10 +489,11 @@
       (best || root)._missions = ((best || root)._missions || []).concat(m);
     });
     root.children = [...chapters, ...assess];
-    if (metaMd.length) root._blocks.push({ md: metaMd.join('\n\n') });
+    sortContent(root, prof);
+    metaMd.forEach((m) => root._aside.push({ kind: m.kind, title: m.title, text: m.text, pages: m.pages }));
   }
 
-  function build(lines, fileTitle) {
+  function build(lines, fileTitle, prof) {
     const body = bodySize(lines);
     const dt = docTitleOf(lines, body);
     const docTitle = dt ? dt.text : fileTitle;
@@ -490,11 +549,12 @@
     let mode = null; // null | 'ex' (section d'exercices) | 'sum' (à retenir) | 'toc' (sommaire, ignoré)
     let para = '', paraSize = body, block = null, list = null, quiz = null;
     const flushList = () => { list = null; };
-    const flushPara = () => { if (para.trim()) cur()._blocks.push(para.trim()); para = ''; flushList(); };
+    let paraPage = 1;
+    const flushPara = () => { if (para.trim()) { const pt = para.trim(); cur()._blocks.push(pt); cur()._pp.set(pt, paraPage); } para = ''; flushList(); };
     let curPage = 1;
     const addItem = (text) => {
       cur()._ip[text] = curPage;
-      if (para.trim()) { const pt = para.trim(); para = ''; if (/:$/.test(pt)) { list = { intro: pt, list: [] }; cur()._blocks.push(list); } else cur()._blocks.push(pt); }
+      if (para.trim()) { const pt = para.trim(); para = ''; cur()._pp.set(pt, paraPage); if (/:$/.test(pt)) { list = { intro: pt, list: [] }; cur()._blocks.push(list); } else cur()._blocks.push(pt); }
       if (!list) { list = { intro: '', list: [] }; cur()._blocks.push(list); }
       list.list.push(text);
       cur()._bullets.push(text);
@@ -592,6 +652,7 @@
       flushList();
       if (newPara) flushPara();
       if (l.bold && t.length < 80) cur()._bold.push(t.replace(/[:.]$/, ''));
+      if (!para) paraPage = l.page;
       if (para.endsWith('-')) para = para.slice(0, -1) + t;
       else para += (para ? ' ' : '') + t;
       paraSize = l.size;
@@ -621,7 +682,7 @@
       n.children = n.children.filter((c) => c.children.length || c._blocks.length || c._bullets.length || c._keys.length || c._ex.length);
     })(root);
 
-    refine(root);
+    refine(root, prof);
     finalizeNode(root);
     return root;
   }
@@ -630,15 +691,41 @@
     if (!window.pdfjsLib) throw new Error('pdf.js n’a pas pu être chargé (connexion internet ?)');
     const data = new Uint8Array(await file.arrayBuffer());
     const pdf = await pdfjsLib.getDocument({ data }).promise;
-    const raw = await readLines(pdf, onProgress);
+    let raw = await readLines(pdf, onProgress);
     if (raw.length < 3) throw new Error('Aucun texte lisible : le PDF est sans doute scanné (image).');
+    // Police mal encodée : le texte extrait n'est qu'une suite de symboles. Ces pages sont écartées et signalées.
+    const unreadable = [];
+    if (window.DocClassify) {
+      const byPage = new Map();
+      raw.forEach((l) => byPage.set(l.page, (byPage.get(l.page) || '') + ' ' + l.text));
+      byPage.forEach((t, p) => { if (!DocClassify.readable(t)) unreadable.push(p); });
+      if (unreadable.length && unreadable.length >= byPage.size) throw new Error('Le texte de ce PDF est illisible (police encodée ou document scanné). Essaie une autre version du fichier, ou copie le texte dans un cours.');
+      if (unreadable.length) raw = raw.filter((l) => !unreadable.includes(l.page));
+    }
     const lines = cleanLines(raw, pdf.numPages);
     const title = file.name.replace(/\.pdf$/i, '').replace(/[_-]+/g, ' ');
     const prog = programme(lines);
-    const tree = build(lines, title);
+    const profile = window.DocClassify ? DocClassify.profile(lines.map((l) => l.text).join('\n')) : { personal: false, form: false };
+    const tree = build(lines, title, profile);
     // le nom du document accompagne chaque source (« tcpip.pdf, p. 12 »)
     (function tag(n) { if (n.src) n.src.doc = file.name; n.children.forEach(tag); })(tree);
-    return { tree, pages: pdf.numPages, title: prog.docTitle || (SKIP.test(tree.title) ? title : tree.title), topics: prog.topics, isProgramme: prog.isProgramme, hasPlan: prog.hasPlan, planCount: prog.planCount };
+    // Bilan du tri : ce qui a été mis de côté (par type, avec les pages), et le document explique-t-il ses sujets ?
+    const setAside = {};
+    let notions = 0, explained = 0, courseChars = 0;
+    (function walk(n, d) {
+      (n.context || []).forEach((c) => { const s = setAside[c.kind] = setAside[c.kind] || { count: 0, pages: new Set(), titles: [] }; s.count++; c.pages.forEach((p) => s.pages.add(p)); if (c.title && s.titles.length < 4) s.titles.push(c.title); });
+      courseChars += (n.notes || '').length;
+      if (d > 0 && !n.children.length) { notions++; if ((n.notes || '').length >= 80) explained++; }
+      n.children.forEach((c) => walk(c, d + 1));
+    })(tree, 0);
+    Object.values(setAside).forEach((s) => { s.pages = [...s.pages].sort((a, b) => a - b); });
+    return {
+      tree, pages: pdf.numPages, title: prog.docTitle || (SKIP.test(tree.title) ? title : tree.title), topics: prog.topics, isProgramme: prog.isProgramme, hasPlan: prog.hasPlan, planCount: prog.planCount,
+      profile, unreadable, setAside,
+      // des sujets listés sans explication : Arbor ne doit pas faire comme s'il y avait un cours
+      topicsOnly: notions >= 5 && explained / notions < 0.2,
+      form: !!profile.form && courseChars < 1500,
+    };
   }
 
   /* Programme ou sommaire : une liste de sujets sans vrai contenu.

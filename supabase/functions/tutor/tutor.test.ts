@@ -218,3 +218,15 @@ Deno.test("ancrage lexical : reformulation fidèle acceptée, invention refusée
   assert(support("DHCP attribue une adresse IP et un masque automatiquement", extrait) >= 0.5);
   assert(support("Kerberos chiffre les tickets avec AES256", extrait) < 0.5);
 });
+
+Deno.test("génération : rien sur l'apprenant (niveau, conseil personnel), même si l'extrait en contient", async () => {
+  const src = "Le protocole DHCP attribue automatiquement une adresse IP à chaque poste. Niveau estimé : débutant. Je te conseille de configurer ton laboratoire d'abord.";
+  const g = genDeps({
+    keyPoints: ["DHCP attribue automatiquement une adresse IP à chaque poste.", "Ton niveau estimé en DHCP est débutant.", "Je te conseille de configurer ton laboratoire."],
+    exercises: [{ q: "Que fait DHCP ?", a: "Il attribue automatiquement une adresse IP à chaque poste." }, { q: "Quel est ton niveau ?", a: "Niveau estimé : débutant." }],
+  });
+  const d = await (await handle(req({ task: "enrichir", title: "DHCP", text: src }), g.deps)).json();
+  assertEquals(d.keyPoints, ["DHCP attribue automatiquement une adresse IP à chaque poste."]);
+  assertEquals(d.exercises.length, 1);
+  assert(String(g.seen[0].system).includes("Ignore tout passage qui juge l'étudiant"));
+});

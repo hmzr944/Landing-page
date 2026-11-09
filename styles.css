@@ -2652,3 +2652,24 @@ html.calm .btn::after, html.calm .onb-foot .btn::after { animation: none !import
 html:not([data-vt]) #app.enter.from-next > * { animation: vt-slide-in-r 420ms cubic-bezier(0.16, 1, 0.3, 1) both; }
 html:not([data-vt]) #app.enter.from-prev > * { animation: vt-slide-in-l 420ms cubic-bezier(0.16, 1, 0.3, 1) both; }
 @media (prefers-reduced-motion: reduce) { .topnav::before, .bottom-nav::before { transition: none; } .bottom-nav [aria-current] i { animation: none; } }
+
+/* ---------- Import : ce qui est gardé et ce qui est mis de côté ---------- */
+.import-report { display: grid; gap: 8px; }
+.import-report p { display: flex; gap: 8px; align-items: flex-start; margin: 0; padding: 10px 12px; border-radius: 14px; font-size: .92rem; line-height: 1.45; }
+.import-report p i { flex: none; margin-top: 2px; }
+.ir-warn { background: color-mix(in oklab, var(--doing) 12%, transparent); }
+.ir-info { background: color-mix(in oklab, var(--c2) 12%, transparent); }
+.ir-aside { padding: 12px 14px; border-radius: 14px; border: 1px dashed var(--line-strong); display: grid; gap: 6px; font-size: .92rem; }
+.ir-aside b { display: flex; gap: 6px; align-items: center; }
+.ir-aside ul { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; }
+.ir-aside small { color: var(--text-2); }
+.ctx-box > summary { cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.ctx-box > summary::-webkit-details-marker { display: none; }
+.ctx-box > summary span { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.ctx-box > summary small { color: var(--text-3); font-size: .85rem; }
+.ctx-box > summary::after { content: "+"; color: var(--text-3); font-size: 1.2rem; }
+.ctx-box[open] > summary::after { content: "–"; }
+.ctx-box[open] > summary { margin-bottom: 10px; }
+.ctx-kind h3 { display: flex; gap: 6px; align-items: center; font-size: .95rem; margin: 12px 0 6px; color: var(--text-2); }
+.ctx-kind ul { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; color: var(--text-2); font-size: .93rem; }
+.ctx-kind small { color: var(--text-3); }

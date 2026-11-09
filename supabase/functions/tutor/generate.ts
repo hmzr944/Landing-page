@@ -50,22 +50,27 @@ export const GEN_SCHEMAS: Record<GenTask, Record<string, unknown>> = {
 };
 
 const NO_MNEMO = "Ne rédige ni image mentale ni moyen mnémotechnique : l'étudiant les produit lui-même, c'est ce qui l'aide à retenir.";
+// Un document peut contenir une évaluation de l'étudiant, des conseils ou des commentaires : ce n'est pas de la matière
+const ONLY_SUBJECT = "Ignore tout passage qui juge l'étudiant (niveau, acquis, note), lui donne un conseil personnel ou commente la démarche : ce n'est pas du cours. Ne parle jamais de l'étudiant ni de son niveau, seulement du sujet.";
 const SYSTEMS: Record<GenTask, string> = {
   enrichir: `Tu aides un étudiant à réviser un extrait de SON cours. N'utilise que ce qui est dans l'extrait, n'ajoute aucun fait.
 - "keyPoints" : 2 à 4 phrases courtes, l'essentiel à retenir (définitions, règles, formules), reformulées simplement avec les mots du cours.
 - "exercises" : 1 ou 2 questions de compréhension ou d'application, avec la réponse tirée de l'extrait dans "a".
-${NO_MNEMO} Écris dans la langue de l'extrait.`,
+${NO_MNEMO}
+${ONLY_SUBJECT} Écris dans la langue de l'extrait.`,
   rediger_cours: `Tu es un professeur qui rédige un cours clair pour un étudiant français.
 On te donne un sujet et, le plus souvent, un texte de référence. Appuie-toi uniquement sur ce texte : n'invente ni chiffre, ni date, ni nom qui n'y figure pas. Sans texte de référence, reste général et ne donne que ce qui est certain.
 - "overview" : 2 ou 3 phrases qui disent de quoi parle le sujet et pourquoi il compte.
 - "notions" : 3 ou 4 notions, de la plus simple à la plus avancée. Pour chacune : "title" court sans numéro ; "notes" = un vrai paragraphe (5 à 8 phrases simples : définition, fonctionnement, exemple concret), la phrase la plus importante entourée de == ; "keyPoints" = 2 ou 3 phrases à retenir ; "exercises" = 1 ou 2 questions qui font réfléchir, réponse attendue dans "a".
-${NO_MNEMO} Écris en français, avec des phrases courtes.`,
+${NO_MNEMO}
+${ONLY_SUBJECT} Écris en français, avec des phrases courtes.`,
   rediger_notion: `Tu es un formateur qui rédige une partie de cours pour un étudiant français débutant.
 On te donne une notion, le module dont elle fait partie et des extraits de sources numérotés. N'utilise que ces extraits : n'invente ni chiffre, ni commande, ni nom.
 - "notes" : un cours clair en markdown simple (8 à 14 phrases courtes) : à quoi ça sert, comment ça marche, puis un exemple concret. Pour une manipulation, les étapes dans l'ordre en liste "- ". La phrase la plus importante entourée de ==.
 - "keyPoints" : 2 à 4 phrases courtes à retenir.
 - "exercises" : 1 ou 2 questions qui font réfléchir ou appliquer, réponse attendue dans "a".
-${NO_MNEMO} Écris en français.`,
+${NO_MNEMO}
+${ONLY_SUBJECT} Écris en français.`,
 };
 const MAX_TOKENS: Record<GenTask, number> = { enrichir: 800, rediger_cours: 2200, rediger_notion: 1500 };
 
@@ -93,13 +98,16 @@ export function support(text: string, source: string): number {
 }
 
 const KP_MIN = 0.5, ANSWER_MIN = 0.4, NOTES_MIN = 0.35;
+// Parle de l'apprenant plutôt que du sujet (niveau, acquis, conseil personnel) : écarté, même si le texte source le contient
+const ABOUT_LEARNER = /\b(ton|ta|tes|votre|vos) (niveau|travail|potentiel|profil|progres|lacunes|difficultes|laboratoire)\b|\b(non acquis|pas encore acquis|niveau (estime|actuel))\b|\bje (te|vous) (conseille|recommande)\b|\b(tu|vous) (as|avez) (vu|decouvert|progresse|du mal)\b|\byour (work|level|grade|progress)\b|\bi recommend\b|\b(l'etudiant|l'eleve|the student) (doit|devrait|should|needs)\b/;
+export const aboutLearner = (t: string) => ABOUT_LEARNER.test(gnorm(String(t)).replace(/[’`]/g, "'"));
 const cleanQA = (x: unknown, src: string) => (Array.isArray(x) ? x : [])
   .filter((e) => e && typeof e === "object" && (e as Record<string, unknown>).q && (e as Record<string, unknown>).a)
   .map((e) => ({ q: gclip((e as Record<string, unknown>).q, 400), a: gclip((e as Record<string, unknown>).a, 900) }))
-  .filter((e) => !src || support(e.a, src) >= ANSWER_MIN)
+  .filter((e) => !aboutLearner(e.q) && !aboutLearner(e.a) && (!src || support(e.a, src) >= ANSWER_MIN))
   .slice(0, 2);
 const cleanKP = (x: unknown, src: string) => (Array.isArray(x) ? x : []).map((k) => gclip(k, 300).trim())
-  .filter((k) => k.length > 8 && (!src || support(k, src) >= KP_MIN)).slice(0, 4);
+  .filter((k) => k.length > 8 && !aboutLearner(k) && (!src || support(k, src) >= KP_MIN)).slice(0, 4);
 
 /* Nettoie et vérifie la sortie du modèle. Renvoie aussi ce qui a été écarté, pour le dire honnêtement à l'étudiant. */
 export function cleanGen(r: GenRequest, out: Record<string, unknown>) {
