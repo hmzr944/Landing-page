@@ -41,7 +41,7 @@ function as(user, sql) {
 const asService = (sql) => psql(`begin; set local role service_role;\n${sql}\ncommit;`);
 
 // ---------- Mise en place ----------
-for (const f of ['tests/db/supabase-stub.sql', 'supabase/migrations/001_tutor.sql', 'supabase/migrations/002_generation.sql', 'supabase/migrations/003_organizations.sql']) {
+for (const f of ['tests/db/supabase-stub.sql', 'supabase/migrations/001_tutor.sql', 'supabase/migrations/002_generation.sql', 'supabase/migrations/003_organizations.sql', 'supabase/migrations/004_org_space.sql']) {
   const r = psql(file(f));
   check(`M ${path.basename(f)} s'applique`, r.ok, r.err.slice(0, 300));
   if (!r.ok) process.exit(1);
@@ -138,6 +138,25 @@ const audit = as(alice, 'select string_agg(action, \',\' order by id) from publi
 check('R4 les opérations sensibles sont journalisées', ['organisation.creee', 'invitation.creee', 'invitation.acceptee', 'connaissance.valide', 'membre.modifie'].every((a) => audit.includes(a)), audit);
 check('R5 seul l’administrateur lit le journal ; l’autre organisation ne voit pas le journal de A', as(eve, 'select count(*) from public.audit_logs;').out === '0' && !as(carla, 'select action from public.audit_logs;').out.includes('Magasin A') && as(carla, `select count(*) from public.audit_logs where org_id = '${orgA}';`).out === '0');
 check('R6 le rôle anonyme n’a accès à aucune table Business', !psql('set role anon; select * from public.organizations;').ok && !psql('set role anon; select * from public.evidence_events;').ok);
+
+// ---------- Étape C : espaces de la personne, e-mail des membres, annulation d'invitation (004) ----------
+{
+  const again4 = psql(file('supabase/migrations/004_org_space.sql'));
+  check('E0 la migration 004 peut être rejouée sans erreur', again4.ok, again4.err.slice(0, 200));
+  check('E1 chacun liste ses propres espaces avec son rôle', as(dan, 'select string_agg(name || \':\' || role, \',\' order by name) from public.my_organizations();').out === 'Magasin A:expert,Magasin B:member' && as(carla, 'select count(*) from public.my_organizations();').out === '1');
+  check('E2 un anonyme ne peut pas lister d’espaces', !psql('set role anon; select * from public.my_organizations();').ok);
+  const tk = as(alice, `select public.create_invitation('${orgA}', 'new@magasin-a.fr', 'member');`).out;
+  const newU = U(6, 'new@magasin-a.fr'); psql(`insert into auth.users values ('${newU.id}', '${newU.email}');`);
+  as(newU, `select public.accept_invitation('${tk}');`);
+  check('E3 l’e-mail du membre vient de son jeton de connexion, et l’administrateur le voit', as(alice, `select email from public.memberships where user_id = '${newU.id}';`).out === 'new@magasin-a.fr');
+  check('E4 un membre ne voit pas l’e-mail des autres', as(newU, 'select count(*) from public.memberships;').out === '1');
+  const inv = as(alice, `select public.create_invitation('${orgA}', 'oubli@magasin-a.fr', 'member');`);
+  const invId = as(alice, "select id from public.invitations where email = 'oubli@magasin-a.fr';").out;
+  check('E5 l’empreinte du jeton n’est plus lisible, même par l’administrateur', !as(alice, 'select token_hash from public.invitations;').ok && inv.ok);
+  check('E6 un membre ne peut pas annuler une invitation', /accès refusé/.test(as(newU, `select public.revoke_invitation('${invId}');`).err));
+  check('E7 l’administrateur annule une invitation non utilisée, c’est journalisé', as(alice, `select public.revoke_invitation('${invId}');`).ok && as(alice, "select count(*) from public.audit_logs where action = 'invitation.annulee';").out === '1');
+  check('E8 une invitation déjà utilisée ne s’annule pas', /déjà utilisée/.test(as(alice, `select public.revoke_invitation((select id from public.invitations where email = 'new@magasin-a.fr'));`).err));
+}
 
 // ---------- Tables du tuteur (001, 002) toujours protégées ----------
 check('T1 le journal des appels accepte les nouvelles tâches de génération', psql(`insert into public.ai_calls (user_id, mode, model) values ('${bob.id}', 'enrichir', 'm');`).ok);

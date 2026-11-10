@@ -103,3 +103,15 @@ Une connaissance de type `sensible` n'est jamais utilisée dans un scénario san
   `accept_invitation`, `set_knowledge_status`, `set_member`.
 - Le test `tests/db-rls.js` part des droits par défaut de Supabase (tout ouvert sur `public`) pour prouver que
   les retraits de droits et les règles d'accès suffisent.
+
+## D7. Choisir son espace, rejoindre une organisation (appliqué, migration 004, étape C)
+
+- Un sélecteur d'espace apparaît dans l'en-tête dès qu'on appartient à une organisation ; sinon, rien ne change pour l'étudiant
+  (création et invitation restent accessibles depuis les réglages et l'introduction).
+- Dans un espace professionnel (`#/org/<id>`), les menus personnels (cours, niveau, import, Pousse) sont masqués ;
+  le module `js/org.js` ne reçoit que des outils d'affichage, jamais l'état personnel.
+- Invitation : lien `#/rejoindre/<jeton>` (le jeton reste dans le fragment de l'adresse, jamais envoyé au site), valable pour
+  une adresse, une fois, 7 jours ; l'e-mail du membre est copié depuis son jeton de connexion par la base.
+- L'empreinte du jeton n'est plus lisible, même par l'administrateur ; une invitation non utilisée peut être annulée (journalisé).
+- Tests : `tests/org.js` (parcours complet avec une base simulée, aucune donnée personnelle dans les requêtes) et
+  `tests/db-rls.js` (règles d'accès réelles, section E).

@@ -13,7 +13,8 @@ Projet : `https://nnqtgwgwalbbhqzceged.supabase.co` (adresse et clé publiable d
 
 1. **Base de données** : *SQL Editor* → nouvelle requête → coller `migrations/001_tutor.sql` → *Run*, puis de même `migrations/002_generation.sql`
    et `migrations/003_organizations.sql` (espace Business : organisations, rôles, invitations, sources versionnées,
-   connaissances traçables, compétences, preuves en ajout seul, journal d'audit, stockage privé « org-sources »).
+   connaissances traçables, compétences, preuves en ajout seul, journal d'audit, stockage privé « org-sources »),
+   puis `migrations/004_org_space.sql` (espaces de la personne, e-mail des membres, annulation d'invitation).
    Crée `ai_usage` et `ai_calls` (RLS activé : chacun ne lit que ses lignes, personne n'écrit depuis le navigateur)
    et la fonction `ai_record_call`, réservée au serveur.
 2. **Connexion par e-mail** : *Authentication* → *URL Configuration*

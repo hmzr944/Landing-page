@@ -118,16 +118,37 @@
       view = { name: 'courses' };
     } else if (parts[0] === 'progression') {
       view = { name: 'progress' };
+    } else if (parts[0] === 'org' && parts[1]) {
+      view = { name: 'org', id: parts[1], tab: parts[2] || 'accueil' };
+    } else if (parts[0] === 'rejoindre') {
+      view = { name: 'join', token: parts[1] || '' };
     } else {
       view = { name: 'home' };
     }
     const navOf = { home: 'home', study: 'home', courses: 'courses', subject: 'courses', progress: 'progress', trophies: 'progress' }[view.name];
+    // Espace professionnel : les menus de l'espace personnel (cours, niveau, import) disparaissent, rien ne s'y mélange
+    const inOrg = view.name === 'org' || view.name === 'join';
+    document.documentElement.classList.toggle('in-org', inOrg);
+    if (!inOrg && window.Org && Org.space() !== 'personal') Org.setSpace('personal');
+    paintSpace();
     $$('[data-nav]').forEach((a) => { if (a.dataset.nav === navOf) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
     // la pastille de l'onglet actif glisse vers sa nouvelle place
     $$('.topnav, .bottom-nav').forEach((n) => n.style.setProperty('--ni', ['home', 'courses', 'progress'].indexOf(navOf)));
     render(prev);
   }
   const link = (sid, nid, mode = 'fiche') => `#/s/${sid}/${nid}/${mode}`;
+
+  /* Espaces : personnel (sur l'appareil) et professionnels (dans la base). Le module Org ne reçoit que des outils
+     d'affichage, jamais l'état personnel : il ne peut pas envoyer de cours ou de révisions au serveur. */
+  const orgDeps = () => ({ esc, ic, openModal, closeModal, toast: (m, k) => FX.toast(m, k), go });
+  function paintSpace() {
+    const b = $('#spaceBtn'); if (!b || !window.Org) return;
+    const orgs = Org.list();
+    const cur = view && (view.name === 'org') ? orgs.find((o) => o.id === view.id) : null;
+    b.hidden = !orgs.length && !cur;
+    $('#spaceName').textContent = cur ? cur.name : 'Perso';
+    b.querySelector('i').className = `ph-fill ph-${cur ? 'buildings' : 'user-circle'}`;
+  }
 
   /* ---------- Rendu ---------- */
   function render(prev = {}) {
@@ -143,6 +164,7 @@
       : DEPTH[view.name] !== DEPTH[prev.name] ? (DEPTH[view.name] > DEPTH[prev.name] ? 'slide-next' : 'slide-prev') : 'page';
     const paint = () => { try { paintNow(); } catch (err) { console.error(err); throw err; } };
     const paintNow = () => {
+      if (view.name === 'org' || view.name === 'join') { Org.render(app, view, orgDeps()); updateBadges(); return; }
       if (view.name === 'home') renderHome();
       else if (view.name === 'study') renderGlobalStudy();
       else if (view.name === 'method') renderMethod();
@@ -2527,6 +2549,12 @@
           <div class="row-btns"><input id="acctCode" inputmode="numeric" autocomplete="one-time-code" placeholder="123456" /><button type="button" class="btn ghost sm" id="acctVerify">Valider le code</button></div></div>
           <p class="hint" id="acctErr" role="alert"></p>` : ''}
         </fieldset>
+        ${window.Org ? `<fieldset class="field">
+          <legend>Espace professionnel</legend>
+          <p class="hint">Pour se former avec son équipe, à partir des documents de l’entreprise. Ton espace personnel reste séparé, sur cet appareil.</p>
+          ${Org.list().length ? `<ul class="org-list">${Org.list().map((o) => `<li><a href="#/org/${o.id}" data-close-modal>${esc(o.name)}</a><small>${Org.ROLES[o.role] || o.role}</small></li>`).join('')}</ul>` : ''}
+          <div class="row-btns"><button type="button" class="btn ghost sm" id="orgCreate">${ic('plus')}Créer une organisation</button><a class="btn ghost sm" href="#/rejoindre" data-close-modal>${ic('door-open')}Rejoindre avec une invitation</a></div>
+        </fieldset>` : ''}
         <fieldset class="field">
           <legend>Sauvegarde</legend>
           <p class="hint">${state.stats.lastExport ? `Dernier fichier de sauvegarde : ${esc(dayLabelLong(state.stats.lastExport))}.` : 'Tes cours ne sont enregistrés que dans ce navigateur. Télécharge une sauvegarde de temps en temps.'}
@@ -2559,7 +2587,9 @@
       }
       $('#expAll', el).onclick = () => exportBackup();
       $('#onbAgain', el).onclick = () => { closeModal(); openOnboarding(); };
-      const out = $('#acctOut', el); if (out) out.onclick = () => { Tutor.signOut(); closeModal(); FX.toast('Déconnecté', 'success'); };
+      const out = $('#acctOut', el); if (out) out.onclick = () => { Tutor.signOut(); try { localStorage.removeItem('arbor:orgs'); } catch (e) { /* rien */ } paintSpace(); closeModal(); FX.toast('Déconnecté', 'success'); };
+      const oc = $('#orgCreate', el); if (oc) oc.onclick = () => Org.createModal(orgDeps());
+      $$('[data-close-modal]', el).forEach((a) => { a.addEventListener('click', () => closeModal()); });
       const send = $('#acctSend', el);
       if (send) {
         const err = $('#acctErr', el);
@@ -3202,7 +3232,12 @@
   Store.onError(saveAlert);
   if (window.Tutor) { const n = Tutor.notice(); if (n) setTimeout(() => FX.toast(n.ok ? 'Connecté : tu peux parler à Pousse' : n.msg, n.ok ? 'success' : 'error', 4200), 500); }
   const isDesktop = () => matchMedia('(min-width: 901px) and (hover: hover) and (pointer: fine)').matches;
-  if (window.Onboarding && !isDesktop() && !state.profile && Store.status.load === 'ok' && state.subjects.every(untouchedDemo)) setTimeout(openOnboarding, 250);
+  $('#spaceBtn').onclick = () => Org.openSwitcher(orgDeps());
+  if (window.Org && window.Tutor && Tutor.signedIn()) {
+    Org.refresh().then(paintSpace).catch(() => {});
+    if (Org.pendingInvite() && !/^#\/rejoindre/.test(location.hash)) go(`#/rejoindre/${Org.pendingInvite()}`);
+  }
+  if (window.Onboarding && !isDesktop() && !state.profile && !/^#\/(rejoindre|org)/.test(location.hash) && Store.status.load === 'ok' && state.subjects.every(untouchedDemo)) setTimeout(openOnboarding, 250);
   if (Store.status.readOnly) saveAlert('blocked');
   else if (Store.status.load !== 'ok') {
     const day = Store.status.bakAt ? dayLabelLong(Store.status.bakAt + 'T12:00') : '';

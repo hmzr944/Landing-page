@@ -94,5 +94,19 @@
     return r.ok && Array.isArray(r.data) ? (r.data[0] ? r.data[0].calls : 0) : null;
   }
 
-  window.Tutor = { signIn, verifyCode, signOut, ask, usage, email, signedIn: () => !!read(), notice: () => { const n = notice; notice = null; return n; }, lastEmail: () => { try { return localStorage.getItem('arbor:auth-email') || ''; } catch (e) { return ''; } } };
+  /* Appel authentifié à l'API de la base (espace professionnel). Le jeton de la personne connectée suffit :
+     ce qu'elle peut lire ou écrire est décidé par les règles d'accès de la base, jamais par le navigateur. */
+  async function rest(path, { method = 'POST', body, query = '' } = {}) {
+    if (!navigator.onLine) { const e = new Error('Pas de connexion.'); e.kind = 'offline'; throw e; }
+    const t = await token();
+    if (!t) { const e = new Error('Connecte-toi d’abord.'); e.kind = 'auth'; throw e; }
+    let r;
+    try { r = await call(path, { method, body, token: t, query }); }
+    catch (err) { const e = new Error('Connexion impossible.'); e.kind = 'offline'; throw e; }
+    if (r.status === 401) { write(null); const e = new Error('Ta session a expiré : reconnecte-toi.'); e.kind = 'auth'; throw e; }
+    if (!r.ok) { const e = new Error((r.data && (r.data.message || r.data.error)) || 'Action impossible.'); e.kind = 'server'; e.status = r.status; throw e; }
+    return r.data;
+  }
+
+  window.Tutor = { rest, signIn, verifyCode, signOut, ask, usage, email, signedIn: () => !!read(), notice: () => { const n = notice; notice = null; return n; }, lastEmail: () => { try { return localStorage.getItem('arbor:auth-email') || ''; } catch (e) { return ''; } } };
 })();
