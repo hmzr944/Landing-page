@@ -70,3 +70,21 @@ Ce document sert de référence pour les phases 1 à 6 ; il est mis à jour à l
 | 6 | Tests complets (navigateur, base, Deno), guide Supabase, rapport |
 
 Business passe avant Student (priorité de la demande). Chaque phase se termine par ses tests et un commit.
+
+## 8. État au 11 novembre 2026 (fin des phases 0 à 6)
+
+| Phase | Fait | Fichiers |
+|---|---|---|
+| 1 Identité | profil serveur (drapeaux seulement), Google si activé sur le projet, liens expirés ou déjà utilisés expliqués, reprise du parcours | `js/tutor.js`, `js/journey.js`, `js/welcome.js`, migration 007 |
+| 2 Espaces | choix Student / Business après connexion, organisations existantes (rôle, équipe), reprise après abandon, changement d'espace inchangé | `js/welcome.js`, `js/app.js` |
+| 3 Student | 5 entrées réelles : Parler (dictée du navigateur ou écriture), Scanner (Tesseract.js dans le navigateur), Discuter (cours sourcé puis Pousse), Se tester (défi, notion, nouvelle tentative), Importer (PDF, Wikipédia, notes) ; objectif libre ; précisions facultatives | `js/onboarding.js`, tâche serveur `structurer` |
+| 4 Business admin | assistant 6 étapes reprenables, équipes et établissements, documents (module existant), compétences (importance, équipes, suppression), invitations v2 | `js/org-onboarding.js`, `js/org.js` |
+| 5 Collaborateur | aperçu de l'invitation avant connexion, 4 statuts de lien, arrivée en 3 écrans (rôle, compétences, ce qui est observé et qui voit), diagnostic | `js/org-onboarding.js`, `js/org.js` |
+| 6 Tests | voir le rapport de fin de mission (résultats réels) | `tests/welcome.js`, `tests/onboarding.js`, `tests/org-onboarding.js`, `tests/db-rls.js` (W) |
+
+Limites connues, dites telles quelles :
+- La dictée dépend du navigateur (Chrome, Safari récents) ; ailleurs on écrit. Selon le navigateur, le son passe par ses serveurs.
+- Tesseract.js lit bien le texte imprimé, mal l'écriture manuscrite ; la première lecture télécharge environ 10 Mo.
+- « Importer une URL » : seules les pages Wikipédia ; une autre page web doit être enregistrée en PDF.
+- Les invitations ne sont pas envoyées par e-mail par Arbor : l'administrateur partage le lien (messagerie, partage du téléphone).
+- Rien de la migration 007 n'est actif tant qu'elle n'est pas appliquée sur le projet ; l'app le détecte et continue.

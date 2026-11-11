@@ -147,3 +147,15 @@ Une connaissance de type `sensible` n'est jamais utilisée dans un scénario san
   deux réussites à 7 jours d'écart, la dernière juste ; une fragilité d'équipe n'apparaît qu'à partir de 3 observations
   sur 2 personnes, avec la taille de l'échantillon, la période et la couverture.
 - Quota propre à l'espace professionnel (`ORG_MONTHLY_LIMIT`, 400 appels par personne et par mois par défaut).
+
+## D10. Un compte, deux espaces, onboarding reprenable (appliqué dans le code, migration 007 à appliquer)
+
+- Le compte (Supabase Auth) est unique ; il n'est lié ni à Student ni à Business. Le profil (`profiles`) ne garde que des drapeaux
+  d'onboarding (espace choisi, introduction faite, entrée choisie, date de première action) : aucun contenu d'apprentissage (D1 tient).
+- Une organisation est indépendante de l'espace personnel ; une personne peut appartenir à plusieurs, avec un rôle par organisation.
+  Le propriétaire est le créateur (`organizations.created_by`) : il reste administrateur actif (`set_member` le refuse sinon).
+- Équipes et établissements (`org_units`) avec clés composites `(id, org_id)` comme le reste de Business (D6).
+- Invitations : jeton haché, annulation conservée (`revoked_at`), aperçu public `invitation_preview` (le jeton de 192 bits est le secret),
+  refus « déjà membre », une seule invitation en attente par adresse.
+- Les 5 entrées Student créent toutes un sujet Arbor ordinaire : mêmes notions, révisions, observations et maîtrise prouvée.
+  Une explication personnelle est marquée « à vérifier », complétée par une source, jamais comptée comme preuve.

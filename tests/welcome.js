@@ -151,8 +151,8 @@ function fakeAuth(opts = {}) {
     await tap(page, '.wel-ready [data-wel="space"]', 500);
     await tap(page, '[data-wel="pick-student"]', 700);
     check('C2 « Continuer », puis Student, ouvre l’introduction de l’app', await page.isVisible('.onb') && !(await page.isVisible('.wel')));
-    await page.click('.onb [data-onb="next"]'); await page.waitForTimeout(300);
-    check('C3 l’introduction se poursuit normalement', await page.isVisible('.onb .onb-choice'));
+    await page.click('.onb [data-entry="tester"]'); await page.waitForTimeout(300);
+    check('C3 l’introduction se poursuit normalement (porte d’entrée, puis objectif)', await page.isVisible('.onb .onb-choice'));
     await ctx.close();
   }
 
