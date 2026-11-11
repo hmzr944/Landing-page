@@ -8,9 +8,9 @@
 //   relève des comportements observables en citant la phrase exacte du vendeur, et vérifie chaque affirmation produit
 //   face aux connaissances validées. Une affirmation absente des fiches est signalée, jamais acceptée.
 import { support } from "./generate.ts";
-import { compareVersions, type EnginesDb, relations, scenarioDesign, scenarioStart, sendInvitation } from "./engines.ts";
+import { compareVersions, type EnginesDb, relations, scenarioDesign, scenarioStart, sendInvitation, verifyProvenance } from "./engines.ts";
 
-export const ORG_TASKS = ["competences", "diagnostic_start", "diagnostic_answer", "mystere_start", "mystere_tour", "mystere_fin", "relations", "scenario_concevoir", "scenario_start", "comparer_versions", "invitation_envoyer"] as const;
+export const ORG_TASKS = ["competences", "diagnostic_start", "diagnostic_answer", "mystere_start", "mystere_tour", "mystere_fin", "relations", "scenario_concevoir", "scenario_start", "comparer_versions", "invitation_envoyer", "verifier_provenance"] as const;
 export type OrgTask = typeof ORG_TASKS[number];
 export interface Knowledge { id: string; kind: string; title: string; body: string; quote: string; page: number | null; source_version_id: string }
 export interface OrgDb extends EnginesDb {
@@ -201,10 +201,14 @@ const rubricOf = (spec: Record<string, any>): Record<string, string> => {
   return Object.keys(m).length >= 2 ? m : BEHAVIORS;
 };
 const evalSchema = (ids: string[]) => ({ ...EVAL_SCHEMA, properties: { ...EVAL_SCHEMA.properties, behaviors: { type: "array", items: { type: "object", additionalProperties: false, required: ["id", "evidence"], properties: { id: { type: "string", enum: ids }, evidence: ostr } } } } });
+// Verdicts d'une affirmation : conformité aux connaissances validées, pas « vérité » en général.
+// hors_referentiel : absente des connaissances validées mais présentée comme une pratique de terrain ou un fait général plausible
+// (avec une raison) ; ni juste ni fausse, jamais comptée comme maîtrise ; signalée à l'équipe de contenu.
+const VERDICTS = ["correct", "incorrect", "insuffisant", "non_documente", "hors_referentiel"];
 const EVAL_SCHEMA = { type: "object", additionalProperties: false, required: ["behaviors", "claims", "need_found", "objections_resolved"],
   properties: {
     behaviors: { type: "array", items: { type: "object", additionalProperties: false, required: ["id", "evidence"], properties: { id: { type: "string", enum: BEHAVIOR_IDS }, evidence: ostr } } },
-    claims: { type: "array", items: { type: "object", additionalProperties: false, required: ["text", "k", "verdict"], properties: { text: ostr, k: ostr, verdict: { type: "string", enum: ["correct", "incorrect", "non_documente", "insuffisant"] } } } },
+    claims: { type: "array", items: { type: "object", additionalProperties: false, required: ["text", "k", "verdict", "why"], properties: { text: ostr, k: ostr, verdict: { type: "string", enum: VERDICTS }, why: ostr } } },
     need_found: { type: "boolean" }, objections_resolved: { type: "array", items: { type: "integer" } },
   } };
 const CLIENT_SCHEMA = { type: "object", additionalProperties: false, required: ["reply", "satisfied", "leaves"], properties: { reply: ostr, satisfied: { type: "boolean" }, leaves: { type: "boolean" } } };
@@ -227,7 +231,7 @@ async function mystereTour(ctx: OrgCtx, org: string, b: Record<string, unknown>)
   const ev = await model(ctx, "mystere", {
     system: `Tu évalues la réponse d'un ${role} dans une simulation. Tu n'es pas le personnage simulé.
 - "behaviors" : les comportements observables présents dans CETTE réponse, parmi : ${rubricIds.map((x) => `${x} (${rubric[x]})`).join(" ; ")}. "evidence" = la phrase exacte qui le montre (copiée mot pour mot).
-- "claims" : chaque affirmation factuelle (produit, prix, règle, procédure, fait technique). "text" = copiée mot pour mot. Compare aux connaissances validées [k…] : "correct" si elle y est conforme, "incorrect" si elle les contredit, "insuffisant" si elle va dans le bon sens mais reste trop vague ou incomplète pour être vérifiée, "non_documente" si aucune ne la couvre (ce n'est PAS une erreur). "k" = la connaissance concernée ("" si aucune).
+- "claims" : chaque affirmation factuelle (produit, prix, règle, procédure, fait technique). "text" = copiée mot pour mot. Compare aux connaissances validées [k…] : "correct" si elle y est conforme, "incorrect" si elle les contredit, "insuffisant" si elle va dans le bon sens mais reste trop vague ou incomplète pour être vérifiée, "non_documente" si aucune ne la couvre et que tu ne peux pas juger sa plausibilité (ce n'est PAS une erreur), "hors_referentiel" si aucune ne la couvre mais qu'elle décrit une pratique de terrain ou un fait général plausible (ni juste ni faux : à signaler). "k" = la connaissance concernée ("" si aucune). "why" = une phrase : pourquoi ce verdict (pour hors_referentiel : ce qui la rend plausible).
 - "need_found" : le besoin caché ou l'enjeu principal a-t-il été identifié ? "objections_resolved" : numéros (à partir de 0) des objections levées par cette réponse.
 Ne juge pas la personnalité. N'invente rien.`,
     user: `Connaissances validées :\n${kList(ks)}\n\nBesoin caché ou enjeu : ${spec.need}\nObjections : ${(spec.objections || []).map((o: { text: string }, i: number) => `${i}. ${o.text}`).join(" ; ")}\n\nDernière phrase de ${spec.name} : « ${lastClient} »\nRéponse : « ${msg} »`,
@@ -237,8 +241,11 @@ Ne juge pas la personnalité. N'invente rien.`,
   const claims = (Array.isArray(ev.claims) ? ev.claims : []).map((x) => x as Record<string, string>).filter((x) => inText(x.text, msg)).map((x) => {
     const k = kRef(ks, x.k);
     // Quatre catégories qui ne se confondent jamais. Sans connaissance de référence : ni juste ni fausse, non documentée.
-    const verdict = !k ? "non_documente" : ["correct", "incorrect", "insuffisant", "non_documente"].includes(x.verdict) ? x.verdict : "non_documente";
-    return { text: oclip(x.text, 300), verdict, k: k ? k.id : null, quote: k ? k.quote : "", page: k ? k.page : null, confidence, turn: state.turns + 1 };
+    // Sans connaissance de référence, seules deux issues : non documentée, ou hors référentiel (plausible, à examiner).
+    // Une affirmation reliée à une connaissance ne peut pas être « hors référentiel ».
+    const verdict = !k ? (x.verdict === "hors_referentiel" ? "hors_referentiel" : "non_documente")
+      : ["correct", "incorrect", "insuffisant", "non_documente"].includes(x.verdict) ? x.verdict : "non_documente";
+    return { text: oclip(x.text, 300), verdict, k: k ? k.id : null, quote: k ? k.quote : "", page: k ? k.page : null, confidence, turn: state.turns + 1, why: oclip(x.why, 300) };
   });
   // un comportement ne compte qu'une fois par partie (sa première observation), sinon il gonflerait les preuves
   const fresh = behaviors.filter((x, i, a) => !state.behaviors[x.id] && a.findIndex((y) => y.id === x.id) === i);
@@ -272,11 +279,17 @@ Reste dans ton rôle, réponds en 1 à 3 phrases naturelles. Tu ne connais des p
   const links = await ctx.db.skillLinks(org);
   const kv = new Map(ks.map((k) => [k.id, k]));
   // juste / faux / insuffisant / non documenté restent distincts ; une affirmation appliquée en situation vaut le niveau 4
-  const OUT: Record<string, string> = { correct: "juste", incorrect: "faux", insuffisant: "insuffisant", non_documente: "non_documente" };
+  const OUT: Record<string, string> = { correct: "juste", incorrect: "faux", insuffisant: "insuffisant", non_documente: "non_documente", hors_referentiel: "non_documente" };
   const ctxName = `simulation:${oclip(spec.kind || spec.style || "client", 30)}`;
   const base = { org_id: org, user_id: ctx.userId, activity: "simulation", evaluator: "ia", session_id: id, context: ctxName, reliability: "moyenne", ...(sc.scenario_version_id ? { scenario_version_id: sc.scenario_version_id } : {}) };
   const rows: Record<string, unknown>[] = claims.map((c) => ({ ...base, knowledge_id: c.k, skill_id: c.k ? links.find((l) => l.knowledge_id === c.k)?.skill_id || null : null,
-    outcome: OUT[c.verdict], confidence, level: c.verdict === "correct" ? 4 : null, source_version_id: c.k ? kv.get(c.k as string)?.source_version_id || null : null, detail: { claim: c.text, turn: state.turns } }));
+    outcome: OUT[c.verdict], confidence, level: c.verdict === "correct" ? 4 : null, source_version_id: c.k ? kv.get(c.k as string)?.source_version_id || null : null,
+    detail: { claim: c.text, turn: state.turns, ...(c.verdict === "hors_referentiel" ? { scope: "out_of_scope_knowledge" } : {}) } }));
+  // Connaissances de terrain hors référentiel : signalées à l'équipe de contenu (migration 009), sans effet sur la maîtrise
+  const oos = claims.filter((c) => c.verdict === "hors_referentiel");
+  if (oos.length && ctx.db.insertOutOfScope) {
+    await ctx.db.insertOutOfScope(oos.map((c) => ({ org_id: org, user_id: ctx.userId, session_id: id, claim: c.text, context: ctxName, rationale: c.why || "" }))).catch(() => {}); // base sans 009 : le débrief le montre quand même
+  }
   fresh.forEach((x) => rows.push({ ...base, knowledge_id: null, skill_id: null, outcome: "juste", confidence: null, level: 4, source_version_id: null, detail: { behavior: x.id, label: rubric[x.id], evidence: oclip(x.evidence, 300), turn: state.turns } }));
   if (rows.length) await ctx.db.insertEvidence(rows);
   await ctx.db.updateScenario(id, { state, transcript: [...transcript, { role: "vendeur", text: msg, confidence }, { role: "client", text: reply }] });
@@ -296,6 +309,7 @@ export function debriefOf(spec: Record<string, any>, state: Record<string, any>)
     incorrect: claims.filter((c) => c.verdict === "incorrect").map((c) => ({ ...c, falseCertainty: c.confidence === "sait" || c.confidence === "reflexe" })),
     insufficient: claims.filter((c) => c.verdict === "insuffisant"),
     undocumented: claims.filter((c) => c.verdict === "non_documente"),
+    outOfScope: claims.filter((c) => c.verdict === "hors_referentiel").map((c) => ({ text: c.text, why: (c as { why?: string }).why || "" })),
     events: state.events || [],
     note: "Une simulation réussie ne suffit pas à valider une compétence : elle s'ajoute aux autres preuves, dans le temps.",
   };
@@ -327,6 +341,7 @@ export async function orgTask(task: OrgTask, b: Record<string, unknown>, ctx: Or
   if (task === "scenario_start") return scenarioStart(ctx, ctx.db, org, role, b);
   if (task === "comparer_versions") return compareVersions(ctx, ctx.db, org, role, b);
   if (task === "invitation_envoyer") return sendInvitation(ctx, ctx.db, org, role, b);
+  if (task === "verifier_provenance") return verifyProvenance(ctx, ctx.db, org, role, b);
   return mystereFin(ctx, org, b);
 }
 export const needsModel = (t: OrgTask) => ["competences", "diagnostic_start", "mystere_start", "mystere_tour", "relations", "scenario_concevoir", "comparer_versions"].includes(t);

@@ -13,7 +13,7 @@
   /* ---------- Accès à la base (les règles d'accès décident de ce qui est visible) ---------- */
   const sources = (org) => Tutor.rest('/rest/v1/sources', { method: 'GET', query: `?org_id=eq.${q(org)}&select=id,title,current_version,created_at&order=created_at.desc` });
   const versions = (src) => Tutor.rest('/rest/v1/source_versions', { method: 'GET', query: `?source_id=eq.${q(src)}&select=id,version,page_count,created_at&order=version` });
-  const knowledgeOf = (versionIds) => (versionIds.length ? Tutor.rest('/rest/v1/knowledge_nodes', { method: 'GET', query: `?source_version_id=in.(${versionIds.map(q).join(',')})&select=id,kind,title,body,quote,page,confidence,status,source_version_id,validated_at&order=created_at` }) : Promise.resolve([]));
+  const knowledgeOf = (versionIds) => (versionIds.length ? Tutor.rest('/rest/v1/knowledge_nodes', { method: 'GET', query: `?source_version_id=in.(${versionIds.map(q).join(',')})&select=*&order=created_at` }) : Promise.resolve([]));
   const setStatus = (id, status) => Tutor.rest('/rest/v1/rpc/set_knowledge_status', { body: { p_id: id, p_status: status } });
   const insertKnowledge = (rows) => (rows.length ? Tutor.rest('/rest/v1/knowledge_nodes', { body: rows }) : Promise.resolve(null));
   const rpcRow = (r) => (Array.isArray(r) ? r[0] : r);
@@ -100,7 +100,13 @@
     step('Enregistrement des connaissances…', 0.95);
     const me = Tutor.userId();
     await insertKnowledge(fresh.map((x) => ({ org_id: org.id, source_version_id: row.version_id, kind: x.kind, title: x.title, body: x.body, quote: x.quote, page: x.page, confidence: x.confidence, extracted_by: 'ia', created_by: me })));
-    return { sourceId: row.source_id, version: row.version, proposed: fresh.length, sensitive: fresh.filter((x) => x.kind === 'sensible').length, dropped, unverified, kept: kept.length, revalidate, aside: read.aside, unreadable: read.unreadable, change: change && change.summary };
+    // Provenance (migration 009) : le serveur relit le fichier stocké, compare son empreinte et retrouve chaque extrait.
+    // Sans cette vérification, la base refuse toute validation. Une base sans 009 répond « tâche inconnue » : on continue.
+    let provenance = null;
+    step('Vérification de la provenance sur le fichier stocké…', 0.97);
+    try { provenance = await OrgLearn.srv({ task: 'verifier_provenance', org: org.id, version: row.version_id }); }
+    catch (e) { provenance = /intégrité/.test(e.message) ? { error: e.message } : null; }
+    return { sourceId: row.source_id, version: row.version, proposed: fresh.length, sensitive: fresh.filter((x) => x.kind === 'sensible').length, dropped, unverified, kept: kept.length, revalidate, aside: read.aside, unreadable: read.unreadable, change: change && change.summary, provenance };
   }
 
   /* ---------- Écrans ---------- */
@@ -144,6 +150,8 @@
         const r = await addDocument(o, file, { title: src ? src.title : f.querySelector('#dfTitle').value.trim(), sourceId: src ? src.id : null, onStep: (m, k) => { f.querySelector('#dfMsg').textContent = m; f.querySelector('#dfBar').style.transform = `scaleX(${Math.max(0.04, k)})`; } });
         const parts = [`Version ${r.version} enregistrée. ${r.proposed} connaissance${r.proposed > 1 ? 's' : ''} à valider${r.sensitive ? `, dont ${r.sensitive} sensible${r.sensitive > 1 ? 's' : ''}` : ''}.`];
         if (src) parts.push(`${r.kept} toujours valable${r.kept > 1 ? 's' : ''} (extrait retrouvé dans la nouvelle version), ${r.revalidate} à revalider.`);
+        if (r.provenance && r.provenance.error) parts.push(`${r.provenance.error}.`);
+        else if (r.provenance) parts.push(`Provenance : ${r.provenance.verified} extrait${r.provenance.verified > 1 ? 's' : ''} retrouvé${r.provenance.verified > 1 ? 's' : ''} dans le fichier stocké${r.provenance.notFound.length ? `, ${r.provenance.notFound.length} introuvable${r.provenance.notFound.length > 1 ? 's' : ''} (non validable${r.provenance.notFound.length > 1 ? 's' : ''})` : ''}.`);
         if (r.change) parts.push(`Changements détectés : ${r.change.modifie || 0} modifiée${(r.change.modifie || 0) > 1 ? 's' : ''}, ${r.change.supprime || 0} supprimée${(r.change.supprime || 0) > 1 ? 's' : ''}, ${r.change.nouveau || 0} nouvelle${(r.change.nouveau || 0) > 1 ? 's' : ''} : à décider ci-dessous.`);
         if (r.dropped) parts.push(`${r.dropped} proposition${r.dropped > 1 ? 's' : ''} écartée${r.dropped > 1 ? 's' : ''} : extrait introuvable dans le document.`);
         if (r.aside) parts.push(`${r.aside} passage${r.aside > 1 ? 's' : ''} hors cours non envoyé${r.aside > 1 ? 's' : ''} (évaluation, conseil, annexe).`);
@@ -172,17 +180,26 @@
     const rank = (k) => (k.status === 'propose' && k.kind === 'sensible' ? 0 : k.status === 'a_revalider' ? 1 : k.status === 'propose' ? 2 : k.status === 'valide' ? 3 : 4);
     ks.sort((a, b) => rank(a) - rank(b));
     const todo = ks.filter((k) => ['propose', 'a_revalider'].includes(k.status));
-    const easy = ks.filter((k) => k.status === 'propose' && k.kind !== 'sensible');
+    // Provenance (009) : seul un extrait retrouvé par le serveur dans le fichier stocké peut être validé.
+    // Base sans 009 : le champ est absent, on garde le fonctionnement précédent.
+    const prov = (k) => (k.provenance === undefined ? 'sans' : k.provenance);
+    const canValidate = (k) => ['sans', 'verifiee'].includes(prov(k));
+    const easy = ks.filter((k) => k.status === 'propose' && k.kind !== 'sensible' && canValidate(k));
+    const unchecked = ks.filter((k) => ['propose', 'a_revalider'].includes(k.status) && prov(k) === 'non_verifiee');
+    const PROV = { verifiee: ['seal-check', 'Extrait retrouvé dans le fichier stocké'], introuvable: ['warning', 'Extrait introuvable dans le fichier stocké : ne peut pas être validé'], non_verifiee: ['hourglass-medium', 'Provenance pas encore vérifiée par le serveur'] };
     const card = (k) => {
       const [kl, ki] = KIND[k.kind] || KIND.concept;
       const lockSens = k.kind === 'sensible' && !canSensitive(o);
+      const valBtn = canValidate(k) ? `<button class="btn sm" data-k="${k.id}" data-s="valide">${d.ic('check')}Valider</button>` : '';
       const act = canEdit(o) && ['propose', 'a_revalider'].includes(k.status)
-        ? (lockSens ? `<p class="hint">${d.ic('lock-simple')}Validation par un manager ou un administrateur.</p>` : `<div class="row-btns"><button class="btn sm" data-k="${k.id}" data-s="valide">${d.ic('check')}Valider</button><button class="btn ghost sm" data-k="${k.id}" data-s="rejete">${d.ic('x')}Rejeter</button></div>`)
+        ? (lockSens ? `<p class="hint">${d.ic('lock-simple')}Validation par un manager ou un administrateur.</p>` : `<div class="row-btns">${valBtn}<button class="btn ghost sm" data-k="${k.id}" data-s="rejete">${d.ic('x')}Rejeter</button></div>`)
         : '';
+      const pv = PROV[prov(k)];
       return `<li class="kn kn-${k.kind} st-${k.status}">
         <div class="kn-head"><span class="kn-kind">${d.ic(ki)}${kl}</span><span class="kn-status">${STATUS[k.status] || k.status}</span></div>
         <b>${d.esc(k.title)}</b><p>${d.esc(k.body)}</p>
         <blockquote>« ${d.esc(k.quote)} »<cite>p. ${k.page} · version ${vOf(k.source_version_id)}${k.confidence != null ? ` · confiance ${Math.round(k.confidence * 100)} %` : ''}</cite></blockquote>
+        ${pv ? `<p class="kn-prov prov-${prov(k)}">${d.ic(pv[0])}${pv[1]}</p>` : ''}
         ${act}</li>`;
     };
     app.innerHTML = `${headHtml}
@@ -191,6 +208,7 @@
         <h2>${d.esc(src.title)} <small class="num">version ${src.current_version}</small></h2>
         ${lastReport && lastReport.sourceId === sourceId ? `<p class="doc-report" id="docReport">${d.ic('info')}${d.esc(lastReport.text)}</p>` : ''}
         <p class="hint">${todo.length} à traiter · ${ks.filter((k) => k.status === 'valide').length} validée${ks.filter((k) => k.status === 'valide').length > 1 ? 's' : ''} · ${ks.length} au total</p>
+        ${canEdit(o) && unchecked.length ? `<div class="row-btns"><button class="btn ghost sm" id="kProv">${d.ic('fingerprint')}Vérifier la provenance de ${unchecked.length} connaissance${unchecked.length > 1 ? 's' : ''}</button></div><p class="hint" id="kProvMsg" role="status"></p>` : ''}
         <div id="wdBox"></div>
         ${canEdit(o) && easy.length ? `<div class="row-btns"><button class="btn ghost sm" id="kAll">${d.ic('checks')}Valider les ${easy.length} propositions non sensibles</button></div>` : ''}
         <ul class="kn-list">${ks.map(card).join('') || '<li class="hint">Aucune connaissance extraite.</li>'}</ul>
@@ -203,6 +221,13 @@
     if (window.OrgEngines) { OrgEngines.watchdog(app.querySelector('#wdBox'), o, sourceId, d); OrgEngines.relations(app.querySelector('#relBox'), o, d); }
     if (lastReport && lastReport.sourceId === sourceId) lastReport = null;
     app.querySelectorAll('[data-k]').forEach((b) => { b.onclick = async () => { b.disabled = true; try { await setStatus(b.dataset.k, b.dataset.s); detailView(app, o, sourceId, headHtml); } catch (x) { d.toast(x.message, 'error'); b.disabled = false; } }; });
+    const pb = app.querySelector('#kProv');
+    if (pb) pb.onclick = async () => {
+      pb.disabled = true; const msg = app.querySelector('#kProvMsg'); msg.textContent = 'Le serveur relit le fichier stocké…';
+      const ids = [...new Set(unchecked.map((k) => k.source_version_id))];
+      try { for (const v of ids) await OrgLearn.srv({ task: 'verifier_provenance', org: o.id, version: v }); detailView(app, o, sourceId, headHtml); }
+      catch (x) { msg.textContent = x.message; pb.disabled = false; }
+    };
     const all = app.querySelector('#kAll');
     if (all) all.onclick = async () => { all.disabled = true; for (const k of easy) { try { await setStatus(k.id, 'valide'); } catch (x) { /* une erreur n'arrête pas les autres */ } } detailView(app, o, sourceId, headHtml); };
     bindUpload(app, o, src);

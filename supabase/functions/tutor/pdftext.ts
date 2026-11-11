@@ -23,6 +23,18 @@ export function verifyPassages<T extends { page: number; text: string }>(passage
   return { kept, dropped };
 }
 
+// Empreinte SHA-256 (hexadécimal) des octets du fichier stocké : calculée ici, jamais reprise du navigateur
+export async function sha256Hex(bytes: Uint8Array): Promise<string> {
+  const h = await crypto.subtle.digest("SHA-256", bytes as Uint8Array<ArrayBuffer>);
+  return [...new Uint8Array(h)].map((x) => x.toString(16).padStart(2, "0")).join("");
+}
+// Un fichier stocké relu par le serveur : son texte page par page et son empreinte
+export type StoredDoc = { pages: string[]; sha256: string };
+// L'empreinte déclarée à l'envoi (calculée par le navigateur) doit être celle du fichier réellement stocké.
+// Sans empreinte déclarée (versions anciennes), l'empreinte du serveur devient la référence.
+export const integrityOf = (declared: string | null | undefined, actual: string): "conforme" | "divergent" =>
+  !declared || String(declared).trim().toLowerCase() === actual.toLowerCase() ? "conforme" : "divergent";
+
 // Texte de chaque page d'un PDF (chargé à la demande : seules les tâches qui lisent un document en ont besoin)
 export async function pdfPages(bytes: Uint8Array): Promise<string[]> {
   const { extractText, getDocumentProxy } = await import("npm:unpdf@0.12.1");

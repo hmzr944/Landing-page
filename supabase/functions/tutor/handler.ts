@@ -10,7 +10,7 @@
 
 import { cleanGen, GEN_TASKS, type GenTask, genPrompt, validateGen } from "./generate.ts";
 import { needsModel, ORG_TASKS, type OrgDb, OrgError, type OrgTask, orgTask } from "./org.ts";
-import { verifyPassages } from "./pdftext.ts";
+import { integrityOf, type StoredDoc, verifyPassages } from "./pdftext.ts";
 
 export type Mode = "socratique" | "enseigne" | "situation";
 export type Kind = "dialogue" | "generation" | "org";
@@ -34,8 +34,10 @@ export interface ModelResult {
 }
 export interface Deps {
   // Extraction Business : version du document (organisation, chemin) et texte de ses pages relu sur le serveur
-  docVersion?(id: string): Promise<{ id: string; org_id: string; storage_path: string } | null>;
-  docPages?(storagePath: string): Promise<string[]>;
+  docVersion?(id: string): Promise<{ id: string; org_id: string; storage_path: string; checksum?: string | null } | null>;
+  // fichier stocké relu par le serveur : texte page par page et empreinte SHA-256 (migration 009)
+  docFile?(storagePath: string): Promise<StoredDoc>;
+  markIntegrity?(versionId: string, integrity: "conforme" | "divergent", sha256: string, orgId: string, userId: string, declared: string | null): Promise<void>;
   getUser(jwt: string): Promise<{ id: string } | null>;
   usedThisMonth(userId: string, month: string, kind: Kind): Promise<number>;
   record(e: { userId: string; month: string; mode: Mode | GenTask | "competences" | "diagnostic" | "mystere" | "relations" | "scenario" | "comparer"; model: string; inputTokens: number; outputTokens: number; costUsd: number; refused: boolean }): Promise<void>;
@@ -241,9 +243,14 @@ async function generate(body: unknown, userId: string, m: string, deps: Deps, js
     if (!role || !["admin", "manager", "expert"].includes(role)) return json(403, { error: "accès refusé" });
     const ver = deps.docVersion ? await deps.docVersion(req.version!) : null;
     if (!ver || ver.org_id !== req.org) return json(404, { error: "version du document introuvable" });
-    let pages: string[];
-    try { pages = await deps.docPages!(ver.storage_path); }
+    let doc: StoredDoc;
+    try { doc = await deps.docFile!(ver.storage_path); }
     catch (_e) { return json(502, { error: "le document stocké n'a pas pu être relu sur le serveur" }); }
+    // Intégrité : l'empreinte du fichier stocké, calculée ici, doit être celle déclarée à l'envoi
+    const integrity = integrityOf(ver.checksum, doc.sha256);
+    if (deps.markIntegrity) await deps.markIntegrity(ver.id, integrity, doc.sha256, ver.org_id, userId, ver.checksum || null);
+    if (integrity === "divergent") return json(409, { error: "intégrité : le fichier stocké ne correspond pas à l'empreinte déclarée à l'envoi ; extraction bloquée" });
+    const pages = doc.pages;
     const { kept, dropped } = verifyPassages(req.passages || [], pages);
     unverified = dropped.length;
     if (!kept.length) return json(422, { error: "aucun passage envoyé ne figure dans le document stocké", unverified });

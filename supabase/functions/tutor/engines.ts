@@ -6,10 +6,13 @@
 //   connaissance est classée inchangée, reformulée, modifiée ou supprimée (+ nouvelles), avec un extrait vérifié ;
 //   rien n'est appliqué sans décision humaine (decide_change_item) ;
 // - invitation_envoyer : envoi de l'invitation par e-mail, si le service d'envoi est configuré (sinon : dit clairement).
+// - verifier_provenance (009) : empreinte SHA-256 du fichier stocké comparée à celle déclarée, puis chaque extrait des
+//   connaissances de la version recherché dans le texte du fichier ; seul ce résultat permet ensuite de valider.
 // Le rôle est toujours vérifié ici, jamais pris du navigateur.
 import { isSensitive } from "./generate.ts";
 import type { Knowledge, OrgCtx } from "./org.ts";
 import { OrgError } from "./org.ts";
+import { integrityOf, passageFound, type StoredDoc } from "./pdftext.ts";
 
 export interface EnginesDb {
   insertEdges?(rows: Record<string, unknown>[]): Promise<number>;
@@ -18,10 +21,14 @@ export interface EnginesDb {
   createScenarioVersion?(row: Record<string, unknown>): Promise<string>;
   getScenarioVersion?(id: string): Promise<Record<string, unknown> | null>;
   createScenario(row: Record<string, unknown>): Promise<string>;
-  versionInfo?(id: string): Promise<{ id: string; org_id: string; source_id: string; version: number; storage_path: string } | null>;
-  versionByNumber?(sourceId: string, n: number): Promise<{ id: string; org_id: string; source_id: string; version: number; storage_path: string } | null>;
+  versionInfo?(id: string): Promise<VersionRow | null>;
+  versionByNumber?(sourceId: string, n: number): Promise<VersionRow | null>;
   knowledgeOfVersion?(versionId: string): Promise<(Knowledge & { status: string })[]>;
-  docPages?(storagePath: string): Promise<string[]>;
+  docFile?(storagePath: string): Promise<StoredDoc>;
+  markIntegrity?(versionId: string, integrity: "conforme" | "divergent", sha256: string): Promise<void>;
+  setProvenance?(rows: { id: string; provenance: "verifiee" | "introuvable"; sha256: string }[]): Promise<void>;
+  audit?(orgId: string, actor: string, action: string, target: string, detail: Record<string, unknown>): Promise<void>;
+  insertOutOfScope?(rows: Record<string, unknown>[]): Promise<void>;
   insertPolicyChange?(row: Record<string, unknown>): Promise<string>;
   insertChangeItems?(rows: Record<string, unknown>[]): Promise<void>;
   invitationById?(id: string): Promise<Record<string, unknown> | null>;
@@ -29,6 +36,8 @@ export interface EnginesDb {
   sendEmail?(to: string, subject: string, html: string, text: string): Promise<void>;
   siteUrl?: string;
 }
+
+export type VersionRow = { id: string; org_id: string; source_id: string; version: number; storage_path: string; checksum?: string | null };
 
 const eclip = (s: unknown, n: number) => String(s ?? "").slice(0, n);
 const UUIDR = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -49,6 +58,34 @@ async function ask(ctx: OrgCtx, mode: string, p: { system: string; user: string;
   try { return JSON.parse(res.text) as Record<string, unknown>; } catch { throw new OrgError(502, "réponse illisible"); }
 }
 const need = <T>(f: T | undefined): T => { if (!f) throw new OrgError(501, "fonction indisponible : mise à jour de la base requise (migration 008)"); return f; };
+
+/* Relit le fichier stocké d'une version et vérifie son intégrité : l'empreinte calculée ici doit être celle déclarée à
+   l'envoi. Divergence : la version est marquée « divergente », l'incident est journalisé, et tout s'arrête (409). */
+export async function readVerified(ctx: OrgCtx, db: EnginesDb, ver: VersionRow): Promise<StoredDoc> {
+  let doc: StoredDoc;
+  try { doc = await need(db.docFile)(ver.storage_path); }
+  catch (e) { if (e instanceof OrgError) throw e; throw new OrgError(502, "le document stocké n'a pas pu être relu sur le serveur"); }
+  const integrity = integrityOf(ver.checksum, doc.sha256);
+  if (db.markIntegrity) await db.markIntegrity(ver.id, integrity, doc.sha256);
+  if (integrity === "divergent") {
+    if (db.audit) await db.audit(ver.org_id, ctx.userId, "provenance.divergente", ver.id, { declaree: ver.checksum || null, calculee: doc.sha256 });
+    throw new OrgError(409, "intégrité : le fichier stocké ne correspond pas à l'empreinte déclarée à l'envoi ; extraction et validation bloquées");
+  }
+  return doc;
+}
+
+/* Provenance des connaissances d'une version : chaque extrait est cherché dans le texte du fichier stocké, à sa page
+   (ou une voisine). « verifiee » porte l'empreinte du fichier ; « introuvable » empêche toute validation (009). */
+export async function verifyProvenance(ctx: OrgCtx, db: EnginesDb, org: string, role: string, b: Record<string, unknown>) {
+  if (!CONTENT.includes(role)) throw new OrgError(403, "accès refusé");
+  const ver = await need(db.versionInfo)(String(b.version || ""));
+  if (!ver || ver.org_id !== org) throw new OrgError(404, "version introuvable");
+  const doc = await readVerified(ctx, db, ver);
+  const ks = (await need(db.knowledgeOfVersion)(ver.id)).filter((k) => ["propose", "a_revalider", "valide"].includes(k.status));
+  const rows = ks.map((k) => ({ id: k.id, provenance: (k.quote && passageFound(k.quote, doc.pages, Number(k.page) || 1) ? "verifiee" : "introuvable") as "verifiee" | "introuvable", sha256: doc.sha256 }));
+  if (rows.length) await need(db.setProvenance)(rows);
+  return { integrity: "conforme", sha256: doc.sha256, verified: rows.filter((r) => r.provenance === "verifiee").length, notFound: rows.filter((r) => r.provenance === "introuvable").map((r) => r.id) };
+}
 
 /* ---------- Graphe : relations proposées entre connaissances validées ---------- */
 const RELATIONS = ["prerequis", "partie_de", "precise", "exemple_de", "contredit", "confusion_frequente"];
@@ -139,8 +176,7 @@ export async function compareVersions(ctx: OrgCtx, db: EnginesDb, org: string, r
   if (to.version < 2) throw new OrgError(400, "pas de version précédente à comparer");
   const from = await need(db.versionByNumber)(to.source_id, to.version - 1);
   if (!from) throw new OrgError(404, "version précédente introuvable");
-  let pages: string[];
-  try { pages = await need(db.docPages)(to.storage_path); } catch (e) { if (e instanceof OrgError) throw e; throw new OrgError(502, "nouvelle version illisible sur le serveur"); }
+  const pages = (await readVerified(ctx, db, to)).pages; // intégrité du fichier vérifiée avant toute comparaison
   const text = pages.join("\n");
   const pageOf = (q: string) => { const i = pages.findIndex((p) => inDoc(q, p)); return i >= 0 ? i + 1 : null; };
   const old = (await need(db.knowledgeOfVersion)(from.id)).filter((k) => ["valide", "a_revalider"].includes(k.status));

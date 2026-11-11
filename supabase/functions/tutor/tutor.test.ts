@@ -4,7 +4,7 @@ import { assert, assertEquals } from "jsr:@std/assert@1";
 import { buildPrompt, checkCitations, type Deps, handle, validate } from "./handler.ts";
 import { isSensitive, support } from "./generate.ts";
 import { makeCallModel } from "./model.ts";
-import { passageFound, pdfPages, verifyPassages } from "./pdftext.ts";
+import { integrityOf, passageFound, pdfPages, sha256Hex, verifyPassages } from "./pdftext.ts";
 
 const passages = [
   { page: 3, text: "Le masque désigne le nombre de bits constituant l'identifiant de réseau dans l'adresse A.B.C.D." },
@@ -167,8 +167,8 @@ function genDeps(modelOut: Record<string, unknown>, over: Partial<Deps> = {}) {
     callModel: async (p) => { seen.push(p as unknown as Record<string, unknown>); return { text: JSON.stringify(modelOut), stop: "stop", model: "openai/gpt-oss-120b", inputTokens: 300, outputTokens: 120 }; },
     // extraction Business : rôle dans l'organisation, version du document, texte du PDF stocké
     db: { role: async (_u: string, o: string) => (o === XORG ? "expert" : null) } as unknown as Deps["db"],
-    docVersion: async (id: string) => (id === XVER ? { id, org_id: XORG, storage_path: `${XORG}/s/v1.pdf` } : null),
-    docPages: async () => fiche.map((p) => p.text),
+    docVersion: async (id: string) => (id === XVER ? { id, org_id: XORG, storage_path: `${XORG}/s/v1.pdf`, checksum: "sha-fiche" } : null),
+    docFile: async () => ({ pages: fiche.map((p) => p.text), sha256: "sha-fiche" }),
     ...over,
   });
   return { deps, calls, recorded, seen };
@@ -346,4 +346,30 @@ Deno.test("dialogue : mode « mise en situation » accepté, consigne explicite,
   const p = buildPrompt((v as { req: Parameters<typeof buildPrompt>[0] }).req);
   assert(p.includes("Mode : mise en situation") && p.includes("situation concrète") && p.includes("[P1]"));
   assert(!validate({ ...body, mode: "autre" }).ok);
+});
+
+Deno.test("provenance (P0) : empreinte du fichier stocké calculée par le serveur ; divergente, l'extraction est bloquée et tracée", async () => {
+  const marks: unknown[][] = [];
+  const g = genDeps({ items: [] }, { docFile: async () => ({ pages: fiche.map((p) => p.text), sha256: "autre-empreinte" }), markIntegrity: async (...a: unknown[]) => { marks.push(a); } });
+  const r = await handle(req({ task: "extraire", title: "Fiche", passages: fiche, org: XORG, version: XVER }), g.deps);
+  assertEquals(r.status, 409);
+  assert(/intégrité/.test((await r.json()).error));
+  assertEquals(g.seen.length, 0); // aucun appel au modèle
+  assertEquals([marks[0][0], marks[0][1], marks[0][2], marks[0][5]], [XVER, "divergent", "autre-empreinte", "sha-fiche"]);
+  const g2 = genDeps({ items: [] }, { markIntegrity: async (...a: unknown[]) => { marks.push(a); } });
+  assertEquals((await handle(req({ task: "extraire", title: "Fiche", passages: fiche, org: XORG, version: XVER }), g2.deps)).status, 200);
+  assertEquals(marks[1][1], "conforme");
+});
+
+Deno.test("provenance : SHA-256 réel des octets du PDF ; l'empreinte déclarée doit être identique", async () => {
+  const bytes = await Deno.readFile(new URL("../../../docs/demo/procedure-retours-EXEMPLE-FICTIF.pdf", import.meta.url));
+  const sha = await sha256Hex(bytes);
+  assert(/^[0-9a-f]{64}$/.test(sha));
+  const ref = [...new Uint8Array(await crypto.subtle.digest("SHA-256", bytes))].map((x) => x.toString(16).padStart(2, "0")).join("");
+  assertEquals(sha, ref);
+  assertEquals(integrityOf(sha.toUpperCase(), sha), "conforme");
+  assertEquals(integrityOf("0".repeat(64), sha), "divergent");
+  assertEquals(integrityOf(null, sha), "conforme"); // version ancienne sans empreinte déclarée : celle du serveur devient la référence
+  const altered = bytes.slice(); altered[altered.length - 10] ^= 1;
+  assert((await sha256Hex(altered)) !== sha);
 });

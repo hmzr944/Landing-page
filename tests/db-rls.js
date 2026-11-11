@@ -349,6 +349,80 @@ check('R6 le rôle anonyme n’a accès à aucune table Business', !psql('set ro
   check('Y39 le suivi des envois d’invitation est lisible par un responsable', as(dan, 'select count(sent_at) + sum(send_count) from public.invitations;').ok);
 }
 
+// ---------- Experience Architecture (009) : provenance, revalidation ciblée, hors référentiel ----------
+{
+  const m9 = psql(file('supabase/migrations/009_experience.sql'));
+  check('Z0 la migration 009 s’applique sur la base existante (données conservées)', m9.ok && as(dan, "select count(*) from public.knowledge_nodes where status = 'valide';").out !== '0', m9.err.slice(0, 300));
+  check('Z0b la migration 009 peut être rejouée sans erreur', psql(file('supabase/migrations/009_experience.sql')).ok);
+  check('Z0c les connaissances validées avant 009 restent validées, signalées « provenance non vérifiée »', as(dan, "select count(*) from public.knowledge_nodes where status = 'valide' and provenance = 'non_verifiee';").out !== '0');
+  const orgC = as(dan, "select id from public.organizations where name = 'Restaurant C';").out;
+  const srcC = as(dan, "select id from public.sources where title = 'Procédure hygiène';").out;
+  const expert = { id: '00000000-0000-0000-0000-000000000010', email: 'expert@resto.fr' };
+  const ver = (n, sum) => as(dan, `insert into public.source_versions (org_id, source_id, version, storage_path, checksum, uploaded_by) values ('${orgC}', '${srcC}', ${n}, '${orgC}/${srcC}/v${n}.pdf', '${sum}', '${dan.id}') returning id;`).out;
+  const v3 = ver(3, 'abc123'), v4 = ver(4, 'def456');
+  const kNew = (v, title, quote) => as(dan, `insert into public.knowledge_nodes (org_id, source_version_id, kind, title, body, quote, page, created_by) values ('${orgC}', '${v}', 'regle', '${title}', '${title} : corps', '${quote}', 1, '${dan.id}') returning id;`).out;
+  const serverOk = (v, sha) => asService(`update public.source_versions set server_sha256 = '${sha}', integrity = 'conforme', verified_at = now() where id = '${v}';`);
+  const verify = (k, sha) => asService(`update public.knowledge_nodes set provenance = 'verifiee', provenance_sha256 = '${sha}', provenance_at = now() where id = '${k}';`);
+  // 1. Provenance
+  check('Z1 le navigateur ne peut pas déclarer une provenance vérifiée, ni à la création ni après', !as(dan, `insert into public.knowledge_nodes (org_id, source_version_id, kind, title, body, quote, page, created_by, provenance) values ('${orgC}', '${v3}', 'regle', 'Pirate', 'x', 'x', 1, '${dan.id}', 'verifiee');`).ok
+    && !as(dan, `update public.knowledge_nodes set provenance = 'verifiee' where source_version_id = '${v3}';`).ok && !as(dan, `update public.source_versions set integrity = 'conforme', server_sha256 = 'abc123' where id = '${v3}';`).ok);
+  const kP = kNew(v3, 'Lavage des mains', 'Se laver les mains 30 secondes');
+  const blocked = as(dan, `select public.set_knowledge_status('${kP}', 'valide');`);
+  check('Z2 validation refusée tant que le serveur n’a pas retrouvé l’extrait dans le fichier stocké (erreur explicite, statut inchangé)', /provenance non vérifiée/.test(blocked.err) && as(dan, `select status from public.knowledge_nodes where id = '${kP}';`).out === 'propose');
+  serverOk(v3, 'abc123'); verify(kP, 'abc123');
+  check('Z3 extrait vérifié sur le fichier actuel : la validation passe', as(dan, `select public.set_knowledge_status('${kP}', 'valide');`).ok && as(dan, `select status from public.knowledge_nodes where id = '${kP}';`).out === 'valide');
+  const kQ = kNew(v3, 'Gants', 'Porter des gants'); verify(kQ, 'ancienne-empreinte');
+  check('Z4 un extrait vérifié sur un autre fichier (empreinte différente) ne permet pas de valider', /provenance non vérifiée/.test(as(dan, `select public.set_knowledge_status('${kQ}', 'valide');`).err));
+  verify(kQ, 'abc123'); asService(`update public.source_versions set integrity = 'divergent' where id = '${v3}';`);
+  check('Z5 version divergente (le fichier stocké ne correspond pas à l’empreinte déclarée) : toute validation est bloquée', /empreinte déclarée/.test(as(dan, `select public.set_knowledge_status('${kQ}', 'valide');`).err));
+  serverOk(v3, 'abc123');
+  as(dan, `update public.knowledge_nodes set page = 2 where id = '${kP}';`);
+  check('Z6 changer la page d’une connaissance validée la remet à revalider, provenance à vérifier', as(dan, `select status || '|' || provenance from public.knowledge_nodes where id = '${kP}';`).out === 'a_revalider|non_verifiee');
+  verify(kP, 'abc123'); as(dan, `select public.set_knowledge_status('${kP}', 'valide');`);
+  asService(`insert into public.evidence_events (org_id, user_id, knowledge_id, activity, outcome, evaluator, source_version_id) values ('${orgC}', '${eve.id}', '${kP}', 'simulation', 'juste', 'ia', '${v4}');`);
+  check('Z7 chaque preuve porte la version et l’empreinte du document de sa connaissance (pas celles fournies à l’écriture)', as(dan, `select (source_version_id = '${v3}') || '|' || source_sha256 from public.evidence_events where knowledge_id = '${kP}';`).out === 'true|abc123');
+  // 2. Invalidation ciblée
+  const skH = as(dan, `insert into public.skills (org_id, name, created_by) values ('${orgC}', 'Hygiène des mains', '${dan.id}') returning id;`).out;
+  as(dan, `insert into public.skill_knowledge (org_id, skill_id, knowledge_id) values ('${orgC}', '${skH}', '${kP}');`);
+  const kG = kQ; as(dan, `select public.set_knowledge_status('${kG}', 'valide');`);
+  const kT = kNew(v3, 'Tablier', 'Mettre un tablier propre'); verify(kT, 'abc123'); as(dan, `select public.set_knowledge_status('${kT}', 'valide');`);
+  asService(`insert into public.evidence_events (org_id, user_id, knowledge_id, activity, outcome, evaluator) values ('${orgC}', '${carla.id}', '${kP}', 'diagnostic', 'faux', 'regle'), ('${orgC}', '${eve.id}', '${kG}', 'diagnostic', 'juste', 'regle'), ('${orgC}', '${eve.id}', '${kT}', 'diagnostic', 'juste', 'regle');`);
+  const evBefore = as(dan, `select count(*) || '|' || string_agg(outcome, ',' order by id) from public.evidence_events where org_id = '${orgC}';`).out;
+  serverOk(v4, 'def456');
+  const ch2 = asService(`insert into public.policy_changes (org_id, source_id, from_version_id, to_version_id, created_by) values ('${orgC}', '${srcC}', '${v3}', '${v4}', '${dan.id}') returning id;`).out;
+  const item = (k, change, quote) => asService(`insert into public.policy_change_items (org_id, change_id, knowledge_id, change, new_body, new_quote, new_page, explanation) values ('${orgC}', '${ch2}', '${k}', '${change}', 'nouveau corps', ${quote ? `'${quote}'` : 'null'}, ${quote ? 1 : 'null'}, 'x') returning id;`).out;
+  const iMod = item(kP, 'modifie', 'Se laver les mains 40 secondes'), iNoQuote = item(kG, 'modifie', null), iRef = item(kT, 'reformule', 'Porter un tablier propre');
+  const kP2 = as(dan, `select public.decide_change_item('${iMod}', 'accepte');`).out;
+  check('Z8 changement accepté avec un extrait retrouvé par le serveur : nouvelle connaissance validée, provenance vérifiée sur la nouvelle empreinte',
+    as(dan, `select status || '|' || provenance || '|' || provenance_sha256 from public.knowledge_nodes where id = '${kP2}';`).out === 'valide|verifiee|def456');
+  const rv = as(dan, `select user_id || '|' || coalesce(skill_id::text, '-') || '|' || status from public.skill_revalidations where change_item_id = '${iMod}';`).out;
+  check('Z9 seule la personne dont une preuve juste reposait sur l’ancienne règle doit revalider la compétence (pas celle qui s’était trompée)', rv === `${eve.id}|${skH}|requires_revalidation`, rv);
+  check('Z10 les preuves historiques sont intactes (aucune modification, aucune suppression)', as(dan, `select count(*) || '|' || string_agg(outcome, ',' order by id) from public.evidence_events where org_id = '${orgC}';`).out === evBefore);
+  check('Z11 une micro-mission de revalidation est créée, avec la nouvelle règle', /40 secondes/.test(as(eve, `select reason from public.learning_actions where change_id = '${ch2}' and origin = 'watchdog';`).out));
+  check('Z12 revalidations : la personne voit les siennes, un manager celles de l’équipe, un collègue et une autre organisation rien',
+    as(eve, 'select count(*) from public.skill_revalidations;').out === '1' && as(carla, 'select count(*) from public.skill_revalidations;').out === '0' && as(alice, 'select count(*) from public.skill_revalidations;').out === '0' && as(dan, 'select count(*) from public.skill_revalidations;').out === '1');
+  check('Z13 personne ne crée ni ne modifie une revalidation depuis le navigateur', !as(dan, `insert into public.skill_revalidations (org_id, user_id, knowledge_id, change_id, change_item_id, reason) values ('${orgC}', '${carla.id}', '${kP}', '${ch2}', '${iMod}', 'xxx');`).ok && !as(eve, "update public.skill_revalidations set status = 'revalidee';").ok);
+  const kG2 = as(dan, `select public.decide_change_item('${iNoQuote}', 'accepte');`).out;
+  check('Z14 changement accepté sans extrait retrouvé : la connaissance n’est pas validée (à revalider, provenance introuvable)', as(dan, `select status || '|' || provenance from public.knowledge_nodes where id = '${kG2}';`).out === 'a_revalider|introuvable');
+  as(dan, `select public.decide_change_item('${iRef}', 'accepte');`);
+  check('Z15 une reformulation (même sens) n’invalide aucune compétence', as(dan, `select count(*) from public.skill_revalidations where change_item_id = '${iRef}';`).out === '0');
+  asService(`insert into public.evidence_events (org_id, user_id, knowledge_id, activity, outcome, evaluator) values ('${orgC}', '${eve.id}', '${kP2}', 'simulation', 'juste', 'ia');`);
+  check('Z16 une preuve juste sur la nouvelle règle clôt la revalidation (l’ancienne preuve reste)', as(dan, `select status || '|' || (resolved_evidence is not null) from public.skill_revalidations where change_item_id = '${iMod}';`).out === 'revalidee|true');
+  const rvG = as(dan, `select id from public.skill_revalidations where change_item_id = '${iNoQuote}';`).out;
+  check('Z17 un manager peut annuler une revalidation, pas un collaborateur', /accès refusé/.test(as(carla, `select public.cancel_revalidation('${rvG}');`).err) && as(dan, `select public.cancel_revalidation('${rvG}');`).ok && as(dan, `select status from public.skill_revalidations where id = '${rvG}';`).out === 'annulee');
+  // 3. Hors référentiel
+  check('Z18 le navigateur ne peut pas écrire de signalement hors référentiel', !as(eve, `insert into public.out_of_scope_knowledge (org_id, user_id, claim) values ('${orgC}', '${eve.id}', 'astuce');`).ok);
+  const oos = asService(`insert into public.out_of_scope_knowledge (org_id, user_id, claim, context, rationale) values ('${orgC}', '${eve.id}', 'Le lave-mains du fond est plus rapide', 'simulation:client', 'pratique de terrain plausible') returning id;`).out;
+  check('Z19 signalement lisible par l’équipe de contenu et par son auteur ; pas par un collègue ni une autre organisation',
+    as(expert, 'select count(*) from public.out_of_scope_knowledge;').out === '1' && as(eve, 'select count(*) from public.out_of_scope_knowledge;').out === '1' && as(carla, 'select count(*) from public.out_of_scope_knowledge;').out === '0' && as(alice, 'select count(*) from public.out_of_scope_knowledge;').out === '0');
+  check('Z20 l’équipe de contenu décide (à documenter), un collaborateur non', /accès refusé/.test(as(carla, `select public.review_out_of_scope('${oos}', 'ecartee');`).err) && as(expert, `select public.review_out_of_scope('${oos}', 'a_documenter');`).ok);
+  check('Z21 un signalement hors référentiel n’est ni une preuve juste ni une erreur', as(dan, `select count(*) from public.evidence_events where org_id = '${orgC}' and detail::text like '%lave-mains%';`).out === '0');
+  const ex9 = JSON.parse(as(eve, `select public.export_my_org_data('${orgC}');`).out || '{}');
+  check('Z22 l’export contient mes revalidations et mes signalements', (ex9.revalidations || []).length === 2 && (ex9.out_of_scope || []).length === 1);
+  as(eve, `select public.erase_my_org_data('${orgC}');`);
+  check('Z23 l’effacement les supprime aussi', as(dan, `select count(*) from public.skill_revalidations where user_id = '${eve.id}';`).out === '0' && as(dan, `select count(*) from public.out_of_scope_knowledge where user_id = '${eve.id}';`).out === '0');
+}
+
 // ---------- Tables du tuteur (001, 002) toujours protégées ----------
 check('T1 le journal des appels accepte les nouvelles tâches de génération', psql(`insert into public.ai_calls (user_id, mode, model) values ('${bob.id}', 'enrichir', 'm');`).ok);
 check('T2 un utilisateur ne lit pas les compteurs des autres', as(carla, 'select count(*) from public.ai_calls;').out === '0' && as(bob, 'select count(*) from public.ai_calls;').out === '2');

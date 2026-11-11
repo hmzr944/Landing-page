@@ -15,16 +15,25 @@
 import { createClient } from "npm:@supabase/supabase-js@2.119.0";
 import { handle, type Deps } from "./handler.ts";
 import { makeCallModel } from "./model.ts";
-import { pdfPages } from "./pdftext.ts";
+import { pdfPages, sha256Hex } from "./pdftext.ts";
 
 const env = (k: string, d = "") => (Deno.env.get(k) || d).trim();
 const admin = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), { auth: { persistSession: false } });
 const must = <T>(r: { data: T | null; error: { message: string } | null }) => { if (r.error) throw new Error(r.error.message); return r.data as T; };
-// Texte des pages d'un PDF stocké (dossier privé de l'organisation), relu ici pour vérifier ce qu'envoie le navigateur
-async function storedPages(path: string) {
+// Fichier PDF stocké (dossier privé de l'organisation), relu ici : texte page par page et empreinte SHA-256 des octets.
+// C'est la seule source de vérité pour la provenance ; le navigateur n'en fournit qu'une copie à vérifier.
+async function storedDoc(path: string) {
   const { data, error } = await admin.storage.from("org-sources").download(path);
   if (error || !data) throw new Error("fichier introuvable");
-  return pdfPages(new Uint8Array(await data.arrayBuffer()));
+  const bytes = new Uint8Array(await data.arrayBuffer());
+  const sha256 = await sha256Hex(bytes);
+  return { pages: await pdfPages(bytes), sha256 };
+}
+async function markIntegrity(versionId: string, integrity: string, sha256: string) {
+  must(await admin.from("source_versions").update({ server_sha256: sha256, integrity, verified_at: new Date().toISOString() }).eq("id", versionId));
+}
+async function audit(orgId: string, actor: string, action: string, target: string, detail: Record<string, unknown>) {
+  must(await admin.from("audit_logs").insert({ org_id: orgId, actor, action, target, detail }));
 }
 const BREVO = env("BREVO_API_KEY"), MAIL_FROM = env("MAIL_FROM");
 
@@ -92,10 +101,17 @@ export const deps: Deps = {
       return v.id;
     },
     async getScenarioVersion(id) { return (await admin.from("scenario_versions").select("*").eq("id", id).maybeSingle()).data; },
-    async versionInfo(id) { return (await admin.from("source_versions").select("id,org_id,source_id,version,storage_path").eq("id", id).maybeSingle()).data; },
-    async versionByNumber(sourceId, n) { return (await admin.from("source_versions").select("id,org_id,source_id,version,storage_path").eq("source_id", sourceId).eq("version", n).maybeSingle()).data; },
+    async versionInfo(id) { return (await admin.from("source_versions").select("id,org_id,source_id,version,storage_path,checksum").eq("id", id).maybeSingle()).data; },
+    async versionByNumber(sourceId, n) { return (await admin.from("source_versions").select("id,org_id,source_id,version,storage_path,checksum").eq("source_id", sourceId).eq("version", n).maybeSingle()).data; },
     async knowledgeOfVersion(versionId) { return must(await admin.from("knowledge_nodes").select("id,kind,title,body,quote,page,source_version_id,status").eq("source_version_id", versionId)) || []; },
-    docPages: storedPages,
+    docFile: storedDoc,
+    markIntegrity: (id, integrity, sha) => markIntegrity(id, integrity, sha),
+    async setProvenance(rows) {
+      const at = new Date().toISOString();
+      for (const r of rows) must(await admin.from("knowledge_nodes").update({ provenance: r.provenance, provenance_sha256: r.sha256, provenance_at: at }).eq("id", r.id));
+    },
+    audit,
+    async insertOutOfScope(rows) { must(await admin.from("out_of_scope_knowledge").insert(rows)); },
     async insertPolicyChange(row) { return (must(await admin.from("policy_changes").insert(row).select("id").single()) as { id: string }).id; },
     async insertChangeItems(rows) { must(await admin.from("policy_change_items").insert(rows)); },
     async invitationById(id) {
@@ -112,8 +128,12 @@ export const deps: Deps = {
       },
     } : {}),
   },
-  async docVersion(id) { return (await admin.from("source_versions").select("id,org_id,storage_path").eq("id", id).maybeSingle()).data; },
-  docPages: storedPages,
+  async docVersion(id) { return (await admin.from("source_versions").select("id,org_id,storage_path,checksum").eq("id", id).maybeSingle()).data; },
+  docFile: storedDoc,
+  async markIntegrity(versionId, integrity, sha256, orgId, userId, declared) {
+    await markIntegrity(versionId, integrity, sha256);
+    if (integrity === "divergent") await audit(orgId, userId, "provenance.divergente", versionId, { declaree: declared, calculee: sha256 });
+  },
   origins: env("TUTOR_ORIGINS", "https://hmzr944.github.io").split(",").map((s) => s.trim()).filter(Boolean),
   price: { input: Number(env("AI_PRICE_INPUT", "0")), output: Number(env("AI_PRICE_OUTPUT", "0")) },
   async getUser(jwt) {

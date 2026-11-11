@@ -3380,3 +3380,6 @@ html.calm .mo-leaf { display: none; }
 .wd-same { margin: 8px 0 0; font-size: var(--t-sm); opacity: .8; }
 .wd-same small { display: block; font-weight: 700; }
 .pw .org-list li span small { display: block; margin-top: 2px; }
+.kn-prov { display: flex; gap: 6px; align-items: center; margin: 6px 0 0; font-size: var(--t-xs); opacity: .85; }
+.kn-prov.prov-verifiee { color: var(--accent-ink); }
+.kn-prov.prov-introuvable { color: var(--danger); opacity: 1; }

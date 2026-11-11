@@ -195,17 +195,21 @@ Deno.test("diagnostic de repli (sans modèle) : texte à trous sur l'extrait, la
 /* ---------- Moteurs (008) ---------- */
 function engineDb(roles: Record<string, string> = { "u-bob": "member", "u-eve": "manager" }) {
   const f = fakeDb(roles);
-  const store: Record<string, any> = { edges: [], defs: [], versions: {}, changes: [], items: [], sent: [], invites: {} };
+  const store: Record<string, any> = { edges: [], defs: [], versions: {}, changes: [], items: [], sent: [], invites: {}, integrity: [], provenance: [], audit: [], oos: [], fileSha: "sha-v2" };
   Object.assign(f.db, {
     edgesOf: async () => [{ from_id: "k-retour", to_id: "k-batterie", relation: "precise" }],
     insertEdges: async (rows: any[]) => { store.edges.push(...rows); return rows.length; },
     createScenarioDef: async (row: any) => { const id = crypto.randomUUID(); store.defs.push({ ...row, id }); return id; },
     createScenarioVersion: async (row: any) => { const id = crypto.randomUUID(); store.versions[id] = { ...row, id, status: "brouillon" }; return id; },
     getScenarioVersion: async (id: string) => store.versions[id] ?? null,
-    versionInfo: async (id: string) => (id === "77777777-7777-4777-8777-777777777777" ? { id, org_id: ORG, source_id: "src", version: 2, storage_path: "p/v2.pdf" } : null),
+    versionInfo: async (id: string) => (id === "77777777-7777-4777-8777-777777777777" ? { id, org_id: ORG, source_id: "src", version: 2, storage_path: "p/v2.pdf", checksum: "sha-v2" } : null),
     versionByNumber: async (_s: string, n: number) => (n === 1 ? { id: "v1", org_id: ORG, source_id: "src", version: 1, storage_path: "p/v1.pdf" } : null),
     knowledgeOfVersion: async () => K.map((k) => ({ ...k, status: "valide" })),
-    docPages: async () => ["Son autonomie annoncée est de 90 km en mode éco. Le cadre en aluminium pèse 19 kg désormais.", "Le client dispose de 14 jours pour un retour avec le ticket de caisse. Tout retour doit être saisi dans le registre."],
+    markIntegrity: async (id: string, integrity: string, sha: string) => { store.integrity.push([id, integrity, sha]); },
+    setProvenance: async (rows: any[]) => { store.provenance.push(...rows); },
+    audit: async (...a: any[]) => { store.audit.push(a); },
+    insertOutOfScope: async (rows: any[]) => { store.oos.push(...rows); },
+    docFile: async () => ({ sha256: store.fileSha, pages: ["Son autonomie annoncée est de 90 km en mode éco. Le cadre en aluminium pèse 19 kg désormais.", "Le client dispose de 14 jours pour un retour avec le ticket de caisse. Tout retour doit être saisi dans le registre."] }),
     insertPolicyChange: async (row: any) => { const id = crypto.randomUUID(); store.changes.push({ ...row, id }); return id; },
     insertChangeItems: async (rows: any[]) => { store.items.push(...rows); },
     invitationById: async (id: string) => store.invites[id] ?? null,
@@ -310,4 +314,53 @@ Deno.test("invitation par e-mail : jeton vérifié, non configuré dit clairemen
   assertEquals(mails[0].to, "nina@boulangerie.fr");
   assert(mails[0].text.includes(`https://arbor.test/#/rejoindre/${token}`) && mails[0].subject.includes("Boulangerie Martin"));
   assertEquals((await call(d, { task: "invitation_envoyer", org: ORG, invitation: iid, token }, "jwt-eve")).status, 429);
+});
+
+Deno.test("provenance : chaque extrait cherché dans le fichier stocké ; trouvé = vérifié avec l'empreinte, sinon introuvable ; équipe de contenu seulement", async () => {
+  const e = engineDb();
+  const { d } = deps(e.db, []);
+  const V = "77777777-7777-4777-8777-777777777777";
+  assertEquals((await call(d, { task: "verifier_provenance", org: ORG, version: V })).status, 403); // collaborateur
+  const r = await call(d, { task: "verifier_provenance", org: ORG, version: V }, "jwt-eve");
+  assertEquals(r.status, 200);
+  const st = Object.fromEntries(e.store.provenance.map((x: any) => [x.id, x.provenance]));
+  assertEquals(st["k-autonomie"], "verifiee"); // « Son autonomie annoncée est de 90 km en mode éco » figure dans le fichier
+  assertEquals(st["k-retour"], "introuvable"); // le fichier dit 14 jours, plus 30
+  assert(e.store.provenance.every((x: any) => x.sha256 === "sha-v2"));
+  assertEquals(e.store.integrity[0], [V, "conforme", "sha-v2"]);
+});
+
+Deno.test("provenance : fichier stocké différent de l'empreinte déclarée : vérification et comparaison bloquées, incident journalisé", async () => {
+  const e = engineDb(); e.store.fileSha = "fichier-remplace";
+  const { d } = deps(e.db, [{ items: [], added: [] }]);
+  const V = "77777777-7777-4777-8777-777777777777";
+  const r = await call(d, { task: "verifier_provenance", org: ORG, version: V }, "jwt-eve");
+  assertEquals(r.status, 409);
+  assertEquals(e.store.provenance.length, 0);
+  assertEquals(e.store.integrity[0][1], "divergent");
+  assertEquals(e.store.audit[0][2], "provenance.divergente");
+  assertEquals((await call(d, { task: "comparer_versions", org: ORG, version: V }, "jwt-eve")).status, 409);
+  assertEquals(e.store.changes.length, 0);
+});
+
+Deno.test("verdicts : une pratique de terrain plausible mais absente des fiches est « hors référentiel » : ni juste ni fausse, signalée, jamais une maîtrise", async () => {
+  const e = engineDb();
+  const ev = (c: unknown[]) => ({ behaviors: [], claims: c, need_found: false, objections_resolved: [] });
+  const { d } = deps(e.db, [
+    { name: "Nadia", profile: "p", personality: "q", need: "n", objections: ["o"], opening: "Bonjour", knowledge: ["k1"] },
+    ev([{ text: "on peut aussi passer par la borne", k: "", verdict: "hors_referentiel", why: "pratique de terrain plausible" },
+      { text: "le vélo fait 90 km", k: "k1", verdict: "hors_referentiel", why: "x" }]),
+    { reply: "Ah.", satisfied: false, leaves: false },
+  ]);
+  const st = await call(d, { task: "mystere_start", org: ORG });
+  await call(d, { task: "mystere_tour", org: ORG, session: st.data.id, message: "Bonjour, on peut aussi passer par la borne, et le vélo fait 90 km." });
+  const oos = e.evidence.find((x) => x.detail.claim === "on peut aussi passer par la borne");
+  assertEquals([oos.outcome, oos.level, oos.knowledge_id, oos.detail.scope], ["non_documente", null, null, "out_of_scope_knowledge"]);
+  // reliée à une connaissance validée, une affirmation n'est jamais « hors référentiel »
+  assert(e.evidence.find((x) => x.detail.claim === "le vélo fait 90 km").detail.scope === undefined);
+  assertEquals(e.store.oos.length, 1);
+  assertEquals([e.store.oos[0].claim, e.store.oos[0].rationale], ["on peut aussi passer par la borne", "pratique de terrain plausible"]);
+  const fin = await call(d, { task: "mystere_fin", org: ORG, session: st.data.id });
+  assertEquals(fin.data.debrief.outOfScope.map((x: any) => x.text), ["on peut aussi passer par la borne"]);
+  assertEquals(fin.data.debrief.incorrect.length + fin.data.debrief.correct.length, 0);
 });
