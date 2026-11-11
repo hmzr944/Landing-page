@@ -75,6 +75,18 @@
       }
     }
 
+    // Live Policy Watchdog (serveur, migration 008) : comparaison détaillée de l'ancienne et de la nouvelle version,
+    // décidée ensuite par un humain. Sans 008, la comparaison ci-dessus suffit.
+    let change = null; const fromChange = new Set();
+    if (sourceId) {
+      step('Comparaison avec la version précédente…', 0.33);
+      try {
+        change = await OrgLearn.srv({ task: 'comparer_versions', org: org.id, source: sourceId, version: row.version_id });
+        const its = await Tutor.rest('/rest/v1/policy_change_items', { method: 'GET', query: `?change_id=eq.${q(change.change)}&select=new_quote` });
+        its.forEach((x) => x.new_quote && fromChange.add(plain(x.new_quote)));
+      } catch (e) { change = null; }
+    }
+
     // Extraction, lot par lot ; le serveur ne garde que les connaissances dont l'extrait est retrouvé mot pour mot
     const bs = batches(read.pages);
     const items = []; let dropped = 0, unverified = 0;
@@ -83,12 +95,12 @@
       const r = await AI.extract(title || 'Document', bs[i], { org: org.id, version: row.version_id, onStatus: (m) => step(m, 0.35 + 0.55 * (i / bs.length)) });
       items.push(...r.items); dropped += r.dropped; unverified += r.unverified || 0;
     }
-    const known = new Set(kept.map((k) => plain(k.quote)));
+    const known = new Set([...kept.map((k) => plain(k.quote)), ...fromChange]);
     const fresh = items.filter((x) => !known.has(plain(x.quote)) && (known.add(plain(x.quote)), true));
     step('Enregistrement des connaissances…', 0.95);
     const me = Tutor.userId();
     await insertKnowledge(fresh.map((x) => ({ org_id: org.id, source_version_id: row.version_id, kind: x.kind, title: x.title, body: x.body, quote: x.quote, page: x.page, confidence: x.confidence, extracted_by: 'ia', created_by: me })));
-    return { sourceId: row.source_id, version: row.version, proposed: fresh.length, sensitive: fresh.filter((x) => x.kind === 'sensible').length, dropped, unverified, kept: kept.length, revalidate, aside: read.aside, unreadable: read.unreadable };
+    return { sourceId: row.source_id, version: row.version, proposed: fresh.length, sensitive: fresh.filter((x) => x.kind === 'sensible').length, dropped, unverified, kept: kept.length, revalidate, aside: read.aside, unreadable: read.unreadable, change: change && change.summary };
   }
 
   /* ---------- Écrans ---------- */
@@ -132,6 +144,7 @@
         const r = await addDocument(o, file, { title: src ? src.title : f.querySelector('#dfTitle').value.trim(), sourceId: src ? src.id : null, onStep: (m, k) => { f.querySelector('#dfMsg').textContent = m; f.querySelector('#dfBar').style.transform = `scaleX(${Math.max(0.04, k)})`; } });
         const parts = [`Version ${r.version} enregistrée. ${r.proposed} connaissance${r.proposed > 1 ? 's' : ''} à valider${r.sensitive ? `, dont ${r.sensitive} sensible${r.sensitive > 1 ? 's' : ''}` : ''}.`];
         if (src) parts.push(`${r.kept} toujours valable${r.kept > 1 ? 's' : ''} (extrait retrouvé dans la nouvelle version), ${r.revalidate} à revalider.`);
+        if (r.change) parts.push(`Changements détectés : ${r.change.modifie || 0} modifiée${(r.change.modifie || 0) > 1 ? 's' : ''}, ${r.change.supprime || 0} supprimée${(r.change.supprime || 0) > 1 ? 's' : ''}, ${r.change.nouveau || 0} nouvelle${(r.change.nouveau || 0) > 1 ? 's' : ''} : à décider ci-dessous.`);
         if (r.dropped) parts.push(`${r.dropped} proposition${r.dropped > 1 ? 's' : ''} écartée${r.dropped > 1 ? 's' : ''} : extrait introuvable dans le document.`);
         if (r.aside) parts.push(`${r.aside} passage${r.aside > 1 ? 's' : ''} hors cours non envoyé${r.aside > 1 ? 's' : ''} (évaluation, conseil, annexe).`);
         if (r.unreadable.length) parts.push(`Pages illisibles ignorées : ${r.unreadable.join(', ')}.`);
@@ -178,13 +191,16 @@
         <h2>${d.esc(src.title)} <small class="num">version ${src.current_version}</small></h2>
         ${lastReport && lastReport.sourceId === sourceId ? `<p class="doc-report" id="docReport">${d.ic('info')}${d.esc(lastReport.text)}</p>` : ''}
         <p class="hint">${todo.length} à traiter · ${ks.filter((k) => k.status === 'valide').length} validée${ks.filter((k) => k.status === 'valide').length > 1 ? 's' : ''} · ${ks.length} au total</p>
+        <div id="wdBox"></div>
         ${canEdit(o) && easy.length ? `<div class="row-btns"><button class="btn ghost sm" id="kAll">${d.ic('checks')}Valider les ${easy.length} propositions non sensibles</button></div>` : ''}
         <ul class="kn-list">${ks.map(card).join('') || '<li class="hint">Aucune connaissance extraite.</li>'}</ul>
       </section>
       ${canEdit(o) ? `<section class="sec"><h2>Nouvelle version</h2><p class="hint">Les connaissances dont l’extrait figure toujours dans la nouvelle version restent valables ; les autres passent « à revalider ».</p>
         <form class="org-invite" id="docForm"><label for="dfFile">Fichier PDF</label><input id="dfFile" type="file" accept="application/pdf" required />
         <div class="row-btns"><button class="btn">${d.ic('arrows-clockwise')}Envoyer la nouvelle version</button></div>
-        <div class="doc-progress" id="dfProg" hidden><span id="dfMsg"></span><span class="bar"><span id="dfBar"></span></span></div><p class="hint" id="dfOut" role="status"></p></form></section>` : ''}`;
+        <div class="doc-progress" id="dfProg" hidden><span id="dfMsg"></span><span class="bar"><span id="dfBar"></span></span></div><p class="hint" id="dfOut" role="status"></p></form></section>` : ''}
+      <div id="relBox"></div>`;
+    if (window.OrgEngines) { OrgEngines.watchdog(app.querySelector('#wdBox'), o, sourceId, d); OrgEngines.relations(app.querySelector('#relBox'), o, d); }
     if (lastReport && lastReport.sourceId === sourceId) lastReport = null;
     app.querySelectorAll('[data-k]').forEach((b) => { b.onclick = async () => { b.disabled = true; try { await setStatus(b.dataset.k, b.dataset.s); detailView(app, o, sourceId, headHtml); } catch (x) { d.toast(x.message, 'error'); b.disabled = false; } }; });
     const all = app.querySelector('#kAll');

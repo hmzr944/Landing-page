@@ -42,7 +42,7 @@
   };
   const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
-  /* o : { sid, nid, activity: rappel|lecon|socratique|enseigne|simulation, outcome: juste|partiel|faux,
+  /* o : { sid, nid, activity: rappel|lecon|socratique|enseigne|situation|simulation, outcome: juste|partiel|faux,
           grade?, confidence?, answer?, misconception? } */
   async function add(o) {
     const rec = { id: uid(), at: Date.now(), ...o };

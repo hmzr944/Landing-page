@@ -1,4 +1,4 @@
-/* Dialogue avec Pousse : mode socratique et mode Enseigne-moi, sur UNE notion de ton cours.
+/* Dialogue avec Pousse : mode socratique, Enseigne-moi et mise en situation (appliquer la notion à un cas concret), sur UNE notion de ton cours.
    - Le tuteur ne reçoit que les passages de cette notion (texte importé, points clés, extrait d'origine),
      et chaque citation qu'il renvoie est vérifiée côté serveur.
    - Chaque évaluation devient une observation (journal) ; une confusion nommée rend la notion « fragile »
@@ -36,11 +36,12 @@
     el.className = 'lesson dlg';
     el.style.setProperty('--lc', 'var(--accent)');
     el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true');
-    el.setAttribute('aria-label', `${mode === 'socratique' ? 'Dialogue' : 'Enseigne-moi'} : ${node.title}`);
+    const TITLE = { socratique: ['Dialogue', 'Dialogue avec Pousse'], enseigne: ['Enseigne-moi', 'Enseigne-moi'], situation: ['Mise en situation', 'Mise en situation'] }[mode] || ['Dialogue', 'Dialogue avec Pousse'];
+    el.setAttribute('aria-label', `${TITLE[0]} : ${node.title}`);
     el.innerHTML = `<div class="ls-top"><button class="icon-btn ls-close" aria-label="Fermer">${d.ic('x')}</button>
-        <div class="dlg-title"><small>${mode === 'socratique' ? 'Dialogue avec Pousse' : 'Enseigne-moi'}</small><b>${d.esc(node.title)}</b></div></div>
+        <div class="dlg-title"><small>${TITLE[1]}</small><b>${d.esc(node.title)}</b></div></div>
       <div class="dlg-feed" aria-live="polite"></div>
-      <form class="dlg-form"><textarea id="dlgInput" rows="2" placeholder="${mode === 'socratique' ? 'Ta réponse…' : 'Explique la notion avec tes mots…'}" aria-label="Ta réponse"></textarea>
+      <form class="dlg-form"><textarea id="dlgInput" rows="2" placeholder="${mode === 'enseigne' ? 'Explique la notion avec tes mots…' : mode === 'situation' ? 'Ce que tu fais, et pourquoi…' : 'Ta réponse…'}" aria-label="Ta réponse"></textarea>
         <div class="dlg-actions">${mode === 'socratique' ? `<button type="button" class="btn ghost sm" data-dlg="hint">${d.ic('lightbulb')}Un indice</button>` : ''}<button class="btn" type="submit">${d.ic('paper-plane-right', true)}Envoyer</button></div></form>`;
     document.body.appendChild(el);
     document.documentElement.classList.add('in-lesson');
@@ -93,7 +94,7 @@
     function observe(r, answer) {
       const outcome = { juste: 'juste', partiel: 'partiel', faux: 'faux' }[r.verdict];
       if (!outcome && !r.misconception) return;
-      const obs = { sid: s.id, nid: node.id, activity: mode === 'socratique' ? 'socratique' : 'enseigne', outcome: outcome || 'faux', answer, ...(r.misconception ? { misconception: r.misconception } : {}) };
+      const obs = { sid: s.id, nid: node.id, activity: mode, outcome: outcome || 'faux', answer, ...(r.misconception ? { misconception: r.misconception } : {}) };
       Obs.summarize(node, { ...obs, at: Date.now() }); Obs.add(obs);
       if (r.misconception && node.srs) node.srs.due = Math.min(node.srs.due, Date.now() + 12 * 3600 * 1000);
       d.save();
@@ -164,7 +165,7 @@
 
     function start() {
       if (!Tutor.signedIn()) { loginPanel(); return; }
-      if (mode === 'socratique') send('', false);
+      if (mode === 'socratique' || mode === 'situation') send('', false);
       else pousse(`Explique « ${node.title} » avec tes mots, comme si tu l’apprenais à quelqu’un. Je compare avec ton cours.`);
     }
 

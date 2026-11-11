@@ -54,6 +54,7 @@
     if (can(o, 'admin', 'manager') && window.OrgLearn) tabs.push(['suivi', 'chart-bar', 'Suivi']);
     if (can(o, 'admin', 'manager', 'expert') && window.OrgDocs) tabs.push(['documents', 'files', 'Documents']);
     if (can(o, 'admin', 'manager') && window.OrgLearn) tabs.push(['competences', 'target', 'Compétences']);
+    if (can(o, 'admin', 'manager') && window.OrgEngines) tabs.push(['scenarios', 'film-script', 'Scénarios']);
     if (can(o, 'admin', 'manager')) tabs.push(['equipe', 'users-three', 'Équipe']);
     return `<header class="org-head glass">
         <div class="org-id"><span class="org-badge" aria-hidden="true">${d.ic('buildings', true)}</span><div><h1>${d.esc(o.name)}</h1><p>${d.esc(o.sector || 'Espace professionnel')} · <b>${ROLES[o.role] || o.role}</b></p></div></div>
@@ -95,6 +96,7 @@
         ${o.role === 'admin' && !us.length && window.OrgOnboarding ? `<p class="hint">Pour ranger les membres par équipe ou établissement : <a href="#/org/${o.id}/configurer/structure">créer des équipes</a>.</p>` : ''}
       </section>`;
     if (window.OrgOnboarding) OrgOnboarding.inviteBox(app.querySelector('#teamInvite'), o);
+    if (window.OrgEngines) { const rb = document.createElement('div'); app.appendChild(rb); OrgEngines.retention(rb, o, d); }
     app.querySelectorAll('[data-unit]').forEach((sel) => { sel.onchange = async () => {
       try { await Tutor.rest('/rest/v1/rpc/set_member_unit', { body: { p_org: o.id, p_user: sel.dataset.unit, p_unit: sel.value || null } }); d.toast('Équipe mise à jour', 'success'); }
       catch (x) { d.toast(x.message, 'error'); teamView(app, o); }
@@ -174,6 +176,7 @@
       }
     }
     if (view.tab === 'equipe' && can(o, 'admin', 'manager')) return teamView(app, o);
+    if (view.tab === 'scenarios' && can(o, 'admin', 'manager') && window.OrgEngines) return OrgEngines.scenariosView(app, o, head(o, 'scenarios'), d);
     if (view.tab === 'documents' && window.OrgDocs) return OrgDocs.render(app, o, view.sub, d, head(o, 'documents'));
     if (window.OrgLearn && OrgLearn.TABS.includes(view.tab)) return OrgLearn.render(app, o, view, d, head(o, view.tab));
     app.innerHTML = homeView(o);

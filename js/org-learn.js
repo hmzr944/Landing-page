@@ -80,7 +80,9 @@
       <p>Un client simulé entre dans le magasin. Réponds librement, comme en vrai. Il a un besoin qu’il ne dit pas tout de suite, et quelques objections. À la fin, tu reçois un débrief sur des comportements observables et l’exactitude de tes informations.</p>
       <p class="label-like">Type de client</p>
       <div class="conf-pick" role="radiogroup" aria-label="Type de client">${[['hésitant', 'Hésitant'], ['pressé', 'Pressé'], ['exigeant', 'Exigeant']].map(([k, l], i) => `<label><input type="radio" name="msStyle" value="${k}" ${i ? '' : 'checked'} /><span>${l}</span></label>`).join('')}</div>
-      <div class="row-btns"><button class="btn big" id="msGo">${d.ic('door-open', true)}Accueillir le client</button></div><p class="hint" id="msMsg" role="status"></p></section>`;
+      <div class="row-btns"><button class="btn big" id="msGo">${d.ic('door-open', true)}Accueillir le client</button></div><p class="hint" id="msMsg" role="status"></p>
+      <div id="msScen" class="ms-scen"></div></section>`;
+    if (window.OrgEngines) OrgEngines.publishedList(app.querySelector('#msScen'), o, head, app, d);
     app.querySelector('#msGo').onclick = async () => {
       const msg = app.querySelector('#msMsg'); msg.textContent = 'Le client arrive…';
       let s;
@@ -90,9 +92,11 @@
     };
   }
   function chat(app, o, head, s, log) {
-    const line = (t) => `<div class="ms-line ${t.role}"><b>${t.role === 'client' ? d.esc(s.client.name) : 'Toi'}</b><p>${d.esc(t.text)}</p></div>`;
+    const line = (t) => (t.role === 'event' ? `<p class="ms-event">${d.ic('lightning', true)}${d.esc(t.text)}</p>` : `<div class="ms-line ${t.role}"><b>${t.role === 'client' ? d.esc(s.client.name) : 'Toi'}</b><p>${d.esc(t.text)}</p></div>`);
+    const sc = s.scenario;
     app.innerHTML = `${head}<section class="sec org-learn ms-chat">
-      <div class="ms-head"><span class="org-badge" aria-hidden="true">${d.ic('user', true)}</span><div><b>${d.esc(s.client.name)}</b><small>Client ${d.esc(s.client.style)}</small></div><button class="btn ghost sm" id="msEnd">Terminer</button></div>
+      <div class="ms-head"><span class="org-badge" aria-hidden="true">${d.ic('user', true)}</span><div><b>${d.esc(s.client.name)}</b><small>${sc ? 'Mise en situation' : `Client ${d.esc(s.client.style)}`}</small></div><button class="btn ghost sm" id="msEnd">Terminer</button></div>
+      ${sc ? `<details class="ms-ctx" ${log.length < 2 ? 'open' : ''}><summary>La situation</summary><p>${d.esc(sc.context || '')}</p>${sc.role_label ? `<p><b>Ton rôle :</b> ${d.esc(sc.role_label)}</p>` : ''}${sc.objective ? `<p><b>Objectif :</b> ${d.esc(sc.objective)}</p>` : ''}${(sc.constraints || []).length ? `<ul>${sc.constraints.map((c) => `<li>${d.esc(c)}</li>`).join('')}</ul>` : ''}</details>` : ''}
       <div class="ms-feed" id="msFeed" aria-live="polite">${log.map(line).join('')}</div>
       <form class="ms-form" id="msForm"><label for="msText" class="sr-only">Ta réponse</label><textarea id="msText" rows="2" maxlength="800" placeholder="Ta réponse au client…" required></textarea>
         <p class="label-like">Ta confiance dans ce que tu affirmes <small>(facultatif)</small></p>${confChips('msConf')}
@@ -111,7 +115,9 @@
       const msg = app.querySelector('#msMsg'); msg.textContent = `${s.client.name} réfléchit…`;
       try {
         const r = await srv({ task: 'mystere_tour', org: o.id, session: s.id, message: text, confidence: confOf(app, 'msConf') }, (m) => { msg.textContent = m; });
-        log.push({ role: 'vendeur', text }, { role: 'client', text: r.reply });
+        log.push({ role: 'vendeur', text });
+        if (r.event) log.push({ role: 'event', text: r.event });
+        log.push({ role: 'client', text: r.reply });
         if (r.ended) { chat(app, o, head, s, log); app.querySelector('#msForm').hidden = true; app.querySelector('#msFeed').insertAdjacentHTML('beforeend', '<p class="hint">Le client a terminé l’échange.</p>'); return end(); }
         chat(app, o, head, s, log);
       } catch (x) { msg.textContent = x.message; btn.disabled = false; }
@@ -128,6 +134,8 @@
       <ul class="db-beh">${db.behaviors.map((b) => `<li class="${b.observed ? 'ok' : ''}">${b.observed ? d.ic('check-circle', true) : d.ic('circle')}<span>${d.esc(b.label)}${b.observed ? `<small>« ${d.esc(b.evidence)} »</small>` : ''}</span></li>`).join('')}</ul>
       ${db.incorrect.length ? `<h3>Informations inexactes</h3><ul class="db-claims">${db.incorrect.map((c) => `<li><b>${c.falseCertainty ? 'Fausse certitude : ' : ''}« ${d.esc(c.text)} »</b><span>Le document dit : « ${d.esc(c.quote)} »${c.page ? ` (p. ${c.page})` : ''}</span></li>`).join('')}</ul>` : ''}
       ${db.undocumented.length ? `<h3>Affirmations non retrouvées dans les fiches validées</h3><ul class="db-claims">${db.undocumented.map((c) => `<li>« ${d.esc(c.text)} »<span>À vérifier : aucune fiche validée ne le confirme.</span></li>`).join('')}</ul>` : ''}
+      ${(db.insufficient || []).length ? `<h3>Réponses trop peu étayées</h3><ul class="db-claims">${db.insufficient.map((c) => `<li>« ${d.esc(c.text)} »<span>Ni juste ni fausse : il manque un élément pour conclure${c.quote ? `. Le document dit : « ${d.esc(c.quote)} »` : ''}.</span></li>`).join('')}</ul>` : ''}
+      ${(db.events || []).length ? `<h3>Événements de la situation</h3><ul>${db.events.map((e) => `<li>Au tour ${e.turn} : ${d.esc(e.text)}</li>`).join('')}</ul>` : ''}
       ${db.correct.length ? `<p>${db.correct.length} information${db.correct.length > 1 ? 's' : ''} exacte${db.correct.length > 1 ? 's' : ''}, conforme${db.correct.length > 1 ? 's' : ''} aux fiches.</p>` : ''}
       <p class="hint">${d.esc(db.note)}</p>
       <div class="row-btns"><a class="btn" href="#/org/${o.id}/resultats">${d.ic('chart-line-up')}Mes résultats</a><button class="btn ghost" id="msAgain">${d.ic('arrow-counter-clockwise')}Rejouer</button></div></section>`;
@@ -139,7 +147,7 @@
   const knowledgeOrg = (org) => Tutor.rest('/rest/v1/knowledge_nodes', { method: 'GET', query: `?org_id=eq.${q(org)}&select=id,kind,title,page,status&limit=2000` });
   const membersOrg = (org) => Tutor.rest('/rest/v1/memberships', { method: 'GET', query: `?org_id=eq.${q(org)}&status=eq.active&select=user_id,role,email` });
 
-  const stateRows = (p) => p.items.length ? `<ul class="st-list">${p.items.map((x) => `<li class="st-${x.state}"><span class="st-pill">${x.label}</span><b>${d.esc(x.knowledge.title)}</b><small>${x.why} · ${x.n} preuve${x.n > 1 ? 's' : ''}${x.knowledge.page ? ` · p. ${x.knowledge.page}` : ''}</small></li>`).join('')}</ul>` : '<p class="hint">Aucune preuve pour l’instant.</p>';
+  const stateRows = (p) => p.items.length ? `<ul class="st-list">${p.items.map((x) => `<li class="st-${x.state}"><span class="st-pill">${x.label}</span><b>${d.esc(x.knowledge.title)}</b><small>${x.why} · ${x.n} preuve${x.n > 1 ? 's' : ''}${x.knowledge.page ? ` · p. ${x.knowledge.page}` : ''}${x.level ? ` · niveau ${x.level} : ${x.levelLabel}` : ''}</small></li>`).join('')}</ul>` : '<p class="hint">Aucune preuve pour l’instant.</p>';
   const nextBox = (o, n) => `<div class="next-box">${d.ic('compass', true)}<div><b>Prochaine activité : ${d.esc(n.text)}</b><small>${d.esc(n.why)}</small></div>${n.kind === 'diagnostic' ? `<a class="btn sm" href="#/org/${o.id}/diagnostic">Commencer</a>` : n.kind === 'mystere' || n.kind === 'revoir' ? `<a class="btn sm" href="#/org/${o.id}/mystere">Client mystère</a>` : ''}</div>`;
 
   async function resultsView(app, o, head) {
@@ -150,7 +158,8 @@
     const p = OrgInsight.person(me, evs, ks);
     app.innerHTML = `${head}<section class="sec org-learn"><h2>Mes résultats</h2>
       <p class="hint">Calculés à partir de ${p.n} preuve${p.n > 1 ? 's' : ''} réelle${p.n > 1 ? 's' : ''} : ${p.diagnostics} diagnostic${p.diagnostics > 1 ? 's' : ''}, ${p.simulations} simulation${p.simulations > 1 ? 's' : ''}. Ton espace personnel n’entre pas dans ce calcul.</p>
-      ${nextBox(o, p.next)}${stateRows(p)}</section>`;
+      ${nextBox(o, p.next)}${stateRows(p)}</section><div id="pwBox"></div>`;
+    if (window.OrgEngines) OrgEngines.pathway(app.querySelector('#pwBox'), o, d, evs, ks);
   }
 
   /* ---------- Compétences (manager) ---------- */
@@ -194,7 +203,8 @@
       const p = OrgInsight.person(focus, evs, ks);
       app.innerHTML = `${head}<section class="sec org-learn"><p><a href="#/org/${o.id}/suivi">${d.ic('arrow-left')} L’équipe</a></p><h2>${d.esc(nameOf(focus))}</h2>
         <p class="hint">${p.n} preuve${p.n > 1 ? 's' : ''} · ${p.diagnostics} diagnostic${p.diagnostics > 1 ? 's' : ''} · ${p.simulations} simulation${p.simulations > 1 ? 's' : ''}${p.last ? ` · dernière activité le ${fmtDate(p.last)}` : ''}. Seule l’activité dans cet espace professionnel est visible ; l’espace personnel ne l’est jamais.</p>
-        ${nextBox(o, p.next)}${stateRows(p)}</section>`;
+        ${nextBox(o, p.next)}${stateRows(p)}</section><div id="hvBox"></div>`;
+      if (window.OrgEngines) OrgEngines.humanValidation(app.querySelector('#hvBox'), o, d, focus);
       return;
     }
     const period = t.sample.from ? `du ${fmtDate(t.sample.from)} au ${fmtDate(t.sample.to)}` : 'aucune période';
@@ -205,7 +215,8 @@
       </section>
       <section class="sec org-learn"><h2>L’équipe</h2>
         ${learners.length ? `<ul class="org-list team-rows">${learners.map((m) => { const p = OrgInsight.person(m.user_id, evs, ks); return `<li><a href="#/org/${o.id}/suivi/${m.user_id}">${d.esc(m.email || 'Membre')}</a><small>${p.n ? `${p.diagnostics} diag. · ${p.simulations} simul.${p.falseCertainties ? ` · <b>${p.falseCertainties} fausse${p.falseCertainties > 1 ? 's' : ''} certitude${p.falseCertainties > 1 ? 's' : ''}</b>` : ''}` : 'aucune activité'}</small><small class="nx">${d.esc(p.next.text)}</small></li>`; }).join('')}</ul>` : '<p class="hint">Aucun collaborateur pour l’instant. Invite ton équipe depuis l’onglet Équipe.</p>'}
-      </section>`;
+      </section><div id="rdBox"></div>`;
+    if (window.OrgEngines) OrgEngines.radar(app.querySelector('#rdBox'), o, d, evs, ks, ms);
   }
 
   function render(app, o, view, deps, head) {
@@ -219,5 +230,5 @@
     app.innerHTML = `${head}<section class="sec"><p class="hint">Cet écran est réservé aux managers et administrateurs.</p></section>`;
   }
 
-  window.OrgLearn = { render, srv, TABS: ['diagnostic', 'mystere', 'resultats', 'competences', 'suivi'] };
+  window.OrgLearn = { render, srv, chat, TABS: ['diagnostic', 'mystere', 'resultats', 'competences', 'suivi'] };
 })();

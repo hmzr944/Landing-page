@@ -1764,7 +1764,8 @@
       <span class="pc-pousse">${(window.Mascot && Mascot.mini({ size: 64, mood: 'happy' })) || ic('plant', true)}</span>
       <div class="lc-txt"><b>Pratiquer avec Pousse</b><small>Questions sur ton cours, sources citées</small></div>
       <div class="row-btns"><button class="btn sm" data-act="talk" data-mode="socratique" data-id="${node.id}">${ic('chat-circle-text', true)}Dialogue</button>
-      <button class="btn ghost sm" data-act="talk" data-mode="enseigne" data-id="${node.id}">${ic('chalkboard-teacher')}Enseigne-moi</button></div>
+      <button class="btn ghost sm" data-act="talk" data-mode="enseigne" data-id="${node.id}">${ic('chalkboard-teacher')}Enseigne-moi</button>
+      <button class="btn ghost sm" data-act="talk" data-mode="situation" data-id="${node.id}">${ic('storefront')}Mise en situation</button></div>
     </section>`;
   }
   function openTalk(sj, nd, mode) {

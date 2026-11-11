@@ -302,6 +302,7 @@
           <div class="row-btns"><button type="button" class="btn sm" id="ivCopy">${d.ic('copy')}Copier</button>${navigator.share ? `<button type="button" class="btn ghost sm" id="ivShare">${d.ic('share-network')}Partager</button>` : ''}<a class="btn ghost sm" href="mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(`Invitation : ${o.name} sur Arbor`)}&body=${encodeURIComponent(text)}">${d.ic('envelope-simple')}Ouvrir ma messagerie</a></div>`;
         out.querySelector('#ivCopy').onclick = () => { (navigator.clipboard ? navigator.clipboard.writeText(link) : Promise.reject()).then(() => d.toast('Lien copié', 'success'), () => { const i = out.querySelector('#oiLink'); i.select(); }); };
         const sh = out.querySelector('#ivShare'); if (sh) sh.onclick = () => navigator.share({ title: `Invitation : ${o.name}`, text, url: link }).catch(() => {});
+        if (window.OrgEngines) OrgEngines.emailInvite(out, o, email, token, d);
         box.querySelector('#ivEmail').value = '';
       } catch (x) {
         err.hidden = false;
