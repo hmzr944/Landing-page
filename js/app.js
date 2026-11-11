@@ -1703,15 +1703,37 @@
     return Onboarding.afterImport(s);
   }
   function openOnboarding() {
+    const addCourse = (tree, examDate) => {
+      const s = makeSubject(tree.title, { root: normalize(tree), color: PALETTE[state.subjects.filter((x) => !untouchedDemo(x)).length % PALETTE.length], icon: 'globe-hemisphere-west' });
+      if (examDate) s.examDate = examDate;
+      dropUntouchedDemo();
+      state.subjects.push(s); save();
+      return s;
+    };
     Onboarding.open({
       profile: state.profile,
-      addCourse(tree, examDate) {
-        const s = makeSubject(tree.title, { root: normalize(tree), color: PALETTE[0], icon: 'globe-hemisphere-west' });
-        if (examDate) s.examDate = examDate;
-        dropUntouchedDemo();
-        state.subjects.push(s); save();
+      addCourse,
+      // Un sujet libre : cours construit à partir de sources fiables (serveur Arbor si connecté, sinon Wikipédia seule)
+      async courseFromTopic(topic, onStatus) {
+        const r = await fetchCourse(topic, '', onStatus);
+        if (!r || !r.notions || !r.notions.length) return null;
+        const t = topic.charAt(0).toUpperCase() + topic.slice(1);
+        const s = addCourse({ title: t, notes: r.overview || '', children: r.notions });
+        s.root.course = { from: r.from, sources: r.sources || [] }; save();
         return s;
       },
+      removeCourse(s) { state.subjects = state.subjects.filter((x) => x.id !== s.id); save(); },
+      // Notion « à vérifier » : on garde ce que la personne a dit, et on ajoute ce que dit une source fiable
+      async completeNotion(s, node, onStatus) {
+        const mine = node.notes;
+        try {
+          await writeNotionInto(node, s.title, onStatus);
+          if (!String(node.notes || '').trim() || node.notes === mine) throw new Error('Aucune source fiable trouvée pour cette notion.');
+          node.notes = `${mine}\n\n**Ce que dit une source fiable**\n\n${node.notes}`;
+        } catch (e) { node.notes = mine; throw e; }
+        finally { s.updatedAt = Date.now(); save(); }
+      },
+      talk(s, node) { go(link(s.id, node.id, 'fiche')); setTimeout(() => openTalk(s, node, 'socratique'), 450); },
       importPdf: () => pdfModal(),
       newCourse: () => { dropUntouchedDemo(); save(); render(view); newSubjectModal(); },
       // Première réponse : une vraie observation, la notion devient « découverte »

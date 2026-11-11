@@ -3116,3 +3116,63 @@ html.in-welcome .topbar, html.in-welcome .bottom-nav, html.in-welcome .mascot { 
   background: color-mix(in oklab, var(--bg) 86%, transparent); backdrop-filter: blur(18px) saturate(160%); -webkit-backdrop-filter: blur(18px) saturate(160%);
   border-top: 1px solid var(--glass-edge); z-index: 3; }
 .obz-body { padding-bottom: 8px; }
+
+/* ---------- Introduction Student : 5 portes d'entrée, dictée, photo, défi ---------- */
+.onb-back { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--glass-edge); background: color-mix(in oklab, var(--surface) 60%, transparent); color: var(--text); cursor: pointer; flex: none; }
+.onb-back[hidden] { display: none; }
+.onb-entries { display: grid; gap: 10px; }
+.onb-entry { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; font: inherit; color: var(--text); cursor: pointer; padding: 14px 16px; border-radius: 22px;
+  border: 1px solid var(--glass-edge); background: linear-gradient(160deg, rgb(255 255 255 / 0.5), rgb(255 255 255 / 0.06) 50%), var(--glass-bg);
+  box-shadow: inset 0 1px 0 var(--glass-hi), 0 14px 30px -22px rgb(12 60 52 / 0.35); backdrop-filter: blur(18px) saturate(170%); -webkit-backdrop-filter: blur(18px) saturate(170%); transition: transform 160ms var(--spring); }
+.onb-entry:active { transform: scale(0.985); }
+.onb-entry > i:first-child { flex: none; width: 46px; height: 46px; display: grid; place-items: center; border-radius: 15px; font-size: 1.45rem; color: #fff;
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.36), transparent 55%), linear-gradient(140deg, color-mix(in oklab, var(--tc, var(--c1)) 80%, white), var(--tc, var(--c1))); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.5), 0 8px 16px -8px var(--tc, var(--c1)); }
+.onb-entry:nth-child(1) { --tc: var(--c1); } .onb-entry:nth-child(2) { --tc: var(--c3); } .onb-entry:nth-child(3) { --tc: var(--c2); } .onb-entry:nth-child(4) { --tc: var(--c4); } .onb-entry:nth-child(5) { --tc: color-mix(in oklab, var(--c1) 60%, var(--c2)); }
+.onb-entry span { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.onb-entry small { color: var(--text-2); line-height: 1.35; }
+.onb-entry > i:last-child { color: var(--text-3); }
+.onb-foot .link-btn { align-self: center; padding: 8px; font-weight: 600; }
+.onb-foot .link-btn.strong { font-size: 1.02rem; }
+.onb-label { font-weight: 600; font-size: .92rem; margin-top: 6px; }
+.onb-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.onb-pills label { position: relative; }
+.onb-pills input { position: absolute; inset: 0; opacity: 0; }
+.onb-pills span { display: inline-block; padding: 10px 14px; border-radius: var(--r-pill); border: 1.5px solid var(--line); font-weight: 500; cursor: pointer; background: color-mix(in oklab, var(--surface) 70%, transparent); }
+.onb-pills input:checked + span { border-color: var(--accent); background: color-mix(in oklab, var(--accent) 12%, var(--surface)); color: var(--accent-ink); }
+.onb-pills input:focus-visible + span { box-shadow: var(--ring); }
+.onb-form textarea { font: inherit; padding: 14px; border-radius: 14px; border: 1.5px solid var(--line); background: var(--surface); color: var(--text); width: 100%; box-sizing: border-box; resize: vertical; line-height: 1.5; }
+.onb-form textarea:focus { outline: none; border-color: var(--accent); box-shadow: var(--ring); }
+.onb-note, .onb-hint { display: flex; gap: 8px; align-items: flex-start; margin: 12px 0 0; font-size: .9rem; line-height: 1.45; color: var(--text-2); }
+.onb-note { padding: 12px 14px; border-radius: 14px; background: color-mix(in oklab, var(--c2) 10%, var(--surface)); }
+.onb-hint { color: var(--text-3); font-size: .84rem; }
+.onb-status { min-height: 1.4em; margin: 12px 0 0; color: var(--text-2); font-size: .92rem; }
+.onb-status:empty { display: none; }
+.onb-rec { display: flex; align-items: center; gap: 16px; margin: 6px 0 14px; }
+.onb-mic { width: 76px; height: 76px; border-radius: 50%; border: 0; cursor: pointer; display: grid; place-items: center; font-size: 2rem; color: #fff;
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.32), transparent 55%), linear-gradient(140deg, var(--c2), var(--c1)); box-shadow: 0 14px 28px -12px var(--c1), inset 0 1px 0 rgb(255 255 255 / 0.5); transition: transform 200ms var(--spring); }
+.onb-mic[aria-pressed="true"] { background: linear-gradient(180deg, rgb(255 255 255 / 0.32), transparent 55%), linear-gradient(140deg, var(--c3), color-mix(in oklab, var(--c3) 70%, var(--danger))); animation: onb-pulse 1.6s ease-in-out infinite; }
+@keyframes onb-pulse { 50% { box-shadow: 0 0 0 12px color-mix(in oklab, var(--c3) 22%, transparent), 0 14px 28px -12px var(--c3); } }
+.onb-rec div { display: flex; flex-direction: column; }
+.onb-time { font-family: var(--font-display); font-size: 1.8rem; line-height: 1; }
+.onb-rec small { color: var(--text-2); }
+.onb-shot { display: flex; align-items: center; gap: 14px; padding: 18px; border-radius: 22px; cursor: pointer; border: 1.5px dashed color-mix(in oklab, var(--accent) 45%, var(--line)); background: color-mix(in oklab, var(--accent) 6%, var(--surface)); }
+.onb-shot input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.onb-shot > i { font-size: 1.8rem; color: var(--accent-ink); }
+.onb-shot span { display: flex; flex-direction: column; } .onb-shot small { color: var(--text-2); }
+.onb-shot:focus-within { box-shadow: var(--ring); }
+.onb-preview { display: block; max-width: 100%; max-height: 200px; margin: 12px auto 0; border-radius: 14px; object-fit: contain; }
+.onb-preview[hidden] { display: none; }
+.onb-wiki { margin-top: 12px; }
+.onb-wiki[hidden] { display: none; }
+.onb-notions { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 8px; }
+.onb-notions li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 12px 14px; border-radius: 16px; border: 1px solid var(--glass-edge); background: color-mix(in oklab, var(--surface) 70%, transparent); animation: onb-in 420ms var(--ease-out) both; animation-delay: calc(var(--i) * 60ms); }
+.onb-notions li b { flex: 1; min-width: 50%; }
+.onb-notions li small { flex-basis: 100%; color: var(--text-2); font-size: .86rem; line-height: 1.4; }
+.onb-notions li.chk { border-color: color-mix(in oklab, var(--c3) 50%, var(--line)); }
+.onb-tag { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: var(--r-pill); font-size: .78rem; font-weight: 600; color: color-mix(in oklab, var(--c3) 75%, var(--text)); background: color-mix(in oklab, var(--c3) 16%, transparent); }
+.onb-gaps { display: flex; gap: 8px; align-items: flex-start; margin: 12px 0 0; color: var(--text-2); font-size: .92rem; }
+.onb-learn { margin-top: 12px; padding: 14px; border-radius: 16px; background: color-mix(in oklab, var(--c2) 10%, var(--surface)); border: 1px solid color-mix(in oklab, var(--c2) 25%, transparent); }
+.onb-learn h3 { display: flex; gap: 8px; align-items: center; margin: 0 0 6px; font-size: 1rem; }
+.onb-learn p { margin: 0; line-height: 1.5; color: var(--text-2); }
+@media (prefers-reduced-motion: reduce) { .onb-mic[aria-pressed="true"], .onb-notions li { animation: none; } }
+.onb-choice span, .obz-goal span { overflow-wrap: anywhere; hyphens: auto; -webkit-hyphens: auto; min-width: 0; max-width: 100%; }

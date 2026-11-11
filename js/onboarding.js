@@ -1,18 +1,28 @@
-/* Onboarding : 5 écrans courts, orientés résultat. L'étudiant apprend quelque chose avant d'avoir
-   eu le temps de se demander comment ça marche.
-   1. La promesse   2. Ce qu'il veut améliorer   3. Formation, matière, examen (facultatifs)
-   4. Premier cours : PDF, création, ou cours de démonstration sur les réseaux
-   5. Le moment clé : la structure du cours, puis une première question avec un vrai retour.
-   Pas de compte, pas de paiement, pas de statistiques ni de trophées pendant l'introduction. */
+/* Introduction Student : apprendre à partir de n'importe quel point de départ (docs/onboarding.md, phase 3).
+   A. Comment souhaites-tu apprendre ? Parler, Scanner, Discuter, Se tester, Importer (ou un cours d'exemple).
+   B. Qu'aimerais-tu accomplir ? (choix ou réponse libre)   C. Précisions facultatives (sujet, niveau, échéance).
+   D. Première expérience selon l'entrée, puis le moment clé : la structure, une question, un vrai retour.
+   Chaque entrée alimente le même moteur : un sujet Arbor (notions, révisions, observations). Rien n'est simulé :
+   la dictée utilise la reconnaissance vocale du navigateur, la photo la reconnaissance de texte Tesseract.js
+   (open source, dans le navigateur), l'organisation et Pousse le serveur Arbor quand on est connecté.
+   Une explication personnelle n'est jamais une preuve de maîtrise : ses notions restent « à vérifier ». */
 (function () {
-  let el = null, d = null, step = 0, profile = null, pending = false;
-  const GOALS = [
-    ['understand', 'lightbulb', 'Comprendre mes cours'],
-    ['retain', 'brain', 'Retenir plus facilement'],
-    ['exams', 'flag-checkered', 'Préparer mes examens'],
-    ['organise', 'calendar-check', 'M’organiser dans mes révisions'],
+  let el = null, d = null, step = 0, profile = null, pending = false, rec = null, recTimer = null;
+  const STEPS = 4;
+  const ENTRIES = [
+    ['parler', 'microphone', 'Parler', 'Explique à voix haute ce que tu sais ou veux apprendre'],
+    ['scanner', 'camera', 'Scanner', 'Photographie un tableau, une page, des notes'],
+    ['discuter', 'chats-circle', 'Discuter', 'Explore un sujet avec Pousse, question après question'],
+    ['tester', 'puzzle-piece', 'Se tester', 'Commence par un défi, apprends de ta réponse'],
+    ['importer', 'file-arrow-up', 'Importer', 'Un PDF, une page Wikipédia, tes propres notes'],
   ];
-  const LEVELS = ['BTS', 'BUT', 'Licence', 'Titre professionnel', 'Lycée', 'Master', 'Autre'];
+  const GOALS = [
+    ['comprendre', 'lightbulb', 'Comprendre un sujet'], ['examen', 'flag-checkered', 'Préparer un examen'],
+    ['competence', 'wrench', 'Développer une compétence'], ['pro', 'briefcase', 'Progresser professionnellement'],
+    ['nouveau', 'sparkle', 'Apprendre quelque chose de nouveau'], ['explorer', 'compass', 'Explorer librement'],
+  ];
+  const LEVELS = [['debut', 'Je découvre'], ['bases', 'J’ai des bases'], ['avance', 'Je suis à l’aise']];
+  const TESS = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
 
   /* Cours de démonstration : les bases des réseaux, rédigé pour Arbor (contenu vérifiable, sans PDF) */
   const n = (title, notes, keyPoints) => ({ title, notes, keyPoints });
@@ -47,75 +57,264 @@
 
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const pousse = (size, mood = 'happy') => (window.Mascot && Mascot.mini({ size, mood })) || '';
+  const ic = (n, fill) => `<i class="${fill ? 'ph-fill' : 'ph'} ph-${n}" aria-hidden="true"></i>`;
+  const signedIn = () => !!(window.Tutor && Tutor.signedIn());
+  const aiOk = () => !!(window.AI && AI.available());
 
   function shell() {
     el = document.createElement('div');
     el.className = 'onb';
     el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-label', 'Bienvenue dans Arbor');
-    el.innerHTML = `<div class="onb-top"><div class="onb-bar" aria-hidden="true"><span></span></div><button type="button" class="onb-skip" data-onb="skip">Passer</button></div><div class="onb-stage"></div>`;
+    el.innerHTML = `<div class="onb-top"><button type="button" class="onb-back" data-onb="back" aria-label="Retour" hidden>${ic('caret-left')}</button><div class="onb-bar" aria-hidden="true"><span></span></div><button type="button" class="onb-skip" data-onb="skip">Passer</button></div><div class="onb-stage"></div>`;
     document.body.appendChild(el);
     document.documentElement.classList.add('in-onboarding');
     requestAnimationFrame(() => el.classList.add('show'));
     el.querySelector('[data-onb="skip"]').onclick = () => finish(null);
   }
   const stage = () => el.querySelector('.onb-stage');
-  const setBar = () => { el.querySelector('.onb-bar span').style.transform = `scaleX(${(step + 1) / 5})`; el.querySelector('.onb-skip').hidden = step === 4; };
-  const paint = (html) => { const s = stage(); s.classList.remove('in'); void s.offsetWidth; s.innerHTML = html; s.classList.add('in'); setBar(); const f = s.querySelector('[autofocus], .btn'); if (f && matchMedia('(hover: hover)').matches) f.focus(); };
+  const setBar = () => {
+    el.querySelector('.onb-bar span').style.transform = `scaleX(${Math.min(1, (step + 1) / STEPS)})`;
+    el.querySelector('.onb-skip').hidden = step >= 3;
+  };
+  let backTo = null;
+  const paint = (html, back) => {
+    stopRec();
+    const s = stage(); s.classList.remove('in'); void s.offsetWidth; s.innerHTML = html; s.classList.add('in'); setBar();
+    backTo = back || null;
+    const b = el.querySelector('[data-onb="back"]'); b.hidden = !backTo; b.onclick = () => backTo && backTo();
+    const f = s.querySelector('[autofocus], .btn'); if (f && matchMedia('(hover: hover)').matches) f.focus();
+  };
+  const $ = (sel) => stage().querySelector(sel);
+  const status = (msg) => { const m = $('.onb-status'); if (m) m.textContent = msg; };
 
+  /* ---------- A. Comment souhaites-tu apprendre ? ---------- */
   function s1() {
     step = 0;
-    paint(`<div class="onb-hero">${pousse(108)}
-      <h1>Tes cours ne devraient pas finir oubliés dans un dossier.</h1>
-      <p>Transforme-les en connaissances que tu maîtrises vraiment.</p></div>
-      <div class="onb-foot"><button class="btn big" data-onb="next">Commencer</button><small>${window.Tutor && Tutor.signedIn() ? 'Une minute pour démarrer.' : 'Gratuit, sans carte bancaire, sans compte.'}</small>
+    paint(`<div class="onb-q"><div class="onb-guide">${pousse(56)}<p>Tout peut devenir un point de départ.</p></div>
+      <h2>Comment souhaites-tu apprendre ?</h2><p>Choisis une porte d’entrée, tu pourras utiliser les autres ensuite.</p>
+      <div class="onb-entries">${ENTRIES.map(([k, icn, t, sub]) => `<button type="button" class="onb-entry" data-entry="${k}">${ic(icn, true)}<span><b>${t}</b><small>${sub}</small></span>${ic('caret-right')}</button>`).join('')}</div></div>
+      <div class="onb-foot"><button type="button" class="link-btn" data-onb="demo">Ou essaie un cours d’exemple sur les réseaux</button>
         <button type="button" class="link-btn onb-join" data-onb="join">J’ai une invitation de mon organisation</button></div>`);
-    stage().querySelector('[data-onb="next"]').onclick = s2;
+    stage().querySelectorAll('[data-entry]').forEach((b) => { b.onclick = () => { profile.entry = b.dataset.entry; s2(); }; });
+    $('[data-onb="demo"]').onclick = () => { profile.entry = 'exemple'; const s = d.addCourse(DEMO, profile.examDate); mark('exemple'); wow(s, true); };
     // Invité par son entreprise : on passe directement à l'espace professionnel (l'introduction reste disponible dans les réglages)
-    stage().querySelector('[data-onb="join"]').onclick = () => { finish('join'); location.hash = '#/rejoindre'; };
+    $('[data-onb="join"]').onclick = () => { finish('join'); location.hash = '#/rejoindre'; };
   }
+
+  /* ---------- B. Objectif ---------- */
   function s2() {
     step = 1;
-    paint(`<div class="onb-q"><h2>Qu’est-ce que tu veux améliorer ?</h2><p>Plusieurs réponses possibles.</p>
-      <div class="onb-choices">${GOALS.map(([k, icon, label]) => `<button type="button" class="onb-choice" data-k="${k}" aria-pressed="${profile.goals.includes(k)}"><i class="ph-fill ph-${icon}" aria-hidden="true"></i><span>${label}</span></button>`).join('')}</div></div>
-      <div class="onb-foot"><button class="btn big" data-onb="next">Continuer</button></div>`);
+    paint(`<div class="onb-q"><h2>Qu’aimerais-tu accomplir avec Arbor ?</h2><p>Plusieurs réponses possibles.</p>
+      <div class="onb-choices">${GOALS.map(([k, icn, label]) => `<button type="button" class="onb-choice" data-k="${k}" aria-pressed="${profile.goals.includes(k)}">${ic(icn, true)}<span>${label}</span></button>`).join('')}</div>
+      <div class="onb-form"><label for="onbGoalFree">Avec tes mots <span class="optional">facultatif</span></label><input id="onbGoalFree" maxlength="120" autocomplete="off" placeholder="Par exemple : comprendre mon moteur de moto" value="${esc(profile.goalText || '')}" /></div></div>
+      <div class="onb-foot"><button class="btn big" data-onb="next">Continuer</button></div>`, s1);
     stage().querySelectorAll('.onb-choice').forEach((b) => b.onclick = () => {
       const on = b.getAttribute('aria-pressed') !== 'true';
       b.setAttribute('aria-pressed', String(on));
       profile.goals = on ? [...profile.goals, b.dataset.k] : profile.goals.filter((x) => x !== b.dataset.k);
     });
-    stage().querySelector('[data-onb="next"]').onclick = s3;
+    $('[data-onb="next"]').onclick = () => { profile.goalText = $('#onbGoalFree').value.trim().slice(0, 120); s3(); };
   }
+
+  /* ---------- C. Précisions, toutes facultatives ---------- */
   function s3() {
     step = 2;
-    paint(`<div class="onb-q"><h2>Dis-m’en un peu plus</h2><p>Tout est facultatif.</p>
+    paint(`<div class="onb-q"><h2>Quelques précisions ?</h2><p>Tout est facultatif : Arbor fonctionne sans.</p>
       <div class="onb-form">
-        <label for="onbLevel">Formation</label>
-        <select id="onbLevel"><option value="">Choisir</option>${LEVELS.map((l) => `<option ${profile.level === l ? 'selected' : ''}>${l}</option>`).join('')}</select>
-        <label for="onbSubject">Matière principale</label>
-        <input id="onbSubject" autocomplete="off" placeholder="Par exemple : réseaux, droit, biologie" value="${esc(profile.subject || '')}" />
-        <label for="onbExam">Date d’examen</label>
+        <label for="onbSubject">Sujet ou domaine</label>
+        <input id="onbSubject" autocomplete="off" maxlength="80" placeholder="Mécanique, droit, piano, réseaux…" value="${esc(profile.subject || '')}" />
+        <span class="onb-label" id="onbLvlL">Où en es-tu ?</span>
+        <div class="onb-pills" role="radiogroup" aria-labelledby="onbLvlL">${LEVELS.map(([k, l]) => `<label><input type="radio" name="onbLvl" value="${k}" ${profile.level === k ? 'checked' : ''} /><span>${l}</span></label>`).join('')}</div>
+        <label for="onbExam">Échéance</label>
         <input id="onbExam" type="date" value="${esc(profile.examDate || '')}" />
       </div></div>
-      <div class="onb-foot"><button class="btn big" data-onb="next">Continuer</button></div>`);
-    stage().querySelector('[data-onb="next"]').onclick = () => {
-      profile.level = stage().querySelector('#onbLevel').value;
-      profile.subject = stage().querySelector('#onbSubject').value.trim().slice(0, 80);
-      const ex = stage().querySelector('#onbExam').value;
-      profile.examDate = ex && ex >= new Date().toISOString().slice(0, 10) ? ex : '';
-      s4();
+      <div class="onb-foot"><button class="btn big" data-onb="next">Continuer</button><button type="button" class="link-btn" data-onb="later">Passer, je préciserai plus tard</button></div>`, s2);
+    const save = () => {
+      profile.subject = $('#onbSubject').value.trim().slice(0, 80);
+      const lv = stage().querySelector('input[name="onbLvl"]:checked'); profile.level = lv ? lv.value : profile.level || '';
+      const ex = $('#onbExam').value; profile.examDate = ex && ex >= new Date().toISOString().slice(0, 10) ? ex : '';
     };
+    $('[data-onb="next"]').onclick = () => { save(); s4(); };
+    $('[data-onb="later"]').onclick = () => s4();
   }
+
+  /* ---------- D. Première expérience ---------- */
   function s4() {
     step = 3;
-    paint(`<div class="onb-q"><h2>Ajoute ton premier cours</h2><p>Pas de PDF sous la main ? Essaie le cours de démonstration.</p>
+    ({ parler: speak, scanner: scan, discuter: () => topicScreen('discuter'), tester: () => topicScreen('tester'), importer: importScreen }[profile.entry] || importScreen)();
+  }
+  // Note dans le parcours : l'entrée choisie et la première action (jamais le contenu)
+  const mark = (entry) => { if (window.Journey) Journey.set({ entry, firstActionAt: Journey.get().firstActionAt || Date.now() }); };
+
+  // Un sujet à explorer : le cours se construit à partir de sources fiables (serveur si connecté, sinon Wikipédia)
+  function topicScreen(kind) {
+    const talk = kind === 'discuter';
+    paint(`<div class="onb-q"><div class="onb-guide">${pousse(56, 'smile')}<p>${talk ? 'De quoi veux-tu parler ?' : 'Sur quel sujet veux-tu te tester ?'}</p></div>
+      <h2>${talk ? 'Discuter avec Pousse' : 'Un défi pour commencer'}</h2>
+      <p>${talk ? 'Pousse s’appuie sur des sources fiables et te pose des questions, au lieu de réciter.' : 'Tu réponds d’abord ; Arbor t’explique ensuite ce qu’il fallait savoir, puis tu retentes.'}</p>
+      <div class="onb-form"><label for="onbTopic">Sujet</label><input id="onbTopic" autocomplete="off" maxlength="80" placeholder="La photosynthèse, le moteur à 4 temps…" value="${esc(profile.subject || '')}" autofocus /></div>
+      ${talk && !signedIn() ? `<p class="onb-note">${ic('info')}Pousse demande un compte gratuit. Sans compte, tu peux explorer le sujet et répondre à des questions.</p>` : ''}
+      <p class="onb-status" role="status"></p></div>
+      <div class="onb-foot"><button class="btn big" data-onb="go">${talk ? (signedIn() ? 'Commencer la discussion' : 'Explorer le sujet') : 'Lancer le défi'}</button>
+        ${talk && !signedIn() && window.Welcome ? '<button type="button" class="link-btn" data-onb="account">Créer un compte pour parler à Pousse</button>' : ''}</div>`, s3);
+    const acc = $('[data-onb="account"]');
+    if (acc) acc.onclick = () => { hide(); Welcome.auth({ after: () => { show(); topicScreen(kind); } }, 'signup'); };
+    $('[data-onb="go"]').onclick = async () => {
+      const topic = $('#onbTopic').value.trim();
+      if (topic.length < 2) { status('Indique un sujet.'); $('#onbTopic').focus(); return; }
+      profile.subject = profile.subject || topic;
+      const b = $('[data-onb="go"]'); b.disabled = true;
+      let s;
+      try { s = await d.courseFromTopic(topic, status); }
+      catch (e) { status(e.message || 'Le cours n’a pas pu être préparé. Vérifie ta connexion et réessaie.'); b.disabled = false; return; }
+      if (!s) { status('Aucune source fiable trouvée pour ce sujet. Essaie une formulation plus courante.'); b.disabled = false; return; }
+      mark(kind);
+      if (talk && aiOk()) {
+        const node = firstNotion(s);
+        if (node) { finish('discuter'); d.talk(s, node); return; }
+      }
+      if (talk) wow(s, false); else question(s, false, { retry: true });
+    };
+  }
+  const allNotions = (s) => { const out = []; (function rec(x) { x.children.forEach((c) => { if (!c.children.length) out.push(c); rec(c); }); })(s.root); return out; };
+  const firstNotion = (s) => allNotions(s).find((n) => window.Dialogue && Dialogue.canTalk(n)) || null;
+
+  /* ---------- Importer ---------- */
+  function importScreen() {
+    paint(`<div class="onb-q"><h2>Ajoute ce que tu as déjà</h2><p>Arbor trouve les chapitres et les notions, avec les pages d’origine.</p>
       <div class="onb-cards">
-        <button type="button" class="onb-card" data-onb="pdf"><i class="ph-fill ph-file-arrow-up" aria-hidden="true"></i><span><b>Importer un PDF</b><small>Arbor trouve les chapitres et les notions</small></span></button>
-        <button type="button" class="onb-card" data-onb="demo"><i class="ph-fill ph-network" aria-hidden="true"></i><span><b>Essayer un cours sur les réseaux</b><small>6 notions, prêt tout de suite</small></span></button>
-        <button type="button" class="onb-card" data-onb="manual"><i class="ph-fill ph-pencil-simple-line" aria-hidden="true"></i><span><b>Créer un cours moi-même</b><small>Titre, chapitres, notes</small></span></button>
-      </div></div>`);
-    stage().querySelector('[data-onb="demo"]').onclick = () => { const s = d.addCourse(DEMO, profile.examDate); wow(s, true); };
-    stage().querySelector('[data-onb="pdf"]').onclick = () => { pending = true; hide(); d.importPdf(); };
-    stage().querySelector('[data-onb="manual"]').onclick = () => { finish('manual'); d.newCourse(profile.subject); };
+        <button type="button" class="onb-card" data-onb="pdf">${ic('file-arrow-up', true)}<span><b>Un PDF</b><small>Cours, support, polycopié, rapport</small></span></button>
+        <button type="button" class="onb-card" data-onb="wiki">${ic('globe-hemisphere-west', true)}<span><b>Une page Wikipédia</b><small>Colle son lien ou son titre</small></span></button>
+        <button type="button" class="onb-card" data-onb="manual">${ic('pencil-simple-line', true)}<span><b>Mes propres notes</b><small>Titre, chapitres, notes, à ton rythme</small></span></button>
+      </div>
+      <div class="onb-form onb-wiki" hidden><label for="onbWiki">Lien ou titre de la page</label><input id="onbWiki" autocomplete="off" placeholder="https://fr.wikipedia.org/wiki/Photosynthèse" /><button class="btn" data-onb="wikigo">Importer</button></div>
+      <p class="onb-status" role="status"></p></div>`, s3);
+    $('[data-onb="pdf"]').onclick = () => { pending = true; mark('importer'); hide(); d.importPdf(); };
+    $('[data-onb="manual"]').onclick = () => { mark('importer'); finish('manual'); d.newCourse(profile.subject); };
+    $('[data-onb="wiki"]').onclick = () => { $('.onb-wiki').hidden = false; $('#onbWiki').focus(); };
+    $('[data-onb="wikigo"]').onclick = async () => {
+      const v = $('#onbWiki').value.trim();
+      const m = v.match(/wikipedia\.org\/wiki\/([^?#]+)/i);
+      const title = m ? decodeURIComponent(m[1]).replace(/_/g, ' ') : v;
+      if (title.length < 2) { status('Colle le lien d’une page Wikipédia, ou son titre.'); return; }
+      if (/^https?:\/\//i.test(title)) { status('Pour l’instant, Arbor importe les pages Wikipédia. Pour une autre page web, enregistre-la en PDF puis importe le PDF.'); return; }
+      const b = $('[data-onb="wikigo"]'); b.disabled = true;
+      try { const s = await d.courseFromTopic(title, status); if (!s) throw new Error('Page introuvable.'); mark('importer'); wow(s, false); }
+      catch (e) { status(e.message || 'Import impossible.'); b.disabled = false; }
+    };
+  }
+
+  /* ---------- Parler : dictée (reconnaissance vocale du navigateur) ou écriture ---------- */
+  const SR = () => window.SpeechRecognition || window.webkitSpeechRecognition;
+  function stopRec() { if (rec) { try { rec.onend = null; rec.stop(); } catch (e) { /* déjà arrêtée */ } rec = null; } clearInterval(recTimer); recTimer = null; }
+  function speak() {
+    const can = !!SR();
+    paint(`<div class="onb-q"><div class="onb-guide">${pousse(56, 'smile')}<p>Dis tout ce qui te vient, sans te censurer.</p></div>
+      <h2>Explique ce que tu sais</h2>
+      <p>${profile.subject ? `Sur « ${esc(profile.subject)} » : ` : ''}ce que tu sais déjà, ce que tu crois savoir, ce que tu voudrais comprendre. 30 secondes à 2 minutes.</p>
+      ${can ? `<div class="onb-rec"><button type="button" class="onb-mic" data-onb="mic" aria-pressed="false" aria-label="Commencer la dictée">${ic('microphone', true)}</button><div><b class="onb-time num">0:00</b><small class="onb-rec-st">Touche le micro pour commencer</small></div></div>`
+        : `<p class="onb-note">${ic('info')}La dictée n’est pas disponible dans ce navigateur. Écris ton explication ; le reste fonctionne pareil.</p>`}
+      <div class="onb-form"><label for="onbDump">${can ? 'Transcription (modifiable)' : 'Ton explication'}</label><textarea id="onbDump" rows="7" placeholder="Par exemple : la photosynthèse, c’est quand la plante…"></textarea></div>
+      <p class="onb-hint">${ic('lock-simple')}${can ? 'La reconnaissance vocale est faite par ton navigateur (selon le navigateur, le son peut passer par ses serveurs). ' : ''}Rien n’est enregistré tant que tu ne l’as pas décidé.</p>
+      <p class="onb-status" role="status"></p></div>
+      <div class="onb-foot"><button class="btn big" data-onb="organize">Organiser mes idées</button></div>`, s3);
+    const ta = $('#onbDump');
+    if (can) {
+      const mic = $('[data-onb="mic"]');
+      mic.onclick = () => {
+        if (rec) { stopRec(); mic.setAttribute('aria-pressed', 'false'); $('.onb-rec-st').textContent = 'Dictée en pause'; return; }
+        const R = SR(); rec = new R(); rec.lang = 'fr-FR'; rec.continuous = true; rec.interimResults = true;
+        const base = ta.value ? ta.value.trim() + ' ' : ''; let finalTxt = ''; const t0 = Date.now();
+        rec.onresult = (e) => { let interim = ''; for (let i = e.resultIndex; i < e.results.length; i++) { if (e.results[i].isFinal) finalTxt += e.results[i][0].transcript + ' '; else interim += e.results[i][0].transcript; } ta.value = (base + finalTxt + interim).trim(); };
+        rec.onerror = (e) => { $('.onb-rec-st').textContent = e.error === 'not-allowed' ? 'Micro refusé : autorise-le, ou écris ton explication.' : 'La dictée s’est interrompue. Tu peux reprendre ou écrire.'; stopRec(); mic.setAttribute('aria-pressed', 'false'); };
+        rec.onend = () => { if (rec) { try { rec.start(); } catch (e) { stopRec(); } } }; // le navigateur coupe après un silence : on relance jusqu'à 2 minutes
+        try { rec.start(); } catch (e) { $('.onb-rec-st').textContent = 'Impossible de démarrer la dictée.'; rec = null; return; }
+        mic.setAttribute('aria-pressed', 'true'); $('.onb-rec-st').textContent = 'Je t’écoute… touche à nouveau pour arrêter';
+        recTimer = setInterval(() => {
+          const s = Math.floor((Date.now() - t0) / 1000); const t = $('.onb-time'); if (t) t.textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+          if (s >= 120) { stopRec(); mic.setAttribute('aria-pressed', 'false'); $('.onb-rec-st').textContent = '2 minutes : c’est parfait, organisons tout ça.'; }
+        }, 500);
+      };
+    }
+    $('[data-onb="organize"]').onclick = () => { stopRec(); organize(ta.value.trim(), 'explication'); };
+  }
+
+  /* ---------- Scanner : reconnaissance de texte dans le navigateur (Tesseract.js) ---------- */
+  function loadTess() {
+    if (window.Tesseract) return Promise.resolve(window.Tesseract);
+    return new Promise((ok, ko) => { const sc = document.createElement('script'); sc.src = TESS; sc.async = true; sc.crossOrigin = 'anonymous'; sc.onload = () => (window.Tesseract ? ok(window.Tesseract) : ko(new Error('ocr'))); sc.onerror = () => ko(new Error('ocr')); document.head.appendChild(sc); });
+  }
+  function scan() {
+    paint(`<div class="onb-q"><h2>Photographie un support</h2><p>Un tableau, une diapositive, une page de livre, des notes, un exercice. Arbor lit le texte, puis l’organise.</p>
+      <label class="onb-shot"><input type="file" accept="image/*" capture="environment" id="onbImg" />${ic('camera', true)}<span><b>Prendre ou choisir une photo</b><small>Bien éclairée, de face, texte net</small></span></label>
+      <img class="onb-preview" id="onbPrev" alt="Photo choisie" hidden />
+      <div class="onb-form" id="onbOcrBox" hidden><label for="onbOcr">Texte lu (corrige-le si besoin)</label><textarea id="onbOcr" rows="7"></textarea></div>
+      <p class="onb-hint">${ic('lock-simple')}La lecture se fait sur ton téléphone ; la photo n’est envoyée nulle part.</p>
+      <p class="onb-status" role="status"></p></div>
+      <div class="onb-foot"><button class="btn big" data-onb="organize" hidden>Organiser ce texte</button></div>`, s3);
+    $('#onbImg').onchange = async (e) => {
+      const f = e.target.files && e.target.files[0]; if (!f) return;
+      const url = URL.createObjectURL(f); const img = $('#onbPrev'); img.src = url; img.hidden = false;
+      status('Préparation de la lecture (la première fois, environ 10 Mo à télécharger)…');
+      let T;
+      try { T = await loadTess(); } catch (x) { status('La lecture de texte n’a pas pu se charger (connexion ?). Tu peux taper le texte toi-même.'); showOcr(''); return; }
+      try {
+        const r = await T.recognize(f, 'fra', { logger: (m) => { if (m.status === 'recognizing text') status(`Lecture du texte… ${Math.round((m.progress || 0) * 100)} %`); } });
+        const txt = String(r.data.text || '').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+        const conf = Number(r.data.confidence) || 0;
+        showOcr(txt);
+        if (txt.replace(/[^a-zà-ÿ]/gi, '').length < 30 || conf < 45) status(`Photo difficile à lire (confiance ${Math.round(conf)} %). Reprends-la de plus près, bien éclairée, ou corrige le texte ci-dessus. L’écriture manuscrite est souvent mal lue.`);
+        else status(`Texte lu (confiance ${Math.round(conf)} %). Vérifie-le, puis organise-le.`);
+      } catch (x) { status('La lecture a échoué sur cette image. Essaie une autre photo, ou tape le texte.'); showOcr(''); }
+    };
+    const showOcr = (t) => { $('#onbOcrBox').hidden = false; $('#onbOcr').value = t; $('[data-onb="organize"]').hidden = false; };
+    $('[data-onb="organize"]').onclick = () => organize($('#onbOcr').value.trim(), 'support');
+  }
+
+  /* ---------- Organiser un texte libre (explication ou photo) en notions ---------- */
+  async function organize(text, mode) {
+    if (text.replace(/\s+/g, ' ').length < 40) { status(mode === 'explication' ? 'Dis-en un peu plus (au moins une ou deux phrases).' : 'Il faut un peu plus de texte pour en tirer des notions.'); return; }
+    const title = profile.subject || (mode === 'explication' ? 'Mes idées' : 'Ma photo');
+    mark(mode === 'explication' ? 'parler' : 'scanner');
+    if (!aiOk()) {
+      // Sans compte : le texte est gardé tel quel, et on le dit
+      const s = d.addCourse({ title, children: [{ title: mode === 'explication' ? 'Ce que j’ai expliqué' : 'Texte de la photo', notes: text, keyPoints: [] }] }, profile.examDate);
+      paint(`<div class="onb-q"><div class="onb-guide">${pousse(56, 'smile')}<p>C’est gardé dans « ${esc(s.title)} ».</p></div>
+        <h2>Ton texte est enregistré</h2><p>Pour qu’Arbor le découpe en notions et repère ce qui est à vérifier, il faut un compte gratuit (l’analyse se fait sur le serveur d’Arbor).</p></div>
+        <div class="onb-foot">${window.Welcome ? '<button class="btn big" data-onb="account">Créer un compte et organiser</button>' : ''}<button type="button" class="link-btn" data-onb="open">Ouvrir mon texte</button></div>`);
+      const a = $('[data-onb="account"]'); if (a) a.onclick = () => { hide(); Welcome.auth({ after: () => { show(); d.removeCourse(s); organize(text, mode); } }, 'signup'); };
+      $('[data-onb="open"]').onclick = () => done(s);
+      return;
+    }
+    paint(`<div class="onb-q"><div class="onb-guide">${pousse(56, 'happy')}<p>J’organise tes idées…</p></div><h2>Un instant</h2><p class="onb-status" role="status">Analyse du texte…</p></div>`);
+    let r;
+    try { r = await AI.structure(text, mode, profile.subject, { onStatus: status }); }
+    catch (e) { paint(`<div class="onb-q"><h2>L’analyse n’a pas abouti</h2><p>${esc(e.message)}</p></div><div class="onb-foot"><button class="btn big" data-onb="again">Réessayer</button></div>`, mode === 'explication' ? speak : scan); $('[data-onb="again"]').onclick = () => organize(text, mode); return; }
+    if (!r.notions.length) { paint(`<div class="onb-q"><h2>Pas assez de matière</h2><p>Arbor n’a pas trouvé de notion claire dans ce texte. Ajoute quelques phrases, ou choisis une autre porte d’entrée.</p></div><div class="onb-foot"><button class="btn big" data-onb="again">Compléter</button></div>`, s1); $('[data-onb="again"]').onclick = mode === 'explication' ? speak : scan; return; }
+    const self = mode === 'explication';
+    paint(`<div class="onb-q"><div class="onb-guide">${pousse(56, 'joy')}<p>Voilà ce que j’ai trouvé.</p></div>
+      <h2>${esc(r.title || title)}</h2>
+      <p>${r.notions.length} notion${r.notions.length > 1 ? 's' : ''}${self ? `, dont ${r.notions.filter((n) => n.check).length} à vérifier` : ''}. ${self ? 'Une explication n’est pas encore une preuve : on va vérifier ensemble.' : ''}</p>
+      <ol class="onb-notions">${r.notions.map((n, i) => `<li style="--i:${i}" class="${n.check ? 'chk' : ''}"><b>${esc(n.title)}</b>${n.check ? `<span class="onb-tag">${ic('magnifying-glass')}À vérifier</span>` : ''}<small>« ${esc(n.quote)} »</small></li>`).join('')}</ol>
+      ${r.gaps.length ? `<p class="onb-gaps">${ic('puzzle-piece')}À découvrir : ${r.gaps.map(esc).join(', ')}</p>` : ''}</div>
+      <div class="onb-foot"><button class="btn big" data-onb="save">Enregistrer et m’entraîner</button></div>`);
+    $('[data-onb="save"]').onclick = () => {
+      const tree = { title: r.title || title, children: r.notions.map((n) => ({
+        title: n.title,
+        notes: `${self ? '**Ce que tu as dit**' : '**D’après la photo**'} : « ${n.quote} »${n.check ? '\n\n_À vérifier dans une source fiable._' : ''}${n.question ? `\n\n**Pour vérifier** : ${n.question}` : ''}`,
+        keyPoints: [],
+      })).concat(r.gaps.map((g) => ({ title: g, notes: '', keyPoints: [] }))) };
+      const s = d.addCourse(tree, profile.examDate);
+      const want = (r.notions.find((n) => n.check) || r.notions[0]).title;
+      const target = allNotions(s).find((x) => x.title === want) || allNotions(s)[0];
+      // Ce qui est « à vérifier » reçoit tout de suite un passage d'une source fiable, à comparer avec ce qui a été dit
+      paint(`<div class="onb-q"><div class="onb-guide">${pousse(56, 'smile')}<p>On compare avec une source fiable.</p></div>
+        <h2>${esc(target.title)}</h2><p class="onb-status" role="status">Recherche d’une source…</p></div>`);
+      // 25 s au plus : sans source trouvée, ce qui a été dit reste tel quel (et reste « à vérifier »)
+      const limit = new Promise((_, ko) => setTimeout(() => ko(new Error('délai')), 25000));
+      Promise.race([d.completeNotion(s, target, status), limit]).then(() => wow(s, false))
+        .catch(() => { status('Pas de source trouvée pour l’instant : tes mots restent « à vérifier ».'); setTimeout(() => wow(s, false), 1600); });
+    };
   }
 
   /* Écran 5 : la structure du cours, puis une première question */
@@ -136,30 +335,47 @@
     stage().querySelector('[data-onb="quiz"]').onclick = () => question(s, demo);
   }
 
-  function question(s, demo) {
-    // Démo : question écrite pour le cours. Cours importé : première question de la première leçon possible.
-    let q = null, node = null;
+  // Questions d'un cours : celle de démonstration, ou celles des leçons (Lesson), dans l'ordre du cours
+  function quizzes(s, demo) {
     const all = []; (function rec(x) { x.children.forEach((c) => { all.push(c); rec(c); }); })(s.root);
-    if (demo) { q = DEMO_Q; node = all.find((x) => x.title === DEMO_Q.notion); }
-    else if (window.Lesson) {
-      for (const ch of [s.root, ...all.filter((x) => x.children.length)]) {
-        const b = Lesson.build(ch);
-        const st = b.steps.find((x) => x.kind === 'quiz');
-        if (st) { q = { ask: st.q.kind === 'gap' ? `${st.q.ask} : « ${st.q.before}… ${st.q.after} »` : `${st.q.ask}${st.q.quote ? ` « ${st.q.quote} »` : ''}`, opts: st.q.opts, right: st.q.right, why: st.d.idea }; node = all.find((x) => x.id === st.d.id); break; }
-      }
+    if (demo) return [{ q: DEMO_Q, node: all.find((x) => x.title === DEMO_Q.notion) }];
+    const out = [];
+    if (!window.Lesson) return out;
+    for (const ch of [s.root, ...all.filter((x) => x.children.length)]) {
+      const b = Lesson.build(ch);
+      b.steps.filter((x) => x.kind === 'quiz').forEach((st) => {
+        out.push({ q: { ask: st.q.kind === 'gap' ? `${st.q.ask} : « ${st.q.before}… ${st.q.after} »` : `${st.q.ask}${st.q.quote ? ` « ${st.q.quote} »` : ''}`, opts: st.q.opts, right: st.q.right, why: st.d.idea }, node: all.find((x) => x.id === st.d.id) });
+      });
+      if (out.length >= 4) break;
     }
-    if (!q) { done(s); return; }
-    paint(`<div class="onb-q"><div class="onb-guide">${pousse(56, 'smile')}<p>Une seule question, pour commencer.</p></div>
+    return out;
+  }
+  const excerpt = (node) => { const t = String((node && node.notes) || '').replace(/==|\*\*|__/g, '').replace(/^#+\s*/gm, '').trim(); return t.length > 420 ? `${t.slice(0, t.lastIndexOf(' ', 420))}…` : t; };
+
+  /* Le défi : une question, un vrai retour, la notion à lire, puis une nouvelle tentative (mode « Se tester ») */
+  function question(s, demo, opts = {}) {
+    const list = opts.list || quizzes(s, demo);
+    const i = opts.i || 0;
+    const item = list[i];
+    if (!item) { done(s); return; }
+    const { q, node } = item;
+    paint(`<div class="onb-q"><div class="onb-guide">${pousse(56, 'smile')}<p>${i === 0 ? (opts.retry ? 'Un défi pour commencer. Réponds sans chercher.' : 'Une seule question, pour commencer.') : 'Nouvelle tentative.'}</p></div>
       <h2 class="onb-ask">${esc(q.ask)}</h2>
-      <div class="onb-opts">${q.opts.map((o, i) => `<button type="button" class="onb-opt" data-i="${i}">${esc(o)}</button>`).join('')}</div>
-      <div class="onb-fb" aria-live="polite"></div></div>
-      <div class="onb-foot"><button class="btn big" data-onb="next" hidden>Voir mon progrès</button></div>`);
+      <div class="onb-opts">${q.opts.map((o, k) => `<button type="button" class="onb-opt" data-i="${k}">${esc(o)}</button>`).join('')}</div>
+      <div class="onb-fb" aria-live="polite"></div>
+      <div class="onb-learn" hidden></div></div>
+      <div class="onb-foot"><button class="btn big" data-onb="next" hidden>Voir mon progrès</button><button type="button" class="link-btn" data-onb="retry" hidden>Nouvelle tentative</button></div>`);
     stage().querySelectorAll('.onb-opt').forEach((b) => b.onclick = () => {
       const pick = q.opts[+b.dataset.i], ok = pick === q.right;
       stage().querySelectorAll('.onb-opt').forEach((x) => { x.disabled = true; const v = q.opts[+x.dataset.i]; x.classList.add(v === q.right ? 'right' : x === b ? 'wrong' : 'dim'); });
-      stage().querySelector('.onb-fb').innerHTML = `<p class="${ok ? 'ok' : 'ko'}"><b>${ok ? 'Exact.' : `Pas tout à fait : ${esc(q.right)}.`}</b> ${esc(q.why || '')}</p>`;
+      $('.onb-fb').innerHTML = `<p class="${ok ? 'ok' : 'ko'}"><b>${ok ? 'Exact.' : `Pas tout à fait : ${esc(q.right)}.`}</b> ${esc(q.why || '')}</p>`;
       if (node) d.firstAnswer(s, node, ok);
-      const nx = stage().querySelector('[data-onb="next"]'); nx.hidden = false; nx.onclick = () => progress(s, node, ok);
+      // Ce qu'il fallait savoir : le passage du cours, puis une autre question (le défi sert à apprendre, pas à noter)
+      const ex = excerpt(node);
+      if (opts.retry && ex) { const l = $('.onb-learn'); l.hidden = false; l.innerHTML = `<h3>${ic('book-open-text', true)}${esc(node.title)}</h3><p>${esc(ex)}</p>`; }
+      const nx = $('[data-onb="next"]'); nx.hidden = false; nx.onclick = () => progress(s, node, ok);
+      const rt = $('[data-onb="retry"]');
+      if (opts.retry && list[i + 1]) { rt.hidden = false; rt.onclick = () => question(s, demo, { ...opts, list, i: i + 1 }); if (!ok) { nx.textContent = 'Voir mon progrès'; rt.classList.add('strong'); } }
     });
   }
 
@@ -172,8 +388,10 @@
   }
 
   function done(s) { finish('course'); d.go(s); }
-  function hide() { if (el) { el.classList.remove('show'); el.hidden = true; document.documentElement.classList.remove('in-onboarding'); } }
+  function hide() { stopRec(); if (el) { el.classList.remove('show'); el.hidden = true; document.documentElement.classList.remove('in-onboarding'); } }
+  function show() { if (el) { el.hidden = false; el.classList.add('show'); document.documentElement.classList.add('in-onboarding'); } }
   function finish(how) {
+    stopRec();
     d.saveProfile({ ...profile, done: true, how: how || 'skip', at: Date.now() });
     pending = false;
     if (!el) return;
@@ -184,7 +402,7 @@
   }
 
   window.Onboarding = {
-    open(deps) { d = deps; profile = { goals: [], level: '', subject: '', examDate: '', ...(deps.profile || {}) }; if (el) el.remove(); shell(); s1(); },
+    open(deps) { d = deps; profile = { goals: [], goalText: '', entry: '', level: '', subject: '', examDate: '', ...(deps.profile || {}) }; if (el) el.remove(); shell(); s1(); },
     // Après l'import d'un PDF lancé depuis l'onboarding : on reprend à l'écran 5
     afterImport(s) { if (!pending) return false; pending = false; if (profile.examDate && !s.examDate) s.examDate = profile.examDate; wow(s, false); return true; },
     pending: () => pending,

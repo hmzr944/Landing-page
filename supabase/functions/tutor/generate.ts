@@ -5,11 +5,14 @@
 //   - "rediger_notion"  : une notion à partir de passages numérotés (méthode inspirée de STORM)
 //   - "extraire"        : connaissances typées d'un document d'organisation (concept, règle, procédure, produit,
 //                         sensible), chacune avec un extrait copié mot pour mot et sa page, vérifiés ici
+//   - "structurer"      : les notions d'un texte libre de l'apprenant (explication orale transcrite, ou texte lu sur
+//                         une photo), chacune avec un extrait mot pour mot ; ce qui est à vérifier, ce qui manque.
+//                         Une explication personnelle n'est jamais une preuve de maîtrise : on ne juge pas la personne.
 // Garde-fou : le modèle reformule, donc on ne peut pas exiger des citations mot pour mot. On mesure à la place
 // la part des mots porteurs de sens qui figurent dans le texte source ; ce qui n'y est pas assez est écarté.
 
-export type GenTask = "enrichir" | "rediger_cours" | "rediger_notion" | "extraire";
-export const GEN_TASKS: GenTask[] = ["enrichir", "rediger_cours", "rediger_notion", "extraire"];
+export type GenTask = "enrichir" | "rediger_cours" | "rediger_notion" | "extraire" | "structurer";
+export const GEN_TASKS: GenTask[] = ["enrichir", "rediger_cours", "rediger_notion", "extraire", "structurer"];
 export interface DocPassage { page: number; text: string }
 export interface GenRequest {
   task: GenTask;
@@ -21,7 +24,7 @@ export interface GenRequest {
 }
 
 const gclip = (s: unknown, n: number) => String(s ?? "").slice(0, n);
-const LIMITS: Record<GenTask, number> = { enrichir: 3500, rediger_cours: 4500, rediger_notion: 4000, extraire: 4500 };
+const LIMITS: Record<GenTask, number> = { enrichir: 3500, rediger_cours: 4500, rediger_notion: 4000, extraire: 4500, structurer: 4000 };
 
 export function validateGen(body: unknown): { ok: true; req: GenRequest } | { ok: false; error: string } {
   const b = body as Record<string, unknown>;
@@ -40,6 +43,11 @@ export function validateGen(body: unknown): { ok: true; req: GenRequest } | { ok
     return { ok: true, req: { task, title, context: gclip(b.context, 200).trim(), text: passages.map((x) => x.text).join("\n\n"), sourceTitle: gclip(b.sourceTitle, 160).trim(), passages } };
   }
   const text = gclip(b.text, LIMITS[task]).trim();
+  if (task === "structurer") {
+    if (text.length < 40) return { ok: false, error: "texte trop court" };
+    const mode = b.context === "support" ? "support" : "explication";
+    return { ok: true, req: { task, title, context: mode, text, sourceTitle: "" } };
+  }
   // enrichir et rédiger une notion n'ont de sens qu'avec un texte ; un cours peut partir d'un sujet seul (mode prudent)
   if (task !== "rediger_cours" && text.length < 80) return { ok: false, error: "texte source trop court" };
   return { ok: true, req: { task, title, context: gclip(b.context, 200).trim(), text, sourceTitle: gclip(b.sourceTitle, 160).trim() } };
@@ -52,6 +60,14 @@ const strs = { type: "array", items: str };
 const qas = { type: "array", items: qa };
 const KINDS = ["concept", "regle", "procedure", "produit", "sensible"];
 export const GEN_SCHEMAS: Record<GenTask, Record<string, unknown>> = {
+  structurer: {
+    type: "object", additionalProperties: false, required: ["title", "notions", "gaps"],
+    properties: {
+      title: str,
+      notions: { type: "array", items: { type: "object", additionalProperties: false, required: ["title", "quote", "check", "question"], properties: { title: str, quote: str, check: { type: "boolean" }, question: str } } },
+      gaps: strs,
+    },
+  },
   extraire: {
     type: "object", additionalProperties: false, required: ["items"],
     properties: {
@@ -74,6 +90,11 @@ const NO_MNEMO = "Ne rédige ni image mentale ni moyen mnémotechnique : l'étud
 // Un document peut contenir une évaluation de l'étudiant, des conseils ou des commentaires : ce n'est pas de la matière
 const ONLY_SUBJECT = "Ignore tout passage qui juge l'étudiant (niveau, acquis, note), lui donne un conseil personnel ou commente la démarche : ce n'est pas du cours. Ne parle jamais de l'étudiant ni de son niveau, seulement du sujet.";
 const SYSTEMS: Record<GenTask, string> = {
+  structurer: `Tu aides une personne à organiser ce qu'elle apprend. On te donne un texte : soit son explication orale transcrite (avec ses hésitations), soit le texte lu sur une photo (tableau, diapositive, page, notes).
+- "title" : le sujet, en 2 à 6 mots.
+- "notions" : 2 à 8 notions présentes dans le texte, dans l'ordre logique. Pour chacune : "title" (2 à 6 mots) ; "quote" = un passage COPIÉ MOT POUR MOT du texte (15 à 200 caractères) qui en parle ; "check" = true si ce passage est vague, hésitant, incomplet ou peut-être inexact, et mérite d'être vérifié dans une source ; "question" = une question courte qui permet de vérifier qu'on a compris cette notion.
+- "gaps" : 0 à 3 notions que le texte annonce ou suppose sans les expliquer.
+N'invente aucune notion absente du texte. Ne juge jamais la personne ni son niveau : une explication n'est pas une preuve de maîtrise, tu repères seulement ce qui est à vérifier. Écris en français.`,
   extraire: `Tu extrais les connaissances d'un document professionnel (fiche produit, procédure, règlement interne) pour former une équipe.
 On te donne des passages numérotés [P1], [P2]… Pour chaque connaissance utile au travail :
 - "kind" : "concept" (définition), "regle" (règle, condition, obligation, interdiction), "procedure" (étapes à suivre), "produit" (caractéristique, chiffre, prix, compatibilité d'un produit ou service), "sensible" (sécurité, santé, risque, données personnelles, juridique, argent : remboursement, garantie, réclamation).
@@ -102,12 +123,13 @@ On te donne une notion, le module dont elle fait partie et des extraits de sourc
 ${NO_MNEMO}
 ${ONLY_SUBJECT} Écris en français.`,
 };
-const MAX_TOKENS: Record<GenTask, number> = { enrichir: 800, rediger_cours: 2200, rediger_notion: 1500, extraire: 2200 };
+const MAX_TOKENS: Record<GenTask, number> = { enrichir: 800, rediger_cours: 2200, rediger_notion: 1500, extraire: 2200, structurer: 1400 };
 
 export function genPrompt(r: GenRequest): { system: string; user: string; schema: Record<string, unknown>; maxTokens: number } {
   const ctx = r.context ? `\n${r.task === "rediger_notion" ? "Module" : "Cours"} : « ${r.context} »` : "";
   let user: string;
-  if (r.task === "extraire") user = `Document : « ${r.title} »\n\n${(r.passages || []).map((x, i) => `[P${i + 1}] (page ${x.page}) ${x.text}`).join("\n\n")}`;
+  if (r.task === "structurer") user = `Texte (${r.context === "support" ? "lu sur une photo" : "explication orale transcrite"})${r.title && r.title !== "-" ? `, sujet indiqué : « ${r.title} »` : ""} :\n\"\"\"${r.text}\"\"\"`;
+  else if (r.task === "extraire") user = `Document : « ${r.title} »\n\n${(r.passages || []).map((x, i) => `[P${i + 1}] (page ${x.page}) ${x.text}`).join("\n\n")}`;
   else if (r.task === "enrichir") user = `Partie : « ${r.title} »${ctx}\nExtrait :\n"""${r.text.replace(/==/g, "")}"""`;
   else if (r.task === "rediger_notion") user = `Notion : « ${r.title} »${ctx}\n\nExtraits :\n${r.text}`;
   else user = `Sujet : « ${r.title} »${ctx}${r.text ? `\n\nTexte de référence${r.sourceTitle ? ` (${r.sourceTitle})` : ""} :\n"""${r.text}"""` : "\n\n(Aucun texte de référence.)"}`;
@@ -176,8 +198,25 @@ function cleanExtract(r: GenRequest, out: Record<string, unknown>) {
   return { items, dropped };
 }
 
+// Notions d'un texte libre : chaque extrait doit figurer dans le texte ; rien qui parle de la personne
+function cleanStructure(r: GenRequest, out: Record<string, unknown>) {
+  const src = qnorm(r.text);
+  let dropped = 0;
+  const seen = new Set<string>();
+  const notions = (Array.isArray(out.notions) ? out.notions : []).slice(0, 10).map((x) => x as Record<string, unknown>).filter((x) => {
+    const quote = gclip(x.quote, 240).trim(), title = gclip(x.title, 80).trim();
+    const ok = title.length >= 2 && quote.length >= 12 && src.includes(qnorm(quote)) && !aboutLearner(title) && !aboutLearner(String(x.question || "")) && !seen.has(qnorm(title));
+    if (!ok) { dropped++; return false; }
+    seen.add(qnorm(title));
+    return true;
+  }).slice(0, 8).map((x) => ({ title: gclip(x.title, 80).trim(), quote: gclip(x.quote, 240).trim(), check: !!x.check, question: gclip(x.question, 300).trim() }));
+  const gaps = (Array.isArray(out.gaps) ? out.gaps : []).map((t) => gclip(t, 120).trim()).filter((t) => t.length > 2 && !aboutLearner(t)).slice(0, 3);
+  return { title: gclip(out.title, 80).trim() || r.title, notions, gaps, dropped };
+}
+
 export function cleanGen(r: GenRequest, out: Record<string, unknown>) {
   if (r.task === "extraire") return cleanExtract(r, out);
+  if (r.task === "structurer") return cleanStructure(r, out);
   const src = r.text;
   let dropped = 0;
   const count = <T>(before: unknown, after: T[]) => { dropped += Math.max(0, (Array.isArray(before) ? before.length : 0) - after.length); return after; };

@@ -52,7 +52,14 @@
     return { items: Array.isArray(r.items) ? r.items : [], dropped: r.dropped || 0 };
   }
 
+  /* Notions d'un texte libre : explication orale transcrite (mode « explication ») ou texte d'une photo (« support »).
+     Chaque notion a un extrait du texte vérifié par le serveur ; « check » marque ce qui est à vérifier dans une source. */
+  async function structure(text, mode, subject, opts = {}) {
+    const r = await run({ task: 'structurer', title: subject || '-', context: mode === 'support' ? 'support' : 'explication', text: String(text || '').slice(0, 4000) }, opts.onStatus);
+    return { title: String(r.title || subject || ''), notions: Array.isArray(r.notions) ? r.notions : [], gaps: Array.isArray(r.gaps) ? r.gaps : [], dropped: r.dropped || 0 };
+  }
+
   // Disponible quand l'étudiant est connecté et en ligne (la connexion sert aussi au quota)
   const available = () => !!(window.Tutor && Tutor.signedIn() && navigator.onLine);
-  window.AI = { available, enrich, writeCourse, writeNotion, extract };
+  window.AI = { available, enrich, writeCourse, writeNotion, extract, structure };
 })();

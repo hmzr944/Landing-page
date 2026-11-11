@@ -287,6 +287,11 @@ drop policy if exists skill_delete on public.skills;
 create policy skill_delete on public.skills for delete to authenticated
   using (arbor_private.has_role(org_id, array['admin', 'manager']::public.org_role[]));
 
+-- ---------- Journal des appels : nouvelle tâche « structurer » (introduction Student) ----------
+alter table public.ai_calls drop constraint if exists ai_calls_mode_check;
+alter table public.ai_calls add constraint ai_calls_mode_check
+  check (mode in ('socratique', 'enseigne', 'enrichir', 'rediger_cours', 'rediger_notion', 'extraire', 'competences', 'diagnostic', 'mystere', 'structurer'));
+
 -- ---------- Droits d'exécution ----------
 revoke all on function public.update_organization(uuid, text, text, text, text, text, text[], jsonb) from public, anon;
 revoke all on function public.create_organization(text, text, text, text, text) from public, anon;

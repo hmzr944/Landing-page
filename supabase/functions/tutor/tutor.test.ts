@@ -270,3 +270,32 @@ Deno.test("extraire : passages obligatoires, quota de génération", async () =>
   assertEquals((await handle(req({ task: "extraire", title: "Fiche", passages: fiche }), g.deps)).status, 200);
   assertEquals(g.calls[0].kind, "generation");
 });
+
+const dictee = "Bon alors la photosynthèse c'est quand la plante utilise la lumière du soleil pour fabriquer du sucre. Je crois que ça se passe dans les chloroplastes, enfin peut-être dans les racines aussi. Elle rejette de l'oxygène et elle absorbe du dioxyde de carbone par les feuilles.";
+Deno.test("structurer : extraits vérifiés dans le texte, inventions et jugements écartés, quota de génération", async () => {
+  const g = genDeps({ title: "Photosynthèse", gaps: ["Rôle de la chlorophylle", "Ton niveau est faible"], notions: [
+    { title: "Définition", quote: "la plante utilise la lumière du soleil pour fabriquer du sucre", check: false, question: "Que produit la plante avec la lumière ?" },
+    { title: "Lieu", quote: "Je crois que ça se passe dans les chloroplastes, enfin peut-être dans les racines aussi", check: true, question: "Où se déroule la photosynthèse ?" },
+    { title: "Cycle de Calvin", quote: "le cycle de Calvin fixe le CO2 dans le stroma", check: false, question: "Qu'est-ce que le cycle de Calvin ?" },
+    { title: "Échanges gazeux", quote: "Elle rejette de l’oxygène et elle absorbe du dioxyde de carbone", check: false, question: "Ton travail est-il suffisant ?" },
+  ] });
+  const r = await handle(req({ task: "structurer", title: "Photosynthèse", context: "explication", text: dictee }), g.deps);
+  assertEquals(r.status, 200);
+  const d = await r.json();
+  assertEquals(d.notions.map((n: { title: string }) => n.title), ["Définition", "Lieu"]); // inventé et question sur la personne : écartés
+  assertEquals(d.notions[1].check, true);
+  assertEquals(d.dropped, 2);
+  assertEquals(d.gaps, ["Rôle de la chlorophylle"]);
+  assertEquals(g.calls[0].kind, "generation");
+  assertEquals((g.recorded[0] as { mode: string }).mode, "structurer");
+  assert(String(g.seen[0].user).includes("explication orale transcrite"));
+  assert(String(g.seen[0].system).includes("pas une preuve de maîtrise"));
+});
+
+Deno.test("structurer : texte trop court refusé ; mode photo annoncé au modèle", async () => {
+  const g = genDeps({ title: "x", notions: [], gaps: [] });
+  assertEquals((await handle(req({ task: "structurer", title: "-", text: "trop court" }), g.deps)).status, 400);
+  assertEquals(g.seen.length, 0);
+  assertEquals((await handle(req({ task: "structurer", title: "-", context: "support", text: dictee }), g.deps)).status, 200);
+  assert(String(g.seen[0].user).includes("lu sur une photo"));
+});
