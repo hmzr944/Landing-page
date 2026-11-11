@@ -2,7 +2,7 @@
 // Aucune clé ni aucun réseau réel : un faux serveur local « compatible OpenAI » (comme Groq) reçoit les requêtes.
 import { assert, assertEquals } from "jsr:@std/assert@1";
 import { buildPrompt, checkCitations, type Deps, handle, validate } from "./handler.ts";
-import { support } from "./generate.ts";
+import { isSensitive, support } from "./generate.ts";
 import { makeCallModel } from "./model.ts";
 
 const passages = [
@@ -229,4 +229,44 @@ Deno.test("génération : rien sur l'apprenant (niveau, conseil personnel), mêm
   assertEquals(d.keyPoints, ["DHCP attribue automatiquement une adresse IP à chaque poste."]);
   assertEquals(d.exercises.length, 1);
   assert(String(g.seen[0].system).includes("Ignore tout passage qui juge l'étudiant"));
+});
+
+/* ---------- Extraction de connaissances d'un document d'organisation ---------- */
+const fiche = [
+  { page: 1, text: "Le vélo électrique Alto 500 dispose d'une batterie de 500 Wh. Son autonomie annoncée est de 90 km en mode éco. Le cadre en aluminium pèse 21 kg." },
+  { page: 2, text: "Ne jamais recharger une batterie endommagée ou gonflée : l'isoler dans le bac prévu et prévenir le responsable. Le client dispose de 30 jours pour un retour avec le ticket de caisse." },
+];
+Deno.test("extraire : extrait vérifié mot pour mot, page corrigée, inventions écartées", async () => {
+  const g = genDeps({ items: [
+    { kind: "produit", title: "Autonomie de l'Alto 500", body: "L'Alto 500 a une autonomie annoncée de 90 km en mode éco.", quote: "Son autonomie annoncée est de 90 km en mode éco", passage: 2, confidence: 0.9 },
+    { kind: "produit", title: "Poids", body: "Le vélo pèse 18 kg grâce à son cadre carbone.", quote: "Le cadre en carbone pèse 18 kg", passage: 1, confidence: 0.8 },
+    { kind: "regle", title: "Retour client", body: "Le client dispose de 30 jours pour un retour avec le ticket de caisse.", quote: "Le client dispose de 30 jours pour un retour avec le ticket de caisse", passage: 2, confidence: 1.4 },
+  ] });
+  const r = await handle(req({ task: "extraire", title: "Fiche Alto 500", passages: fiche }), g.deps);
+  assertEquals(r.status, 200);
+  const d = await r.json();
+  assertEquals(d.items.map((x: { title: string }) => x.title), ["Autonomie de l'Alto 500", "Retour client"]);
+  assertEquals(d.items[0].page, 1); // le modèle s'est trompé de passage : la page vient de l'extrait retrouvé
+  assertEquals(d.dropped, 1);
+  assertEquals(d.items[1].confidence, 1);
+  assert(String(g.seen[0].user).includes("[P2] (page 2)"));
+  assertEquals((g.recorded[0] as { mode: string }).mode, "extraire");
+});
+
+Deno.test("extraire : sécurité et argent sont toujours « sensibles », quel que soit l'avis du modèle", async () => {
+  const g = genDeps({ items: [
+    { kind: "procedure", title: "Batterie endommagée", body: "Ne jamais recharger une batterie endommagée ou gonflée ; l'isoler et prévenir le responsable.", quote: "Ne jamais recharger une batterie endommagée ou gonflée", passage: 2, confidence: 0.9 },
+    { kind: "regle", title: "Délai de retour", body: "Le client dispose de 30 jours pour un retour avec le ticket de caisse.", quote: "Le client dispose de 30 jours pour un retour", passage: 2, confidence: 0.9 },
+  ] });
+  const d = await (await handle(req({ task: "extraire", title: "Fiche Alto 500", passages: fiche }), g.deps)).json();
+  assertEquals(d.items[0].kind, "sensible");
+  assertEquals(d.items[1].kind, "regle"); // un retour n'est pas un remboursement : pas de mot sensible ici
+  assert(isSensitive("Remboursement sous 14 jours") && isSensitive("Produit toxique") && !isSensitive("Le cadre pèse 21 kg"));
+});
+
+Deno.test("extraire : passages obligatoires, quota de génération", async () => {
+  const g = genDeps({ items: [] });
+  assertEquals((await handle(req({ task: "extraire", title: "Fiche", passages: [] }), g.deps)).status, 400);
+  assertEquals((await handle(req({ task: "extraire", title: "Fiche", passages: fiche }), g.deps)).status, 200);
+  assertEquals(g.calls[0].kind, "generation");
 });

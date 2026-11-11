@@ -41,7 +41,7 @@ function as(user, sql) {
 const asService = (sql) => psql(`begin; set local role service_role;\n${sql}\ncommit;`);
 
 // ---------- Mise en place ----------
-for (const f of ['tests/db/supabase-stub.sql', 'supabase/migrations/001_tutor.sql', 'supabase/migrations/002_generation.sql', 'supabase/migrations/003_organizations.sql', 'supabase/migrations/004_org_space.sql']) {
+for (const f of ['tests/db/supabase-stub.sql', 'supabase/migrations/001_tutor.sql', 'supabase/migrations/002_generation.sql', 'supabase/migrations/003_organizations.sql', 'supabase/migrations/004_org_space.sql', 'supabase/migrations/005_documents.sql']) {
   const r = psql(file(f));
   check(`M ${path.basename(f)} s'applique`, r.ok, r.err.slice(0, 300));
   if (!r.ok) process.exit(1);
@@ -158,9 +158,26 @@ check('R6 le rôle anonyme n’a accès à aucune table Business', !psql('set ro
   check('E8 une invitation déjà utilisée ne s’annule pas', /déjà utilisée/.test(as(alice, `select public.revoke_invitation((select id from public.invitations where email = 'new@magasin-a.fr'));`).err));
 }
 
+// ---------- Étape D : documents et versions (005) ----------
+{
+  check('D0 la migration 005 peut être rejouée sans erreur', psql(file('supabase/migrations/005_documents.sql')).ok);
+  const r = as(dan, `select source_id || '|' || version_id || '|' || version || '|' || storage_path from public.add_source('${orgA}', 'Fiche produit Vélo Y', 'sha-1', 4);`);
+  const [sid, vid, vn, spath] = r.out.split('|');
+  check('D1 un expert ajoute un document : version 1, fichier dans le dossier privé de l’organisation', r.ok && vn === '1' && spath === `${orgA}/${sid}/v1.pdf`, r.err);
+  check('D2 un collaborateur ne peut pas ajouter de document', /accès refusé/.test(as(bob, `select * from public.add_source('${orgA}', 'X', 'h');`).err));
+  check('D3 une autre organisation ne peut pas ajouter de document chez A', /accès refusé/.test(as(carla, `select * from public.add_source('${orgA}', 'X', 'h');`).err));
+  check('D4 une version identique (même empreinte) est refusée', /inchangé/.test(as(dan, `select * from public.add_version('${sid}', 'sha-1');`).err));
+  const v2 = as(dan, `select version || '|' || storage_path from public.add_version('${sid}', 'sha-2', 5);`).out;
+  check('D5 une nouvelle version prend le numéro suivant et met à jour le document', v2 === `2|${orgA}/${sid}/v2.pdf` && as(dan, `select current_version from public.sources where id = '${sid}';`).out === '2', v2);
+  check('D6 la manager de B ne peut pas ajouter de version à un document de A', /accès refusé/.test(as(carla, `select * from public.add_version('${sid}', 'sha-3');`).err));
+  check('D7 l’ajout de document et de version est journalisé', as(alice, "select count(*) from public.audit_logs where action in ('document.ajoute', 'document.version');").out === '2');
+  check('D8 le journal des appels accepte la tâche « extraire »', psql(`insert into public.ai_calls (user_id, mode, model) values ('${bob.id}', 'extraire', 'm');`).ok);
+  check('D9 une connaissance extraite se rattache à la version, en « proposée »', as(dan, `insert into public.knowledge_nodes (org_id, source_version_id, kind, title, body, quote, page, confidence, created_by) values ('${orgA}', '${vid}', 'produit', 'Autonomie', 'Le vélo Y roule 90 km.', 'roule 90 km', 2, 0.7, '${dan.id}') returning status;`).out === 'propose');
+}
+
 // ---------- Tables du tuteur (001, 002) toujours protégées ----------
 check('T1 le journal des appels accepte les nouvelles tâches de génération', psql(`insert into public.ai_calls (user_id, mode, model) values ('${bob.id}', 'enrichir', 'm');`).ok);
-check('T2 un utilisateur ne lit pas les compteurs des autres', as(carla, 'select count(*) from public.ai_calls;').out === '0' && as(bob, 'select count(*) from public.ai_calls;').out === '1');
+check('T2 un utilisateur ne lit pas les compteurs des autres', as(carla, 'select count(*) from public.ai_calls;').out === '0' && as(bob, 'select count(*) from public.ai_calls;').out === '2');
 
 stop();
 fs.rmSync(dir, { recursive: true, force: true });

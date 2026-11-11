@@ -108,5 +108,21 @@
     return r.data;
   }
 
-  window.Tutor = { rest, signIn, verifyCode, signOut, ask, usage, email, signedIn: () => !!read(), notice: () => { const n = notice; notice = null; return n; }, lastEmail: () => { try { return localStorage.getItem('arbor:auth-email') || ''; } catch (e) { return ''; } } };
+  // Identifiant de la personne connectée, lu dans son jeton (sert à signer ce qu'elle crée ; la base le revérifie)
+  function userId() {
+    const s = read(); if (!s) return '';
+    try { const p = s.access_token.split('.')[1]; return JSON.parse(atob(p.replace(/-/g, '+').replace(/_/g, '/'))).sub || ''; } catch (e) { return ''; }
+  }
+  // Dépôt d'un fichier dans le stockage privé (le chemin commence par l'identifiant de l'organisation : règle d'accès)
+  async function upload(bucket, path, blob, type = 'application/pdf') {
+    const t = await token();
+    if (!t) { const e = new Error('Connecte-toi d’abord.'); e.kind = 'auth'; throw e; }
+    let res;
+    try { res = await fetch(`${URL}/storage/v1/object/${bucket}/${path}`, { method: 'POST', headers: { apikey: KEY, Authorization: `Bearer ${t}`, 'Content-Type': type, 'x-upsert': 'false' }, body: blob }); }
+    catch (err) { const e = new Error('Connexion impossible.'); e.kind = 'offline'; throw e; }
+    if (!res.ok) { let m = ''; try { m = (await res.json()).message; } catch (x) { /* rien */ } const e = new Error(m || 'Le fichier n’a pas pu être enregistré.'); e.kind = 'server'; e.status = res.status; throw e; }
+    return true;
+  }
+
+  window.Tutor = { rest, upload, userId, signIn, verifyCode, signOut, ask, usage, email, signedIn: () => !!read(), notice: () => { const n = notice; notice = null; return n; }, lastEmail: () => { try { return localStorage.getItem('arbor:auth-email') || ''; } catch (e) { return ''; } } };
 })();

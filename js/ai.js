@@ -46,7 +46,13 @@
     return { notes: String(r.notes), keyPoints: (r.keyPoints || []).map(String), exercises: (r.exercises || []).map((e) => ({ q: String(e.q), a: String(e.a) })) };
   }
 
+  // Connaissances d'un document d'organisation : passages (cours seulement) avec leur page ; extraits vérifiés par le serveur
+  async function extract(title, passages, opts = {}) {
+    const r = await run({ task: 'extraire', title, passages }, opts.onStatus);
+    return { items: Array.isArray(r.items) ? r.items : [], dropped: r.dropped || 0 };
+  }
+
   // Disponible quand l'étudiant est connecté et en ligne (la connexion sert aussi au quota)
   const available = () => !!(window.Tutor && Tutor.signedIn() && navigator.onLine);
-  window.AI = { available, enrich, writeCourse, writeNotion };
+  window.AI = { available, enrich, writeCourse, writeNotion, extract };
 })();

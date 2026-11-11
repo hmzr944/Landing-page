@@ -131,7 +131,9 @@
   }
 
   /* Un paragraphe : renvoie le cours qu'il contient et ce qui est mis de côté, phrase par phrase */
-  function paragraph(text, personal) {
+  /* opts.strict : document de travail (organisation). Les marques fortes (jugement, conseil personnel) sont écartées
+     même si le document n'est pas « personnel » ; les marques faibles (« vous devez… ») restent du contenu. */
+  function paragraph(text, personal, opts = {}) {
     const keep = [], aside = [];
     const ss = split(text);
     const kinds = ss.map((s) => sentence(s, personal));
@@ -147,7 +149,7 @@
       const r = kinds[i];
       // Dans un document qui ne s'adresse pas à une personne précise (cours, guide, texte officiel), une phrase
       // de jugement est un exemple ou une explication : elle reste. Seules les annexes y sont mises de côté.
-      if (r.kind === 'cours' || (!personal && r.kind !== 'annexe')) keep.push(s); else aside.push({ kind: r.kind, text: s, why: r.why });
+      if (r.kind === 'cours' || (!personal && !opts.strict && r.kind !== 'annexe')) keep.push(s); else aside.push({ kind: r.kind, text: s, why: r.why });
     });
     // rien à écarter : le texte d'origine est rendu tel quel (sauts de ligne compris)
     return { cours: aside.length ? keep.join(' ') : String(text || ''), aside };

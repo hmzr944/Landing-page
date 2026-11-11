@@ -2720,3 +2720,24 @@ html.in-org #app { padding-bottom: calc(40px + env(safe-area-inset-bottom)); }
 .onb-join { margin-top: 4px; font-size: .92rem; }
 @media (max-width: 400px) { .space-chip { max-width: 34vw; padding: 0 10px; } }
 .space-chip[hidden] { display: none; }
+
+/* ---------- Documents de l'organisation : connaissances à valider ---------- */
+.doc-progress { display: grid; gap: 6px; font-size: .9rem; color: var(--text-2); }
+.doc-progress .bar { display: block; height: 6px; border-radius: 99px; background: var(--surface-3); overflow: hidden; }
+.doc-progress .bar span { display: block; height: 100%; background: linear-gradient(90deg, var(--c1), var(--c2)); transform-origin: left; transform: scaleX(.04); transition: transform .3s ease; }
+.kn-list { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 10px; }
+.kn { padding: 14px; border-radius: 18px; border: 1px solid var(--line); background: color-mix(in oklab, var(--surface) 75%, transparent); display: grid; gap: 6px; }
+.kn p { margin: 0; color: var(--text-2); }
+.kn blockquote { margin: 0; padding: 8px 12px; border-left: 3px solid var(--line-strong); color: var(--text-2); font-size: .92rem; }
+.kn blockquote cite { display: block; font-style: normal; color: var(--text-3); font-size: .82rem; margin-top: 4px; }
+.kn-head { display: flex; justify-content: space-between; gap: 8px; font-size: .8rem; font-weight: 600; }
+.kn-kind { display: inline-flex; gap: 5px; align-items: center; color: var(--accent-ink); }
+.kn-status { color: var(--text-3); }
+.kn-sensible { border-color: color-mix(in oklab, var(--danger) 45%, var(--line)); }
+.kn-sensible .kn-kind { color: var(--danger); }
+.kn.st-a_revalider { border-style: dashed; border-color: var(--doing); }
+.kn.st-valide { opacity: .85; }
+.kn.st-valide .kn-status { color: var(--st-mastered); }
+.kn.st-rejete { opacity: .55; }
+.org-invite input[type="file"] { padding: 10px; }
+.doc-report { display: flex; gap: 8px; align-items: flex-start; padding: 10px 12px; border-radius: 14px; background: color-mix(in oklab, var(--c2) 12%, transparent); font-size: .92rem; }

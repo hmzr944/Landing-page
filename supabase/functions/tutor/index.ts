@@ -26,7 +26,7 @@ export const deps: Deps = {
   },
   // quota séparé pour le dialogue et pour la génération : on compte les appels du mois dans le journal
   async usedThisMonth(userId, month, kind) {
-    const modes = kind === "dialogue" ? ["socratique", "enseigne"] : ["enrichir", "rediger_cours", "rediger_notion"];
+    const modes = kind === "dialogue" ? ["socratique", "enseigne"] : ["enrichir", "rediger_cours", "rediger_notion", "extraire"];
     const { count } = await admin.from("ai_calls").select("id", { count: "exact", head: true })
       .eq("user_id", userId).in("mode", modes).gte("at", `${month}-01T00:00:00Z`);
     return count ?? 0;

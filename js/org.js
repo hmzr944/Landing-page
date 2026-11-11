@@ -75,6 +75,7 @@
   // En-tête commun d'un espace professionnel : nom, rôle, onglets selon le rôle
   function head(o, tab) {
     const tabs = [['accueil', 'house', 'Accueil']];
+    if (can(o, 'admin', 'manager', 'expert') && window.OrgDocs) tabs.push(['documents', 'files', 'Documents']);
     if (can(o, 'admin', 'manager')) tabs.push(['equipe', 'users-three', 'Équipe']);
     return `<header class="org-head glass">
         <div class="org-id"><span class="org-badge" aria-hidden="true">${d.ic('buildings', true)}</span><div><h1>${d.esc(o.name)}</h1><p>${d.esc(o.sector || 'Espace professionnel')} · <b>${ROLES[o.role] || o.role}</b></p></div></div>
@@ -89,7 +90,7 @@
     return `${head(o, 'accueil')}
       <section class="org-grid">
         ${lead ? `<a class="org-card" href="#/org/${o.id}/equipe"><span>${d.ic('users-three')}</span><div><b>Équipe et invitations</b><p>Invite tes collaborateurs par e-mail et attribue leur rôle.</p></div></a>` : ''}
-        ${can(o, 'admin', 'manager', 'expert') ? soon('files', 'Documents de référence', 'Fiches produits, procédures : Arbor en extrait les connaissances, que tu valides avant usage.') : ''}
+        ${can(o, 'admin', 'manager', 'expert') ? `<a class="org-card" href="#/org/${o.id}/documents"><span>${d.ic('files')}</span><div><b>Documents de référence</b><p>Fiches produits, procédures : Arbor en extrait les connaissances, avec la page et l’extrait exact. Tu les valides avant tout usage.</p></div></a>` : ''}
         ${soon('target', lead ? 'Diagnostic de l’équipe' : 'Mon diagnostic', lead ? 'Les fragilités réelles de l’équipe, calculées à partir de preuves, avec la taille de l’échantillon.' : 'Quelques questions pour savoir où tu en es, sans note.')}
         ${soon('storefront', 'Client mystère', 'Des mises en situation avec un client simulé, évaluées sur des comportements observables.')}
       </section>
@@ -170,6 +171,7 @@
     if (!o) { app.innerHTML = `<section class="sec org-join"><h1>Espace introuvable</h1><p>Tu ne fais pas (ou plus) partie de cette organisation.</p><div class="row-btns"><a class="btn ghost" href="#/">Revenir à mon espace personnel</a></div></section>`; return; }
     setSpace(o.id);
     if (view.tab === 'equipe' && can(o, 'admin', 'manager')) return teamView(app, o);
+    if (view.tab === 'documents' && window.OrgDocs) return OrgDocs.render(app, o, view.sub, d, head(o, 'documents'));
     app.innerHTML = homeView(o);
   }
 

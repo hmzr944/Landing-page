@@ -115,3 +115,19 @@ Une connaissance de type `sensible` n'est jamais utilisée dans un scénario san
 - L'empreinte du jeton n'est plus lisible, même par l'administrateur ; une invitation non utilisée peut être annulée (journalisé).
 - Tests : `tests/org.js` (parcours complet avec une base simulée, aucune donnée personnelle dans les requêtes) et
   `tests/db-rls.js` (règles d'accès réelles, section E).
+
+## D8. Documents de l'organisation et extraction des connaissances (appliqué, migration 005, étape D)
+
+- Envoi d'un PDF par l'équipe de contenu (admin, manager, expert) : `add_source` / `add_version` créent la version
+  (numéro, empreinte SHA-256, chemin `org/<document>/v<n>.pdf`) ; le fichier va dans le stockage privé `org-sources`.
+  Un fichier identique à la dernière version est refusé.
+- Le texte est lu page par page dans le navigateur ; le tri cours / hors cours (`DocClassify`, mode strict pour les
+  documents de travail) écarte jugements, conseils personnels et annexes : ils ne sont jamais envoyés à l'extraction.
+- Tâche serveur `extraire` : connaissances typées (concept, règle, procédure, produit, sensible), chacune avec un extrait
+  retrouvé mot pour mot dans un passage (sinon écartée) et la page de ce passage. Sécurité, santé, juridique et argent
+  sont toujours « sensible », quel que soit l'avis du modèle.
+- Les connaissances arrivent « proposées » ; une connaissance sensible ne se valide que par un manager ou un administrateur.
+- Nouvelle version : une connaissance dont l'extrait figure toujours dans le document reste valable ; sinon elle passe
+  « à revalider ». Les nouvelles connaissances sont proposées sans doublon. L'historique des versions est conservé.
+- Limite connue : les passages envoyés à l'extraction viennent du navigateur de l'équipe de contenu ; le serveur vérifie
+  les extraits contre ces passages, pas contre le fichier stocké (acceptable pour le pilote, à revoir pour la production).

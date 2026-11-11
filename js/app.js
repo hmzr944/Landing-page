@@ -119,7 +119,7 @@
     } else if (parts[0] === 'progression') {
       view = { name: 'progress' };
     } else if (parts[0] === 'org' && parts[1]) {
-      view = { name: 'org', id: parts[1], tab: parts[2] || 'accueil' };
+      view = { name: 'org', id: parts[1], tab: parts[2] || 'accueil', sub: parts[3] || '' };
     } else if (parts[0] === 'rejoindre') {
       view = { name: 'join', token: parts[1] || '' };
     } else {
