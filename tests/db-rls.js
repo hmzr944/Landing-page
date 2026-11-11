@@ -257,6 +257,98 @@ check('R6 le rôle anonyme n’a accès à aucune table Business', !psql('set ro
   check('W37 les anciens scénarios tiennent : l’autre organisation ne voit toujours rien', as(carla, `select count(*) from public.organizations where id = '${orgA}';`).out === '0' && as(eve, `select count(*) from public.memberships where org_id = '${orgB}';`).out === '0');
 }
 
+// ---------- Les cinq moteurs (008), appliquée sur la base existante ----------
+{
+  const m8 = psql(file('supabase/migrations/008_engines.sql'));
+  check('Y0 la migration 008 s’applique sur la base existante', m8.ok, m8.err.slice(0, 300));
+  check('Y0b la migration 008 peut être rejouée sans erreur', psql(file('supabase/migrations/008_engines.sql')).ok);
+  const orgC = as(dan, "select id from public.organizations where name = 'Restaurant C';").out;
+  const srcC = as(dan, `insert into public.sources (org_id, title, created_by) values ('${orgC}', 'Procédure hygiène', '${dan.id}') returning id;`).out;
+  const v1 = as(dan, `insert into public.source_versions (org_id, source_id, version, storage_path, checksum, uploaded_by) values ('${orgC}', '${srcC}', 1, '${orgC}/${srcC}/v1.pdf', 'h1', '${dan.id}') returning id;`).out;
+  const v2 = as(dan, `insert into public.source_versions (org_id, source_id, version, storage_path, checksum, uploaded_by) values ('${orgC}', '${srcC}', 2, '${orgC}/${srcC}/v2.pdf', 'h2', '${dan.id}') returning id;`).out;
+  check('Y1 un chemin de fichier autre que celui prévu pour la version est refusé', /path_exact|violates check/.test(as(dan, `insert into public.source_versions (org_id, source_id, version, storage_path, checksum, uploaded_by) values ('${orgC}', '${srcC}', 3, '${orgC}/autre/piege.pdf', 'h3', '${dan.id}');`).err));
+  const kIns = (title, kind = 'regle') => as(dan, `insert into public.knowledge_nodes (org_id, source_version_id, kind, title, body, quote, page, created_by) values ('${orgC}', '${v1}', '${kind}', '${title}', '${title} : corps', '${title} extrait', 1, '${dan.id}') returning id;`).out;
+  const k1 = kIns('Laver les mains'), k2 = kIns('Température frigo'), k3 = kIns('Allergènes', 'sensible');
+  const kErr = kIns('Confondre DLC et DDM', 'erreur_frequente');
+  check('Y2 une erreur fréquente est un type de connaissance', /^[0-9a-f-]{36}$/.test(kErr));
+  [k1, k2, k3].forEach((k) => as(dan, `select public.set_knowledge_status('${k}', 'valide');`));
+  // Preuves
+  const ev = (u, k, outcome, extra = '') => asService(`insert into public.evidence_events (org_id, user_id, knowledge_id, activity, outcome, evaluator${extra ? ', level, reliability, context' : ''}) values ('${orgC}', '${u.id}', '${k}', 'simulation', '${outcome}', 'ia'${extra}) returning id;`);
+  check('Y3 les cinq résultats sont distincts et acceptés, avec niveau, fiabilité et contexte', ['juste', 'partiel', 'faux', 'non_documente', 'insuffisant'].every((o) => ev(carla, k1, o, ", 4, 'moyenne', 'simulation:vente'").ok));
+  check('Y4 un résultat inconnu ou un niveau hors échelle est refusé', !ev(carla, k1, 'bof').ok && !asService(`insert into public.evidence_events (org_id, user_id, knowledge_id, activity, outcome, evaluator, level) values ('${orgC}', '${carla.id}', '${k1}', 'simulation', 'juste', 'ia', 8);`).ok);
+  check('Y5 une preuve reste immuable', !asService(`update public.evidence_events set outcome = 'juste' where org_id = '${orgC}';`).ok);
+  // Graphe
+  check('Y6 l’équipe de contenu relie deux connaissances (méthode humaine)', as(dan, `insert into public.knowledge_edges (org_id, from_id, to_id, relation, method, created_by) values ('${orgC}', '${k1}', '${k3}', 'prerequis', 'humain', '${dan.id}');`).ok);
+  check('Y7 un client ne peut pas se faire passer pour l’IA, ni relier une connaissance à elle-même', !as(dan, `insert into public.knowledge_edges (org_id, from_id, to_id, relation, method, created_by) values ('${orgC}', '${k1}', '${k2}', 'precise', 'ia', '${dan.id}');`).ok && !as(dan, `insert into public.knowledge_edges (org_id, from_id, to_id, relation, method, created_by) values ('${orgC}', '${k1}', '${k1}', 'precise', 'humain', '${dan.id}');`).ok);
+  const kA = as(alice, `select id from public.knowledge_nodes where org_id = '${orgA}' limit 1;`).out;
+  check('Y8 impossible de relier une connaissance d’une autre organisation', !as(dan, `insert into public.knowledge_edges (org_id, from_id, to_id, relation, method, created_by) values ('${orgC}', '${k1}', '${kA}', 'prerequis', 'humain', '${dan.id}');`).ok);
+  check('Y9 un collaborateur ne crée pas de relation et ne voit pas les relations non validées', !as(carla, `insert into public.knowledge_edges (org_id, from_id, to_id, relation, method, created_by) values ('${orgC}', '${k2}', '${k3}', 'precise', 'humain', '${carla.id}');`).ok && as(carla, 'select count(*) from public.knowledge_edges;').out === '0');
+  const edge = as(dan, 'select id from public.knowledge_edges limit 1;').out;
+  check('Y10 validée par l’équipe de contenu, la relation devient visible du collaborateur ; il ne peut pas la valider', /accès refusé/.test(as(carla, `select public.set_edge_status('${edge}', 'valide');`).err) && as(dan, `select public.set_edge_status('${edge}', 'valide');`).ok && as(carla, 'select count(*) from public.knowledge_edges;').out === '1');
+  // Scénarios
+  const sc = asService(`insert into public.scenarios (org_id, title, kind, created_by) values ('${orgC}', 'Client allergique', 'client', '${dan.id}') returning id;`).out;
+  const sv1 = asService(`insert into public.scenario_versions (org_id, scenario_id, version, spec, knowledge_ids, created_by) values ('${orgC}', '${sc}', 1, '{"need":"secret","events":[]}', array['${k3}']::uuid[], '${dan.id}') returning id;`).out;
+  check('Y11 un brouillon de scénario est invisible du collaborateur', as(carla, 'select count(*) from public.scenarios;').out === '0' && as(carla, 'select count(*) from public.scenario_versions;').out === '0');
+  check('Y12 la fiche secrète n’est lisible que par un responsable, par la fonction dédiée', /secret/.test(as(dan, `select public.scenario_spec('${sv1}');`).out) && /accès refusé/.test(as(carla, `select public.scenario_spec('${sv1}');`).err));
+  check('Y13 un collaborateur ne publie pas ; un responsable publie', /accès refusé/.test(as(carla, `select public.publish_scenario_version('${sv1}');`).err) && as(dan, `select public.publish_scenario_version('${sv1}');`).ok);
+  check('Y14 publié : le collaborateur voit le scénario, jamais la colonne de la fiche', as(carla, 'select count(*) from public.scenario_versions;').out === '1' && !as(carla, 'select spec from public.scenario_versions;').ok);
+  const sv2 = asService(`insert into public.scenario_versions (org_id, scenario_id, version, spec, knowledge_ids, created_by) values ('${orgC}', '${sc}', 2, '{"need":"v2"}', array['${k3}']::uuid[], '${dan.id}') returning id;`).out;
+  as(dan, `select public.publish_scenario_version('${sv2}');`);
+  check('Y15 nouvelle version publiée : l’ancienne devient obsolète, l’historique reste', as(dan, `select string_agg(version || ':' || status, ',' order by version) from public.scenario_versions where scenario_id = '${sc}';`).out === '1:obsolete,2:valide');
+  check('Y16 une partie et une preuve référencent la version jouée', asService(`insert into public.scenario_sessions (org_id, user_id, kind, spec, state, scenario_version_id) values ('${orgC}', '${carla.id}', 'scenario', '{}', '{}', '${sv2}');`).ok && asService(`insert into public.evidence_events (org_id, user_id, knowledge_id, activity, outcome, evaluator, scenario_version_id, level, context) values ('${orgC}', '${carla.id}', '${k3}', 'simulation', 'juste', 'ia', '${sv2}', 4, 'scenario:client');`).ok);
+  // Watchdog
+  const skC = as(dan, `insert into public.skills (org_id, name, created_by) values ('${orgC}', 'Servir en sécurité', '${dan.id}') returning id;`).out;
+  as(dan, `insert into public.skill_knowledge (org_id, skill_id, knowledge_id) values ('${orgC}', '${skC}', '${k3}');`);
+  const ch = asService(`insert into public.policy_changes (org_id, source_id, from_version_id, to_version_id, created_by) values ('${orgC}', '${srcC}', '${v1}', '${v2}', '${dan.id}') returning id;`).out;
+  const itMod = asService(`insert into public.policy_change_items (org_id, change_id, knowledge_id, change, sensitive, new_body, new_quote, new_page, explanation) values ('${orgC}', '${ch}', '${k3}', 'modifie', true, 'Allergènes : 14 désormais', '14 allergènes', 2, 'liste étendue') returning id;`).out;
+  const itDel = asService(`insert into public.policy_change_items (org_id, change_id, knowledge_id, change) values ('${orgC}', '${ch}', '${k2}', 'supprime') returning id;`).out;
+  const itSame = asService(`insert into public.policy_change_items (org_id, change_id, knowledge_id, change) values ('${orgC}', '${ch}', '${k1}', 'inchange') returning id;`).out;
+  check('Y17 les changements ne sont pas lisibles par un collaborateur, ni par une autre organisation', as(carla, 'select count(*) from public.policy_changes;').out === '0' && as(alice, 'select count(*) from public.policy_change_items;').out === '0');
+  const imp = as(dan, `select public.policy_change_impact('${ch}');`).out;
+  check('Y18 l’impact liste compétences, scénarios publiés et personnes ayant des preuves sur l’ancienne version', /Servir en sécurité/.test(imp) && /Client allergique/.test(imp) && imp.includes(carla.id), imp.slice(0, 200));
+  check('Y19 le collaborateur ne peut pas lire l’impact', /accès refusé/.test(as(carla, `select public.policy_change_impact('${ch}');`).err));
+  const tExpert = as(dan, "select public.create_invitation((select id from public.organizations where name = 'Restaurant C'), 'expert@resto.fr', 'expert');").out;
+  psql(`insert into auth.users values ('00000000-0000-0000-0000-000000000010', 'expert@resto.fr');`);
+  const expert = U(10, 'expert@resto.fr').id ? { id: '00000000-0000-0000-0000-000000000010', email: 'expert@resto.fr' } : null;
+  as(expert, `select public.accept_invitation('${tExpert}');`);
+  check('Y20 un changement sensible ne peut pas être accepté par un expert (manager ou administrateur requis)', /accès refusé/.test(as(expert, `select public.decide_change_item('${itMod}', 'accepte');`).err));
+  const newK = as(dan, `select public.decide_change_item('${itMod}', 'accepte');`).out;
+  check('Y21 accepté : nouvelle connaissance validée sur la nouvelle version, l’ancienne « remplacée », la compétence suit',
+    /^[0-9a-f-]{36}$/.test(newK) && as(dan, `select status || '|' || (source_version_id = '${v2}') || '|' || replaces from public.knowledge_nodes where id = '${newK}';`).out === `valide|true|${k3}` && as(dan, `select status from public.knowledge_nodes where id = '${k3}';`).out === 'remplace' && as(dan, `select count(*) from public.skill_knowledge where knowledge_id = '${newK}';`).out === '1');
+  check('Y22 une décision ne se prend qu’une fois', /déjà décidé/.test(as(dan, `select public.decide_change_item('${itMod}', 'rejete');`).err));
+  as(expert, `select public.decide_change_item('${itDel}', 'accepte');`); as(expert, `select public.decide_change_item('${itSame}', 'accepte');`);
+  check('Y23 suppression acceptée : l’ancienne connaissance est « remplacée » sans successeur ; tout décidé : changement traité',
+    as(dan, `select status from public.knowledge_nodes where id = '${k2}';`).out === 'remplace' && as(dan, `select status from public.policy_changes where id = '${ch}';`).out === 'traite');
+  check('Y24 les preuves sur l’ancienne version restent intactes', as(dan, `select count(*) from public.evidence_events where knowledge_id = '${k3}';`).out === '1');
+  check('Y25 chaque décision est journalisée', Number(as(dan, `select count(*) from public.audit_logs where org_id = '${orgC}' and action like 'changement.%';`).out) === 3);
+  // Actions
+  const n = as(dan, `select public.assign_learning_actions('${orgC}', array['${carla.id}', '${alice.id}']::uuid[], 'revalidation', 'La procédure allergènes a changé', array['${newK}']::uuid[], null, '${ch}');`).out;
+  check('Y26 un responsable assigne une revalidation ; une personne extérieure à l’organisation est ignorée', n === '1');
+  check('Y27 le collaborateur voit ses actions, pas celles des autres ; une autre organisation ne voit rien', as(carla, 'select count(*) from public.learning_actions;').out === '1' && as(alice, 'select count(*) from public.learning_actions;').out === '0');
+  const act = as(carla, 'select id from public.learning_actions limit 1;').out;
+  check('Y28 il marque son action faite, mais ne peut pas l’annuler', as(carla, `select public.set_action_status('${act}', 'fait');`).ok && /accès refusé/.test(as(carla, `select public.set_action_status('${act}', 'annule');`).err));
+  check('Y29 un collaborateur ne peut pas assigner d’actions', /accès refusé/.test(as(carla, `select public.assign_learning_actions('${orgC}', array['${carla.id}']::uuid[], 'revoir', 'xxx');`).err));
+  // Validation humaine
+  check('Y30 un manager valide une compétence au poste : preuve humaine, fiabilité forte, niveau 5', as(dan, `select public.record_human_validation('${orgC}', '${carla.id}', 'juste', 'Observée au service du midi', '${skC}');`).ok
+    && as(carla, "select evaluator || '|' || reliability || '|' || level from public.evidence_events where activity = 'validation_humaine';").out === 'humain|forte|5');
+  check('Y31 on ne valide pas ses propres compétences ; un collaborateur ne valide personne', /propres/.test(as(dan, `select public.record_human_validation('${orgC}', '${dan.id}', 'juste', 'x', '${skC}');`).err) && /accès refusé/.test(as(carla, `select public.record_human_validation('${orgC}', '${dan.id}', 'juste', 'x', '${skC}');`).err));
+  // Données personnelles
+  const exp = as(carla, `select public.export_my_org_data('${orgC}');`).out;
+  check('Y32 export : mes preuves, mes simulations, mes actions, et rien des autres', /Restaurant C/.test(exp) && /validation_humaine/.test(exp) && !exp.includes(dan.id.slice(-6) + '","user') && JSON.parse(exp).evidence.length >= 6);
+  check('Y33 export refusé hors de l’organisation', /accès refusé/.test(as(alice, `select public.export_my_org_data('${orgC}');`).err));
+  asService(`insert into public.evidence_events (org_id, user_id, knowledge_id, activity, outcome, evaluator) values ('${orgC}', '${eve.id}', '${k1}', 'diagnostic', 'juste', 'regle');`);
+  const er = as(carla, `select public.erase_my_org_data('${orgC}');`);
+  check('Y34 effacement : mes preuves et simulations disparaissent, celles des autres restent, c’est journalisé sans contenu',
+    er.ok && as(dan, `select count(*) from public.evidence_events where org_id = '${orgC}' and user_id = '${carla.id}';`).out === '0' && as(dan, `select count(*) from public.evidence_events where org_id = '${orgC}' and user_id = '${eve.id}';`).out === '1' && as(dan, "select count(*) from public.audit_logs where action = 'donnees.effacees';").out === '1', er.err);
+  check('Y35 hors de cette fonction, une preuve ne se supprime toujours pas', !as(dan, `delete from public.evidence_events where org_id = '${orgC}';`).ok || as(dan, `select count(*) from public.evidence_events where org_id = '${orgC}';`).out === '1');
+  check('Y36 la durée de conservation se règle par un administrateur seulement', as(dan, `select public.set_retention('${orgC}', 90);`).ok && /accès refusé/.test(as(carla, `select public.set_retention('${orgC}', 30);`).err) && !as(dan, `select public.set_retention('${orgC}', 5);`).ok);
+  asService(`insert into public.scenario_sessions (org_id, user_id, spec, state, transcript, created_at) values ('${orgC}', '${eve.id}', '{}', '{}', '[{"role":"client","text":"vieux"}]', now() - interval '200 days'), ('${orgC}', '${eve.id}', '{}', '{}', '[{"role":"client","text":"récent"}]', now());`);
+  check('Y37 la purge vide les transcriptions trop anciennes seulement (débrief et preuves restent) ; réservée au serveur',
+    asService('select public.purge_expired_transcripts();').out === '1' && asService(`select count(*) from public.scenario_sessions where org_id = '${orgC}' and transcript::text like '%récent%';`).out === '1' && !as(dan, 'select public.purge_expired_transcripts();').ok);
+  check('Y38 le journal des appels accepte les nouvelles tâches', psql(`insert into public.ai_calls (user_id, mode, model) values ('${dan.id}', 'relations', 'm'), ('${dan.id}', 'scenario', 'm'), ('${dan.id}', 'comparer', 'm'), ('${dan.id}', 'situation', 'm'), ('${dan.id}', 'invitation', 'm'), ('${dan.id}', 'structurer', 'm');`).ok);
+  check('Y39 le suivi des envois d’invitation est lisible par un responsable', as(dan, 'select count(sent_at) + sum(send_count) from public.invitations;').ok);
+}
+
 // ---------- Tables du tuteur (001, 002) toujours protégées ----------
 check('T1 le journal des appels accepte les nouvelles tâches de génération', psql(`insert into public.ai_calls (user_id, mode, model) values ('${bob.id}', 'enrichir', 'm');`).ok);
 check('T2 un utilisateur ne lit pas les compteurs des autres', as(carla, 'select count(*) from public.ai_calls;').out === '0' && as(bob, 'select count(*) from public.ai_calls;').out === '2');
