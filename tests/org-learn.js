@@ -164,7 +164,7 @@ function handle(r) {
     await go(page, `#/org/${ORG}/competences`);
     await page.click('#skPropose'); await wait(page, 800);
     check('E1 propositions de compétences avec leurs connaissances, rien d’ajouté sans accord', /Conseiller un vélo électrique/.test(await page.textContent('#skProps')) && db.skills.length === 0);
-    await page.click('[data-add="0"]'); await wait(page, 1000);
+    await page.click('[data-p="0"] [data-keep]'); await wait(page, 1000);
     check('E2 ajoutée sur décision du manager, reliée à ses connaissances', db.skills.length === 1 && db.links.length === 2 && db.skillPrefer === 'return=representation' && /Conseiller un vélo électrique/.test(await page.textContent('#app')));
     await ctx.close();
   }

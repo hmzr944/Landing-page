@@ -232,5 +232,13 @@
     } catch (e) { return false; }
   }
 
-  window.Tutor = { authProviders, signInGoogle, getProfile, saveProfile, rest, upload, userId, signIn, verifyCode, signUp, signInPassword, recover, resend, updatePassword, signOut, ask, usage, email, signedIn: () => !!read(), notice: () => { const n = notice; notice = null; return n; }, lastEmail: () => { try { return localStorage.getItem('arbor:auth-email') || ''; } catch (e) { return ''; } } };
+  // Fonction de la base ouverte sans compte (aperçu d'une invitation : le jeton est le secret)
+  async function publicRpc(name, body) {
+    let r;
+    try { r = await call(`/rest/v1/rpc/${name}`, { body }); } catch (e) { const x = new Error('Connexion impossible.'); x.kind = 'offline'; throw x; }
+    if (!r.ok) { const x = new Error((r.data && (r.data.message || r.data.error)) || 'Action impossible.'); x.kind = 'server'; x.status = r.status; throw x; }
+    return r.data;
+  }
+
+  window.Tutor = { publicRpc, authProviders, signInGoogle, getProfile, saveProfile, rest, upload, userId, signIn, verifyCode, signUp, signInPassword, recover, resend, updatePassword, signOut, ask, usage, email, signedIn: () => !!read(), notice: () => { const n = notice; notice = null; return n; }, lastEmail: () => { try { return localStorage.getItem('arbor:auth-email') || ''; } catch (e) { return ''; } } };
 })();

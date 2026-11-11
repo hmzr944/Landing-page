@@ -39,7 +39,7 @@
     await refresh();
     return id;
   }
-  const members = (orgId) => Tutor.rest('/rest/v1/memberships', { method: 'GET', query: `?org_id=eq.${encodeURIComponent(orgId)}&select=user_id,role,status,email,created_at&order=created_at` });
+  const members = (orgId) => Tutor.rest('/rest/v1/memberships', { method: 'GET', query: `?org_id=eq.${encodeURIComponent(orgId)}&select=*&order=created_at` });
   const invitations = (orgId) => Tutor.rest('/rest/v1/invitations', { method: 'GET', query: `?org_id=eq.${encodeURIComponent(orgId)}&accepted_at=is.null&select=id,email,role,expires_at&order=created_at` });
   const revoke = (id) => Tutor.rest('/rest/v1/rpc/revoke_invitation', { body: { p_id: id } });
   const inviteLink = (token) => `${location.origin}${location.pathname}#/rejoindre/${token}`;
@@ -48,30 +48,6 @@
 
   /* ---------- Écrans ---------- */
   let d = null; // outils de l'app : esc, ic, openModal, closeModal, toast, go
-  const loginForm = (why) => `
-    <form class="org-login" id="orgLogin">
-      <p>${why}</p>
-      <label for="olEmail">Adresse e-mail</label>
-      <div class="row-btns"><input id="olEmail" type="email" autocomplete="email" required value="${d.esc(window.Tutor ? Tutor.lastEmail() : '')}" placeholder="toi@exemple.fr" /><button class="btn sm" id="olSend">${d.ic('envelope-simple')}Recevoir le lien</button></div>
-      <div id="olCodeRow" hidden><label for="olCode">Ou colle le code reçu par e-mail</label>
-      <div class="row-btns"><input id="olCode" inputmode="numeric" autocomplete="one-time-code" placeholder="123456" /><button type="button" class="btn ghost sm" id="olVerify">Valider le code</button></div></div>
-      <p class="hint" id="olErr" role="alert"></p>
-    </form>`;
-  function bindLogin(el, after) {
-    const f = el.querySelector('#orgLogin'); if (!f) return;
-    const err = f.querySelector('#olErr');
-    f.onsubmit = async (e) => {
-      e.preventDefault();
-      const email = f.querySelector('#olEmail').value.trim();
-      try { await Tutor.signIn(email); err.textContent = 'Lien envoyé. Ouvre-le sur cet appareil, ou colle le code ci-dessous.'; f.querySelector('#olCodeRow').hidden = false; }
-      catch (x) { err.textContent = x.message; }
-    };
-    f.querySelector('#olVerify').onclick = async () => {
-      try { await Tutor.verifyCode(f.querySelector('#olEmail').value.trim(), f.querySelector('#olCode').value); await after(); }
-      catch (x) { err.textContent = x.message; }
-    };
-  }
-
   // En-tête commun d'un espace professionnel : nom, rôle, onglets selon le rôle
   function head(o, tab) {
     const tabs = [['accueil', 'house', 'Accueil']];
@@ -91,8 +67,10 @@
     const card = (tab, icn, t, txt) => (window.OrgLearn ? `<a class="org-card" href="#/org/${o.id}/${tab}"><span>${d.ic(icn)}</span><div><b>${t}</b><p>${txt}</p></div></a>` : '');
     const soon = (icn, t, txt) => `<div class="org-card soon"><span>${d.ic(icn)}</span><div><b>${t}</b><p>${txt}</p><small>Bientôt</small></div></div>`;
     return `${head(o, 'accueil')}
+      ${window.OrgOnboarding ? OrgOnboarding.resumeBanner(o, d) : ''}
       <section class="org-grid">
-        ${lead ? `<a class="org-card" href="#/org/${o.id}/equipe"><span>${d.ic('users-three')}</span><div><b>Équipe et invitations</b><p>Invite tes collaborateurs par e-mail et attribue leur rôle.</p></div></a>` : ''}
+        ${lead ? `<a class="org-card" href="#/org/${o.id}/equipe"><span>${d.ic('users-three')}</span><div><b>Équipe et invitations</b><p>Invite tes collaborateurs, attribue leur rôle et leur équipe.</p></div></a>` : ''}
+        ${o.role === 'admin' && window.OrgOnboarding ? `<a class="org-card" href="#/org/${o.id}/configurer/${(o.setup && o.setup.step && !o.setup.done) ? o.setup.step : 'infos'}"><span>${d.ic('sliders-horizontal')}</span><div><b>Configuration</b><p>Informations, objectifs, équipes et établissements, en quelques étapes reprenables.</p></div></a>` : ''}
         ${can(o, 'admin', 'manager', 'expert') ? `<a class="org-card" href="#/org/${o.id}/documents"><span>${d.ic('files')}</span><div><b>Documents de référence</b><p>Fiches produits, procédures : Arbor en extrait les connaissances, avec la page et l’extrait exact. Tu les valides avant tout usage.</p></div></a>` : ''}
         ${lead ? card('suivi', 'chart-bar', 'Suivi de l’équipe', 'Les 3 fragilités prioritaires, calculées à partir de preuves réelles, avec la taille de l’échantillon ; chaque personne et sa prochaine activité.') : ''}
         ${card('diagnostic', 'target', 'Mon diagnostic', 'Quelques questions sur les connaissances validées. Pas de note : tu sais quoi travailler.')}
@@ -105,77 +83,96 @@
 
   async function teamView(app, o) {
     app.innerHTML = `${head(o, 'equipe')}<section class="sec"><p class="hint">Chargement de l’équipe…</p></section>`;
-    let ms = [], invs = [];
-    try { [ms, invs] = await Promise.all([members(o.id), invitations(o.id)]); }
-    catch (e) { app.querySelector('.sec').innerHTML = `<p class="hint">${d.esc(e.message)}</p>`; return; }
-    const roleOpts = Object.entries(ROLES).filter(([k]) => k !== 'admin' || o.role === 'admin');
+    let ms = [], us = [];
+    try { ms = await members(o.id); } catch (e) { app.querySelector('.sec').innerHTML = `<p class="hint">${d.esc(e.message)}</p>`; return; }
+    try { us = await Tutor.rest('/rest/v1/org_units', { method: 'GET', query: `?org_id=eq.${encodeURIComponent(o.id)}&select=id,kind,name&order=kind,name` }); } catch (e) { us = []; }
+    const canMove = (m) => us.length && (o.role === 'admin' || m.role !== 'admin');
     app.innerHTML = `${head(o, 'equipe')}
-      <section class="sec">
-        <h2>Inviter une personne</h2>
-        <form class="org-invite" id="orgInvite">
-          <label for="oiEmail">Adresse e-mail</label><input id="oiEmail" type="email" required placeholder="prenom.nom@entreprise.fr" />
-          <label for="oiRole">Rôle</label><select id="oiRole">${roleOpts.map(([k, l]) => `<option value="${k}" ${k === 'member' ? 'selected' : ''}>${l}</option>`).join('')}</select>
-          <div class="row-btns"><button class="btn">${d.ic('paper-plane-tilt')}Créer l’invitation</button></div>
-          <div id="oiOut" hidden></div>
-        </form>
-        <p class="hint">L’invitation vaut pour cette adresse seulement, une seule fois, pendant 7 jours.</p>
-      </section>
+      <section class="sec"><h2>Inviter une personne</h2><div id="teamInvite"></div></section>
       <section class="sec">
         <h2>Membres <small class="num">${ms.length}</small></h2>
-        <ul class="org-list">${ms.map((m) => `<li><span>${d.esc(m.email || 'Membre')}</span><small>${ROLES[m.role] || m.role}${m.status === 'suspended' ? ' · suspendu' : ''}</small></li>`).join('')}</ul>
-      </section>
-      ${invs.length ? `<section class="sec"><h2>Invitations en attente <small class="num">${invs.length}</small></h2>
-        <ul class="org-list">${invs.map((i) => `<li><span>${d.esc(i.email)}</span><small>${ROLES[i.role] || i.role} · jusqu’au ${new Date(i.expires_at).toLocaleDateString('fr-FR')}</small><button class="btn ghost sm" data-revoke="${i.id}">Annuler</button></li>`).join('')}</ul></section>` : ''}`;
-    app.querySelector('#orgInvite').onsubmit = async (e) => {
-      e.preventDefault();
-      const out = app.querySelector('#oiOut');
-      try {
-        const t = await invite(o.id, app.querySelector('#oiEmail').value.trim().toLowerCase(), app.querySelector('#oiRole').value);
-        const link = inviteLink(t);
-        out.hidden = false;
-        out.innerHTML = `<p><b>Invitation prête.</b> Envoie ce lien à la personne : il ne sera plus affiché ensuite.</p><div class="row-btns"><input id="oiLink" readonly value="${d.esc(link)}" /><button type="button" class="btn sm" id="oiCopy">${d.ic('copy')}Copier</button></div>`;
-        out.querySelector('#oiCopy').onclick = () => { const i = out.querySelector('#oiLink'); i.select(); (navigator.clipboard ? navigator.clipboard.writeText(link) : Promise.reject()).then(() => d.toast('Lien copié', 'success'), () => document.execCommand && document.execCommand('copy')); };
-      } catch (x) { out.hidden = false; out.innerHTML = `<p class="hint">${d.esc(x.message)}</p>`; }
-    };
-    app.querySelectorAll('[data-revoke]').forEach((b) => { b.onclick = async () => { try { await revoke(b.dataset.revoke); d.toast('Invitation annulée', 'success'); teamView(app, o); } catch (x) { d.toast(x.message, 'error'); } }; });
+        <ul class="org-list">${ms.map((m) => `<li><span>${d.esc(m.email || 'Membre')}<small> · ${ROLES[m.role] || m.role}${m.status === 'suspended' ? ' · suspendu' : ''}</small></span>${canMove(m) ? `<select aria-label="Équipe de ${d.esc(m.email || 'ce membre')}" data-unit="${m.user_id}"><option value="">Sans équipe</option>${us.map((u) => `<option value="${u.id}" ${m.unit_id === u.id ? 'selected' : ''}>${d.esc(u.name)}</option>`).join('')}</select>` : ''}</li>`).join('')}</ul>
+        ${o.role === 'admin' && !us.length && window.OrgOnboarding ? `<p class="hint">Pour ranger les membres par équipe ou établissement : <a href="#/org/${o.id}/configurer/structure">créer des équipes</a>.</p>` : ''}
+      </section>`;
+    if (window.OrgOnboarding) OrgOnboarding.inviteBox(app.querySelector('#teamInvite'), o);
+    app.querySelectorAll('[data-unit]').forEach((sel) => { sel.onchange = async () => {
+      try { await Tutor.rest('/rest/v1/rpc/set_member_unit', { body: { p_org: o.id, p_user: sel.dataset.unit, p_unit: sel.value || null } }); d.toast('Équipe mise à jour', 'success'); }
+      catch (x) { d.toast(x.message, 'error'); teamView(app, o); }
+    }; });
   }
 
+  const STATUS_MSG = {
+    expiree: ['Invitation expirée', 'Ce lien n’est plus valable (7 jours). Demande une nouvelle invitation à ton responsable.'],
+    utilisee: ['Invitation déjà utilisée', 'Ce lien a déjà servi. Si c’est toi qui l’as utilisé, connecte-toi : ton organisation t’attend dans tes espaces.'],
+    annulee: ['Invitation annulée', 'Ton responsable a annulé cette invitation. Demande-lui un nouveau lien si besoin.'],
+  };
   async function joinView(app, token) {
     const t = tokenFrom(token);
     if (t) put(K_PENDING, t);
     const pending = get(K_PENDING, '');
     const card = (inner) => `<section class="sec org-join"><span class="org-badge big" aria-hidden="true">${d.ic('door-open', true)}</span>${inner}</section>`;
     if (!pending) {
-      app.innerHTML = card(`<h1>Rejoindre une organisation</h1><p>Colle le lien d’invitation reçu par e-mail.</p>
+      app.innerHTML = card(`<h1>Rejoindre une organisation</h1><p>Colle le lien d’invitation reçu par e-mail ou message.</p>
         <form id="joinPaste" class="row-btns"><input id="jpLink" placeholder="https://…#/rejoindre/…" aria-label="Lien d’invitation" /><button class="btn">Continuer</button></form><p class="hint" id="jpErr"></p>`);
       app.querySelector('#joinPaste').onsubmit = (e) => { e.preventDefault(); const k = tokenFrom(app.querySelector('#jpLink').value); if (!k) { app.querySelector('#jpErr').textContent = 'Ce lien n’est pas une invitation Arbor.'; return; } d.go(`#/rejoindre/${k}`); };
       return;
     }
-    if (!window.Tutor || !Tutor.signedIn()) {
-      app.innerHTML = card(`<h1>Rejoindre ton organisation</h1>${loginForm('Connecte-toi avec l’adresse e-mail à laquelle tu as reçu l’invitation. Tes cours personnels restent sur cet appareil.')}`);
-      bindLogin(app, () => joinView(app, pending));
+    // Aperçu (migration 007) : on sait à quoi on est invité avant même d'avoir un compte
+    let pv = null;
+    try { const rows = await Tutor.publicRpc('invitation_preview', { p_token: pending }); pv = Array.isArray(rows) ? (rows[0] || { status: 'invalide' }) : null; }
+    catch (e) { pv = null; } // base sans 007 ou hors ligne : on continue comme avant
+    if (pv && pv.status !== 'valide' && !(pv.status === 'utilisee' && window.Tutor && Tutor.signedIn())) {
+      put(K_PENDING, null);
+      const [h, m] = STATUS_MSG[pv.status] || ['Invitation non valable', 'Ce lien ne correspond à aucune invitation. Vérifie qu’il est complet, ou demande-en un nouveau.'];
+      app.innerHTML = card(`<h1>${h}</h1><p>${m}</p><div class="row-btns"><a class="btn ghost" href="#/">Revenir à mon espace personnel</a></div>`);
       return;
     }
-    app.innerHTML = card('<h1>Rejoindre ton organisation</h1><p class="hint">Vérification de l’invitation…</p>');
+    const intro = pv ? `<p class="org-invite-sum"><b>${d.esc(pv.org_name)}</b> t’invite comme <b>${d.esc(ROLES[pv.role] || pv.role)}</b>${pv.unit ? `, équipe <b>${d.esc(pv.unit)}</b>` : ''}.</p>` : '';
+    if (!window.Tutor || !Tutor.signedIn()) {
+      app.innerHTML = card(`<h1>Rejoindre ton organisation</h1>${intro}
+        <p>Connecte-toi, ou crée ton compte, avec l’adresse qui a reçu l’invitation${pv ? ` (<b>${d.esc(pv.email_hint)}</b>)` : ''}. Tes cours personnels restent sur cet appareil.</p>
+        <div class="row-btns"><button class="btn" id="jnSignup">${d.ic('user-plus')}Créer mon compte</button><button class="btn ghost" id="jnLogin">${d.ic('sign-in')}J’ai déjà un compte</button></div>`);
+      const again = { after: () => joinView(app, pending) };
+      app.querySelector('#jnSignup').onclick = () => Welcome.auth(again, 'signup');
+      app.querySelector('#jnLogin').onclick = () => Welcome.auth(again, 'login');
+      return;
+    }
+    app.innerHTML = card(`<h1>Rejoindre ton organisation</h1>${intro}<p class="hint">Vérification de l’invitation…</p>`);
     try {
       const id = await accept(pending);
       setSpace(id);
-      d.toast(`Bienvenue dans ${orgOf(id) ? orgOf(id).name : 'ton organisation'}`, 'success');
-      d.go(`#/org/${id}`);
+      if (window.Journey) Journey.set({ workspace: 'business', businessIntent: 'join' });
+      const o = orgOf(id);
+      d.toast(`Bienvenue dans ${o ? o.name : 'ton organisation'}`, 'success');
+      d.go(o && o.onboarded === false ? `#/org/${id}/bienvenue` : `#/org/${id}`);
     } catch (x) {
       put(K_PENDING, null);
-      app.innerHTML = card(`<h1>Invitation non valable</h1><p>${d.esc(x.message)}</p><p class="hint">Demande une nouvelle invitation à ton responsable, pour l’adresse avec laquelle tu es connecté.</p><div class="row-btns"><a class="btn ghost" href="#/">Revenir à mon espace personnel</a></div>`);
+      const other = /autre adresse/.test(x.message);
+      app.innerHTML = card(`<h1>Invitation non valable</h1><p>${d.esc(x.message.charAt(0).toUpperCase() + x.message.slice(1))}.</p>
+        <p class="hint">${other ? `Tu es connecté avec ${d.esc(Tutor.lastEmail() || 'une autre adresse')}. Déconnecte-toi (Réglages, Compte) puis rouvre le lien avec l’adresse invitée${pv ? ` (${d.esc(pv.email_hint)})` : ''}.` : 'Demande une nouvelle invitation à ton responsable, pour l’adresse avec laquelle tu es connecté.'}</p>
+        <div class="row-btns"><a class="btn ghost" href="#/">Revenir à mon espace personnel</a></div>`);
     }
   }
 
   /* Point d'entrée du routeur : #/org/<id>[/equipe] et #/rejoindre/<jeton> */
   async function render(app, view, deps) {
     d = deps;
+    if (window.OrgOnboarding) OrgOnboarding.use(d);
     if (view.name === 'join') return joinView(app, view.token);
+    if (view.id === 'nouvelle' && window.OrgOnboarding) return OrgOnboarding.wizard(app, null, 'infos', d);
     let o = orgOf(view.id);
     if (!o && window.Tutor && Tutor.signedIn()) { try { await refresh(); } catch (e) { /* hors ligne : liste connue */ } o = orgOf(view.id); }
     if (!o) { app.innerHTML = `<section class="sec org-join"><h1>Espace introuvable</h1><p>Tu ne fais pas (ou plus) partie de cette organisation.</p><div class="row-btns"><a class="btn ghost" href="#/">Revenir à mon espace personnel</a></div></section>`; return; }
     setSpace(o.id);
+    if (window.OrgOnboarding) {
+      if (view.tab === 'configurer') return OrgOnboarding.wizard(app, o, view.sub, d);
+      // Invité qui n'a pas encore vu la présentation : elle passe avant tout (une seule fois)
+      if (view.tab === 'bienvenue' || (o.onboarded === false && !o.owner && view.tab === 'accueil')) return OrgOnboarding.arrival(app, o);
+      if (view.tab === 'competences' && can(o, 'admin', 'manager')) {
+        app.innerHTML = `${head(o, 'competences')}<section class="sec org-learn"><h2>Compétences</h2><p class="hint">Une compétence est une capacité observable au travail, reliée aux connaissances validées qu’elle demande.</p><div id="skEd"></div></section>`;
+        return OrgOnboarding.skillsEditor(app.querySelector('#skEd'), o);
+      }
+    }
     if (view.tab === 'equipe' && can(o, 'admin', 'manager')) return teamView(app, o);
     if (view.tab === 'documents' && window.OrgDocs) return OrgDocs.render(app, o, view.sub, d, head(o, 'documents'));
     if (window.OrgLearn && OrgLearn.TABS.includes(view.tab)) return OrgLearn.render(app, o, view, d, head(o, view.tab));
@@ -201,26 +198,11 @@
     });
   }
 
+  // Créer une organisation : l'assistant en 6 étapes (org-onboarding.js)
   function createModal(deps) {
     d = deps;
-    const signed = window.Tutor && Tutor.signedIn();
-    d.openModal(`
-      <h2 id="modalTitle">Créer une organisation</h2>
-      <p class="modal-lede">Pour former ton équipe à partir de tes propres documents. Tu en seras l’administrateur.</p>
-      ${signed ? `<form class="form" id="ocForm">
-        <div class="field"><label for="ocName">Nom</label><input id="ocName" required minlength="2" maxlength="120" placeholder="Magasin de Lyon" /></div>
-        <div class="field"><label for="ocSector">Secteur</label><select id="ocSector">${SECTORS.map((x) => `<option>${x}</option>`).join('')}</select></div>
-        <p class="hint" id="ocErr" role="alert"></p>
-        <div class="row-btns end"><button type="button" class="btn ghost" data-close>Annuler</button><button class="btn">${d.ic('check')}Créer</button></div>
-      </form>` : loginForm('Une organisation a besoin d’un compte (gratuit). Tes cours personnels restent sur cet appareil.')}`, (el) => {
-      if (!signed) { bindLogin(el, () => createModal(d)); return; }
-      el.querySelector('[data-close]').onclick = d.closeModal;
-      el.querySelector('#ocForm').onsubmit = async (e) => {
-        e.preventDefault();
-        try { const id = await create(el.querySelector('#ocName').value.trim(), el.querySelector('#ocSector').value); setSpace(id); d.closeModal(); d.toast('Organisation créée', 'success'); d.go(`#/org/${id}`); }
-        catch (x) { el.querySelector('#ocErr').textContent = x.message; }
-      };
-    });
+    d.closeModal();
+    d.go('#/org/nouvelle');
   }
 
   // Après le retour d'un lien de connexion, reprendre l'invitation en attente

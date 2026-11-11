@@ -219,5 +219,5 @@
     app.innerHTML = `${head}<section class="sec"><p class="hint">Cet écran est réservé aux managers et administrateurs.</p></section>`;
   }
 
-  window.OrgLearn = { render, TABS: ['diagnostic', 'mystere', 'resultats', 'competences', 'suivi'] };
+  window.OrgLearn = { render, srv, TABS: ['diagnostic', 'mystere', 'resultats', 'competences', 'suivi'] };
 })();

@@ -3015,3 +3015,104 @@ html.in-welcome .topbar, html.in-welcome .bottom-nav, html.in-welcome .mascot { 
 .wel-google .btn i { color: var(--text); }
 .wel-badge-warn { background: linear-gradient(180deg, rgb(255 255 255 / 0.36), transparent 55%), linear-gradient(140deg, var(--c3), color-mix(in oklab, var(--c3) 70%, var(--danger))); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.5), 0 18px 36px -16px var(--c3); }
 @media (prefers-reduced-motion: reduce) { .wel-entries li { animation: none; } }
+
+/* =========================================================
+   Arbor Business : assistant de l'administrateur, arrivée du collaborateur (org-onboarding.js)
+   ========================================================= */
+.obz { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; padding-bottom: 24px; }
+.obz-head { display: grid; gap: 10px; }
+.obz-quit { justify-self: start; display: inline-flex; align-items: center; gap: 6px; font-size: .9rem; color: var(--text-2); text-decoration: none; padding: 6px 0; }
+.obz-steps { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+.obz-steps span { height: 36px; border-radius: 12px; display: grid; place-items: center; font-size: 1.05rem; color: var(--text-3);
+  background: color-mix(in oklab, var(--text) 6%, transparent); transition: background-color 300ms ease, color 300ms ease; }
+.obz-steps span.done { color: var(--accent-ink); background: color-mix(in oklab, var(--accent) 14%, transparent); }
+.obz-steps span.cur { color: #fff; background: linear-gradient(180deg, rgb(255 255 255 / 0.32), transparent 60%), linear-gradient(140deg, var(--c2), var(--c1)); box-shadow: 0 8px 18px -10px var(--c1); }
+.obz-count { margin: 0; font-size: .86rem; color: var(--text-2); font-weight: 500; }
+.obz-body { display: flex; flex-direction: column; gap: 14px; }
+.obz-body h1 { font-family: var(--font-display); font-size: clamp(1.7rem, 7vw, 2.2rem); line-height: 1.1; letter-spacing: -0.035em; margin: 0; text-wrap: balance; }
+.obz-lede { margin: 0; color: var(--text-2); line-height: 1.55; max-width: 60ch; }
+.obz-h2 { font-size: 1rem; margin: 10px 0 0; }
+.obz-form { display: grid; gap: 12px; }
+.obz-form .field { display: grid; gap: 6px; margin: 0; border: 0; padding: 0; }
+.obz-form label, .obz-form legend { font-weight: 600; font-size: .92rem; }
+.obz-form input:not([type="radio"]):not([type="checkbox"]), .obz-form select, .obz-units input, .obz-units select, .sk-meta select, .org-list select {
+  font: inherit; min-height: 48px; padding: 0 14px; border-radius: 14px; border: 1.5px solid var(--line); background: color-mix(in oklab, var(--surface) 85%, transparent); color: var(--text); width: 100%; box-sizing: border-box; }
+.sk-meta select, .org-list select { min-height: 38px; width: auto; max-width: 46vw; padding: 0 10px; border-radius: 10px; font-size: .9rem; }
+.obz-form input:focus, .obz-form select:focus { outline: none; border-color: var(--accent); box-shadow: var(--ring); }
+.obz-two { display: grid; grid-template-columns: 1fr; gap: 12px; }
+@media (min-width: 560px) { .obz-two { grid-template-columns: 1fr 1fr; } }
+.obz-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.obz-chips label { position: relative; }
+.obz-chips input { position: absolute; opacity: 0; inset: 0; }
+.obz-chips span { display: inline-block; padding: 9px 14px; border-radius: var(--r-pill); border: 1.5px solid var(--line); font-weight: 500; font-size: .92rem; cursor: pointer; background: color-mix(in oklab, var(--surface) 70%, transparent); }
+.obz-chips input:checked + span { border-color: var(--accent); background: color-mix(in oklab, var(--accent) 12%, var(--surface)); color: var(--accent-ink); }
+.obz-chips input:focus-visible + span { box-shadow: var(--ring); }
+.obz-goals { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.obz-goal { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; min-height: 108px; padding: 14px; border-radius: 20px; text-align: left; font: inherit; font-weight: 600; line-height: 1.25; color: var(--text); cursor: pointer;
+  border: 1px solid var(--glass-edge); background: linear-gradient(160deg, rgb(255 255 255 / 0.5), rgb(255 255 255 / 0.06) 50%), var(--glass-bg); box-shadow: inset 0 1px 0 var(--glass-hi); transition: transform 160ms var(--spring), border-color 160ms ease; }
+.obz-goal i { font-size: 1.4rem; color: var(--accent-ink); }
+.obz-goal[aria-pressed="true"] { border-color: var(--accent); background: color-mix(in oklab, var(--accent) 12%, var(--surface)); }
+.obz-goal:active { transform: scale(0.98); }
+.obz-units { display: grid; gap: 18px; }
+.obz-units h2 { display: flex; align-items: center; gap: 8px; font-size: 1rem; margin: 0 0 8px; }
+.obz-add { margin-top: 8px; flex-wrap: nowrap; }
+.obz-add input { flex: 1; min-width: 0; }
+.obz-add select { flex: 0 1 40%; }
+.obz-flow { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.obz-flow li { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 6px; text-align: center; font-size: .8rem; font-weight: 600; border-radius: 16px;
+  background: color-mix(in oklab, var(--surface) 60%, transparent); border: 1px solid var(--glass-edge); }
+.obz-flow li i { font-size: 1.25rem; color: var(--accent-ink); }
+.obz-flow li:last-child { background: color-mix(in oklab, var(--accent) 12%, var(--surface)); }
+@media (min-width: 640px) { .obz-flow { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+.obz-embed .sec { padding-left: 0; padding-right: 0; background: none; border: 0; box-shadow: none; }
+.obz-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px; position: sticky; bottom: 0; padding: 12px 0 max(12px, env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, transparent, var(--bg) 30%); }
+.obz-foot .btn.big { min-height: 52px; border-radius: var(--r-pill); padding: 0 24px; }
+.obz-skip { margin-right: auto; font-size: .92rem; }
+.obz-badge { width: 64px; height: 64px; display: grid; place-items: center; border-radius: 22px; font-size: 1.8rem; color: #fff;
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.36), transparent 55%), linear-gradient(140deg, var(--c2), var(--c1)); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.5), 0 16px 30px -16px var(--c1); }
+.obz-check, .obz-skills, .obz-privacy { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.obz-check li, .obz-skills li, .obz-privacy li { display: flex; gap: 12px; align-items: flex-start; padding: 14px; border-radius: 18px; border: 1px solid var(--glass-edge);
+  background: linear-gradient(160deg, rgb(255 255 255 / 0.45), rgb(255 255 255 / 0.04) 50%), var(--glass-bg); }
+.obz-check li > i, .obz-skills li > i, .obz-privacy li > i { font-size: 1.3rem; color: var(--text-3); flex: none; margin-top: 1px; }
+.obz-check li.ok > i, .obz-skills li > i, .obz-privacy li > i { color: var(--accent-ink); }
+.obz-check span, .obz-skills span, .obz-privacy span { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.obz-privacy span b, .obz-skills span b { font-weight: 600; }
+.obz-check a { font-size: .92rem; font-weight: 600; }
+.obz-skills small, .obz-privacy span { color: var(--text-2); line-height: 1.45; }
+.obz-privacy span b { color: var(--text); }
+.obz-next { display: grid; gap: 10px; justify-items: stretch; }
+.obz-next .btn.big { justify-content: center; border-radius: var(--r-pill); min-height: 52px; }
+.obz-next .link-btn { justify-self: center; padding: 8px; }
+.obz-dots { display: flex; gap: 6px; }
+.obz-dots span { width: 22px; height: 6px; border-radius: 99px; background: color-mix(in oklab, var(--text) 10%, transparent); }
+.obz-dots span.done { background: color-mix(in oklab, var(--accent) 40%, transparent); }
+.obz-dots span.cur { background: var(--accent); width: 34px; }
+.obz-arrival .obz-foot .link-btn { padding: 8px; }
+.obz-resume { display: flex; align-items: center; gap: 12px; margin: 0 0 14px; padding: 14px 16px; border-radius: 18px; color: var(--text); text-decoration: none;
+  background: color-mix(in oklab, var(--accent) 12%, var(--surface)); border: 1px solid color-mix(in oklab, var(--accent) 35%, transparent); }
+.obz-resume > i:first-child { font-size: 1.3rem; color: var(--accent-ink); }
+.obz-resume span { flex: 1; display: flex; flex-direction: column; }
+.obz-resume small { color: var(--text-2); }
+.sk-list .sk-row, .sk-props li { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start; justify-content: space-between; }
+.sk-main, .sk-props li > span:first-child { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1 1 60%; }
+.sk-main small, .sk-props small { color: var(--text-2); }
+.sk-k { font-size: .82rem; color: var(--text-3) !important; }
+.sk-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.sk-teams { font-size: .88rem; }
+.sk-teams summary { cursor: pointer; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); list-style: none; }
+.sk-teams label { display: flex; gap: 6px; align-items: center; padding: 4px 0; }
+.sk-kpick { display: grid; gap: 6px; max-height: 220px; overflow: auto; padding: 4px 0; }
+.sk-kpick label { display: flex; gap: 8px; align-items: flex-start; font-weight: 400; }
+.sk-new { margin-top: 12px; padding: 14px; border-radius: 18px; border: 1px dashed var(--line-strong); }
+.org-invite-sum { padding: 12px 14px; border-radius: 14px; background: color-mix(in oklab, var(--accent) 10%, var(--surface)); }
+.obz-invite #ivOut { display: grid; gap: 8px; padding: 12px; border-radius: 14px; background: color-mix(in oklab, var(--accent) 8%, var(--surface)); }
+.obz-invite #ivOut input { font-size: .82rem; }
+@media (prefers-reduced-motion: reduce) { .obz-steps span, .obz-goal { transition: none; } }
+/* assistant : marges sur téléphone, barre d'actions opaque au-dessus du contenu qui défile */
+.obz { padding-inline: max(16px, env(safe-area-inset-left)) max(16px, env(safe-area-inset-right)); box-sizing: border-box; width: 100%; }
+.obz-foot { margin-inline: calc(-1 * max(16px, env(safe-area-inset-left))) calc(-1 * max(16px, env(safe-area-inset-right)));
+  padding-inline: max(16px, env(safe-area-inset-left)) max(16px, env(safe-area-inset-right));
+  background: color-mix(in oklab, var(--bg) 86%, transparent); backdrop-filter: blur(18px) saturate(160%); -webkit-backdrop-filter: blur(18px) saturate(160%);
+  border-top: 1px solid var(--glass-edge); z-index: 3; }
+.obz-body { padding-bottom: 8px; }

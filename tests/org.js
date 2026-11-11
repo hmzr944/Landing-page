@@ -1,4 +1,6 @@
 /* Espace professionnel (étape C) : choisir son espace, créer une organisation, inviter, rejoindre, changer d'espace.
+   Ce test simule une base SANS la migration 007 (état actuel possible du projet) : tout doit continuer à marcher.
+   La version avec 007 (assistant complet, équipes, aperçu des invitations) est testée dans tests/org-onboarding.js.
    Supabase est simulé (mêmes routes que le vrai projet) ; les règles d'accès réelles sont testées dans tests/db-rls.js.
    Point central : depuis l'espace professionnel, aucune donnée de l'espace personnel n'est envoyée au serveur.
    Lancer depuis la racine du dépôt :  node tests/org.js   (Playwright requis). */
@@ -52,7 +54,9 @@ function handle(r) {
   const org = (u.searchParams.get('org_id') || '').replace('eq.', '');
   if (p === '/rest/v1/memberships') return ok(['admin', 'manager'].includes(roleIn(org)) ? db.members.filter((m) => m.org === org).map((m) => ({ user_id: m.user, role: m.role, status: 'active', email: m.email })) : db.members.filter((m) => m.org === org && m.user === me.id).map((m) => ({ user_id: m.user, role: m.role, status: 'active', email: m.email })));
   if (p === '/rest/v1/invitations') return ok(['admin', 'manager'].includes(roleIn(org)) ? db.invites.filter((i) => i.org === org && !i.used).map((i) => ({ id: i.id, email: i.email, role: i.role, expires_at: new Date(Date.now() + 7 * 864e5).toISOString() })) : []);
-  return ok({ message: 'route inconnue' }, 404);
+  // comme PostgREST quand la migration 007 n'est pas appliquée
+  if (p.startsWith('/rest/v1/rpc/')) return ok({ code: 'PGRST202', message: `Could not find the function public.${p.split('/').pop()} in the schema cache` }, 404);
+  return ok({ code: 'PGRST205', message: `Could not find the table 'public.${p.split('/').pop()}' in the schema cache` }, 404);
 }
 
 const leaf = (id, title, notes) => ({ id, title, notes, explain: '', keyPoints: ['Point clé confidentiel de révision'], exercises: [], srs: null, status: 'todo', collapsed: false, children: [] });
@@ -93,9 +97,13 @@ const personal = () => ({ subjects: [{ id: 'persosubj01', title: SECRET_TITLE, c
     const { ctx, page } = await fresh({ token: 'jwt-alice' });
     await page.goto(URL0); await settle(page, 900);
     await page.click('#settingsBtn'); await settle(page, 300);
-    await page.click('#orgCreate'); await settle(page, 300);
-    await page.fill('#ocName', 'Magasin de Lyon'); await page.selectOption('#ocSector', 'Commerce et distribution');
-    await page.click('#ocForm .btn:not(.ghost)'); await settle(page, 900);
+    await page.click('#orgCreate'); await settle(page, 600);
+    check('B0 « Créer une organisation » ouvre l’assistant (étape 1 sur 6)', /#\/org\/nouvelle/.test(page.url()) && /Étape 1 sur 6/.test(await page.textContent('.obz-count')));
+    await page.fill('#obName', 'Magasin de Lyon'); await page.selectOption('#obSector', 'Commerce et distribution');
+    await page.click('#obzNext'); await settle(page, 1200);
+    check('B0b sans la migration 007, l’organisation est créée quand même et l’assistant continue (étape 2)', /\/configurer\/objectifs/.test(page.url()), page.url());
+    orgId = (page.url().match(/#\/org\/([0-9a-f-]{36})/) || [])[1] || '';
+    await page.click('.obz-quit'); await settle(page, 900);
     orgId = (page.url().match(/#\/org\/([0-9a-f-]{36})/) || [])[1] || '';
     check('B1 l’organisation est créée et l’on arrive dans son espace', !!orgId && /Magasin de Lyon/.test(await page.textContent('.org-head')) && /Administrateur/.test(await page.textContent('.org-head')));
     check('B2 dans l’espace professionnel, les menus personnels disparaissent', await page.evaluate(() => document.documentElement.classList.contains('in-org')) && !(await page.isVisible('.bottom-nav')) && !(await page.isVisible('#xp')));
@@ -103,10 +111,10 @@ const personal = () => ({ subjects: [{ id: 'persosubj01', title: SECRET_TITLE, c
     check('B4 l’en-tête montre l’espace courant', await page.isVisible('#spaceBtn') && /Magasin de Lyon/.test(await page.textContent('#spaceName')));
     check('B5 l’accueil mène à de vrais écrans (diagnostic, client mystère, suivi), sans faux tableau de bord', !(await page.$('.org-card.soon')) && !!(await page.$('a.org-card[href$="/suivi"]')) && !!(await page.$('a.org-card[href$="/mystere"]')));
     await page.click('.org-tabs a[href$="/equipe"]'); await settle(page, 800);
-    await page.fill('#oiEmail', 'bob@magasin.fr'); await page.click('#orgInvite .btn'); await settle(page, 600);
+    await page.fill('#ivEmail', 'bob@magasin.fr'); await page.click('#ivForm .btn'); await settle(page, 600);
     inviteUrl = await page.inputValue('#oiLink').catch(() => '');
     check('B6 l’invitation donne un lien unique à envoyer', /#\/rejoindre\/[0-9a-f]{48}$/.test(inviteUrl), inviteUrl);
-    await page.fill('#oiEmail', 'erreur@magasin.fr'); await page.click('#orgInvite .btn'); await settle(page, 400);
+    await page.fill('#ivEmail', 'erreur@magasin.fr'); await page.click('#ivForm .btn'); await settle(page, 400);
     await teamReload(page);
     check('B7 les invitations en attente sont listées', /bob@magasin\.fr/.test(await page.textContent('#app')) && /erreur@magasin\.fr/.test(await page.textContent('#app')));
     const btn = await page.$('li:has-text("erreur@magasin.fr") [data-revoke]'); if (btn) await btn.click(); await settle(page, 700);
@@ -124,13 +132,15 @@ const personal = () => ({ subjects: [{ id: 'persosubj01', title: SECRET_TITLE, c
     const { ctx, page } = await fresh({ fresh: true });
     const hash = inviteUrl.slice(inviteUrl.indexOf('#'));
     await page.goto(URL0 + hash); await settle(page, 900);
-    check('C1 sans compte, le lien demande de se connecter avec l’adresse invitée (sans introduction étudiante)', await page.isVisible('#orgLogin') && !(await page.isVisible('.onb')));
-    await page.fill('#olEmail', 'bob@magasin.fr'); await page.click('#olSend'); await settle(page, 400);
-    await page.fill('#olCode', '123456'); await page.click('#olVerify'); await settle(page, 1200);
+    check('C1 sans compte, le lien propose de se connecter ou de créer son compte (sans introduction étudiante)', await page.isVisible('#jnLogin') && await page.isVisible('#jnSignup') && !(await page.isVisible('.onb')));
+    await page.click('#jnLogin'); await settle(page, 400);
+    await page.click('.wel [data-wel="code"]'); await settle(page, 300);
+    await page.fill('#welEmail', 'bob@magasin.fr'); await page.click('.wel-submit'); await settle(page, 500);
+    await page.fill('#welCode', '123456'); await page.click('.wel-submit'); await settle(page, 1400);
     check('C2 l’invitation est acceptée : Bob arrive dans l’espace, en collaborateur', new RegExp(`#/org/${orgId}`).test(page.url()) && /Collaborateur/.test(await page.textContent('.org-head')));
     check('C3 un collaborateur n’a pas l’onglet Équipe', !(await page.$('.org-tabs a[href$="/equipe"]')));
     await page.evaluate((id) => { location.hash = `#/org/${id}/equipe`; }, orgId); await settle(page, 700);
-    check('C4 même en tapant l’adresse, l’écran Équipe ne s’ouvre pas pour un collaborateur', !(await page.$('#orgInvite')));
+    check('C4 même en tapant l’adresse, l’écran Équipe ne s’ouvre pas pour un collaborateur', !(await page.$('#ivForm')));
     await ctx.close();
   }
 
