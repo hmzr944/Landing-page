@@ -100,3 +100,52 @@ Sections Business et rôles (l'interface suit le rôle ; la base décide) :
 - `js/org-insight.js` : + `matrix` (confiance × compétence).
 - Serveur : `provenance` (empreinte, extraits), verdict `hors_referentiel`.
 - Migration `009_experience.sql` : provenance, revalidation ciblée, connaissances hors référentiel. Compatible avec les données existantes (colonnes ajoutées avec valeurs par défaut, anciennes connaissances validées conservées et signalées « provenance non vérifiée »).
+
+## G2 à G6. Ce qui a été livré (état final du code)
+
+### Architecture avant / après
+
+| | Avant (v44) | Après (v45) |
+|---|---|---|
+| Navigation Business | onglets horizontaux, mêmes sur tous les écrans | navigation par rôle, groupée (Pilotage, Contenu, Apprendre, Administration) ; barre latérale fixe sur ordinateur (≥ 1024 px), onglets défilants sur tablette et téléphone |
+| Accueil Business | cartes de liens | vue d'ensemble par rôle : indicateurs calculés avec leur base, actions prioritaires réelles, accès directs |
+| Intelligence | radar dans Suivi, Watchdog dans chaque document | un écran : radar, matrice confiance × compétence, parcours d'intégration, procédures modifiées, revalidations ciblées, hors référentiel |
+| Portes d'entrée | Student : 5 au premier lancement ; Business : import seulement | Student : 5, accessibles depuis l'accueil à tout moment ; Business : 5 sur les connaissances validées |
+| Aperçu collaborateur | absent | sandbox isolée (données fictives, aucune écriture, barrière réseau) |
+| Provenance PDF | extraits vérifiés sur le fichier ; empreinte du navigateur jamais contrôlée ; validation sans contrôle | empreinte SHA-256 calculée par le serveur et comparée ; chaque extrait vérifié ; validation refusée sinon ; preuves liées à la version et à l'empreinte |
+| Changement de procédure | revalidation manuelle | revalidation ciblée automatique (personnes concernées seulement) + micro-mission ; preuves historiques intactes |
+| Verdicts | 5 résultats | + `hors_referentiel` (plausible, non documenté, signalé, jamais compté) |
+| Onboarding Business | progression même si la sauvegarde échoue | progression seulement après confirmation |
+
+### Fichiers
+- Créés : `js/org-shell.js`, `js/org-sandbox.js`, `supabase/migrations/009_experience.sql`, `tests/org-shell.js`, `tests/fixtures/org-mock.js`, `docs/experience-architecture.md`.
+- Modifiés : `js/org.js` (navigation par rôle, routes), `js/org-onboarding.js` (`advance()`), `js/org-docs.js` (provenance),
+  `js/org-insight.js` (matrice, revalidations), `js/org-engines.js` (parcours, matrice personnelle), `js/org-learn.js` (débrief),
+  `js/onboarding.js` (entrée directe, réutilisation dictée et lecture de texte), `js/app.js` (portes sur l'accueil), `styles.css`,
+  `index.html`, `sw.js` (v45) ; serveur : `pdftext.ts`, `engines.ts`, `handler.ts`, `org.ts`, `index.ts` ; tests :
+  `db-rls.js` (section Z), `tutor.test.ts`, `org.test.ts`, `engines.js`, `onboarding.js`, `org-onboarding.js`.
+
+### Migration nouvelle
+`009_experience.sql` : colonnes ajoutées avec valeurs par défaut (aucune donnée modifiée), tables `skill_revalidations` et
+`out_of_scope_knowledge` (RLS, lecture seule pour le navigateur), fonctions `cancel_revalidation`, `review_out_of_scope`,
+versions mises à jour de `set_knowledge_status`, `decide_change_item`, `export_my_org_data`, `erase_my_org_data`,
+déclencheurs de provenance des preuves et de clôture des revalidations. Rejouable. Aucune ancienne migration modifiée.
+
+### Points de vigilance
+- **Ordre de déploiement** : appliquer 009 et redéployer `tutor` ensemble. Avec 009 sans la nouvelle fonction, aucune
+  connaissance ne peut être validée (provenance jamais vérifiée) : c'est voulu, mais bloquant.
+- **Connaissances existantes** : validées avant 009, elles restent valides et signalées « provenance non vérifiée » ; relancer
+  la vérification document par document.
+- **Changements Watchdog créés avant 009** : la version cible n'a pas d'empreinte serveur ; un changement accepté crée alors
+  une connaissance « à revalider » au lieu de « validée » (prudent).
+- **Refus de validation** : l'erreur est renvoyée et visible ; elle n'est pas journalisée en base (un journal écrit dans une
+  transaction refusée serait annulé). Les divergences d'empreinte, elles, sont journalisées par le serveur (`provenance.divergente`).
+- **Verdict hors référentiel** : décidé par le modèle ; il n'a aucun effet sur la maîtrise, mais sa pertinence réelle n'est pas mesurée.
+- **Portes Business « dire » et « discuter »** : elles consomment le quota de dialogue de la personne et n'écrivent aucune preuve (une explication est une déclaration).
+- **Aperçu** : questions et débrief produits par des règles simples sur l'appareil, plus pauvres que le vrai serveur ; c'est indiqué à l'écran.
+- **Matrice** : pas de conclusion d'équipe sous 5 mesures ; vue d'équipe sans nom ; le détail par personne n'existe que dans sa fiche (déjà visible du manager auparavant).
+
+### Ce qui n'a pas été vérifié sur l'environnement distant
+Aucun accès direct au projet Supabase, à Brevo ou à GitHub Pages depuis cette session au-delà de sondages anonymes. Non vérifié :
+l'application de la migration 009, la nouvelle fonction `tutor` en production (lecture des PDF par unpdf dans le runtime Edge,
+SHA-256 sur les vrais fichiers), la qualité réelle des réponses du modèle (Groq) pour le verdict hors référentiel, la publication GitHub Pages de la v45.

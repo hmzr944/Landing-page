@@ -20,6 +20,8 @@ Projet : `https://nnqtgwgwalbbhqzceged.supabase.co` (adresse et clé publiable d
    puis `migrations/007_onboarding_workspaces.sql` (profils, équipes, invitations v2, propriétaire protégé),
    puis `migrations/008_engines.sql` (niveaux de preuve, graphe de connaissances, scénarios versionnés, Live Policy
    Watchdog, actions demandées, validation au poste, export et effacement des données, conservation, chemins de stockage).
+   puis `migrations/009_experience.sql` (provenance vérifiée par le serveur, revalidations ciblées, connaissances hors
+   référentiel). À appliquer en même temps que le redéploiement de la fonction.
    Crée `ai_usage` et `ai_calls` (RLS activé : chacun ne lit que ses lignes, personne n'écrit depuis le navigateur)
    et la fonction `ai_record_call`, réservée au serveur.
 2. **Connexion par e-mail** : *Authentication* → *URL Configuration*

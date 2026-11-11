@@ -172,3 +172,11 @@ Détail : `docs/engines.md`. En bref :
   changement de document `a_valider`) jusqu'à la décision d'un humain habilité.
 - Les écrans des moteurs (`js/org-engines.js`) se dégradent sans erreur tant que 008 n'est pas appliquée.
 
+## D12. Expérience contextuelle (appliqué dans le code, migration 009 à appliquer)
+
+Détail : `docs/experience-architecture.md`. Deux coquilles sur un seul routeur : Student inchangé dans sa structure (portes
+d'entrée ajoutées à l'accueil), Business avec une navigation par rôle (barre latérale sur ordinateur). Les écrans Business
+nouveaux (`js/org-shell.js`) assemblent les moteurs existants sans en créer. L'aperçu collaborateur (`js/org-sandbox.js`)
+ne lit que des connaissances validées et n'écrit rien. La provenance des documents est garantie par le serveur
+(empreinte SHA-256 du fichier stocké, extraits retrouvés), et une validation sans provenance vérifiée est refusée par la base.
+
