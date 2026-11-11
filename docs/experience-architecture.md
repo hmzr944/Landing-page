@@ -145,6 +145,24 @@ déclencheurs de provenance des preuves et de clôture des revalidations. Rejoua
 - **Aperçu** : questions et débrief produits par des règles simples sur l'appareil, plus pauvres que le vrai serveur ; c'est indiqué à l'écran.
 - **Matrice** : pas de conclusion d'équipe sous 5 mesures ; vue d'équipe sans nom ; le détail par personne n'existe que dans sa fiche (déjà visible du manager auparavant).
 
+### Tests exécutés (12 novembre 2026, sur ce dépôt)
+
+| Suite | Couvre | Résultat |
+|---|---|---|
+| `tests/db-rls.js` (PostgreSQL 16 local) | SQL, RLS, plusieurs organisations, rôles ; section Z : provenance, revalidation ciblée, hors référentiel, RGPD | 192 passent |
+| `deno test` (fonction `tutor`) | empreinte SHA-256 réelle d'un PDF, intégrité divergente bloquée, provenance des extraits, verdict hors référentiel | 48 passent |
+| `tests/org-shell.js` (nouveau) | navigation par rôle (4 rôles), routes directes, vue d'ensemble, Intelligence, 5 portes Business, aperçu isolé (barrière, aucune écriture), 390 / 768 / 1024 / 1440 px | 47 passent |
+| `tests/org-onboarding.js` | assistant Business dont P1-P6 (refus serveur, hors ligne, délai, réponse tardive, double clic) | 45 passent |
+| `tests/onboarding.js` | 5 portes Student dont I1-I3 (accès depuis l'accueil) | 60 passent |
+| `tests/engines.js` | niveaux, adaptatif, radar, parcours, matrice (F1-F6), revalidation (G1-G2) | 37 passent |
+| `org.js`, `org-docs.js`, `org-engines.js`, `org-learn.js`, `org-insight.js` | régression Business | 26, 21, 38, 22, 14 passent |
+| `welcome.js`, `tutor.js`, `learning-flow.js`, `foundations.js`, `explore.js`, `data-safety.js`, `pdf-structure.js` | régression Student, authentification, persistance | 77, 26, 20, 14, 18, 16, 14 passent |
+| `pdf-mixed.js`, `ai-server.js` | import PDF, génération | 45 et 12 passent ; 2 cas NON VÉRIFIÉS (documents personnels absents, Wikimedia inaccessible depuis l'environnement) |
+| `responsive.js` | 6 largeurs × 17 écrans | 0 défaut |
+| `motion.js` | animations | 12 passent ; A8 a échoué une fois pendant la campagne (lecture tardive d'une classe d'animation sous charge), puis 3 fois sur 3 isolément ; le test observe désormais la classe dès son apparition |
+
+Non exécutés ici : aucun test sur le vrai projet Supabase (migration 009, fonction redéployée, Storage), sur Brevo, ni sur GitHub Pages.
+
 ### Ce qui n'a pas été vérifié sur l'environnement distant
 Aucun accès direct au projet Supabase, à Brevo ou à GitHub Pages depuis cette session au-delà de sondages anonymes. Non vérifié :
 l'application de la migration 009, la nouvelle fonction `tutor` en production (lecture des PDF par unpdf dans le runtime Edge,

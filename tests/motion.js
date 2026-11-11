@@ -67,8 +67,10 @@ const state = (calm) => JSON.stringify({ subjects: ['Biologie', 'Réseaux', 'His
   }
   {
     const { ctx, page } = await open({ viewport: { width: 1280, height: 800 } });
+    // on observe la classe dès qu'elle apparaît : elle est retirée à la fin de l'animation (lecture tardive = faux échec sous charge)
+    await page.evaluate(() => { window.__pop = false; const m = document.querySelector('.modal'); new MutationObserver(() => { if (m.classList.contains('mo-pop') && m.style.getPropertyValue('--ox')) window.__pop = true; }).observe(m, { attributes: true }); });
     await page.click('#settingsBtn'); await page.waitForTimeout(300);
-    const pop = await page.evaluate(() => { const m = document.querySelector('.modal'); return m.classList.contains('mo-pop') && !!m.style.getPropertyValue('--ox'); });
+    const pop = await page.evaluate(() => window.__pop);
     check('A8 sur ordinateur, la modale éclôt depuis le bouton touché', pop);
     await ctx.close();
   }
