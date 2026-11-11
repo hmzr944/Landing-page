@@ -292,6 +292,19 @@ const DICTEE = 'La photosynthèse c’est quand la plante fabrique du sucre avec
     await ctx.close();
   }
 
+  /* I. Les cinq portes restent accessibles depuis l'accueil, après le premier lancement */
+  for (const [entry, re, k] of [['parler', /Explique ce que tu sais/, 'I2'], ['scanner', /Photographie un support/, 'I3']]) {
+    const { ctx, page } = await fresh();
+    await page.click('.onb [data-onb="skip"]'); await page.waitForTimeout(400);
+    await page.evaluate(() => { const st = JSON.parse(localStorage.getItem('arbor:v1') || '{}'); st.subjects = [{ id: 'docsub00001', title: 'Biologie', color: '#1E7A57', icon: 'dna', createdAt: 1, updatedAt: 2, root: { id: 'docsub00001r', title: 'Biologie', notes: '', explain: '', keyPoints: [], exercises: [], srs: null, status: 'todo', collapsed: false, children: [] } }]; localStorage.setItem('arbor:v1', JSON.stringify(st)); });
+    await page.reload(); await page.waitForTimeout(900);
+    const before = sent.length;
+    if (k === 'I2') check('I1 l’accueil montre les cinq portes d’entrée, sans débordement', (await page.$$('.st-doors .door')).length === 5 && await noOverflow(page));
+    await page.click(`.st-doors [data-entry="${entry}"]`); await page.waitForTimeout(600);
+    check(`${k} « ${entry} » ouvre directement la bonne porte, sans repasser par l’introduction ; rien n’est envoyé`, await page.isVisible('.onb') && re.test(await page.textContent('.onb')) && sent.length === before);
+    await ctx.close();
+  }
+
   check('Z aucune erreur JavaScript', errors.length === 0, errors.join(' | '));
   await browser.close(); server.close();
   console.log(failed ? `\n${failed} test(s) en échec` : `\nTous les tests passent${unverified ? ` (${unverified} non vérifié(s))` : ''}`);

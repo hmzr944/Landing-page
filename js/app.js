@@ -277,7 +277,14 @@
   function renderHome() {
     document.documentElement.style.removeProperty('--accent');
     if (!state.subjects.length) { app.innerHTML = emptyHome(); return; }
-    app.innerHTML = `<section class="home">${todayPanel()}${missionsPanel()}</section>`;
+    app.innerHTML = `<section class="home">${todayPanel()}${missionsPanel()}${doorsPanel()}</section>`;
+  }
+  // Les cinq portes d'entrée restent accessibles après le premier lancement (même moteur : notions, révisions, observations)
+  function doorsPanel() {
+    if (!window.Onboarding || !Onboarding.ENTRIES) return '';
+    return `<section class="sec st-doors" aria-labelledby="stDoorsT"><h2 id="stDoorsT">Apprendre autrement</h2>
+      <p class="hint">Cinq points de départ, à choisir selon le moment. Tout reste sur ton appareil.</p>
+      <div class="doors">${Onboarding.ENTRIES.map(([k, icn, t, sub]) => `<button type="button" class="door" data-act="door" data-entry="${k}">${ic(icn, true)}<span><b>${t}</b><small>${sub}</small></span></button>`).join('')}</div></section>`;
   }
 
   // Missions : jamais plus de trois, chacune liée à un objectif précis
@@ -1702,7 +1709,7 @@
     dropUntouchedDemo(); save();
     return Onboarding.afterImport(s);
   }
-  function openOnboarding() {
+  function openOnboarding(entry) {
     const addCourse = (tree, examDate) => {
       const s = makeSubject(tree.title, { root: normalize(tree), color: PALETTE[state.subjects.filter((x) => !untouchedDemo(x)).length % PALETTE.length], icon: 'globe-hemisphere-west' });
       if (examDate) s.examDate = examDate;
@@ -1711,6 +1718,7 @@
       return s;
     };
     Onboarding.open({
+      entry,
       profile: state.profile,
       addCourse,
       // Un sujet libre : cours construit à partir de sources fiables (serveur Arbor si connecté, sinon Wikipédia seule)
@@ -2978,6 +2986,7 @@
     const s = view.id && subjectById(view.id);
     switch (act) {
       case 'new-subject': newSubjectModal(); break;
+      case 'door': if (window.Onboarding) openOnboarding(t.dataset.entry); break;
       case 'import-pdf': pdfModal(); break;
       case 'edit-subject': e.stopPropagation(); editSubjectModal(t.dataset.id); break;
       case 'toggle': {

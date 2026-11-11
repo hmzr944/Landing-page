@@ -410,6 +410,8 @@
     open(deps) {
       d = deps; profile = { goals: [], goalText: '', entry: '', level: '', subject: '', examDate: '', ...(deps.profile || {}) };
       if (el) el.remove(); shell();
+      // Porte d'entrée choisie depuis l'accueil (hors premier lancement) : on y va directement
+      if (deps.entry && ENTRIES.some(([k]) => k === deps.entry)) { profile.entry = deps.entry; s4(); return; }
       const dr = readDraft();
       if (dr && dr.profile) { profile = { ...profile, ...dr.profile }; ({ s2, s3, s4 }[dr.screen] || s1)(); } else s1();
     },
@@ -421,6 +423,7 @@
     DEMO,
     // réutilisés par les portes d'entrée Business (js/org-shell.js) : même dictée, même lecture de texte sur l'appareil
     speech: SR,
+    ENTRIES,
     ocr: loadTess,
   };
 })();

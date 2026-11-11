@@ -3487,3 +3487,5 @@ html.in-sandbox .sbx { border: 2px dashed color-mix(in oklab, var(--doing) 55%, 
 @media (min-width: 1024px) { html.in-org .ov-quick .org-card { padding: var(--s4); } }
 .rv-list li > span small, .oos-list li > span small, .set-list li > span small { display: block; margin-top: 2px; }
 .rv-list li, .oos-list li { flex-wrap: wrap; gap: 8px; }
+.st-doors .door { font: inherit; text-align: left; cursor: pointer; width: 100%; }
+.st-doors .door:focus-visible, .door:focus-visible { outline: none; box-shadow: var(--ring); }
