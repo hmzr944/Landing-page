@@ -10,8 +10,9 @@
 
 import { cleanGen, GEN_TASKS, type GenTask, genPrompt, validateGen } from "./generate.ts";
 import { needsModel, ORG_TASKS, type OrgDb, OrgError, type OrgTask, orgTask } from "./org.ts";
+import { verifyPassages } from "./pdftext.ts";
 
-export type Mode = "socratique" | "enseigne";
+export type Mode = "socratique" | "enseigne" | "situation";
 export type Kind = "dialogue" | "generation" | "org";
 export interface Passage { page?: number; text: string }
 export interface Turn { role: "tutor" | "student"; text: string }
@@ -32,9 +33,12 @@ export interface ModelResult {
   outputTokens: number;
 }
 export interface Deps {
+  // Extraction Business : version du document (organisation, chemin) et texte de ses pages relu sur le serveur
+  docVersion?(id: string): Promise<{ id: string; org_id: string; storage_path: string } | null>;
+  docPages?(storagePath: string): Promise<string[]>;
   getUser(jwt: string): Promise<{ id: string } | null>;
   usedThisMonth(userId: string, month: string, kind: Kind): Promise<number>;
-  record(e: { userId: string; month: string; mode: Mode | GenTask | "competences" | "diagnostic" | "mystere"; model: string; inputTokens: number; outputTokens: number; costUsd: number; refused: boolean }): Promise<void>;
+  record(e: { userId: string; month: string; mode: Mode | GenTask | "competences" | "diagnostic" | "mystere" | "relations" | "scenario" | "comparer"; model: string; inputTokens: number; outputTokens: number; costUsd: number; refused: boolean }): Promise<void>;
   callModel(p: { system: string; user: string; schema: Record<string, unknown>; effort: "low" | "medium"; maxTokens?: number }): Promise<ModelResult>;
   limit: number; // échanges de dialogue par mois
   genLimit?: number; // générations de contenu par mois (enrichir un PDF, rédiger un cours)
@@ -97,7 +101,7 @@ const norm = (s: string) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,
 export function validate(body: unknown): { ok: true; req: TutorRequest } | { ok: false; error: string } {
   const b = body as Partial<TutorRequest> | null;
   if (!b || typeof b !== "object") return { ok: false, error: "corps invalide" };
-  if (b.mode !== "socratique" && b.mode !== "enseigne") return { ok: false, error: "mode invalide" };
+  if (b.mode !== "socratique" && b.mode !== "enseigne" && b.mode !== "situation") return { ok: false, error: "mode invalide" };
   if (!b.notion || typeof b.notion.title !== "string" || !b.notion.title.trim()) return { ok: false, error: "notion manquante" };
   if (!Array.isArray(b.passages) || !b.passages.length) return { ok: false, error: "aucun passage du cours : le tuteur ne répond qu'à partir du cours" };
   const passages = b.passages.slice(0, 8).map((p) => ({ page: Number.isInteger(p?.page) ? p.page : undefined, text: clip(p?.text, 2500) })).filter((p) => p.text.trim().length >= 20);
@@ -125,7 +129,8 @@ export function validate(body: unknown): { ok: true; req: TutorRequest } | { ok:
 
 export function buildPrompt(r: TutorRequest): string {
   const lines: string[] = [];
-  lines.push(`Mode : ${r.mode === "socratique" ? "socratique" : "Enseigne-moi"}`);
+  lines.push(`Mode : ${r.mode === "socratique" ? "socratique" : r.mode === "situation" ? "mise en situation" : "Enseigne-moi"}`);
+  if (r.mode === "situation") lines.push("Mise en situation : présente une situation concrète et réaliste où la notion doit être appliquée (un problème à résoudre, une décision à prendre), sans donner la réponse. Évalue ensuite la réponse de l'étudiant uniquement d'après les passages : juste, partiel ou faux. Si la situation évolue, décris la conséquence de son choix et pose la question suivante.");
   lines.push(`Cours : ${r.notion.course || "(sans titre)"} · Notion : ${r.notion.title}`);
   if (r.learner?.state) lines.push(`État estimé de la notion : ${r.learner.state}`);
   if (r.learner?.misconceptions?.length) lines.push(`Confusions déjà repérées : ${r.learner.misconceptions.join(" ; ")}`);
@@ -138,7 +143,7 @@ export function buildPrompt(r: TutorRequest): string {
   }
   lines.push("");
   if (r.message) lines.push(`${r.mode === "enseigne" ? "Explication de l'étudiant" : "Réponse de l'étudiant"} : ${r.message}`);
-  else if (!r.hint || !r.history?.length) lines.push(r.mode === "socratique" ? "Commence le dialogue par une première question ouverte sur la notion." : "Demande à l'étudiant d'expliquer la notion avec ses mots.");
+  else if (!r.hint || !r.history?.length) lines.push(r.mode === "socratique" ? "Commence le dialogue par une première question ouverte sur la notion." : r.mode === "situation" ? "Décris la situation et demande à l'étudiant ce qu'il fait." : "Demande à l'étudiant d'expliquer la notion avec ses mots.");
   if (r.hint) lines.push("L'étudiant demande un indice.");
   return lines.join("\n");
 }
@@ -228,6 +233,22 @@ async function generate(body: unknown, userId: string, m: string, deps: Deps, js
   const v = validateGen(body);
   if (!v.ok) return json(400, { error: v.error });
   const req = v.req;
+  // Extraction d'un document d'organisation : la personne doit faire partie de l'équipe de contenu, et chaque passage
+  // doit se trouver dans le PDF stocké (relu ici). Un passage absent du fichier est écarté avant tout appel au modèle.
+  let unverified = 0;
+  if (req.task === "extraire") {
+    const role = deps.db ? await deps.db.role(userId, req.org!) : null;
+    if (!role || !["admin", "manager", "expert"].includes(role)) return json(403, { error: "accès refusé" });
+    const ver = deps.docVersion ? await deps.docVersion(req.version!) : null;
+    if (!ver || ver.org_id !== req.org) return json(404, { error: "version du document introuvable" });
+    let pages: string[];
+    try { pages = await deps.docPages!(ver.storage_path); }
+    catch (_e) { return json(502, { error: "le document stocké n'a pas pu être relu sur le serveur" }); }
+    const { kept, dropped } = verifyPassages(req.passages || [], pages);
+    unverified = dropped.length;
+    if (!kept.length) return json(422, { error: "aucun passage envoyé ne figure dans le document stocké", unverified });
+    req.passages = kept; req.text = kept.map((x) => x.text).join("\n\n");
+  }
   const limit = deps.genLimit ?? 150;
   const used = await deps.usedThisMonth(userId, m, "generation");
   if (used >= limit) return json(429, { error: "quota", used, limit });
@@ -247,7 +268,7 @@ async function generate(body: unknown, userId: string, m: string, deps: Deps, js
   if (refused) return json(200, { refused: true, usage });
   let out: Record<string, unknown>;
   try { out = JSON.parse(res.text); } catch { return json(502, { error: "réponse illisible", usage }); }
-  return json(200, { ...cleanGen(req, out), usage });
+  return json(200, { ...cleanGen(req, out), usage, ...(req.task === "extraire" ? { unverified } : {}) });
 }
 
 /* Espace professionnel : rôle vérifié dans la base, preuves écrites ici, quota propre */

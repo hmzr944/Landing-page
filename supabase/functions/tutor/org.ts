@@ -8,11 +8,12 @@
 //   relève des comportements observables en citant la phrase exacte du vendeur, et vérifie chaque affirmation produit
 //   face aux connaissances validées. Une affirmation absente des fiches est signalée, jamais acceptée.
 import { support } from "./generate.ts";
+import { compareVersions, type EnginesDb, relations, scenarioDesign, scenarioStart, sendInvitation } from "./engines.ts";
 
-export const ORG_TASKS = ["competences", "diagnostic_start", "diagnostic_answer", "mystere_start", "mystere_tour", "mystere_fin"] as const;
+export const ORG_TASKS = ["competences", "diagnostic_start", "diagnostic_answer", "mystere_start", "mystere_tour", "mystere_fin", "relations", "scenario_concevoir", "scenario_start", "comparer_versions", "invitation_envoyer"] as const;
 export type OrgTask = typeof ORG_TASKS[number];
 export interface Knowledge { id: string; kind: string; title: string; body: string; quote: string; page: number | null; source_version_id: string }
-export interface OrgDb {
+export interface OrgDb extends EnginesDb {
   role(userId: string, orgId: string): Promise<string | null>;
   validatedKnowledge(orgId: string, limit: number): Promise<Knowledge[]>;
   knowledgeById(orgId: string, ids: string[]): Promise<Knowledge[]>;
@@ -24,6 +25,8 @@ export interface OrgDb {
   createScenario(row: Record<string, unknown>): Promise<string>;
   getScenario(id: string): Promise<Record<string, unknown> | null>;
   updateScenario(id: string, patch: Record<string, unknown>): Promise<void>;
+  // Moteurs (migration 008) : facultatifs pour rester compatibles avec une base plus ancienne
+  getScenarioVersion?(id: string): Promise<Record<string, unknown> | null>;
 }
 type Call = (p: { system: string; user: string; schema: Record<string, unknown>; effort: "low" | "medium"; maxTokens?: number }) => Promise<{ text: string; stop: string; model: string; inputTokens: number; outputTokens: number }>;
 export interface OrgCtx { userId: string; db: OrgDb; callModel: Call; onModel(mode: string, r: { model: string; inputTokens: number; outputTokens: number; stop: string }): Promise<void> }
@@ -87,6 +90,33 @@ Regroupe les connaissances [k…] utiles à chaque compétence. 3 à 7 compéten
 }
 
 /* ---------- E. Diagnostic : questions générées et corrigées ici ---------- */
+const STOPW = new Set(["dans", "pour", "avec", "sans", "sont", "est", "les", "des", "une", "aux", "par", "sur", "que", "qui", "plus", "moins", "tout", "tous", "cette", "leur", "leurs", "elle", "elles", "doit", "peut", "avant", "apres", "entre", "chaque"]);
+export function fallbackQuestions(ks: Knowledge[]) {
+  const words = (t: string) => (String(t).match(/[A-Za-zÀ-ÿ]{6,}/g) || []).filter((w) => !STOPW.has(onorm(w)));
+  const pool = [...new Set(ks.flatMap((k) => words(k.quote)))];
+  const out: { k: Knowledge; question: string; options: string[]; correct: number }[] = [];
+  ks.forEach((k, i) => {
+    let target = "", distract: string[] = [];
+    const n = (k.quote.match(/\d+(?:[.,]\d+)?/) || [])[0];
+    if (n) {
+      const v = Number(n.replace(",", "."));
+      const alt = [v * 2, Math.max(1, Math.round(v / 2)), v + (v >= 10 ? 10 : 1), v + (v >= 10 ? 5 : 2)].map((x) => String(Math.round(x * 100) / 100).replace(".", ",")).filter((x) => x !== n);
+      target = n; distract = [...new Set(alt)].slice(0, 2);
+    } else {
+      const own = words(k.quote).sort((a, b) => b.length - a.length);
+      target = own[0] || "";
+      distract = pool.filter((w) => onorm(w) !== onorm(target) && !onorm(k.quote).includes(onorm(w))).slice(i, i + 2);
+      if (distract.length < 2) distract = pool.filter((w) => onorm(w) !== onorm(target) && !onorm(k.quote).includes(onorm(w))).slice(0, 2);
+    }
+    if (!target || distract.length < 2) return;
+    const blank = k.quote.replace(target, "____");
+    if (blank === k.quote) return;
+    const correct = i % 3;
+    const options = [...distract]; options.splice(correct, 0, target);
+    out.push({ k, question: `Complète, d'après nos documents : « ${blank} »`, options, correct });
+  });
+  return out;
+}
 async function diagnosticStart(ctx: OrgCtx, org: string) {
   const all = await ctx.db.validatedKnowledge(org, 60);
   if (all.length < 3) throw new OrgError(400, "pas encore assez de connaissances validées pour un diagnostic");
@@ -111,17 +141,9 @@ La bonne réponse doit découler directement de la connaissance ; les deux autre
       // et chaque nombre de la bonne réponse doit figurer dans la connaissance (un chiffre inventé ne passe pas)
       && numsIn(q.options[q.correct], `${q.k!.body} ${q.k!.quote} ${q.k!.title}`)) as typeof qs;
   } catch (e) { if (e instanceof OrgError && e.status === 503) throw e; /* modèle indisponible : questions de repli */ }
-  // Repli sans modèle (ou questions écartées) : « à quelle connaissance correspond cet extrait ? »
-  if (qs.length < 3) {
-    qs = ks.map((k, i) => {
-      const others = ks.filter((x) => x.id !== k.id).map((x) => x.title).filter((t) => onorm(t) !== onorm(k.title));
-      const distract = [others[(i + 1) % others.length], others[(i + 2) % others.length]].filter(Boolean);
-      if (distract.length < 2 || distract[0] === distract[1]) return null;
-      const correct = i % 3;
-      const options = [...distract]; options.splice(correct, 0, k.title);
-      return { k, question: `Dans nos documents, à quelle connaissance correspond : « ${k.quote} » ?`, options, correct };
-    }).filter(Boolean) as typeof qs;
-  }
+  // Repli sans modèle (ou questions écartées) : texte à trous sur l'extrait du document. On masque un nombre ou un mot
+  // porteur de sens ; les deux autres choix sont du même genre (nombre voisin, ou mot d'une autre connaissance).
+  if (qs.length < 3) qs = fallbackQuestions(ks);
   const session = crypto.randomUUID();
   const rows = qs.slice(0, 8).map((q) => ({ org_id: org, user_id: ctx.userId, session_id: session, knowledge_id: q.k.id, question: q.question, options: q.options, correct: q.correct }));
   const ids = await ctx.db.insertDiagItems(rows);
@@ -137,8 +159,10 @@ async function diagnosticAnswer(ctx: OrgCtx, org: string, b: Record<string, unkn
   const correct = Number(item.correct); const outcome = choice === correct ? "juste" : "faux";
   const [k] = await ctx.db.knowledgeById(org, [String(item.knowledge_id)]);
   const link = (await ctx.db.skillLinks(org)).find((l) => l.knowledge_id === item.knowledge_id);
+  // Un QCM montre une connaissance reconnue (niveau 2) ; deviner rend l'observation peu fiable
   await ctx.db.insertEvidence([{ org_id: org, user_id: ctx.userId, knowledge_id: item.knowledge_id, skill_id: link ? link.skill_id : null, activity: "diagnostic", outcome, confidence,
-    source_version_id: k ? k.source_version_id : null, evaluator: "regle", session_id: item.session_id, detail: { question: item.question, choice, correct } }]);
+    source_version_id: k ? k.source_version_id : null, evaluator: "regle", session_id: item.session_id, level: outcome === "juste" ? 2 : null,
+    reliability: confidence === "devine" ? "faible" : "moyenne", context: "diagnostic", detail: { question: item.question, choice, correct } }]);
   return { outcome, correct, falseCertainty: outcome === "faux" && (confidence === "sait" || confidence === "reflexe"),
     explanation: k ? k.body : "", quote: k ? k.quote : "", page: k ? k.page : null, title: k ? k.title : "" };
 }
@@ -169,10 +193,18 @@ Le client a un besoin réel qu'il n'exprime pas d'emblée, et 2 ou 3 objections.
   return { id, opening, client: { name: spec.name, style } };
 }
 
+// Grille de comportements : celle de la fiche publiée, sinon celle de la vente
+const rubricOf = (spec: Record<string, any>): Record<string, string> => {
+  const r = Array.isArray(spec?.rubric) ? spec.rubric : [];
+  const m: Record<string, string> = {};
+  r.forEach((x: { id?: string; label?: string }) => { const id = String(x?.id || "").replace(/[^a-z_]/g, "").slice(0, 30); if (id && x?.label) m[id] = oclip(x.label, 160); });
+  return Object.keys(m).length >= 2 ? m : BEHAVIORS;
+};
+const evalSchema = (ids: string[]) => ({ ...EVAL_SCHEMA, properties: { ...EVAL_SCHEMA.properties, behaviors: { type: "array", items: { type: "object", additionalProperties: false, required: ["id", "evidence"], properties: { id: { type: "string", enum: ids }, evidence: ostr } } } } });
 const EVAL_SCHEMA = { type: "object", additionalProperties: false, required: ["behaviors", "claims", "need_found", "objections_resolved"],
   properties: {
     behaviors: { type: "array", items: { type: "object", additionalProperties: false, required: ["id", "evidence"], properties: { id: { type: "string", enum: BEHAVIOR_IDS }, evidence: ostr } } },
-    claims: { type: "array", items: { type: "object", additionalProperties: false, required: ["text", "k", "verdict"], properties: { text: ostr, k: ostr, verdict: { type: "string", enum: ["correct", "incorrect", "non_documente"] } } } },
+    claims: { type: "array", items: { type: "object", additionalProperties: false, required: ["text", "k", "verdict"], properties: { text: ostr, k: ostr, verdict: { type: "string", enum: ["correct", "incorrect", "non_documente", "insuffisant"] } } } },
     need_found: { type: "boolean" }, objections_resolved: { type: "array", items: { type: "integer" } },
   } };
 const CLIENT_SCHEMA = { type: "object", additionalProperties: false, required: ["reply", "satisfied", "leaves"], properties: { reply: ostr, satisfied: { type: "boolean" }, leaves: { type: "boolean" } } };
@@ -189,34 +221,41 @@ async function mystereTour(ctx: OrgCtx, org: string, b: Record<string, unknown>)
   const ks = (await ctx.db.knowledgeById(org, spec.knowledge || [])).sort((a, b) => (spec.knowledge || []).indexOf(a.id) - (spec.knowledge || []).indexOf(b.id));
   const lastClient = [...transcript].reverse().find((t) => t.role === "client")?.text || "";
 
-  // 1. Évaluateur (séparé du rôle du client) : comportements observés et affirmations, chacun cité mot pour mot
+  const rubric = rubricOf(spec), rubricIds = Object.keys(rubric);
+  const role = spec.role_label || "vendeur";
+  // 1. Évaluateur (séparé du personnage) : comportements observés et affirmations, chacun cité mot pour mot
   const ev = await model(ctx, "mystere", {
-    system: `Tu évalues la réponse d'un vendeur dans une simulation. Tu n'es pas le client.
-- "behaviors" : les comportements observables présents dans CETTE réponse, parmi : ${BEHAVIOR_IDS.map((x) => `${x} (${BEHAVIORS[x]})`).join(" ; ")}. "evidence" = la phrase exacte du vendeur qui le montre (copiée mot pour mot).
-- "claims" : chaque affirmation factuelle sur un produit, un prix, une règle ou une procédure. "text" = copiée mot pour mot. Compare aux connaissances validées [k…] : "correct" si elle y est conforme, "incorrect" si elle les contredit, "non_documente" si aucune ne la couvre. "k" = la connaissance concernée ("" si aucune).
-- "need_found" : le vendeur a-t-il fait émerger le besoin caché du client ? "objections_resolved" : numéros (à partir de 0) des objections levées par cette réponse.
+    system: `Tu évalues la réponse d'un ${role} dans une simulation. Tu n'es pas le personnage simulé.
+- "behaviors" : les comportements observables présents dans CETTE réponse, parmi : ${rubricIds.map((x) => `${x} (${rubric[x]})`).join(" ; ")}. "evidence" = la phrase exacte qui le montre (copiée mot pour mot).
+- "claims" : chaque affirmation factuelle (produit, prix, règle, procédure, fait technique). "text" = copiée mot pour mot. Compare aux connaissances validées [k…] : "correct" si elle y est conforme, "incorrect" si elle les contredit, "insuffisant" si elle va dans le bon sens mais reste trop vague ou incomplète pour être vérifiée, "non_documente" si aucune ne la couvre (ce n'est PAS une erreur). "k" = la connaissance concernée ("" si aucune).
+- "need_found" : le besoin caché ou l'enjeu principal a-t-il été identifié ? "objections_resolved" : numéros (à partir de 0) des objections levées par cette réponse.
 Ne juge pas la personnalité. N'invente rien.`,
-    user: `Connaissances validées :\n${kList(ks)}\n\nBesoin caché du client : ${spec.need}\nObjections : ${(spec.objections || []).map((o: { text: string }, i: number) => `${i}. ${o.text}`).join(" ; ")}\n\nDernière phrase du client : « ${lastClient} »\nRéponse du vendeur : « ${msg} »`,
-    schema: EVAL_SCHEMA, effort: "medium", maxTokens: 1200,
+    user: `Connaissances validées :\n${kList(ks)}\n\nBesoin caché ou enjeu : ${spec.need}\nObjections : ${(spec.objections || []).map((o: { text: string }, i: number) => `${i}. ${o.text}`).join(" ; ")}\n\nDernière phrase de ${spec.name} : « ${lastClient} »\nRéponse : « ${msg} »`,
+    schema: evalSchema(rubricIds), effort: "medium", maxTokens: 1200,
   });
-  const behaviors = (Array.isArray(ev.behaviors) ? ev.behaviors : []).map((x) => x as Record<string, string>).filter((x) => BEHAVIOR_IDS.includes(x.id) && inText(x.evidence, msg));
+  const behaviors = (Array.isArray(ev.behaviors) ? ev.behaviors : []).map((x) => x as Record<string, string>).filter((x) => rubricIds.includes(x.id) && inText(x.evidence, msg));
   const claims = (Array.isArray(ev.claims) ? ev.claims : []).map((x) => x as Record<string, string>).filter((x) => inText(x.text, msg)).map((x) => {
     const k = kRef(ks, x.k);
-    // sans connaissance de référence, une affirmation ne peut être ni « juste » ni « fausse » : elle est non documentée
-    const verdict = k && (x.verdict === "correct" || x.verdict === "incorrect") ? x.verdict : "non_documente";
+    // Quatre catégories qui ne se confondent jamais. Sans connaissance de référence : ni juste ni fausse, non documentée.
+    const verdict = !k ? "non_documente" : ["correct", "incorrect", "insuffisant", "non_documente"].includes(x.verdict) ? x.verdict : "non_documente";
     return { text: oclip(x.text, 300), verdict, k: k ? k.id : null, quote: k ? k.quote : "", page: k ? k.page : null, confidence, turn: state.turns + 1 };
   });
-  behaviors.forEach((x) => { if (!state.behaviors[x.id]) state.behaviors[x.id] = oclip(x.evidence, 300); });
+  // un comportement ne compte qu'une fois par partie (sa première observation), sinon il gonflerait les preuves
+  const fresh = behaviors.filter((x, i, a) => !state.behaviors[x.id] && a.findIndex((y) => y.id === x.id) === i);
+  fresh.forEach((x) => { state.behaviors[x.id] = oclip(x.evidence, 300); });
   state.claims = [...(state.claims || []), ...claims];
   if (ev.need_found === true) state.need_found = true;
   (Array.isArray(ev.objections_resolved) ? ev.objections_resolved : []).forEach((i) => { const n = Number(i); if (spec.objections?.[n] && !state.resolved.includes(n)) state.resolved.push(n); });
   state.turns = (state.turns || 0) + 1;
   if (!behaviors.length) state.patience = (state.patience || 3) - 1;
   if (claims.some((c) => c.verdict === "incorrect")) state.patience = (state.patience || 3) - 1;
+  // Événement prévu par la fiche à ce tour (la situation évolue) : le personnage le vit, le journal le garde
+  const event = (Array.isArray(spec.events) ? spec.events : []).find((e: { turn?: number }) => Number(e?.turn) === state.turns);
+  if (event) state.events = [...(state.events || []), { turn: state.turns, text: oclip(event.text, 300) }];
 
   // 2. Le client répond, selon sa fiche et l'état de la situation (pas seulement la dernière phrase)
   const cl = await model(ctx, "mystere", {
-    system: `Tu joues ${spec.name}, un client ${spec.style} dans un magasin. Profil : ${spec.profile}. Personnalité : ${spec.personality}.
+    system: `Tu joues ${spec.name}, ${spec.role_play || `un client ${spec.style} dans un magasin`}. ${spec.context ? `Contexte : ${spec.context}. ` : ""}Profil : ${spec.profile}. Personnalité : ${spec.personality}.${event ? `\nÉvénement qui survient maintenant : ${event.text}. Réagis-y.` : ""}
 Ton besoin réel (à ne dévoiler que si le vendeur pose les bonnes questions) : ${spec.need}.
 Tes objections : ${(spec.objections || []).map((o: { text: string }, i: number) => `${o.text}${state.resolved.includes(i) ? " (levée)" : ""}`).join(" ; ")}.
 État : besoin ${state.need_found ? "découvert" : "pas encore découvert"} ; patience ${state.patience} (0 = tu pars).
@@ -232,12 +271,16 @@ Reste dans ton rôle, réponds en 1 à 3 phrases naturelles. Tu ne connais des p
   // 3. Preuves : chaque affirmation rattachée à une connaissance validée ; chaque comportement observé
   const links = await ctx.db.skillLinks(org);
   const kv = new Map(ks.map((k) => [k.id, k]));
-  const rows: Record<string, unknown>[] = claims.filter((c) => c.k).map((c) => ({ org_id: org, user_id: ctx.userId, knowledge_id: c.k, skill_id: links.find((l) => l.knowledge_id === c.k)?.skill_id || null,
-    activity: "simulation", outcome: c.verdict === "correct" ? "juste" : "faux", confidence, source_version_id: kv.get(c.k as string)?.source_version_id || null, evaluator: "ia", session_id: id, detail: { claim: c.text, turn: state.turns } }));
-  behaviors.forEach((x) => rows.push({ org_id: org, user_id: ctx.userId, knowledge_id: null, skill_id: null, activity: "simulation", outcome: "juste", confidence: null, source_version_id: null, evaluator: "ia", session_id: id, detail: { behavior: x.id, evidence: oclip(x.evidence, 300), turn: state.turns } }));
+  // juste / faux / insuffisant / non documenté restent distincts ; une affirmation appliquée en situation vaut le niveau 4
+  const OUT: Record<string, string> = { correct: "juste", incorrect: "faux", insuffisant: "insuffisant", non_documente: "non_documente" };
+  const ctxName = `simulation:${oclip(spec.kind || spec.style || "client", 30)}`;
+  const base = { org_id: org, user_id: ctx.userId, activity: "simulation", evaluator: "ia", session_id: id, context: ctxName, reliability: "moyenne", ...(sc.scenario_version_id ? { scenario_version_id: sc.scenario_version_id } : {}) };
+  const rows: Record<string, unknown>[] = claims.map((c) => ({ ...base, knowledge_id: c.k, skill_id: c.k ? links.find((l) => l.knowledge_id === c.k)?.skill_id || null : null,
+    outcome: OUT[c.verdict], confidence, level: c.verdict === "correct" ? 4 : null, source_version_id: c.k ? kv.get(c.k as string)?.source_version_id || null : null, detail: { claim: c.text, turn: state.turns } }));
+  fresh.forEach((x) => rows.push({ ...base, knowledge_id: null, skill_id: null, outcome: "juste", confidence: null, level: 4, source_version_id: null, detail: { behavior: x.id, label: rubric[x.id], evidence: oclip(x.evidence, 300), turn: state.turns } }));
   if (rows.length) await ctx.db.insertEvidence(rows);
   await ctx.db.updateScenario(id, { state, transcript: [...transcript, { role: "vendeur", text: msg, confidence }, { role: "client", text: reply }] });
-  return { reply, ended, turn: state.turns };
+  return { reply, ended, turn: state.turns, event: event ? event.text : null };
 }
 
 // Débrief calculé ici, sans modèle : uniquement à partir de ce qui a été observé et vérifié
@@ -248,10 +291,12 @@ export function debriefOf(spec: Record<string, any>, state: Record<string, any>)
     turns: state.turns || 0,
     need: { found: !!state.need_found, text: spec.need },
     objections: (spec.objections || []).map((o: { text: string }, i: number) => ({ text: o.text, resolved: (state.resolved || []).includes(i) })),
-    behaviors: Object.keys(BEHAVIORS).map((id) => ({ id, label: BEHAVIORS[id], observed: !!state.behaviors?.[id], evidence: state.behaviors?.[id] || "" })),
+    behaviors: Object.entries(rubricOf(spec)).map(([id, label]) => ({ id, label, observed: !!state.behaviors?.[id], evidence: state.behaviors?.[id] || "" })),
     correct: claims.filter((c) => c.verdict === "correct"),
     incorrect: claims.filter((c) => c.verdict === "incorrect").map((c) => ({ ...c, falseCertainty: c.confidence === "sait" || c.confidence === "reflexe" })),
+    insufficient: claims.filter((c) => c.verdict === "insuffisant"),
     undocumented: claims.filter((c) => c.verdict === "non_documente"),
+    events: state.events || [],
     note: "Une simulation réussie ne suffit pas à valider une compétence : elle s'ajoute aux autres preuves, dans le temps.",
   };
 }
@@ -277,6 +322,11 @@ export async function orgTask(task: OrgTask, b: Record<string, unknown>, ctx: Or
   if (task === "diagnostic_answer") return diagnosticAnswer(ctx, org, b);
   if (task === "mystere_start") return mystereStart(ctx, org, b);
   if (task === "mystere_tour") return mystereTour(ctx, org, b);
+  if (task === "relations") return relations(ctx, ctx.db, org, role);
+  if (task === "scenario_concevoir") return scenarioDesign(ctx, ctx.db, org, role, b);
+  if (task === "scenario_start") return scenarioStart(ctx, ctx.db, org, role, b);
+  if (task === "comparer_versions") return compareVersions(ctx, ctx.db, org, role, b);
+  if (task === "invitation_envoyer") return sendInvitation(ctx, ctx.db, org, role, b);
   return mystereFin(ctx, org, b);
 }
-export const needsModel = (t: OrgTask) => ["competences", "diagnostic_start", "mystere_start", "mystere_tour"].includes(t);
+export const needsModel = (t: OrgTask) => ["competences", "diagnostic_start", "mystere_start", "mystere_tour", "relations", "scenario_concevoir", "comparer_versions"].includes(t);

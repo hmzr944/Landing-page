@@ -77,18 +77,18 @@
 
     // Extraction, lot par lot ; le serveur ne garde que les connaissances dont l'extrait est retrouvé mot pour mot
     const bs = batches(read.pages);
-    const items = []; let dropped = 0;
+    const items = []; let dropped = 0, unverified = 0;
     for (let i = 0; i < bs.length; i++) {
       step(`Extraction des connaissances (${i + 1}/${bs.length})…`, 0.35 + 0.55 * (i / bs.length));
-      const r = await AI.extract(title || 'Document', bs[i], { onStatus: (m) => step(m, 0.35 + 0.55 * (i / bs.length)) });
-      items.push(...r.items); dropped += r.dropped;
+      const r = await AI.extract(title || 'Document', bs[i], { org: org.id, version: row.version_id, onStatus: (m) => step(m, 0.35 + 0.55 * (i / bs.length)) });
+      items.push(...r.items); dropped += r.dropped; unverified += r.unverified || 0;
     }
     const known = new Set(kept.map((k) => plain(k.quote)));
     const fresh = items.filter((x) => !known.has(plain(x.quote)) && (known.add(plain(x.quote)), true));
     step('Enregistrement des connaissances…', 0.95);
     const me = Tutor.userId();
     await insertKnowledge(fresh.map((x) => ({ org_id: org.id, source_version_id: row.version_id, kind: x.kind, title: x.title, body: x.body, quote: x.quote, page: x.page, confidence: x.confidence, extracted_by: 'ia', created_by: me })));
-    return { sourceId: row.source_id, version: row.version, proposed: fresh.length, sensitive: fresh.filter((x) => x.kind === 'sensible').length, dropped, kept: kept.length, revalidate, aside: read.aside, unreadable: read.unreadable };
+    return { sourceId: row.source_id, version: row.version, proposed: fresh.length, sensitive: fresh.filter((x) => x.kind === 'sensible').length, dropped, unverified, kept: kept.length, revalidate, aside: read.aside, unreadable: read.unreadable };
   }
 
   /* ---------- Écrans ---------- */

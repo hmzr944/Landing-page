@@ -48,8 +48,8 @@
 
   // Connaissances d'un document d'organisation : passages (cours seulement) avec leur page ; extraits vérifiés par le serveur
   async function extract(title, passages, opts = {}) {
-    const r = await run({ task: 'extraire', title, passages }, opts.onStatus);
-    return { items: Array.isArray(r.items) ? r.items : [], dropped: r.dropped || 0 };
+    const r = await run({ task: 'extraire', title, passages, org: opts.org, version: opts.version }, opts.onStatus);
+    return { items: Array.isArray(r.items) ? r.items : [], dropped: r.dropped || 0, unverified: r.unverified || 0 };
   }
 
   /* Notions d'un texte libre : explication orale transcrite (mode « explication ») ou texte d'une photo (« support »).

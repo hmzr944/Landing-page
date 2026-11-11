@@ -62,7 +62,11 @@
   // Enregistrer l'étape franchie puis passer à la suivante
   async function advance(o, key) {
     const nx = nextStep(key);
-    await setup(o, { step: nx, [`${key}At`]: Date.now() }).catch(() => {});
+    try { await setup(o, { step: nx, [`${key}At`]: Date.now() }); }
+    catch (e) {
+      // hors ligne ou refus : on le dit ; la personne peut continuer, mais sait que la reprise ne sera pas à jour
+      d.toast(`Étape non enregistrée (${e.message}) : la reprise ne sera pas à jour.`, 'error');
+    }
     d.go(`#/org/${o.id}/configurer/${nx}`);
   }
 

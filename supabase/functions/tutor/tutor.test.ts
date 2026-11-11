@@ -4,6 +4,7 @@ import { assert, assertEquals } from "jsr:@std/assert@1";
 import { buildPrompt, checkCitations, type Deps, handle, validate } from "./handler.ts";
 import { isSensitive, support } from "./generate.ts";
 import { makeCallModel } from "./model.ts";
+import { passageFound, pdfPages, verifyPassages } from "./pdftext.ts";
 
 const passages = [
   { page: 3, text: "Le masque désigne le nombre de bits constituant l'identifiant de réseau dans l'adresse A.B.C.D." },
@@ -157,12 +158,17 @@ Deno.test("coût nul par défaut, prix réglable", async () => {
 
 /* ---------- Génération de contenu (remplace l'appel direct depuis le navigateur) ---------- */
 const extrait = "Le protocole DHCP attribue automatiquement une adresse IP, un masque de sous-réseau et une passerelle par défaut à chaque poste qui rejoint le réseau. Le client envoie une requête DHCPDISCOVER en diffusion, le serveur répond par une offre DHCPOFFER.";
+const XORG = "33333333-3333-4333-8333-333333333333", XVER = "44444444-4444-4444-8444-444444444444";
 function genDeps(modelOut: Record<string, unknown>, over: Partial<Deps> = {}) {
   const calls: { kind: string }[] = [], recorded: unknown[] = [], seen: Record<string, unknown>[] = [];
   const { deps } = fakeDeps({
     usedThisMonth: async (_u, _m, kind) => { calls.push({ kind }); return 0; },
     record: async (e) => { recorded.push(e); },
     callModel: async (p) => { seen.push(p as unknown as Record<string, unknown>); return { text: JSON.stringify(modelOut), stop: "stop", model: "openai/gpt-oss-120b", inputTokens: 300, outputTokens: 120 }; },
+    // extraction Business : rôle dans l'organisation, version du document, texte du PDF stocké
+    db: { role: async (_u: string, o: string) => (o === XORG ? "expert" : null) } as unknown as Deps["db"],
+    docVersion: async (id: string) => (id === XVER ? { id, org_id: XORG, storage_path: `${XORG}/s/v1.pdf` } : null),
+    docPages: async () => fiche.map((p) => p.text),
     ...over,
   });
   return { deps, calls, recorded, seen };
@@ -242,7 +248,7 @@ Deno.test("extraire : extrait vérifié mot pour mot, page corrigée, inventions
     { kind: "produit", title: "Poids", body: "Le vélo pèse 18 kg grâce à son cadre carbone.", quote: "Le cadre en carbone pèse 18 kg", passage: 1, confidence: 0.8 },
     { kind: "regle", title: "Retour client", body: "Le client dispose de 30 jours pour un retour avec le ticket de caisse.", quote: "Le client dispose de 30 jours pour un retour avec le ticket de caisse", passage: 2, confidence: 1.4 },
   ] });
-  const r = await handle(req({ task: "extraire", title: "Fiche Alto 500", passages: fiche }), g.deps);
+  const r = await handle(req({ task: "extraire", title: "Fiche Alto 500", passages: fiche, org: XORG, version: XVER }), g.deps);
   assertEquals(r.status, 200);
   const d = await r.json();
   assertEquals(d.items.map((x: { title: string }) => x.title), ["Autonomie de l'Alto 500", "Retour client"]);
@@ -258,7 +264,7 @@ Deno.test("extraire : sécurité et argent sont toujours « sensibles », quel q
     { kind: "procedure", title: "Batterie endommagée", body: "Ne jamais recharger une batterie endommagée ou gonflée ; l'isoler et prévenir le responsable.", quote: "Ne jamais recharger une batterie endommagée ou gonflée", passage: 2, confidence: 0.9 },
     { kind: "regle", title: "Délai de retour", body: "Le client dispose de 30 jours pour un retour avec le ticket de caisse.", quote: "Le client dispose de 30 jours pour un retour", passage: 2, confidence: 0.9 },
   ] });
-  const d = await (await handle(req({ task: "extraire", title: "Fiche Alto 500", passages: fiche }), g.deps)).json();
+  const d = await (await handle(req({ task: "extraire", title: "Fiche Alto 500", passages: fiche, org: XORG, version: XVER }), g.deps)).json();
   assertEquals(d.items[0].kind, "sensible");
   assertEquals(d.items[1].kind, "regle"); // un retour n'est pas un remboursement : pas de mot sensible ici
   assert(isSensitive("Remboursement sous 14 jours") && isSensitive("Produit toxique") && !isSensitive("Le cadre pèse 21 kg"));
@@ -266,8 +272,8 @@ Deno.test("extraire : sécurité et argent sont toujours « sensibles », quel q
 
 Deno.test("extraire : passages obligatoires, quota de génération", async () => {
   const g = genDeps({ items: [] });
-  assertEquals((await handle(req({ task: "extraire", title: "Fiche", passages: [] }), g.deps)).status, 400);
-  assertEquals((await handle(req({ task: "extraire", title: "Fiche", passages: fiche }), g.deps)).status, 200);
+  assertEquals((await handle(req({ task: "extraire", title: "Fiche", passages: [], org: XORG, version: XVER }), g.deps)).status, 400);
+  assertEquals((await handle(req({ task: "extraire", title: "Fiche", passages: fiche, org: XORG, version: XVER }), g.deps)).status, 200);
   assertEquals(g.calls[0].kind, "generation");
 });
 
@@ -298,4 +304,46 @@ Deno.test("structurer : texte trop court refusé ; mode photo annoncé au modèl
   assertEquals(g.seen.length, 0);
   assertEquals((await handle(req({ task: "structurer", title: "-", context: "support", text: dictee }), g.deps)).status, 200);
   assert(String(g.seen[0].user).includes("lu sur une photo"));
+});
+
+Deno.test("extraire : chaque passage est retrouvé dans le PDF stocké, relu sur le serveur ; un passage inventé est écarté avant le modèle", async () => {
+  const g = genDeps({ items: [] });
+  const faux = { page: 1, text: "Le vélo Alto 500 est garanti à vie et livré gratuitement partout en Europe sans condition." };
+  const r = await handle(req({ task: "extraire", title: "Fiche", passages: [...fiche, faux], org: XORG, version: XVER }), g.deps);
+  assertEquals(r.status, 200);
+  assertEquals((await r.json()).unverified, 1);
+  assert(!String(g.seen[0].user).includes("garanti à vie"));
+  const g2 = genDeps({ items: [] });
+  const r2 = await handle(req({ task: "extraire", title: "Fiche", passages: [faux], org: XORG, version: XVER }), g2.deps);
+  assertEquals(r2.status, 422);
+  assertEquals(g2.seen.length, 0);
+});
+
+Deno.test("extraire : organisation et version obligatoires, équipe de contenu seulement, version d'une autre organisation refusée", async () => {
+  const g = genDeps({ items: [] });
+  assertEquals((await handle(req({ task: "extraire", title: "Fiche", passages: fiche }), g.deps)).status, 400);
+  assertEquals((await handle(req({ task: "extraire", title: "Fiche", passages: fiche, org: "55555555-5555-4555-8555-555555555555", version: XVER }), g.deps)).status, 403);
+  assertEquals((await handle(req({ task: "extraire", title: "Fiche", passages: fiche, org: XORG, version: "66666666-6666-4666-8666-666666666666" }), g.deps)).status, 404);
+  assertEquals(g.seen.length, 0);
+});
+
+Deno.test("PDF stocké relu pour de vrai (unpdf) : les passages du document sont retrouvés, un passage inventé ne l'est pas", async () => {
+  const bytes = await Deno.readFile(new URL("../../../docs/demo/procedure-retours-EXEMPLE-FICTIF.pdf", import.meta.url));
+  const pages = await pdfPages(bytes);
+  assert(pages.length >= 1 && pages[0].length > 200);
+  // un passage tel que le navigateur l'envoie : mêmes mots, autres coupures de lignes
+  const words = pages[0].replace(/\s+/g, " ").split(" ");
+  const real = words.slice(20, 60).join("\n");
+  assert(passageFound(real, pages, 1));
+  assert(!passageFound("Le remboursement est toujours accordé en espèces dans un délai de deux heures après la demande du client.", pages, 1));
+  const v = verifyPassages([{ page: 1, text: real }, { page: 1, text: "Texte inventé qui ne figure nulle part dans cette procédure de démonstration, vraiment." }], pages);
+  assertEquals([v.kept.length, v.dropped.length], [1, 1]);
+});
+
+Deno.test("dialogue : mode « mise en situation » accepté, consigne explicite, ancrée dans les passages", () => {
+  const v = validate({ ...body, mode: "situation", message: "" });
+  assert(v.ok);
+  const p = buildPrompt((v as { req: Parameters<typeof buildPrompt>[0] }).req);
+  assert(p.includes("Mode : mise en situation") && p.includes("situation concrète") && p.includes("[P1]"));
+  assert(!validate({ ...body, mode: "autre" }).ok);
 });

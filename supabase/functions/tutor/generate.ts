@@ -21,6 +21,8 @@ export interface GenRequest {
   text: string; // texte source (extrait, référence ou passages)
   sourceTitle: string;
   passages?: DocPassage[]; // extraire : passages du document, avec leur page
+  org?: string; // extraire : organisation et version du document stocké, relu sur le serveur
+  version?: string;
 }
 
 const gclip = (s: unknown, n: number) => String(s ?? "").slice(0, n);
@@ -40,7 +42,9 @@ export function validateGen(body: unknown): { ok: true; req: GenRequest } | { ok
     const passages = raw.slice(0, 8).map((x) => ({ page: Math.max(1, Math.min(2000, Math.round(Number((x as DocPassage)?.page) || 1))), text: gclip((x as DocPassage)?.text, 2500).trim() }))
       .filter((x) => x.text.length >= 40).filter((x) => (total += x.text.length) <= LIMITS.extraire);
     if (!passages.length) return { ok: false, error: "aucun passage à analyser" };
-    return { ok: true, req: { task, title, context: gclip(b.context, 200).trim(), text: passages.map((x) => x.text).join("\n\n"), sourceTitle: gclip(b.sourceTitle, 160).trim(), passages } };
+    const U = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!U.test(String(b.org || "")) || !U.test(String(b.version || ""))) return { ok: false, error: "organisation et version du document requises" };
+    return { ok: true, req: { task, title, context: gclip(b.context, 200).trim(), text: passages.map((x) => x.text).join("\n\n"), sourceTitle: gclip(b.sourceTitle, 160).trim(), passages, org: String(b.org), version: String(b.version) } };
   }
   const text = gclip(b.text, LIMITS[task]).trim();
   if (task === "structurer") {

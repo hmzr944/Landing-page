@@ -23,6 +23,11 @@
   ];
   const LEVELS = [['debut', 'Je découvre'], ['bases', 'J’ai des bases'], ['avance', 'Je suis à l’aise']];
   const TESS = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
+  // Brouillon de l'introduction (sur l'appareil) : si l'app se ferme au milieu, on reprend au même écran
+  const DRAFT = 'arbor:onb-draft';
+  const saveDraft = (screen) => { try { localStorage.setItem(DRAFT, JSON.stringify({ screen, profile, at: Date.now() })); } catch (e) { /* stockage indisponible */ } };
+  const readDraft = () => { try { const x = JSON.parse(localStorage.getItem(DRAFT) || 'null'); return x && Date.now() - x.at < 7 * 864e5 ? x : null; } catch (e) { return null; } };
+  const clearDraft = () => { try { localStorage.removeItem(DRAFT); } catch (e) { /* rien */ } };
 
   /* Cours de démonstration : les bases des réseaux, rédigé pour Arbor (contenu vérifiable, sans PDF) */
   const n = (title, notes, keyPoints) => ({ title, notes, keyPoints });
@@ -103,7 +108,7 @@
 
   /* ---------- B. Objectif ---------- */
   function s2() {
-    step = 1;
+    step = 1; saveDraft('s2');
     paint(`<div class="onb-q"><h2>Qu’aimerais-tu accomplir avec Arbor ?</h2><p>Plusieurs réponses possibles.</p>
       <div class="onb-choices">${GOALS.map(([k, icn, label]) => `<button type="button" class="onb-choice" data-k="${k}" aria-pressed="${profile.goals.includes(k)}">${ic(icn, true)}<span>${label}</span></button>`).join('')}</div>
       <div class="onb-form"><label for="onbGoalFree">Avec tes mots <span class="optional">facultatif</span></label><input id="onbGoalFree" maxlength="120" autocomplete="off" placeholder="Par exemple : comprendre mon moteur de moto" value="${esc(profile.goalText || '')}" /></div></div>
@@ -118,7 +123,7 @@
 
   /* ---------- C. Précisions, toutes facultatives ---------- */
   function s3() {
-    step = 2;
+    step = 2; saveDraft('s3');
     paint(`<div class="onb-q"><h2>Quelques précisions ?</h2><p>Tout est facultatif : Arbor fonctionne sans.</p>
       <div class="onb-form">
         <label for="onbSubject">Sujet ou domaine</label>
@@ -140,7 +145,7 @@
 
   /* ---------- D. Première expérience ---------- */
   function s4() {
-    step = 3;
+    step = 3; saveDraft('s4');
     ({ parler: speak, scanner: scan, discuter: () => topicScreen('discuter'), tester: () => topicScreen('tester'), importer: importScreen }[profile.entry] || importScreen)();
   }
   // Note dans le parcours : l'entrée choisie et la première action (jamais le contenu)
@@ -391,7 +396,7 @@
   function hide() { stopRec(); if (el) { el.classList.remove('show'); el.hidden = true; document.documentElement.classList.remove('in-onboarding'); } }
   function show() { if (el) { el.hidden = false; el.classList.add('show'); document.documentElement.classList.add('in-onboarding'); } }
   function finish(how) {
-    stopRec();
+    stopRec(); clearDraft();
     d.saveProfile({ ...profile, done: true, how: how || 'skip', at: Date.now() });
     pending = false;
     if (!el) return;
@@ -402,7 +407,12 @@
   }
 
   window.Onboarding = {
-    open(deps) { d = deps; profile = { goals: [], goalText: '', entry: '', level: '', subject: '', examDate: '', ...(deps.profile || {}) }; if (el) el.remove(); shell(); s1(); },
+    open(deps) {
+      d = deps; profile = { goals: [], goalText: '', entry: '', level: '', subject: '', examDate: '', ...(deps.profile || {}) };
+      if (el) el.remove(); shell();
+      const dr = readDraft();
+      if (dr && dr.profile) { profile = { ...profile, ...dr.profile }; ({ s2, s3, s4 }[dr.screen] || s1)(); } else s1();
+    },
     // Après l'import d'un PDF lancé depuis l'onboarding : on reprend à l'écran 5
     afterImport(s) { if (!pending) return false; pending = false; if (profile.examDate && !s.examDate) s.examDate = profile.examDate; wow(s, false); return true; },
     pending: () => pending,

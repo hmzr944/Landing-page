@@ -99,7 +99,9 @@
     if (!navigator.onLine) throw authError(null);
     const r = await safeCall('/auth/v1/recover', { body: { email }, query: redirect() });
     if (!r) throw authError(null);
-    if (r.status === 429) throw authError(r);
+    // 200 : envoyé (ou adresse inconnue : Supabase répond pareil, on ne révèle rien). Toute autre réponse est une erreur
+    // (trop de demandes, service d'e-mail non configuré, panne) : on ne fait pas croire que le lien est parti.
+    if (!r.ok) throw authError(r, r.status >= 500 ? 'Le service d’e-mail ne répond pas. Réessaie plus tard.' : 'Le lien n’a pas pu être envoyé. Vérifie l’adresse et réessaie.');
     remember(email);
     return true;
   }
