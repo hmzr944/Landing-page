@@ -33,8 +33,8 @@ export interface EnginesDb {
 const eclip = (s: unknown, n: number) => String(s ?? "").slice(0, n);
 const UUIDR = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const enorm = (s: string) => String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[«»"“”’'`]/g, "'").replace(/\s+/g, " ").trim();
-const flat = (s: string) => String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
-const inDoc = (quote: string, text: string) => quote.trim().length >= 12 && ` ${flat(text)} `.includes(` ${flat(quote)} `);
+const oneLine = (s: string) => String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+const inDoc = (quote: string, text: string) => quote.trim().length >= 12 && ` ${oneLine(text)} `.includes(` ${oneLine(quote)} `);
 const estr = { type: "string" };
 const kRefs = (ks: Knowledge[]) => ks.map((k, i) => `[k${i + 1}] (${k.kind}) ${k.title} : ${k.body} — extrait : « ${k.quote} »`).join("\n");
 const kAt = (ks: Knowledge[], ref: unknown) => { const m = String(ref || "").match(/k(\d+)/i); return m ? ks[Number(m[1]) - 1] || null : null; };
@@ -75,7 +75,7 @@ Ne propose que des relations évidentes à la lecture des connaissances, 2 à 15
 }
 
 /* ---------- Scénarios ---------- */
-const KINDS = ["client", "procedure", "technique", "management", "autre"];
+const SC_KINDS = ["client", "procedure", "technique", "management", "autre"];
 const SPEC_SCHEMA = { type: "object", additionalProperties: false,
   required: ["title", "role_label", "role_play", "context", "objective", "name", "profile", "personality", "need", "objections", "constraints", "events", "rubric", "opening", "knowledge"],
   properties: { title: estr, role_label: estr, role_play: estr, context: estr, objective: estr, name: estr, profile: estr, personality: estr, need: estr,
@@ -86,7 +86,7 @@ const SPEC_SCHEMA = { type: "object", additionalProperties: false,
 
 export async function scenarioDesign(ctx: OrgCtx, db: EnginesDb, org: string, role: string, b: Record<string, unknown>) {
   if (!LEAD.includes(role)) throw new OrgError(403, "accès refusé");
-  const kind = KINDS.includes(String(b.kind)) ? String(b.kind) : "client";
+  const kind = SC_KINDS.includes(String(b.kind)) ? String(b.kind) : "client";
   const brief = eclip(b.brief, 400).trim();
   const ks = (await ctx.db.validatedKnowledge(org, 60)).slice(0, 30);
   if (ks.length < 2) throw new OrgError(400, "il faut au moins 2 connaissances validées pour concevoir un scénario");

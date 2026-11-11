@@ -17,6 +17,9 @@ Projet : `https://nnqtgwgwalbbhqzceged.supabase.co` (adresse et clé publiable d
    puis `migrations/004_org_space.sql` (espaces de la personne, e-mail des membres, annulation d'invitation),
    puis `migrations/005_documents.sql` (documents et versions de l'organisation, tâche d'extraction),
    puis `migrations/006_diagnostic_scenarios.sql` (diagnostic corrigé par le serveur, Client Mystère).
+   puis `migrations/007_onboarding_workspaces.sql` (profils, équipes, invitations v2, propriétaire protégé),
+   puis `migrations/008_engines.sql` (niveaux de preuve, graphe de connaissances, scénarios versionnés, Live Policy
+   Watchdog, actions demandées, validation au poste, export et effacement des données, conservation, chemins de stockage).
    Crée `ai_usage` et `ai_calls` (RLS activé : chacun ne lit que ses lignes, personne n'écrit depuis le navigateur)
    et la fonction `ai_record_call`, réservée au serveur.
 2. **Connexion par e-mail** : *Authentication* → *URL Configuration*
@@ -24,7 +27,7 @@ Projet : `https://nnqtgwgwalbbhqzceged.supabase.co` (adresse et clé publiable d
    - *Redirect URLs* : ajouter `https://hmzr944.github.io/Landing-page/`
    - Facultatif : *Authentication* → *Email Templates* → *Magic Link*, ajouter `Ton code : {{ .Token }}` pour pouvoir se connecter avec le code à 6 chiffres (utile quand le lien s'ouvre dans un autre navigateur).
 3. **Fonction** : *Edge Functions* → *Deploy a new function* → *Via Editor*, nom **`tutor`**, puis créer les fichiers
-   `index.ts`, `handler.ts`, `generate.ts`, `org.ts` et `model.ts` avec le contenu de `functions/tutor/` (le fichier de test n'est pas à déployer).
+   `index.ts`, `handler.ts`, `generate.ts`, `org.ts`, `engines.ts`, `pdftext.ts` et `model.ts` avec le contenu de `functions/tutor/` (le fichier de test n'est pas à déployer).
    Laisser *Verify JWT* activé.
    Avec la ligne de commande, c'est équivalent : `supabase functions deploy tutor --project-ref nnqtgwgwalbbhqzceged`.
 4. **Secrets** : *Edge Functions* → *Secrets*
@@ -33,9 +36,15 @@ Projet : `https://nnqtgwgwalbbhqzceged.supabase.co` (adresse et clé publiable d
      `AI_BASE_URL` (par défaut `https://api.groq.com/openai/v1` ; OpenRouter, Cerebras, Ollama ou vLLM marchent aussi),
      `TUTOR_MONTHLY_LIMIT` (dialogue, 60 par défaut), `GEN_MONTHLY_LIMIT` (génération, 150 par défaut),
      `TUTOR_ORIGINS` (par défaut `https://hmzr944.github.io`).
+   - Facultatifs, pour envoyer les invitations par e-mail depuis le serveur : `BREVO_API_KEY` (clé d'API Brevo),
+     `MAIL_FROM` (expéditeur validé dans Brevo), `SITE_URL` (adresse de l'app). Sans eux, la tâche répond 501 et l'app
+     propose de partager le lien.
+5. **Facultatif, purge planifiée** : *Database* → *Integrations* → *Cron*, une fois par jour :
+   `select public.purge_expired_transcripts();` (efface les conversations de simulation plus anciennes que
+   `organizations.retention_days` ; débriefs et preuves conservés).
 
-Pour coller la fonction en une fois dans l'éditeur du tableau de bord, `index.ts`, `handler.ts` et `model.ts`
-peuvent être assemblés en un seul fichier (imports relatifs retirés).
+Pour coller la fonction en une fois dans l'éditeur du tableau de bord, les fichiers sont assemblés en un seul
+(imports relatifs retirés ; la lecture des PDF garde son import dynamique `npm:unpdf@0.12.1`). Le guide pas à pas le fournit.
 
 ## Coût
 
@@ -66,6 +75,10 @@ deno test --allow-net --allow-env --allow-read supabase/functions/tutor/
 19 tests : génération ancrée sur le texte source (inventions écartées), quotas séparés, citations inventées retirées, connexion exigée, quota vérifié avant l'appel, refus et pannes,
 CORS, bornes des entrées, schéma JSON strict, bascule sur le modèle de secours (faux serveur compatible OpenAI local).
 Côté site, `node tests/tutor.js` déroule le scénario complet avec un Supabase simulé.
+
+Les chiffres ci-dessus datent de la première version. État au 11 novembre 2026 (soir) : `tests/db-rls.js` 166 vérifications
+(dont la section Y pour la migration 008), Deno 43 tests (dont une lecture réelle d'un PDF par unpdf). Le détail de la campagne
+est dans `docs/rapport-transformation.md`.
 
 ## Connexion par e-mail et mot de passe (accueil mobile, `js/welcome.js`)
 

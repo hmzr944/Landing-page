@@ -159,3 +159,16 @@ Une connaissance de type `sensible` n'est jamais utilisée dans un scénario san
   refus « déjà membre », une seule invitation en attente par adresse.
 - Les 5 entrées Student créent toutes un sujet Arbor ordinaire : mêmes notions, révisions, observations et maîtrise prouvée.
   Une explication personnelle est marquée « à vérifier », complétée par une source, jamais comptée comme preuve.
+
+## D11. Cinq moteurs, un noyau, deux contextes (appliqué dans le code, migration 008 à appliquer)
+
+Détail : `docs/engines.md`. En bref :
+- Pas de deuxième moteur de maîtrise : `js/evidence.js` (7 niveaux, 5 résultats distincts) et `js/adaptive.js`
+  (prochaine action expliquée) sont partagés par Student et Business ; `js/org-insight.js` les utilise côté Business
+  (radar des angles morts, parcours du poste). Pas de table `mastery_states` : l'état se recalcule à partir des preuves, qui restent la source.
+- Les preuves Business sont écrites par le serveur ou par une validation humaine nominative (`record_human_validation`),
+  jamais par le navigateur ; une simulation ne remplace jamais la validation au poste d'une règle sensible.
+- Toute sortie de modèle reste une proposition (connaissance `propose`, relation `propose`, scénario `brouillon`,
+  changement de document `a_valider`) jusqu'à la décision d'un humain habilité.
+- Les écrans des moteurs (`js/org-engines.js`) se dégradent sans erreur tant que 008 n'est pas appliquée.
+

@@ -112,6 +112,17 @@ const reply = (o) => ({ reply: '', verdict: 'sans_reponse', misconception: '', h
   check('D2 retour précis : ce qui est juste et ce qui manque', /Juste/.test(t2) && /À compléter/.test(t2) && /et logique/.test(t2));
   await page.click('.ls-close'); await settle(400);
 
+  /* D'. Mise en situation : appliquer la notion à un cas concret ; la réponse devient une observation « situation » */
+  tutorReplies.push(reply({ reply: 'Un poste en 192.168.1.40/26 doit joindre 192.168.1.70. Que fait-il ?', verdict: 'sans_reponse' }));
+  await page.click('.practice-card [data-mode="situation"]'); await settle(800);
+  const sitReq = sent.filter((x) => x.path === '/functions/v1/tutor').slice(-1)[0].body;
+  check('D3 la mise en situation demande un cas au serveur, en mode « situation », avec les passages du cours', sitReq.mode === 'situation' && sitReq.passages.length > 0 && /Mise en situation/.test(await page.textContent('.dlg-title')) && /192\.168\.1\.70/.test(await page.textContent('.dlg-feed')));
+  tutorReplies.push(reply({ reply: 'Exactement : autre sous-réseau, il passe par la passerelle.', verdict: 'juste', done: true }));
+  await page.fill('#dlgInput', 'Il est dans un autre sous-réseau, il envoie le paquet à la passerelle.'); await page.keyboard.press('Enter'); await settle(900);
+  const sitObs = await page.evaluate(() => new Promise((res) => { const r = indexedDB.open('arbor-db'); r.onsuccess = () => { try { const db = r.result; const st = db.transaction(db.objectStoreNames[0]).objectStore(db.objectStoreNames[0]); const g = st.getAll(); g.onsuccess = () => res(g.result.filter((o) => o.activity === 'situation').map((o) => o.outcome)); g.onerror = () => res(null); } catch (e) { res(null); } }; r.onerror = () => res(null); }));
+  check('D4 la réponse appliquée est enregistrée comme observation « situation » (juste)', Array.isArray(sitObs) && sitObs.includes('juste'), JSON.stringify(sitObs));
+  await page.click('.ls-close'); await settle(400);
+
   /* E. Erreurs : quota, hors ligne, session expirée */
   mode = 'quota';
   await page.click('.practice-card [data-mode="socratique"]'); await settle(700);
