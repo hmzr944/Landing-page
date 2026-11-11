@@ -82,5 +82,34 @@ check('E3 gravité élevée sur le sensible, couverture, période, personnes con
   r.blind[0].severity === 'elevee' && r.blind[0].coverage === 0.75 && r.blind[0].wrongPeople.length === 2 && /Revalidation/.test(r.blind[0].action) && r.blind[0].period.from === at(0));
 check('E4 les limites de l’analyse sont toujours fournies', r.limits.minObs === 3 && r.limits.minPeople === 2 && r.limits.members === 4 && r.limits.people === 3);
 
+/* F. Matrice confiance × compétence (confiance déclarée seulement) */
+const now = Date.parse('2026-11-11T10:00:00Z');
+const ago = (d) => new Date(now - d * D).toISOString();
+const mx = [
+  { user_id: 'u1', knowledge_id: 'k1', outcome: 'juste', confidence: 'reflexe', at: ago(3) },        // solide
+  { user_id: 'u1', knowledge_id: 'k2', outcome: 'juste', confidence: 'devine', at: ago(3) },         // sous-estimée
+  { user_id: 'u2', knowledge_id: 'k1', outcome: 'faux', confidence: 'devine', at: ago(2) },          // lacune reconnue
+  { user_id: 'u2', knowledge_id: 'k2', outcome: 'faux', confidence: 'sait', at: ago(40) },           // fausse certitude (ancienne)
+  { user_id: 'u3', knowledge_id: 'k2', outcome: 'faux', confidence: 'sait', at: ago(5) },            // fausse certitude (récente)
+  { user_id: 'u3', knowledge_id: 'k1', outcome: 'juste', confidence: 'sait', at: ago(9) },
+  { user_id: 'u3', knowledge_id: 'k1', outcome: 'juste', confidence: null, at: ago(1) },             // dernière sans confiance : non mesurée
+  { user_id: 'u4', knowledge_id: 'k1', outcome: 'non_documente', confidence: 'sait', at: ago(1) },   // hors matrice
+];
+const M = OrgInsight.matrix(mx, K, { now });
+check('F1 les quatre cases sont distinctes et comptées', M.cells.solide.n === 1 && M.cells.sous_estimee.n === 1 && M.cells.lacune_reconnue.n === 1 && M.cells.fausse_certitude.n === 2, JSON.stringify(Object.fromEntries(Object.entries(M.cells).map(([k, v]) => [k, v.n]))));
+check('F2 sans confiance déclarée sur la dernière réponse : « non mesurée », jamais déduite', M.unmeasured === 1 && M.measured === 5);
+check('F3 une affirmation non documentée n’entre pas dans la matrice', M.total === 6);
+check('F4 évolution des fausses certitudes (30 derniers jours / 30 précédents)', M.trend.recent === 1 && M.trend.previous === 1);
+check('F5 sous 5 mesures, pas de conclusion d’équipe', !OrgInsight.matrix(mx.slice(0, 3), K, { now }).enough && M.enough);
+const mine = OrgInsight.matrix(mx, K, { now, userId: 'u2' });
+check('F6 matrice personnelle : ses seules réponses', mine.measured === 2 && mine.cells.fausse_certitude.knowledge[0].title === 'Allergènes');
+/* G. Parcours : revalidation ciblée */
+const pwR = OrgInsight.pathway('u1', [...evs, { user_id: 'u1', skill_id: 's2', activity: 'validation_humaine', outcome: 'juste', level: 5, at: at(3) }], K, skills, links, units, 'salle', [],
+  { revalidations: [{ user_id: 'u1', skill_id: 's2', status: 'requires_revalidation', reason: 'La règle a changé' }, { user_id: 'u2', skill_id: 's1', status: 'requires_revalidation' }] });
+check('G1 une compétence acquise dont la règle a changé passe « à revalider » pour cette personne seulement', pwR.skills.find((x) => x.skill.id === 's2').status === 'a_revalider' && pwR.skills.find((x) => x.skill.id === 's1').status !== 'a_revalider');
+const Kr = [...K, { id: 'k0', title: 'Ancienne règle', kind: 'regle', status: 'remplace' }];
+const pwOld = OrgInsight.pathway('u1', evs, Kr, skills, [...links, { skill_id: 's1', knowledge_id: 'k0' }], units, 'salle', []);
+check('G2 une connaissance remplacée ne compte plus dans la compétence', !pwOld.skills.find((x) => x.skill.id === 's1').knowledge.some((x) => x.knowledge.id === 'k0'));
+
 console.log(failed ? `\n${failed} échec(s)` : '\nTous les tests passent');
 process.exit(failed ? 1 : 0);

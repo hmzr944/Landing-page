@@ -150,11 +150,11 @@
   }
 
   /* ---------- Mon parcours (collaborateur) ---------- */
-  const ST = { acquise: ['Acquise', 'seal-check'], validation_humaine: ['Validation au poste attendue', 'user-check'], en_cours: ['En cours', 'plant'], a_faire: ['À commencer', 'circle-dashed'], sans_connaissance: ['Sans connaissance liée', 'question'] };
+  const ST = { a_revalider: ['À revalider : la règle a changé', 'arrows-clockwise'], acquise: ['Acquise', 'seal-check'], validation_humaine: ['Validation au poste attendue', 'user-check'], en_cours: ['En cours', 'plant'], a_faire: ['À commencer', 'circle-dashed'], sans_connaissance: ['Sans connaissance liée', 'question'] };
   async function pathway(box, o, deps, evs, ks) {
     d = deps;
     const me = Tutor.userId();
-    let skills = [], links = [], su = [], actions = [], mine = [], edges = [];
+    let skills = [], links = [], su = [], actions = [], mine = [], edges = [], revals = [];
     try {
       [skills, links, su, actions, mine, edges] = await Promise.all([
         rest('/rest/v1/skills', { method: 'GET', query: `?org_id=eq.${q(o.id)}&select=id,name,description,importance` }).catch(() => rest('/rest/v1/skills', { method: 'GET', query: `?org_id=eq.${q(o.id)}&select=id,name,description` })),
@@ -164,22 +164,26 @@
         rest('/rest/v1/memberships', { method: 'GET', query: `?org_id=eq.${q(o.id)}&user_id=eq.${q(me)}&select=*` }).catch(() => []),
         rest('/rest/v1/knowledge_edges', { method: 'GET', query: `?org_id=eq.${q(o.id)}&status=eq.valide&relation=eq.prerequis&select=from_id,to_id` }).catch(() => []),
       ]);
+      revals = await rest('/rest/v1/skill_revalidations', { method: 'GET', query: `?org_id=eq.${q(o.id)}&user_id=eq.${q(me)}&select=*` }).catch(() => []);
     } catch (e) { box.innerHTML = `<p class="hint">${d.esc(e.message)}</p>`; return; }
     const unit = mine[0] && mine[0].unit_id;
     const kT = new Map(ks.map((k) => [k.id, k.title]));
     const prereq = (kid, items) => edges.filter((e) => e.to_id === kid).map((e) => e.from_id).filter((id) => !(items.find((x) => x.knowledge.id === id && x.level >= 3))).map((id) => kT.get(id)).filter(Boolean);
-    const pw = OrgInsight.pathway(me, evs, ks, skills, links, su, unit, actions, { prereq });
+    const pw = OrgInsight.pathway(me, evs, ks, skills, links, su, unit, actions, { prereq, revalidations: revals });
     box.innerHTML = `<section class="sec org-learn pw"><h2>Mon parcours <small class="num">${pw.done}/${pw.total}</small></h2>
       ${pw.plan.length ? `<ol class="pw-plan">${pw.plan.map((a) => `<li>${d.ic(a.icon, true)}<span><b>${d.esc(a.label)}${a.item ? ` : ${d.esc(a.item.title)}` : ''}</b><small>${d.esc(a.reason)}</small></span></li>`).join('')}</ol>` : '<p class="hint">Rien d’urgent : continue à t’entraîner, la suite viendra de tes preuves.</p>'}
       ${actions.filter((a) => a.status === 'a_faire').length ? `<h3>Demandé par ton responsable</h3><ul class="org-list">${actions.filter((a) => a.status === 'a_faire').map((a) => `<li><span><b>${d.esc(a.reason)}</b><small>${a.due ? `avant le ${fmt(a.due)}` : `depuis le ${fmt(a.created_at)}`}</small></span><button type="button" class="btn ghost sm" data-done="${a.id}">${d.ic('check')}Fait</button></li>`).join('')}</ul>` : ''}
       <h3>Compétences du poste</h3>
       ${pw.skills.length ? `<ul class="pw-skills">${pw.skills.map((s) => `<li class="pw-${s.status}"><div class="pw-h">${d.ic(ST[s.status][1], true)}<b>${d.esc(s.skill.name)}</b><span class="pw-st">${ST[s.status][0]}</span></div>
+        ${s.revalidation ? `<p class="hint pw-reval">${d.ic('info')}${d.esc(s.revalidation.reason)} Ta preuve précédente reste dans ton historique ; une réussite sur la nouvelle règle suffit.</p>` : ''}
         <ul>${s.knowledge.map((k) => `<li><span>${d.esc((k.knowledge || {}).title || '')}</span>${LEVEL_PILL(k.level)}</li>`).join('')}</ul>${s.sensitive ? `<p class="hint">${d.ic('shield-check')}Règle de sécurité ou réglementaire : une validation par un responsable reste nécessaire, quel que soit le résultat d’une simulation.</p>` : ''}</li>`).join('')}</ul>` : '<p class="hint">Ton responsable n’a pas encore défini les compétences attendues.</p>'}
+      <div id="pwMx"></div>
       <details class="pw-levels"><summary>Que veulent dire les niveaux ?</summary><ol>${Object.entries(Evidence.LEVELS).map(([n, l]) => `<li><b>${n}. ${l.label}</b> : ${l.why}</li>`).join('')}</ol><p class="hint">Une explication personnelle reste au niveau 1. Une réussite unique ne prouve pas une maîtrise durable.</p></details>
       </section>
       <section class="sec"><h2>Mes données dans ${d.esc(o.name)}</h2>
         <p class="hint">Ce que l’organisation a enregistré sur ton apprentissage (réponses, simulations, actions), et rien de ton espace personnel.</p>
         <div class="row-btns"><button type="button" class="btn ghost sm" id="myExport">${d.ic('download-simple')}Télécharger mes données</button><button type="button" class="btn danger sm" id="myErase">${d.ic('trash')}Effacer mes données d’apprentissage</button></div></section>`;
+    if (window.OrgShell) { const mb = box.querySelector('#pwMx'); OrgShell.renderMatrix(mb, OrgInsight.matrix(evs, ks, { userId: me }), {}, d); mb.querySelector('h2').outerHTML = '<h3>Ma confiance et mes réponses</h3>'; }
     box.querySelectorAll('[data-done]').forEach((b) => { b.onclick = async () => { try { await rpc('set_action_status', { p_id: b.dataset.done, p_status: 'fait' }); b.closest('li').remove(); } catch (x) { d.toast(x.message, 'error'); } }; });
     box.querySelector('#myExport').onclick = async () => {
       try { const data = await rpc('export_my_org_data', { p_org: o.id });
@@ -200,7 +204,7 @@
     const r = OrgInsight.radar(evs, ks, ms);
     const email = (u) => (ms.find((m) => m.user_id === u) || {}).email || 'membre';
     const L = r.limits;
-    box.innerHTML = `<section class="sec org-learn radar"><h2>${d.ic('radar', true)}Radar des angles morts</h2>
+    box.innerHTML = `<section class="sec org-learn radar"><h2>${d.ic('binoculars', true)}Radar des angles morts</h2>
       <p class="hint">Analyse sur ${L.evidence} observation${L.evidence > 1 ? 's' : ''}, ${L.people} personne${L.people > 1 ? 's' : ''} observée${L.people > 1 ? 's' : ''} sur ${L.members} (couverture ${Math.round(L.coverage * 100)} %)${L.from ? `, du ${fmt(L.from)} au ${fmt(L.to)}` : ''}. Une connaissance n’apparaît qu’à partir de ${L.minObs} observations et ${L.minPeople} personnes. Une affirmation non documentée n’est pas comptée comme une erreur. Ce sont des signaux à vérifier, pas un jugement des personnes.</p>
       ${r.blind.length ? `<ul class="radar-list">${r.blind.slice(0, 8).map((x) => `<li class="sev-${x.severity}"><div class="rd-h"><span class="rd-sev">${SEV[x.severity]}</span><b>${d.esc(x.knowledge.title)}</b></div>
         <p>${x.wrong} erreur${x.wrong > 1 ? 's' : ''}${x.partial ? `, ${x.partial} réponse${x.partial > 1 ? 's' : ''} incomplète${x.partial > 1 ? 's' : ''}` : ''} sur ${x.n} observation${x.n > 1 ? 's' : ''} (${Math.round(x.rate * 100)} %)${x.falseCert ? `, dont ${x.falseCert} fausse${x.falseCert > 1 ? 's' : ''} certitude${x.falseCert > 1 ? 's' : ''}` : ''} · ${x.people} personne${x.people > 1 ? 's' : ''} observée${x.people > 1 ? 's' : ''} (${Math.round(x.coverage * 100)} % de l’équipe) · confiance ${x.confidence}${x.knowledge.page ? ` · source p. ${x.knowledge.page}` : ''}</p>

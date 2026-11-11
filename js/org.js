@@ -49,16 +49,31 @@
   /* ---------- Écrans ---------- */
   let d = null; // outils de l'app : esc, ic, openModal, closeModal, toast, go
   // En-tête commun d'un espace professionnel : nom, rôle, onglets selon le rôle
+  // Navigation de l'espace selon le rôle (docs/experience-architecture.md, D12). Masquer un lien n'est pas une protection :
+  // chaque écran et chaque action restent vérifiés par la base (RLS) et par le serveur.
+  // Sur ordinateur, ce même en-tête devient une barre latérale (CSS) ; sur téléphone, des onglets défilants.
+  function navOf(o) {
+    const lead = can(o, 'admin', 'manager'), content = can(o, 'admin', 'manager', 'expert');
+    const shell = !!window.OrgShell;
+    const g = [];
+    g.push(['Pilotage', [['accueil', 'squares-four', 'Vue d’ensemble'],
+      ...(lead && window.OrgLearn ? [['suivi', 'users-three', 'Équipe']] : []),
+      ...(lead && shell ? [['intelligence', 'brain', 'Intelligence']] : [])]]);
+    if (content) g.push(['Contenu', [...(window.OrgDocs ? [['documents', 'files', 'Documents']] : []),
+      ...(lead && window.OrgLearn ? [['competences', 'target', 'Compétences']] : []),
+      ...(lead && window.OrgEngines ? [['scenarios', 'film-script', 'Scénarios']] : [])]]);
+    g.push(['Apprendre', [...(shell ? [['apprendre', 'plant', 'Apprendre']] : []), ...(window.OrgLearn ? [['resultats', 'chart-line-up', 'Mon parcours']] : [])]]);
+    if (lead) g.push(['Administration', [['equipe', 'user-gear', 'Membres et accès'],
+      ...(window.OrgSandbox ? [['apercu', 'eye', 'Aperçu collaborateur']] : []),
+      ...(o.role === 'admin' && shell ? [['parametres', 'gear-six', 'Paramètres']] : [])]]);
+    return g.filter(([, items]) => items.length);
+  }
   function head(o, tab) {
-    const tabs = [['accueil', 'house', 'Accueil']];
-    if (can(o, 'admin', 'manager') && window.OrgLearn) tabs.push(['suivi', 'chart-bar', 'Suivi']);
-    if (can(o, 'admin', 'manager', 'expert') && window.OrgDocs) tabs.push(['documents', 'files', 'Documents']);
-    if (can(o, 'admin', 'manager') && window.OrgLearn) tabs.push(['competences', 'target', 'Compétences']);
-    if (can(o, 'admin', 'manager') && window.OrgEngines) tabs.push(['scenarios', 'film-script', 'Scénarios']);
-    if (can(o, 'admin', 'manager')) tabs.push(['equipe', 'users-three', 'Équipe']);
+    const groups = navOf(o);
     return `<header class="org-head glass">
         <div class="org-id"><span class="org-badge" aria-hidden="true">${d.ic('buildings', true)}</span><div><h1>${d.esc(o.name)}</h1><p>${d.esc(o.sector || 'Espace professionnel')} · <b>${ROLES[o.role] || o.role}</b></p></div></div>
-        <nav class="org-tabs" aria-label="Espace ${d.esc(o.name)}">${tabs.map(([k, icn, l]) => `<a href="#/org/${o.id}${k === 'accueil' ? '' : '/' + k}" ${tab === k ? 'aria-current="page"' : ''}>${d.ic(icn)}${l}</a>`).join('')}</nav>
+        <nav class="org-tabs" aria-label="Espace ${d.esc(o.name)}">${groups.map(([gl, items]) => `<span class="org-nav-g" aria-hidden="true">${gl}</span>${items.map(([k, icn, l]) => `<a href="#/org/${o.id}${k === 'accueil' ? '' : '/' + k}" ${tab === k ? 'aria-current="page"' : ''}>${d.ic(icn, tab === k)}<span>${l}</span></a>`).join('')}`).join('')}</nav>
+        <div class="org-side-foot"><button type="button" class="link-btn" data-org-space>${d.ic('swap')}Changer d’espace</button><small>${d.ic('lock-simple')}Ton espace personnel reste sur ton appareil.</small></div>
       </header>`;
   }
 
@@ -159,6 +174,7 @@
   /* Point d'entrée du routeur : #/org/<id>[/equipe] et #/rejoindre/<jeton> */
   async function render(app, view, deps) {
     d = deps;
+    if (!app.dataset.orgSpaceBound) { app.dataset.orgSpaceBound = '1'; app.addEventListener('click', (e) => { if (e.target.closest('[data-org-space]')) openSwitcher(d); }); }
     if (window.OrgOnboarding) OrgOnboarding.use(d);
     if (view.name === 'join') return joinView(app, view.token);
     if (view.id === 'nouvelle' && window.OrgOnboarding) return OrgOnboarding.wizard(app, null, 'infos', d);
@@ -174,6 +190,18 @@
         app.innerHTML = `${head(o, 'competences')}<section class="sec org-learn"><h2>Compétences</h2><p class="hint">Une compétence est une capacité observable au travail, reliée aux connaissances validées qu’elle demande.</p><div id="skEd"></div></section>`;
         return OrgOnboarding.skillsEditor(app.querySelector('#skEd'), o);
       }
+    }
+    if (window.OrgShell) {
+      const lead = can(o, 'admin', 'manager');
+      if (view.tab === 'accueil') return OrgShell.overview(app, o, head(o, 'accueil'), d);
+      if (view.tab === 'apprendre') return OrgShell.learn(app, o, head(o, 'apprendre'), d, view.sub);
+      if (view.tab === 'intelligence' && lead) return OrgShell.intelligence(app, o, head(o, 'intelligence'), d);
+      if (view.tab === 'parametres' && o.role === 'admin') return OrgShell.settings(app, o, head(o, 'parametres'), d);
+      if (['intelligence', 'parametres'].includes(view.tab)) { app.innerHTML = `${head(o, view.tab)}<section class="sec"><p class="hint">Cet écran est réservé ${view.tab === 'parametres' ? 'aux administrateurs' : 'aux managers et administrateurs'}.</p></section>`; return; }
+    }
+    if (view.tab === 'apercu' && window.OrgSandbox) {
+      if (!can(o, 'admin', 'manager')) { app.innerHTML = `${head(o, 'apercu')}<section class="sec"><p class="hint">L’aperçu collaborateur est réservé aux managers et administrateurs.</p></section>`; return; }
+      return OrgSandbox.render(app, o, head(o, 'apercu'), d, view.sub);
     }
     if (view.tab === 'equipe' && can(o, 'admin', 'manager')) return teamView(app, o);
     if (view.tab === 'scenarios' && can(o, 'admin', 'manager') && window.OrgEngines) return OrgEngines.scenariosView(app, o, head(o, 'scenarios'), d);
@@ -211,5 +239,5 @@
   // Après le retour d'un lien de connexion, reprendre l'invitation en attente
   const pendingInvite = () => get(K_PENDING, '');
 
-  window.Org = { list, space, setSpace, refresh, create, invite, accept, members, invitations, revoke, render, openSwitcher, createModal, pendingInvite, tokenFrom, ROLES };
+  window.Org = { list, space, setSpace, refresh, create, invite, accept, members, invitations, revoke, render, openSwitcher, createModal, pendingInvite, tokenFrom, ROLES, can, homeView: (o, deps) => { d = deps; return homeView(o); } };
 })();

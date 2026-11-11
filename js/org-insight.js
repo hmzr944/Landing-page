@@ -142,16 +142,70 @@
     const required = skills.filter((s) => { const u = unitsOf(s.id); return !u.length || (unitId && u.includes(unitId)); });
     const mine = evs.filter((e) => e.user_id === userId);
     const out = required.map((s) => {
-      const kids = skillKnowledge.filter((l) => l.skill_id === s.id).map((l) => l.knowledge_id).filter((id) => kById.has(id));
+      const kids = skillKnowledge.filter((l) => l.skill_id === s.id).map((l) => l.knowledge_id).filter((id) => kById.has(id) && !['remplace', 'rejete'].includes(kById.get(id).status));
       const ks = kids.map((id) => byK.get(id) || { knowledge: kById.get(id), level: 0, state: null, needsHuman: kById.get(id).kind === 'sensible' });
       const human = mine.some((e) => e.activity === 'validation_humaine' && e.outcome === 'juste' && e.skill_id === s.id);
       const sensitive = ks.some((x) => x.knowledge && x.knowledge.kind === 'sensible');
       const level = ks.length ? Math.min(...ks.map((x) => x.level || 0)) : 0;
-      const status = !ks.length ? 'sans_connaissance' : level >= 4 && (!sensitive || human) ? 'acquise' : level >= 4 && sensitive ? 'validation_humaine' : level > 0 || ks.some((x) => x.state) ? 'en_cours' : 'a_faire';
-      return { skill: s, importance: s.importance || 2, knowledge: ks, level, status, sensitive, human };
+      // Invalidation ciblée (009) : une règle de cette compétence a changé et la preuve de la personne portait sur l'ancienne
+      const reval = (opts.revalidations || []).filter((r) => r.user_id === userId && r.skill_id === s.id && r.status === 'requires_revalidation');
+      const base = !ks.length ? 'sans_connaissance' : level >= 4 && (!sensitive || human) ? 'acquise' : level >= 4 && sensitive ? 'validation_humaine' : level > 0 || ks.some((x) => x.state) ? 'en_cours' : 'a_faire';
+      const status = reval.length ? 'a_revalider' : base;
+      return { skill: s, importance: s.importance || 2, knowledge: ks, level, status, sensitive, human, revalidation: reval[0] || null };
     }).sort((a, b) => b.importance - a.importance);
     return { skills: out, done: out.filter((x) => x.status === 'acquise').length, total: out.length, plan: p.plan, person: p };
   }
 
-  window.OrgInsight = { stateOf, person, team, nextAction, radar, pathway, plan, STATES };
+  /* Matrice confiance × compétence. La confiance est celle que la personne a DÉCLARÉE au moment de répondre
+     (diagnostic, simulation) ; elle n'est jamais déduite. Pour chaque connaissance d'une personne, on prend la dernière
+     observation où elle a déclaré sa confiance :
+       compétence démontrée = réponse juste ; non démontrée = fausse, partielle ou insuffisante ;
+       confiance élevée = « je sais » ou « réflexe » ; faible = « je devine ».
+     Sans confiance déclarée : « confiance non mesurée » (aucune conclusion). Non documenté : hors matrice. */
+  const QUAD = {
+    solide: { label: 'Maîtrise solide', why: 'juste, et la personne en était sûre' },
+    sous_estimee: { label: 'Compétence sous-estimée', why: 'juste, mais la personne doutait' },
+    lacune_reconnue: { label: 'Lacune reconnue', why: 'pas encore su, et la personne le savait' },
+    fausse_certitude: { label: 'Fausse certitude', why: 'pas su, alors que la personne était sûre' },
+  };
+  const quadOf = (e) => {
+    const high = sure(e.confidence), comp = e.outcome === 'juste';
+    return comp ? (high ? 'solide' : 'sous_estimee') : (high ? 'fausse_certitude' : 'lacune_reconnue');
+  };
+  function matrixOf(evs, opts = {}) {
+    const rated = ['juste', 'faux', 'partiel', 'insuffisant'];
+    const pairs = new Map();
+    evs.filter((e) => e.knowledge_id && rated.includes(e.outcome) && (!opts.from || e.at >= opts.from) && (!opts.to || e.at < opts.to)).forEach((e) => {
+      const key = `${e.user_id}|${e.knowledge_id}`;
+      const p = pairs.get(key) || { user: e.user_id, k: e.knowledge_id, last: null, lastRated: null };
+      if (!p.last || e.at >= p.last.at) p.last = e;
+      if (e.confidence && (!p.lastRated || e.at >= p.lastRated.at)) p.lastRated = e;
+      pairs.set(key, p);
+    });
+    const cells = { solide: [], sous_estimee: [], lacune_reconnue: [], fausse_certitude: [] }, unmeasured = [];
+    pairs.forEach((p) => {
+      // la dernière observation doit porter une confiance déclarée : sinon l'état actuel n'est pas mesuré
+      if (!p.lastRated || p.lastRated !== p.last) unmeasured.push(p); else cells[quadOf(p.lastRated)].push(p);
+    });
+    const measured = Object.values(cells).reduce((a, c) => a + c.length, 0);
+    return { cells, measured, unmeasured: unmeasured.length, pairs: pairs.size };
+  }
+  function matrix(evs, knowledge, opts = {}) {
+    const kById = new Map(knowledge.map((k) => [k.id, k]));
+    const now = opts.now || Date.now(), D30 = 30 * 864e5;
+    const scope = opts.userId ? evs.filter((e) => e.user_id === opts.userId) : evs;
+    const all = matrixOf(scope);
+    const recent = matrixOf(scope, { from: new Date(now - D30).toISOString() });
+    const previous = matrixOf(scope, { from: new Date(now - 2 * D30).toISOString(), to: new Date(now - D30).toISOString() });
+    const minMeasured = opts.minMeasured || 5;
+    const cells = Object.fromEntries(Object.entries(all.cells).map(([q, list]) => [q, {
+      n: list.length, ...QUAD[q],
+      knowledge: [...new Set(list.map((p) => p.k))].map((id) => kById.get(id) || { id, title: 'Connaissance' }),
+      people: new Set(list.map((p) => p.user)).size,
+    }]));
+    return { cells, measured: all.measured, unmeasured: all.unmeasured, total: all.pairs, enough: all.measured >= minMeasured, minMeasured,
+      trend: { recent: recent.cells.fausse_certitude.length, previous: previous.cells.fausse_certitude.length, recentMeasured: recent.measured, previousMeasured: previous.measured } };
+  }
+
+  window.OrgInsight = { stateOf, person, team, nextAction, radar, pathway, plan, matrix, QUAD, STATES };
 })();

@@ -419,5 +419,8 @@
     active: () => !!el && !el.hidden,
     cancelPending() { if (pending) finish('import-annule'); },
     DEMO,
+    // réutilisés par les portes d'entrée Business (js/org-shell.js) : même dictée, même lecture de texte sur l'appareil
+    speech: SR,
+    ocr: loadTess,
   };
 })();
