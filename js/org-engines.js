@@ -44,7 +44,10 @@
       const msg = app.querySelector('#scMsg'); msg.textContent = 'Conception du scénario…';
       try { const r = await srv({ task: 'scenario_concevoir', org: o.id, kind: app.querySelector('#scKind').value, brief: app.querySelector('#scBrief').value.trim() }, (m) => { msg.textContent = m; });
         msg.textContent = ''; review(app, o, head, r.version, r.spec, r.title); }
-      catch (x) { msg.textContent = x.message; }
+      catch (x) {
+        if (/connaissances validées/.test(x.message)) msg.innerHTML = `Il faut au moins 2 connaissances validées : Arbor ne conçoit un scénario qu’à partir de ce qui est vérifié. <a href="#/org/${o.id}/documents">Ajouter ou valider un document</a>`;
+        else msg.textContent = x.message;
+      }
     };
     app.querySelectorAll('[data-review]').forEach((b) => { b.onclick = async () => { try { const spec = await rpc('scenario_spec', { p_version: b.dataset.review }); review(app, o, head, b.dataset.review, spec, b.closest('li').querySelector('b').textContent); } catch (x) { d.toast(x.message, 'error'); } }; });
     app.querySelectorAll('[data-play]').forEach((b) => { b.onclick = () => play(app, o, head, b.dataset.play); });
