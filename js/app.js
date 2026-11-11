@@ -2363,7 +2363,8 @@
     requestAnimationFrame(() => requestAnimationFrame(() => $('#modal').classList.add('show')));
     onMount && onMount($('#modalBody'));
     const first = $('#modalBody input:not([type=radio]):not([type=checkbox]), #modalBody textarea, #modalBody .drop');
-    setTimeout(() => (first || $('#modalClose')).focus(), 30);
+    // sur écran tactile, pas de clavier qui surgit ni de défilement : le focus va sur « Fermer »
+    setTimeout(() => (matchMedia('(pointer: coarse)').matches ? $('#modalClose') : (first || $('#modalClose'))).focus({ preventScroll: true }), 30);
   }
   function closeModal() {
     $('#modal').classList.remove('show');

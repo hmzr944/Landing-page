@@ -1,6 +1,6 @@
 /* =========================================================
    Arbor : design tokens
-   Satoshi pour les titres, Chillax pour les textes (Fontshare), fond neutre froid,
+   Satoshi pour les titres, Urbanist Regular pour les textes, fond neutre froid,
    couleur d'accent = couleur du sujet ouvert, statuts sémantiques.
    Rayons : contrôles 10px, panneaux 16px, puces et pastilles en pilule.
    ========================================================= */
@@ -3176,3 +3176,146 @@ html.in-welcome .topbar, html.in-welcome .bottom-nav, html.in-welcome .mascot { 
 .onb-learn p { margin: 0; line-height: 1.5; color: var(--text-2); }
 @media (prefers-reduced-motion: reduce) { .onb-mic[aria-pressed="true"], .onb-notions li { animation: none; } }
 .onb-choice span, .obz-goal span { overflow-wrap: anywhere; hyphens: auto; -webkit-hyphens: auto; min-width: 0; max-width: 100%; }
+
+/* =========================================================
+   Typographie et responsive (couche finale, gagne sur les règles plus haut)
+   - Texte : Urbanist Regular, échelle fluide plus compacte ; les titres (Satoshi) ne changent pas.
+   - Boutons : le texte va à la ligne au lieu de déborder ; tailles et marges fluides.
+   - Modales : panneau qui monte du bas sur téléphone, hauteur bornée, contenu qui défile.
+   - Pousse : une seule taille par type d'écran (une ancienne règle l'agrandissait partout).
+   ========================================================= */
+:root {
+  --font: 'Urbanist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --t-xs: clamp(0.75rem, 0.73rem + 0.1vw, 0.8rem);
+  --t-sm: clamp(0.8125rem, 0.79rem + 0.12vw, 0.875rem);
+  --t-base: clamp(0.875rem, 0.85rem + 0.18vw, 0.96rem);
+  --t-md: clamp(0.9375rem, 0.9rem + 0.22vw, 1.04rem);
+  --t-lede: clamp(0.92rem, 0.88rem + 0.3vw, 1.04rem);
+}
+body { font-weight: 400; line-height: 1.5; }
+p, li, dd { text-wrap: pretty; }
+/* iOS agrandit la page si un champ a moins de 16 px : on garde 16 px dans les champs sur écran tactile */
+@media (pointer: coarse) { input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), textarea, select { font-size: max(16px, 1em); } }
+
+/* Paragraphes d'introduction : plus compacts */
+.onb-hero p, .wel-hero p, .wel-lede, .obz-lede, .onb-q > p, .lede, .page-lede { font-size: var(--t-lede); line-height: 1.5; }
+.modal-lede, .hint, .muted, .wel-note, .onb-note, .wel-foot p, .obz-skills small, .obz-privacy span, .wel-choice-tx small, .onb-entry small, .wb p { font-size: var(--t-sm); }
+.plan-steps li, .pg-big > span, .ls-points li, .ls-goal, .exercise-q, .insight-card b, .tp-txt b { font-size: var(--t-base); }
+.ls-idea { font-size: clamp(1rem, 0.94rem + 0.5vw, 1.25rem); }
+.wel-field input, .wel-foot .link-btn, .onb-foot .link-btn.strong { font-size: var(--t-base); }
+.wel-choice-tx b { font-size: var(--t-md); }
+.pg-pousse b, .practice-card .lc-txt b, .onb-card[data-onb="pdf"] b { font-size: var(--t-md); }
+
+/* Boutons : jamais de texte qui dépasse */
+.btn { white-space: normal; text-align: center; line-height: 1.2; text-wrap: balance; max-width: 100%; }
+/* un mot ne se coupe jamais : la rangée passe à la ligne à la place */
+.b-hero .row-btns .btn.big:first-child, .b-hero .row-btns .btn.big { flex: 1 1 130px; }
+small { font-size: max(12px, 0.85em); }
+.btn.big, .wel .btn.big, .onb-foot .btn.big, .ls-foot .btn.big, .review-actions .btn, .obz-foot .btn.big { font-size: var(--t-md); }
+.btn.big { min-height: clamp(46px, 42px + 1.2vw, 54px); padding-inline: clamp(14px, 3.5vw, 24px); }
+.btn.sm { padding-inline: clamp(10px, 2.6vw, 14px); }
+.row-btns > .btn { flex: 0 1 auto; }
+.fiche-foot .btn { flex: 1 1 auto; }
+.b-hero .row-btns { flex-wrap: wrap; }
+.b-hero .row-btns .btn.big { flex: 1 1 140px; }
+.bottom-nav > a, .bottom-nav > button { font-size: 12px; }
+@media (max-width: 380px) {
+  .row-btns { gap: 6px; }
+  .btn.sm { gap: 6px; }
+  .wel-ctas, .obz-next { gap: 8px; }
+}
+
+/* Modales : panneau du bas sur téléphone */
+@media (max-width: 640px) {
+  .modal-backdrop { place-items: end center; padding: 0; }
+  .modal { width: 100%; max-height: calc(100dvh - max(28px, env(safe-area-inset-top))); border-radius: 26px 26px 0 0; border-bottom: 0;
+    padding: 26px clamp(16px, 4.5vw, 22px) max(20px, env(safe-area-inset-bottom)); }
+  .modal::before { content: ""; position: sticky; top: -18px; display: block; width: 40px; height: 5px; margin: -14px auto 12px; border-radius: 99px; background: var(--line-strong); }
+  .modal h2 { font-size: clamp(1.15rem, 1rem + 1.5vw, 1.375rem); }
+  .modal .row-btns.end { justify-content: stretch; }
+  .modal .row-btns.end > .btn { flex: 1 1 auto; }
+}
+
+/* Pousse : une taille par écran, et de la place sous le contenu pour qu'il ne le cache pas */
+.mascot { --pz: 112px; width: var(--pz); }
+.mascot-btn { width: var(--pz); height: var(--pz); }
+@media (max-width: 900px) { .mascot { --pz: 80px; } }
+@media (max-width: 640px) { .mascot { --pz: clamp(52px, 15vw, 62px); } }
+@media (max-height: 500px) and (orientation: landscape) { .mascot { --pz: 50px; } }
+.pousse-mini { --pz: var(--pm); }
+@media (max-width: 900px) { #app { padding-bottom: calc(var(--pz, 60px) + 96px + env(safe-area-inset-bottom)); } }
+.mascot-bubble { max-width: min(250px, calc(100vw - var(--pz, 60px) - 40px)); font-size: var(--t-sm); }
+@media (max-width: 640px) { .mascot-bubble { right: 0; } }
+/* le fond décoratif ne doit jamais élargir la page */
+.bg { overflow: hidden; contain: paint; }
+.b-hero .row-btns .btn.big:first-child, .b-hero .row-btns .btn.big { flex: 1 1 150px; }
+/* modale ouverte sur téléphone : Pousse s'efface derrière le panneau */
+@media (max-width: 640px) { .modal-backdrop.show ~ .mascot:not(.free), html:has(.modal-backdrop.show) .mascot:not(.pousse-mini) { opacity: 0; visibility: hidden; transition: opacity 160ms ease, visibility 0s 160ms; } }
+@media (min-width: 901px) and (max-width: 1280px) { .mascot { --pz: 84px; } }
+/* Vue d'un cours sur ordinateur : la colonne de la fiche s'arrête avant Pousse (il ne cache jamais un bouton) */
+@media (min-width: 901px) { .subject .pane-body { padding-right: calc(var(--s8) + var(--pz, 84px) * 0.55); } }
+
+/* =========================================================
+   Motion design (js/motion.js) : croissance, feuilles, éclosion, goutte
+   ========================================================= */
+.mo-layer { position: fixed; inset: 0; pointer-events: none; z-index: 120; overflow: hidden; }
+@media (prefers-reduced-motion: no-preference) {
+  /* Les cartes poussent : dévoilement du bas vers le haut, petit redressement, rebond doux */
+  html:not(.calm) .mo-grow:not(.mo-in) { opacity: 0; }
+  html:not(.calm) .mo-grow.mo-in { animation: mo-sprout 760ms cubic-bezier(0.2, 0.9, 0.25, 1.15) backwards; animation-delay: calc(var(--mo-i, 0) * 60ms); }
+  @keyframes mo-sprout {
+    0% { opacity: 0; transform: translateY(22px) scale(0.94) rotate(-1.5deg); clip-path: inset(55% 0 0 0 round 24px); }
+    55% { opacity: 1; clip-path: inset(0 0 0 0 round 24px); }
+    100% { opacity: 1; transform: none; clip-path: inset(0 0 0 0 round 0); }
+  }
+  /* Titres mot à mot : chaque mot monte et se redresse, flou qui s'efface */
+  html:not(.calm) .mo-w { display: inline-block; animation: mo-word 640ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards; animation-delay: calc(var(--w) * 55ms + 60ms); }
+  @keyframes mo-word { from { opacity: 0; transform: translateY(0.45em) rotate(4deg); filter: blur(6px); } }
+  /* Feuille qui s'envole du doigt */
+  .mo-leaf { position: fixed; width: 16px; height: 16px; margin: -8px 0 0 -8px; border-radius: 0 100% 0 100%;
+    background: linear-gradient(135deg, color-mix(in oklab, var(--c2) 85%, white), var(--c1)); box-shadow: 0 2px 6px -2px var(--c1);
+    animation: mo-float 820ms cubic-bezier(0.25, 0.8, 0.3, 1) both; animation-delay: var(--d, 0ms); }
+  @keyframes mo-float {
+    0% { opacity: 0.9; transform: translate(0, 0) rotate(var(--rot, 0deg)) scale(0.3); }
+    35% { opacity: 0.85; transform: translate(calc(var(--dx, 0px) * 0.5), -22px) rotate(calc(var(--rot, 0deg) + 40deg)) scale(1); }
+    100% { opacity: 0; transform: translate(var(--dx, 0px), -56px) rotate(calc(var(--rot, 0deg) + 110deg)) scale(0.7); }
+  }
+  /* Gerbe de feuilles (réussite) : trois couleurs de la palette, petite gravité à la fin */
+  .mo-burst { width: 12px; height: 12px; margin: -6px 0 0 -6px; animation: mo-burst 1000ms cubic-bezier(0.15, 0.7, 0.3, 1) both; }
+  .mo-burst[style*="--hue: 1"] { background: linear-gradient(135deg, color-mix(in oklab, var(--c3) 80%, white), var(--c3)); }
+  .mo-burst[style*="--hue: 2"] { background: linear-gradient(135deg, color-mix(in oklab, var(--c4) 80%, white), var(--c4)); }
+  @keyframes mo-burst {
+    0% { opacity: 1; transform: translate(0, 0) rotate(0deg) scale(0.2); }
+    60% { opacity: 1; transform: translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(1); }
+    100% { opacity: 0; transform: translate(var(--dx), calc(var(--dy) + 26px)) rotate(calc(var(--rot) + 90deg)) scale(0.8); }
+  }
+  /* Modale qui éclôt du point touché (ordinateur) */
+  .modal.mo-pop { transform-origin: var(--ox, 50%) var(--oy, 50%); animation: mo-bloom 520ms cubic-bezier(0.2, 0.9, 0.25, 1.1) both; }
+  @keyframes mo-bloom {
+    0% { opacity: 0; transform: scale(0.55); clip-path: circle(0% at var(--ox, 50%) var(--oy, 50%)); }
+    60% { opacity: 1; clip-path: circle(120% at var(--ox, 50%) var(--oy, 50%)); }
+    100% { opacity: 1; transform: none; clip-path: circle(150% at var(--ox, 50%) var(--oy, 50%)); }
+  }
+  /* Panneau souple qui monte (téléphone) : léger dépassement puis retour */
+  .modal.mo-sheet { animation: mo-sheet 560ms cubic-bezier(0.2, 0.95, 0.25, 1.08) both; }
+  @keyframes mo-sheet { 0% { transform: translateY(100%); } 70% { transform: translateY(-6px); } 100% { transform: none; } }
+  /* Pastille des onglets : elle s'étire pendant qu'elle glisse, comme une goutte */
+  .bottom-nav.mo-goo::before, .topnav.mo-goo::before { animation: mo-goo 500ms cubic-bezier(0.3, 0.7, 0.3, 1); }
+  @keyframes mo-goo { 0% { scale: 1 1; } 35% { scale: 1.22 0.82; } 65% { scale: 0.94 1.06; } 100% { scale: 1 1; } }
+  /* Un choix coché rebondit ; une bonne réponse éclot ; une erreur secoue doucement */
+  :is(.onb-choice, .obz-goal)[aria-pressed="true"] > i { animation: mo-pop 520ms cubic-bezier(0.3, 1.6, 0.4, 1); }
+  @keyframes mo-pop { 0% { transform: scale(1) rotate(0); } 40% { transform: scale(1.3) rotate(-12deg); } 100% { transform: none; } }
+  .onb-opt.right, .ls-opt.right, .dg-opt.right { animation: mo-right 620ms cubic-bezier(0.3, 1.4, 0.4, 1); }
+  @keyframes mo-right { 0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--st-mastered, var(--done)) 45%, transparent); transform: scale(1); } 40% { transform: scale(1.03); } 100% { box-shadow: 0 0 0 14px transparent; transform: none; } }
+  .onb-opt.wrong, .ls-opt.wrong, .dg-opt.wrong { animation: mo-wrong 420ms ease; }
+  @keyframes mo-wrong { 20% { transform: translateX(-6px) rotate(-0.6deg); } 45% { transform: translateX(5px) rotate(0.5deg); } 70% { transform: translateX(-3px); } }
+  /* Boutons : enfoncement puis retour élastique */
+  .btn { transition: transform 420ms cubic-bezier(0.3, 1.5, 0.4, 1), background-color var(--d-fast) ease, box-shadow var(--d-fast) ease, opacity var(--d-fast) ease; }
+  .btn:active { transform: scale(0.95); transition-duration: 90ms; }
+  /* Pousse se range sur le bord pendant le défilement (téléphone) */
+  @media (max-width: 900px) {
+    .mascot:not(.free):not(.pousse-mini) { transition: opacity 300ms ease, transform 420ms cubic-bezier(0.3, 1.2, 0.4, 1); }
+    html.mo-scrolling .mascot:not(.free):not(.pousse-mini) { transform: translateX(46%) rotate(-12deg) scale(0.86); opacity: 0.7; }
+  }
+}
+html.calm .mo-leaf { display: none; }
