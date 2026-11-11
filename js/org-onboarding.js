@@ -60,14 +60,36 @@
     ${skip && o ? `<a class="link-btn obz-skip" href="#/org/${o.id}/configurer/${nextStep(key)}" data-skip>Passer cette étape</a>` : ''}
     <button class="btn big" id="obzNext">${primary}${d.ic('arrow-right')}</button>`;
   // Enregistrer l'étape franchie puis passer à la suivante
+  /* On ne passe à l'étape suivante QUE si l'enregistrement est confirmé par la base.
+     Échec réseau, refus serveur ou délai dépassé : on reste sur l'étape, la saisie est conservée (rien n'est
+     redessiné), un message dit quoi faire, et le bouton permet de réessayer. Un double clic n'envoie qu'une fois. */
+  const SAVE_TIMEOUT = () => window.ARBOR_SAVE_TIMEOUT || 15000; // réglable pour les tests
+  const withTimeout = (p, ms = SAVE_TIMEOUT()) => Promise.race([p, new Promise((_, rej) => setTimeout(() => { const e = new Error('délai dépassé'); e.kind = 'timeout'; rej(e); }, ms))]);
+  const saveMsg = (e) => (e.kind === 'offline' || /connexion impossible|failed to fetch/i.test(e.message) ? 'Pas de connexion : l’étape n’est pas enregistrée.'
+    : e.kind === 'timeout' ? 'Le serveur met trop de temps à répondre : l’étape n’est pas enregistrée.'
+    : e.kind === 'auth' ? 'Ta session a expiré : reconnecte-toi, ta saisie reste à l’écran.'
+    : `L’étape n’est pas enregistrée (${e.message}).`);
+  function saveError(e) {
+    const foot = document.querySelector('.obz-foot');
+    let box = document.getElementById('obzSaveErr');
+    if (!box && foot) { box = document.createElement('p'); box.id = 'obzSaveErr'; box.className = 'wel-form-err obz-save-err'; box.setAttribute('role', 'alert'); foot.prepend(box); }
+    if (box) { box.hidden = false; box.textContent = `${saveMsg(e)} Vérifie ta connexion puis réessaie.`; }
+    const b = document.getElementById('obzNext'); if (b) { b.disabled = false; b.removeAttribute('aria-busy'); b.dataset.retry = '1'; }
+  }
+  const clearSaveError = () => { const box = document.getElementById('obzSaveErr'); if (box) box.hidden = true; };
+  let advancing = false;
   async function advance(o, key) {
+    if (advancing) return false; // double clic : une seule sauvegarde
+    advancing = true;
+    const b = document.getElementById('obzNext'); if (b) { b.disabled = true; b.setAttribute('aria-busy', 'true'); }
+    clearSaveError();
     const nx = nextStep(key);
-    try { await setup(o, { step: nx, [`${key}At`]: Date.now() }); }
-    catch (e) {
-      // hors ligne ou refus : on le dit ; la personne peut continuer, mais sait que la reprise ne sera pas à jour
-      d.toast(`Étape non enregistrée (${e.message}) : la reprise ne sera pas à jour.`, 'error');
-    }
-    d.go(`#/org/${o.id}/configurer/${nx}`);
+    try {
+      await withTimeout(setup(o, { step: nx, [`${key}At`]: Date.now() }));
+      advancing = false;
+      d.go(`#/org/${o.id}/configurer/${nx}`);
+      return true;
+    } catch (e) { advancing = false; saveError(e); return false; }
   }
 
   /* ---------- 1. Organisation ---------- */
@@ -86,17 +108,20 @@
         </div>
         <p class="wel-form-err" id="obErr" role="alert" hidden></p>
       </form>`, `<button class="btn big" id="obzNext">${o ? 'Enregistrer et continuer' : 'Créer l’organisation'}${d.ic('arrow-right')}</button>`);
+    let created = null; // organisation créée lors d'un essai précédent (sauvegarde de l'étape échouée) : on ne la recrée pas
     app.querySelector('#obzNext').onclick = async () => {
+      if (advancing) return;
       const name = app.querySelector('#obName').value.trim();
       const err = app.querySelector('#obErr');
       if (name.length < 2) { app.querySelector('#obNameErr').textContent = 'Indique le nom de l’organisation (2 caractères au moins).'; app.querySelector('#obName').focus(); return; }
       const fields = { p_name: name, p_sector: app.querySelector('#obSector').value, p_size: (app.querySelector('input[name="obSize"]:checked') || {}).value || '', p_country: app.querySelector('#obCountry').value.trim(), p_language: app.querySelector('#obLang').value };
       const b = app.querySelector('#obzNext'); b.disabled = true;
       try {
-        let id = o && o.id;
+        let id = (o && o.id) || created;
         if (!id) {
-          try { id = await rpc('create_organization', fields); }
-          catch (e) { if (!missing(e)) throw e; id = await rpc('create_organization', { p_name: name, p_sector: fields.p_sector }); } // base sans 007
+          try { id = await withTimeout(rpc('create_organization', fields)); }
+          catch (e) { if (!missing(e)) throw e; id = await withTimeout(rpc('create_organization', { p_name: name, p_sector: fields.p_sector })); } // base sans 007
+          created = id;
           Org.setSpace(id);
         } else {
           await rpc('update_organization', { p_org: id, p_name: name, p_sector: fields.p_sector, p_size: fields.p_size, p_country: fields.p_country, p_language: fields.p_language }).catch((e) => { if (!missing(e)) throw e; });
@@ -104,7 +129,7 @@
         const org = await reloadOrg(id);
         if (window.Journey) Journey.set({ workspace: 'business', businessIntent: 'create' });
         await advance(org || { id }, 'infos');
-      } catch (e) { err.hidden = false; err.textContent = e.message; b.disabled = false; }
+      } catch (e) { err.hidden = false; err.textContent = saveMsg(e); b.disabled = false; }
     };
   }
 
@@ -122,8 +147,9 @@
     app.querySelector('#obzNext').onclick = async () => {
       const goals = [...app.querySelectorAll('.obz-goal[aria-pressed="true"]')].map((b) => b.dataset.g);
       const oth = app.querySelector('#obOther').value.trim().slice(0, 80); if (oth) goals.push(oth);
-      try { await rpc('update_organization', { p_org: o.id, p_goals: goals }); }
-      catch (e) { if (!missing(e)) { const er = app.querySelector('#obErr'); er.hidden = false; er.textContent = e.message; return; } }
+      if (advancing) return;
+      try { await withTimeout(rpc('update_organization', { p_org: o.id, p_goals: goals })); }
+      catch (e) { if (!missing(e)) { saveError(e); return; } }
       await advance(o, 'objectifs');
     };
   }
@@ -318,9 +344,14 @@
       <div id="obInv"></div>`, navFoot(o, 'invitations', { primary: 'Terminer' }));
     inviteBox(app.querySelector('#obInv'), o);
     app.querySelector('#obzNext').onclick = async () => {
-      await setup(o, { step: 'fin', done: true, doneAt: Date.now() }).catch(() => {});
-      await rpc('mark_onboarded', { p_org: o.id }).catch(() => {});
-      d.go(`#/org/${o.id}/configurer/fin`);
+      if (advancing) return;
+      advancing = true; const b = app.querySelector('#obzNext'); b.disabled = true; clearSaveError();
+      try {
+        await withTimeout(setup(o, { step: 'fin', done: true, doneAt: Date.now() }));
+        await withTimeout(rpc('mark_onboarded', { p_org: o.id })).catch((e) => { if (!missing(e)) throw e; });
+        advancing = false;
+        d.go(`#/org/${o.id}/configurer/fin`);
+      } catch (e) { advancing = false; saveError(e); }
     };
   }
 

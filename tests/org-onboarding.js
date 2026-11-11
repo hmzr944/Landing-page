@@ -29,6 +29,7 @@ const people = { alice: { id: 'u-alice', email: 'alice@boulangerie.fr', pass: 'P
 const tokens = Object.fromEntries(Object.values(people).map((u) => [jwt(u.id), u]));
 const db = { orgs: [], members: [], invites: [], units: [], skills: [], sk: [], su: [], knowledge: [], calls: [] };
 const sent = [];
+const fault = { server: false, offline: false, delay: 0 }; // pannes simulées sur l'enregistrement de l'organisation
 const sha = (t) => crypto.createHash('sha256').update(t).digest('hex');
 function handle(r) {
   const u = new URL(r.url()); const raw = r.postData() || ''; let body = {}; try { body = raw ? JSON.parse(raw) : {}; } catch (e) { body = {}; }
@@ -57,6 +58,7 @@ function handle(r) {
   if (p === '/rest/v1/rpc/my_organizations') return ok(db.members.filter((x) => x.user === me.id).map((x) => { const o = db.orgs.find((y) => y.id === x.org); return { id: o.id, name: o.name, sector: o.sector, role: x.role, owner: o.created_by === me.id, unit: (db.units.find((y) => y.id === x.unit) || {}).name || null, onboarded: !!x.onboarded, setup: o.setup }; }));
   if (p === '/rest/v1/rpc/create_organization') { const id = crypto.randomUUID(); db.orgs.push({ id, name: body.p_name, sector: body.p_sector, size: body.p_size || null, country: body.p_country || null, language: body.p_language || 'fr', goals: [], setup: {}, created_by: me.id }); db.members.push({ org: id, user: me.id, role: 'admin', email: me.email }); db.calls.push(['create', body]); return ok(id); }
   if (p === '/rest/v1/rpc/update_organization') {
+    if (fault.server) return err('erreur interne', 500);
     if (!isAdmin(body.p_org)) return err('accès refusé');
     const o = db.orgs.find((x) => x.id === body.p_org);
     ['name', 'sector', 'size', 'country', 'language', 'goals'].forEach((k) => { if (body[`p_${k}`] != null) o[k] = body[`p_${k}`]; });
@@ -135,7 +137,12 @@ const personal = () => ({ version: 2, subjects: [{ id: 'perso1', title: SECRET, 
     }, [blank ? '' : JSON.stringify(personal()), auth]);
     const page = await ctx.newPage();
     page.on('pageerror', (e) => errors.push(e.message));
-    await page.route(`${SB}/**`, (route) => route.fulfill(handle(route.request())));
+    await page.route(`${SB}/**`, async (route) => {
+      const isUpd = route.request().url().endsWith('/rpc/update_organization');
+      if (isUpd && fault.offline) return route.abort('internetdisconnected');
+      if (isUpd && fault.delay) await new Promise((r) => setTimeout(r, fault.delay));
+      return route.fulfill(handle(route.request())).catch(() => {});
+    });
     return { ctx, page };
   }
   const settle = (page, ms = 700) => page.waitForTimeout(ms);
@@ -219,6 +226,36 @@ const personal = () => ({ version: 2, subjects: [{ id: 'perso1', title: SECRET, 
     check('B2 la reprise ouvre la bonne étape, avec les équipes déjà créées', /Étape 3 sur 6/.test(await page.textContent('.obz-count')) && /Lyon Croix-Rousse/.test(await page.textContent('.obz-units')));
     await page.goto(`${URL0}#/org/${orgId}/configurer/infos`); await settle(page, 900);
     check('B3 l’étape 1 rouverte montre les informations enregistrées', (await page.inputValue('#obName')) === 'Boulangerie Martin' && (await page.inputValue('#obCountry')) === 'France');
+    db.orgs[0].setup = { step: 'fin', done: true };
+    await ctx.close();
+  }
+
+  /* B'. Persistance : on ne passe jamais à l'étape suivante si l'enregistrement échoue (réseau, serveur, délai, double clic) */
+  {
+    const { ctx, page } = await fresh({ who: people.alice });
+    await page.addInitScript(() => { window.ARBOR_SAVE_TIMEOUT = 800; });
+    db.orgs[0].setup = { step: 'objectifs' };
+    await page.goto(`${URL0}#/org/${orgId}/configurer/objectifs`); await settle(page, 900);
+    const goal = page.locator('.obz-goal').nth(1);
+    if ((await goal.getAttribute('aria-pressed')) !== 'true') await goal.click();
+    const stepNow = async () => (await page.textContent('.obz-count')).match(/Étape (\d)/)[1];
+    const setupCalls = () => db.calls.filter((c) => c[0] === 'update' && c[1].p_setup).length;
+    fault.server = true; let before = setupCalls();
+    await page.click('#obzNext'); await settle(page, 700);
+    check('P1 refus serveur : on reste à l’étape 2, message clair, saisie conservée, rien d’enregistré', (await stepNow()) === '2' && /n’est pas enregistrée/.test(await page.textContent('.obz')) && (await goal.getAttribute('aria-pressed')) === 'true' && db.orgs[0].setup.step === 'objectifs' && setupCalls() === before);
+    check('P2 le bouton reste utilisable pour réessayer', !(await page.isDisabled('#obzNext')));
+    fault.server = false; fault.offline = true;
+    await page.click('#obzNext'); await settle(page, 700);
+    check('P3 hors ligne : on reste à l’étape 2, avec « Pas de connexion »', (await stepNow()) === '2' && /Pas de connexion/.test(await page.textContent('#obzSaveErr')) && db.orgs[0].setup.step === 'objectifs');
+    fault.offline = false; fault.delay = 2500;
+    await page.click('#obzNext'); await settle(page, 1300);
+    check('P4 délai dépassé : on reste à l’étape 2 et on le dit', (await stepNow()) === '2' && /trop de temps/.test(await page.textContent('#obzSaveErr')));
+    await settle(page, 2000); // la réponse tardive arrive ; elle ne fait pas avancer l'écran
+    check('P5 une réponse tardive ne fait pas avancer l’écran tout seul', (await stepNow()) === '2');
+    fault.delay = 500; before = setupCalls();
+    await page.dblclick('#obzNext'); await page.click('#obzNext').catch(() => {}); await settle(page, 1600);
+    check('P6 réessai réussi après un double clic : une seule sauvegarde, puis l’étape 3', (await stepNow()) === '3' && setupCalls() === before + 1 && db.orgs[0].setup.step === 'structure', `${setupCalls() - before} sauvegarde(s)`);
+    fault.delay = 0;
     db.orgs[0].setup = { step: 'fin', done: true };
     await ctx.close();
   }
