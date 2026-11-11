@@ -43,7 +43,7 @@ function sampleState() {
   }
   const settle = (page, ms = 900) => page.waitForTimeout(ms);
   // Un profil neuf ouvre l'introduction : on la passe pour tester le reste
-  const skipOnb = async (page) => { const b = await page.$('[data-onb="skip"]'); if (b) { await b.click(); await page.waitForTimeout(400); } };
+  const skipOnb = async (page) => { const g = await page.$('.wel [data-wel="guest"]'); if (g) { await g.click(); await page.waitForTimeout(500); } const b = await page.$('[data-onb="skip"]'); if (b) { await b.click(); await page.waitForTimeout(400); } };
   // Action qui enregistre : changer l'apparence dans les réglages (le thème se règle là, plus dans l'en-tête)
   const uiSave = async (page, theme) => {
     await page.click('#settingsBtn'); await page.waitForTimeout(300);

@@ -145,9 +145,19 @@ const personal = () => ({ subjects: [{ id: 'persosubj01', title: SECRET_TITLE, c
     await ctx.close();
   }
 
-  /* E. Onboarding mobile : « J'ai une invitation » mène directement à l'espace professionnel */
+  /* E. Accueil mobile : « Pour mon entreprise », puis « J'ai une invitation » mène à l'écran pour rejoindre */
   {
     const { ctx, page } = await fresh({ fresh: true });
+    await page.goto(URL0); await settle(page, 1000);
+    await page.click('.wel-tabs [data-tab="pro"]'); await settle(page, 300);
+    await page.click('.wel [data-wel="join"]'); await settle(page, 700);
+    check('E0 l’accueil mène à l’écran pour rejoindre (coller le lien)', /#\/rejoindre/.test(page.url()) && await page.isVisible('#jpLink'));
+    await ctx.close();
+  }
+  /* E bis. Introduction (après « Essayer sans compte ») : le lien d'invitation y est aussi */
+  {
+    const { ctx, page } = await fresh({ fresh: true });
+    await page.addInitScript(() => { try { localStorage.setItem('arbor:welcome', '{"how":"guest"}'); } catch (e) { /* rien */ } });
     await page.goto(URL0); await settle(page, 1000);
     const link = await page.$('.onb [data-onb="join"]');
     check('E1 l’introduction propose « J’ai une invitation de mon organisation »', !!link);

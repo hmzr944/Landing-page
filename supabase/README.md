@@ -66,3 +66,15 @@ deno test --allow-net --allow-env --allow-read supabase/functions/tutor/
 19 tests : génération ancrée sur le texte source (inventions écartées), quotas séparés, citations inventées retirées, connexion exigée, quota vérifié avant l'appel, refus et pannes,
 CORS, bornes des entrées, schéma JSON strict, bascule sur le modèle de secours (faux serveur compatible OpenAI local).
 Côté site, `node tests/tutor.js` déroule le scénario complet avec un Supabase simulé.
+
+## Connexion par e-mail et mot de passe (accueil mobile, `js/welcome.js`)
+
+Aucune migration. Réglages du tableau de bord, dans **Authentication** :
+
+- **Sign In / Providers → Email** : fournisseur actif, **Confirm email** actif, **Minimum password length** = 8.
+- **URL Configuration** : `https://hmzr944.github.io/Landing-page/` dans **Site URL** et **Redirect URLs** (les liens de confirmation et de récupération y reviennent avec `#access_token=…&type=signup|recovery`).
+- **Emails → Templates** : modèles « Confirm signup » et « Reset Password » en français (voir le guide).
+- **Emails → SMTP Settings** : un SMTP est nécessaire pour de vrais utilisateurs ; le service intégré de Supabase est très limité.
+
+Appels utilisés par le client (`js/tutor.js`) : `POST /auth/v1/signup`, `POST /auth/v1/token?grant_type=password`,
+`POST /auth/v1/recover`, `POST /auth/v1/resend`, `PUT /auth/v1/user` (nouveau mot de passe). La connexion par code reste disponible.

@@ -24,6 +24,8 @@ const check = (name, ok, extra = '') => { console.log(`${ok ? '✓' : '✗'} ${n
   const errors = [];
   const fresh = async (scheme) => {
     const ctx = await browser.newContext({ viewport: { width: 360, height: 740 }, serviceWorkers: 'block', reducedMotion: 'reduce', colorScheme: scheme || 'light' });
+    // L'accueil et le compte (welcome.js) passent avant : testés dans tests/welcome.js. Ici on part de « Essayer sans compte ».
+    await ctx.addInitScript(() => { try { localStorage.setItem('arbor:welcome', '{"how":"guest"}'); } catch (e) { /* rien */ } });
     const page = await ctx.newPage();
     page.on('pageerror', (e) => errors.push(e.message));
     await page.goto(URL0); await page.waitForTimeout(900);

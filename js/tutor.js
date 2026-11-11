@@ -1,7 +1,7 @@
 /* Connexion (Supabase Auth) et appel du tuteur (fonction serveur « tutor »).
    - Seules l'adresse du projet et la clé publiable sont ici : elles sont faites pour être publiques.
      La clé de l'API du modèle (Groq, modèles open source) n'existe que côté serveur (secret Supabase) ; elle n'arrive jamais dans le navigateur.
-   - Connexion par lien e-mail (ou code à 6 chiffres si le modèle d'e-mail le contient). Session dans ce navigateur.
+   - Connexion par e-mail et mot de passe, ou par lien e-mail (code à 6 chiffres si le modèle d'e-mail le contient). Session dans ce navigateur.
    - Hors connexion ou sans compte, tout Arbor fonctionne ; seul le tuteur est indisponible. */
 (function () {
   const URL = 'https://nnqtgwgwalbbhqzceged.supabase.co';
@@ -19,7 +19,7 @@
     const h = location.hash.replace(/^#/, '');
     if (!/(^|&)(access_token|error_description)=/.test(h)) return false;
     const p = new URLSearchParams(h);
-    if (p.get('access_token')) { write(fromAuth({ access_token: p.get('access_token'), refresh_token: p.get('refresh_token'), expires_in: p.get('expires_in') })); notice = { ok: true }; }
+    if (p.get('access_token')) { write(fromAuth({ access_token: p.get('access_token'), refresh_token: p.get('refresh_token'), expires_in: p.get('expires_in') })); notice = { ok: true, type: p.get('type') || '' }; }
     else notice = { ok: false, msg: p.get('error_description') || 'Le lien de connexion n’a pas fonctionné.' };
     history.replaceState(null, '', location.pathname + '#/');
     return true;
@@ -27,7 +27,11 @@
   captureFragment();
   // page déjà ouverte : le lien ne change que le fragment ; on le traite avant le routeur
   addEventListener('hashchange', () => {
-    if (captureFragment() && window.FX) { const n = notice; notice = null; FX.toast(n.ok ? 'Connecté : tu peux parler à Pousse' : n.msg, n.ok ? 'success' : 'error', 4200); }
+    if (!captureFragment()) return;
+    const n = notice; notice = null;
+    // Lien « mot de passe oublié » ou confirmation d'inscription : l'accueil prend la main s'il le peut
+    if (window.Welcome && Welcome.handle(n)) return;
+    if (window.FX) FX.toast(n.ok ? 'Connecté : tu peux parler à Pousse' : n.msg, n.ok ? 'success' : 'error', 4200);
   });
 
   async function call(path, { method = 'POST', body, token, query = '', headers: extra = {} } = {}) {
@@ -39,6 +43,67 @@
     let data = null;
     try { data = await res.json(); } catch (e) { data = null; }
     return { status: res.status, ok: res.ok, data };
+  }
+
+  /* Connexion par e-mail et mot de passe (Supabase Auth). Les erreurs portent un code stable pour l'interface :
+     invalid, unconfirmed, weak, exists, rate, offline, same, other. On ne révèle jamais si une adresse a un compte. */
+  const remember = (email) => { try { localStorage.setItem('arbor:auth-email', email); } catch (e) { /* rien */ } };
+  function authError(r, fallback) {
+    const d = (r && r.data) || {};
+    const raw = `${d.error_code || ''} ${d.error || ''} ${d.msg || ''} ${d.error_description || ''} ${d.message || ''}`.toLowerCase();
+    const mk = (code, msg) => { const e = new Error(msg); e.code = code; e.kind = code === 'offline' ? 'offline' : 'auth'; return e; };
+    if (!r) return mk('offline', 'Pas de connexion. Vérifie ton réseau et réessaie.');
+    if (r.status === 429 || /rate.?limit|too many/.test(raw)) return mk('rate', 'Trop de tentatives. Attends une minute avant de réessayer.');
+    if (/email.?not.?confirmed/.test(raw)) return mk('unconfirmed', 'Ton adresse n’est pas encore confirmée. Ouvre le lien reçu par e-mail.');
+    if (/invalid.?(login|credentials|grant)/.test(raw)) return mk('invalid', 'E-mail ou mot de passe incorrect.');
+    if (/same.?password|different from the old/.test(raw)) return mk('same', 'Choisis un mot de passe différent de l’ancien.');
+    if (/weak.?password|password should|at least/.test(raw)) return mk('weak', 'Ce mot de passe est trop faible. Choisis-en un plus long.');
+    if (/already.?(registered|exists)|user_already_exists/.test(raw)) return mk('exists', 'Un compte existe déjà avec cette adresse. Connecte-toi.');
+    if (/signup.?disabled|signups not allowed/.test(raw)) return mk('other', 'Les inscriptions sont fermées pour le moment.');
+    return mk('other', fallback);
+  }
+  async function safeCall(path, opts) { try { return await call(path, opts); } catch (e) { return null; } }
+  const redirect = () => `?redirect_to=${encodeURIComponent(SITE)}`;
+
+  // Inscription : sans confirmation d'e-mail, la session arrive tout de suite ; sinon un lien part dans la boîte mail
+  async function signUp(email, password) {
+    if (!navigator.onLine) throw authError(null);
+    const r = await safeCall('/auth/v1/signup', { body: { email, password }, query: redirect() });
+    if (!r || !r.ok) throw authError(r, 'Inscription impossible pour le moment. Réessaie dans un instant.');
+    remember(email);
+    if (r.data && r.data.access_token) { write(fromAuth(r.data, email)); return { session: true }; }
+    return { session: false };
+  }
+  async function signInPassword(email, password) {
+    if (!navigator.onLine) throw authError(null);
+    const r = await safeCall('/auth/v1/token', { body: { email, password }, query: '?grant_type=password' });
+    if (!r || !r.ok || !r.data || !r.data.access_token) throw authError(r, 'Connexion impossible pour le moment. Réessaie dans un instant.');
+    write(fromAuth(r.data, email)); remember(email);
+    return true;
+  }
+  // Mot de passe oublié : la réponse est la même que l'adresse ait un compte ou non
+  async function recover(email) {
+    if (!navigator.onLine) throw authError(null);
+    const r = await safeCall('/auth/v1/recover', { body: { email }, query: redirect() });
+    if (!r) throw authError(null);
+    if (r.status === 429) throw authError(r);
+    remember(email);
+    return true;
+  }
+  async function resend(email) {
+    if (!navigator.onLine) throw authError(null);
+    const r = await safeCall('/auth/v1/resend', { body: { type: 'signup', email }, query: redirect() });
+    if (!r) throw authError(null);
+    if (!r.ok) throw authError(r, 'Envoi impossible pour le moment.');
+    return true;
+  }
+  // Nouveau mot de passe, une fois connecté (après le lien de récupération)
+  async function updatePassword(password) {
+    const t = await token();
+    if (!t) { const e = new Error('Le lien a expiré. Demande un nouveau lien.'); e.code = 'expired'; throw e; }
+    const r = await safeCall('/auth/v1/user', { method: 'PUT', body: { password }, token: t });
+    if (!r || !r.ok) throw authError(r, 'Le mot de passe n’a pas pu être changé.');
+    return true;
   }
 
   async function signIn(email) {
@@ -124,5 +189,5 @@
     return true;
   }
 
-  window.Tutor = { rest, upload, userId, signIn, verifyCode, signOut, ask, usage, email, signedIn: () => !!read(), notice: () => { const n = notice; notice = null; return n; }, lastEmail: () => { try { return localStorage.getItem('arbor:auth-email') || ''; } catch (e) { return ''; } } };
+  window.Tutor = { rest, upload, userId, signIn, verifyCode, signUp, signInPassword, recover, resend, updatePassword, signOut, ask, usage, email, signedIn: () => !!read(), notice: () => { const n = notice; notice = null; return n; }, lastEmail: () => { try { return localStorage.getItem('arbor:auth-email') || ''; } catch (e) { return ''; } } };
 })();

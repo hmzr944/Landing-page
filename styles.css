@@ -2803,3 +2803,168 @@ html.in-org #app { padding-bottom: calc(40px + env(safe-area-inset-bottom)); }
 .team-rows .nx { flex-basis: 100%; color: var(--accent-ink); }
 .team-rows li > a { flex-basis: 100%; font-weight: 600; overflow-wrap: anywhere; }
 .team-rows li > small { flex-basis: 100%; }
+
+/* =========================================================
+   Accueil mobile et compte (welcome.js)
+   En-tête en verre collant : marque + « Connexion », puis un segment « Pour mes cours / Pour mon entreprise ».
+   Écrans de compte : barre de navigation à la manière d'iOS (retour, titre centré), grand titre dans le contenu.
+   Rayons : champs 14px, tuiles 24px, boutons et segments en pilule.
+   ========================================================= */
+html.in-welcome .topbar, html.in-welcome .bottom-nav, html.in-welcome .mascot { visibility: hidden; }
+.wel { position: fixed; inset: 0; z-index: 96; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+  display: flex; flex-direction: column; color: var(--text);
+  background:
+    radial-gradient(70% 38% at 0% 0%, color-mix(in oklab, var(--c1) 30%, transparent), transparent 70%),
+    radial-gradient(60% 34% at 100% 6%, color-mix(in oklab, var(--c2) 24%, transparent), transparent 70%),
+    radial-gradient(70% 40% at 80% 100%, color-mix(in oklab, var(--c3) 16%, transparent), transparent 70%),
+    var(--bg);
+  opacity: 0; transition: opacity 280ms ease; }
+.wel.show { opacity: 1; }
+
+.wel-head { position: sticky; top: 0; z-index: 2; padding: max(10px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 10px max(16px, env(safe-area-inset-left));
+  transition: background-color 220ms ease, box-shadow 220ms ease, border-color 220ms ease; border-bottom: 1px solid transparent; }
+.wel.scrolled .wel-head, .wel:not(.is-landing) .wel-head { background: color-mix(in oklab, var(--bg) 72%, transparent); backdrop-filter: blur(22px) saturate(180%); -webkit-backdrop-filter: blur(22px) saturate(180%); }
+.wel.scrolled .wel-head { border-bottom-color: var(--glass-edge); box-shadow: 0 10px 30px -24px rgb(12 60 52 / 0.5); }
+.wel-bar { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; max-width: 560px; margin: 0 auto; }
+.wel-brand { display: inline-flex; align-items: center; gap: 9px; }
+.wel-brand[hidden] { display: none; }
+.wel-brand .wel-logo { width: 30px; height: 30px; filter: drop-shadow(0 4px 10px color-mix(in oklab, var(--c1) 35%, transparent)); }
+.wel-brand b { font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; letter-spacing: -0.03em; }
+.wel-title { position: absolute; left: 56px; right: 56px; text-align: center; font-family: var(--font-display); font-weight: 700; font-size: 1.02rem; pointer-events: none;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0; transition: opacity 200ms ease; }
+.wel.scrolled .wel-title, .wel:not(.is-landing) .wel-title { opacity: 1; }
+.wel-back { width: 40px; height: 40px; margin-left: -6px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--glass-edge); cursor: pointer;
+  color: var(--text); font-size: 1.15rem; background: color-mix(in oklab, var(--surface) 60%, transparent); box-shadow: inset 0 1px 0 var(--glass-hi); transition: transform 160ms var(--spring); }
+.wel-back[hidden] { display: none; }
+.wel-back:active { transform: scale(0.92); }
+.wel-login-chip { margin-left: auto; height: 36px; padding: 0 16px; border-radius: var(--r-pill); font: inherit; font-weight: 600; font-size: .92rem; cursor: pointer; color: var(--text);
+  border: 1px solid var(--glass-edge); background: linear-gradient(160deg, rgb(255 255 255 / 0.5), rgb(255 255 255 / 0.05) 55%), var(--glass-bg);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: inset 0 1px 0 var(--glass-hi), 0 8px 20px -14px rgb(12 60 52 / 0.45); transition: transform 160ms var(--spring); }
+.wel-login-chip[hidden] { display: none; }
+.wel-login-chip:active { transform: scale(0.95); }
+
+/* segment à deux choix, la pastille glisse */
+.wel-tabs { --ti: 0; position: relative; display: grid; grid-template-columns: 1fr 1fr; max-width: 560px; margin: 10px auto 0; padding: 4px; border-radius: var(--r-pill);
+  background: color-mix(in oklab, var(--text) 7%, transparent); box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.06); }
+.wel-tabs[hidden] { display: none; }
+.wel-tabs button { position: relative; z-index: 1; height: 38px; border: 0; background: none; font: inherit; font-weight: 600; font-size: .92rem; color: var(--text-2); cursor: pointer; border-radius: var(--r-pill); transition: color 200ms ease; }
+.wel-tabs button[aria-selected="true"] { color: var(--text); }
+.wel-tab-pill { position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 4px); border-radius: var(--r-pill);
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.7), rgb(255 255 255 / 0.25)), var(--surface); box-shadow: 0 1px 2px rgb(0 0 0 / 0.08), 0 6px 16px -8px rgb(12 60 52 / 0.35), inset 0 1px 0 rgb(255 255 255 / 0.8);
+  transform: translateX(calc(var(--ti) * 100%)); transition: transform 420ms var(--spring); }
+.wel { --ti: 0; }
+.wel .wel-tabs { --ti: inherit; }
+:root[data-theme='dark'] .wel-tab-pill { background: color-mix(in oklab, var(--surface) 80%, white 8%); box-shadow: 0 6px 16px -8px rgb(0 0 0 / 0.7), inset 0 1px 0 rgb(255 255 255 / 0.12); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme='light']) .wel-tab-pill { background: color-mix(in oklab, var(--surface) 80%, white 8%); box-shadow: 0 6px 16px -8px rgb(0 0 0 / 0.7), inset 0 1px 0 rgb(255 255 255 / 0.12); } }
+
+.wel-stage { flex: 1; width: 100%; max-width: 560px; margin: 0 auto; box-sizing: border-box;
+  padding: 8px max(20px, env(safe-area-inset-right)) max(28px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left)); display: flex; flex-direction: column; gap: 28px; }
+.wel-sentinel { display: block; height: 1px; margin-bottom: -29px; }
+.wel-stage.slide-next > * { animation: wel-next 460ms var(--spring) both; }
+.wel-stage.slide-prev > * { animation: wel-prev 460ms var(--spring) both; }
+.wel-stage > *:nth-child(3) { animation-delay: 60ms; }
+.wel-stage > *:nth-child(4) { animation-delay: 110ms; }
+@keyframes wel-next { from { opacity: 0; transform: translateX(28px); } }
+@keyframes wel-prev { from { opacity: 0; transform: translateX(-28px); } }
+
+/* Accueil */
+.wel-hero { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; padding-top: 4vh; }
+.wel-hero-art { position: relative; display: grid; place-items: center; width: 132px; height: 132px; margin-bottom: 4px; }
+.wel-hero-art::before { content: ""; position: absolute; inset: 0; border-radius: 50%; z-index: -1; transform: translate(17%, 17%) scale(0.92); /* le dessin de Pousse est décalé dans son cadre */
+  background: radial-gradient(circle at 35% 30%, color-mix(in oklab, var(--c2) 40%, transparent), color-mix(in oklab, var(--c1) 22%, transparent) 60%, transparent 72%); }
+.wel-hero h1, .wel-auth h1 { font-family: var(--font-display); font-weight: 700; margin: 0; text-wrap: balance; letter-spacing: -0.04em; }
+.wel-hero h1 { font-size: clamp(2.3rem, 10.5vw, 3.1rem); line-height: 1.02; }
+.wel-hero p { margin: 0; font-size: 1.08rem; line-height: 1.5; color: var(--text-2); max-width: 34ch; }
+.wel-ctas { display: grid; gap: 10px; width: 100%; margin-top: 10px; }
+.wel .btn.big { min-height: 54px; width: 100%; font-size: 1.04rem; font-weight: 600; border-radius: var(--r-pill); }
+.wel .btn.ghost { background: linear-gradient(160deg, rgb(255 255 255 / 0.45), rgb(255 255 255 / 0.04) 55%), var(--glass-bg); border: 1px solid var(--glass-edge); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: inset 0 1px 0 var(--glass-hi); }
+.wel .btn i { font-size: 1.15rem; }
+
+/* bento : 1 grande, 2 petites, 1 large */
+.wel-bento { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.wb { position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 6px; padding: 18px; border-radius: 24px; min-width: 0;
+  background: linear-gradient(160deg, rgb(255 255 255 / 0.5), rgb(255 255 255 / 0.06) 50%), var(--glass-bg); border: 1px solid var(--glass-edge);
+  box-shadow: inset 0 1px 0 var(--glass-hi), 0 14px 30px -20px rgb(12 60 52 / 0.35); backdrop-filter: blur(18px) saturate(170%); -webkit-backdrop-filter: blur(18px) saturate(170%); }
+.wb h3 { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 1.06rem; letter-spacing: -0.02em; line-height: 1.2; }
+.wb p { margin: 0; font-size: .9rem; line-height: 1.4; color: var(--text-2); }
+.wb > i { font-size: 1.4rem; width: 42px; height: 42px; display: grid; place-items: center; border-radius: 14px; margin-bottom: 8px; color: #fff;
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.38), transparent 55%), linear-gradient(140deg, color-mix(in oklab, var(--tc, var(--c1)) 80%, white), var(--tc, var(--c1)));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.5), 0 8px 16px -8px var(--tc, var(--c1)); }
+.wb-a { grid-column: 1 / -1; min-height: 150px; justify-content: flex-end; color: #fff; border-color: rgb(255 255 255 / 0.18);
+  background: radial-gradient(80% 90% at 100% 0%, rgb(255 255 255 / 0.22), transparent 60%), linear-gradient(140deg, color-mix(in oklab, var(--c1) 76%, #04170F), color-mix(in oklab, var(--c2) 70%, #04170F)); }
+.wb-a p { color: rgb(255 255 255 / 0.86); }
+.wb-a > i { position: absolute; top: 18px; right: 18px; margin: 0; width: 56px; height: 56px; font-size: 1.8rem; background: rgb(255 255 255 / 0.16); border: 1px solid rgb(255 255 255 / 0.3); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.4); }
+.wb-b { --tc: var(--c2); }
+.wb-c { --tc: var(--c3); background: linear-gradient(160deg, color-mix(in oklab, var(--c3) 18%, transparent), rgb(255 255 255 / 0.04) 60%), var(--glass-bg); }
+.wb-d { --tc: var(--c1); grid-column: 1 / -1; display: grid; grid-template-columns: auto 1fr; column-gap: 14px; align-items: center; }
+.wb-d > i { grid-row: span 2; margin: 0; }
+.wel-bento.pro .wb-d { --tc: var(--c4); }
+.wel-bento.pro .wb-b > i { --tc: var(--c2); }
+.wb-days { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
+.wb-days span { font-size: .74rem; font-weight: 600; padding: 4px 8px; border-radius: var(--r-pill); color: color-mix(in oklab, var(--c2) 70%, var(--text));
+  background: color-mix(in oklab, var(--c2) 16%, transparent); border: 1px solid color-mix(in oklab, var(--c2) 30%, transparent);
+  animation: wel-pop 520ms var(--spring) both; animation-delay: calc(var(--k, 0) * 90ms + 300ms); }
+.wb-days span:nth-child(2) { --k: 1; } .wb-days span:nth-child(3) { --k: 2; } .wb-days span:nth-child(4) { --k: 3; }
+@keyframes wel-pop { from { opacity: 0; transform: scale(0.7); } }
+.wb-pousse { display: block; margin: -6px 0 2px -4px; }
+.wel-foot { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; padding-bottom: 6px; }
+.wel-foot .link-btn { font-weight: 600; font-size: 1rem; padding: 8px; }
+.wel-foot p { margin: 0; font-size: .86rem; color: var(--text-3); max-width: 36ch; line-height: 1.45; }
+
+/* Écrans de compte */
+.wel-auth { display: flex; flex-direction: column; gap: 14px; padding-top: 2vh; }
+.wel-auth h1 { font-size: clamp(1.9rem, 8.4vw, 2.4rem); line-height: 1.08; }
+.wel-lede { margin: -4px 0 6px; color: var(--text-2); line-height: 1.5; }
+.wel-note { margin: 0; color: var(--text-3); font-size: .9rem; line-height: 1.45; }
+.wel-form { display: flex; flex-direction: column; gap: 14px; }
+.wel-field { display: flex; flex-direction: column; gap: 7px; }
+.wel-field label { font-weight: 600; font-size: .92rem; }
+.wel-field input { font: inherit; font-size: 1rem; width: 100%; box-sizing: border-box; min-height: 52px; padding: 0 16px; border-radius: 14px; color: var(--text);
+  border: 1.5px solid var(--line); background: color-mix(in oklab, var(--surface) 82%, transparent); transition: border-color 160ms ease, box-shadow 160ms ease; }
+.wel-field input::placeholder { color: var(--text-3); }
+.wel-field input:focus { outline: none; border-color: var(--accent); box-shadow: var(--ring); }
+.wel-field input[aria-invalid="true"] { border-color: var(--danger); }
+.wel-err { margin: 0; color: var(--danger); font-size: .88rem; font-weight: 500; }
+.wel-err:empty { display: none; }
+.wel-pass { position: relative; }
+.wel-pass input { padding-right: 54px; }
+.wel-eye { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; display: grid; place-items: center; border: 0; background: none;
+  color: var(--text-2); font-size: 1.25rem; cursor: pointer; border-radius: 12px; }
+.wel-eye:focus-visible { outline: none; box-shadow: var(--ring); }
+.wel-rules { list-style: none; margin: 2px 0 0; padding: 0; display: grid; gap: 4px; font-size: .88rem; color: var(--text-3); }
+.wel-rules li { display: flex; align-items: center; gap: 7px; transition: color 200ms ease; }
+.wel-rules li i { font-size: 1.05rem; color: color-mix(in oklab, var(--text) 22%, transparent); transition: color 200ms ease, transform 300ms var(--spring); }
+.wel-rules li.ok { color: var(--text-2); }
+.wel-rules li.ok i { color: var(--st-mastered, var(--done)); transform: scale(1.12); }
+.wel-forgot { align-self: flex-end; margin-top: -6px; font-size: .92rem; font-weight: 600; text-decoration: none; padding: 4px 0; }
+.wel-form-err { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin: 0; padding: 12px 14px; border-radius: 14px; font-size: .92rem; line-height: 1.4;
+  color: var(--text); background: color-mix(in oklab, var(--danger) 10%, var(--surface)); border: 1px solid color-mix(in oklab, var(--danger) 30%, transparent); }
+.wel-form-err[hidden] { display: none; }
+.wel-form-err > i { color: var(--danger); font-size: 1.15rem; }
+.wel-form-err span { flex: 1; min-width: 60%; }
+.wel-form-err.shake { animation: wel-shake 380ms var(--ease-out); }
+@keyframes wel-shake { 25% { transform: translateX(-6px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-3px); } }
+.wel-submit { margin-top: 4px; }
+.wel-submit[aria-busy="true"] { opacity: .75; }
+.wel-or { display: flex; align-items: center; gap: 12px; color: var(--text-3); font-size: .86rem; }
+.wel-or::before, .wel-or::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.wel-alt { margin: 4px 0 0; text-align: center; color: var(--text-2); font-size: .95rem; }
+.wel-alt .link-btn { font-weight: 600; }
+.wel-center { align-items: center; text-align: center; padding-top: 6vh; }
+.wel-center .wel-lede { max-width: 34ch; }
+.wel-badge { width: 76px; height: 76px; display: grid; place-items: center; border-radius: 26px; font-size: 2.1rem; color: #fff; margin-bottom: 6px;
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.36), transparent 55%), linear-gradient(140deg, var(--c2), var(--c1));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.5), 0 18px 36px -16px var(--c1); animation: wel-pop 600ms var(--spring) both; }
+.wel-stack { display: grid; gap: 10px; width: 100%; margin-top: 6px; justify-items: center; }
+.wel-stack .link-btn { padding: 8px; font-weight: 600; }
+.wel-ready .wel-hero-art { margin-bottom: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .wel-stage.slide-next > *, .wel-stage.slide-prev > *, .wb-days span, .wel-badge, .wel-form-err.shake { animation: none; }
+  .wel-tab-pill { transition: none; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .wb, .wel .btn.ghost, .wel-login-chip, .wel.scrolled .wel-head, .wel:not(.is-landing) .wel-head { backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--surface); }
+  .wb-a { background: linear-gradient(140deg, color-mix(in oklab, var(--c1) 76%, #04170F), color-mix(in oklab, var(--c2) 70%, #04170F)); }
+}
+@media (min-width: 720px) { .wel-ctas { grid-template-columns: 1fr 1fr; } }

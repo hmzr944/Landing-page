@@ -67,7 +67,7 @@
     paint(`<div class="onb-hero">${pousse(108)}
       <h1>Tes cours ne devraient pas finir oubliés dans un dossier.</h1>
       <p>Transforme-les en connaissances que tu maîtrises vraiment.</p></div>
-      <div class="onb-foot"><button class="btn big" data-onb="next">Commencer</button><small>Gratuit, sans carte bancaire, sans compte.</small>
+      <div class="onb-foot"><button class="btn big" data-onb="next">Commencer</button><small>${window.Tutor && Tutor.signedIn() ? 'Une minute pour démarrer.' : 'Gratuit, sans carte bancaire, sans compte.'}</small>
         <button type="button" class="link-btn onb-join" data-onb="join">J’ai une invitation de mon organisation</button></div>`);
     stage().querySelector('[data-onb="next"]').onclick = s2;
     // Invité par son entreprise : on passe directement à l'espace professionnel (l'introduction reste disponible dans les réglages)

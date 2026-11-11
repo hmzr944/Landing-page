@@ -2543,6 +2543,8 @@
           <legend>Compte</legend>
           <p class="hint" id="acctState">${window.Tutor && Tutor.signedIn() ? 'Connecté. Pousse et l’analyse avancée des PDF sont disponibles.' : 'Gratuit. Le compte sert au tuteur Pousse et à l’analyse avancée des PDF ; tes cours restent sur cet appareil.'}</p>
           ${window.Tutor && Tutor.signedIn() ? `<div class="row-btns"><button type="button" class="btn ghost sm" id="acctOut">${ic('sign-out')}Se déconnecter</button></div>` : window.Tutor ? `
+          ${window.Welcome ? `<div class="row-btns"><button type="button" class="btn sm" id="acctPwd">${ic('sign-in')}Se connecter</button><button type="button" class="btn ghost sm" id="acctNew">${ic('user-plus')}Créer un compte</button></div>
+          <p class="hint">Ou reçois un lien de connexion par e-mail, sans mot de passe :</p>` : ''}
           <label for="acctEmail">Adresse e-mail</label>
           <div class="row-btns"><input id="acctEmail" type="email" autocomplete="email" value="${esc(Tutor.lastEmail())}" placeholder="toi@exemple.fr" /><button type="button" class="btn sm" id="acctSend">${ic('envelope-simple')}Recevoir le lien</button></div>
           <div id="acctCodeRow" hidden><label for="acctCode">Ou colle le code reçu par e-mail</label>
@@ -2590,6 +2592,9 @@
       const out = $('#acctOut', el); if (out) out.onclick = () => { Tutor.signOut(); try { localStorage.removeItem('arbor:orgs'); } catch (e) { /* rien */ } paintSpace(); closeModal(); FX.toast('Déconnecté', 'success'); };
       const oc = $('#orgCreate', el); if (oc) oc.onclick = () => Org.createModal(orgDeps());
       $$('[data-close-modal]', el).forEach((a) => { a.addEventListener('click', () => closeModal()); });
+      const authDeps = { after() { if (window.Org && Tutor.signedIn()) Org.refresh().then(paintSpace).catch(() => {}); render(view); FX.toast('Connecté : tu peux parler à Pousse', 'success'); } };
+      const ap = $('#acctPwd', el); if (ap) ap.onclick = () => { closeModal(); Welcome.auth(authDeps, 'login'); };
+      const an = $('#acctNew', el); if (an) an.onclick = () => { closeModal(); Welcome.auth(authDeps, 'signup'); };
       const send = $('#acctSend', el);
       if (send) {
         const err = $('#acctErr', el);
@@ -3230,14 +3235,39 @@
     b.querySelector('button').onclick = () => kind === 'blocked' ? downloadText(localStorage.getItem('arbor:v1') || '', 'arbor-donnees-illisibles.json') : exportBackup();
   }
   Store.onError(saveAlert);
-  if (window.Tutor) { const n = Tutor.notice(); if (n) setTimeout(() => FX.toast(n.ok ? 'Connecté : tu peux parler à Pousse' : n.msg, n.ok ? 'success' : 'error', 4200), 500); }
   const isDesktop = () => matchMedia('(min-width: 901px) and (hover: hover) and (pointer: fine)').matches;
+  // Premier lancement : rien d'utilisé sur cet appareil (seul le sujet de découverte, intact)
+  const freshStart = () => !!window.Onboarding && !state.profile && Store.status.load === 'ok' && state.subjects.every(untouchedDemo);
+  // Après l'accueil (compte créé, connexion, essai sans compte, invitation) : l'introduction de l'app si rien n'est encore fait
+  const welcomeDeps = {
+    after(how) {
+      if (window.Org && window.Tutor && Tutor.signedIn()) Org.refresh().then(paintSpace).catch(() => {});
+      if (how === 'join') { go(Org && Org.pendingInvite() ? `#/rejoindre/${Org.pendingInvite()}` : '#/rejoindre'); return; }
+      render(view);
+      if (freshStart()) setTimeout(openOnboarding, 200);
+      else if (how !== 'guest') FX.toast('Connecté : tu peux parler à Pousse', 'success');
+    },
+  };
+  if (window.Welcome) Welcome.deps(welcomeDeps);
+  if (window.Tutor) {
+    const n = Tutor.notice();
+    // Retour d'un lien e-mail : nouveau mot de passe (récupération) ou adresse confirmée (inscription)
+    if (n && n.ok && n.type === 'recovery' && window.Welcome) setTimeout(() => Welcome.handle(n), 300);
+    else if (n) {
+      if (window.Welcome) Welcome.handle(n);
+      setTimeout(() => FX.toast(n.ok ? (n.type === 'signup' ? 'Adresse confirmée : ton compte est actif' : 'Connecté : tu peux parler à Pousse') : n.msg, n.ok ? 'success' : 'error', 4200), 500);
+    }
+  }
   $('#spaceBtn').onclick = () => Org.openSwitcher(orgDeps());
   if (window.Org && window.Tutor && Tutor.signedIn()) {
     Org.refresh().then(paintSpace).catch(() => {});
     if (Org.pendingInvite() && !/^#\/rejoindre/.test(location.hash)) go(`#/rejoindre/${Org.pendingInvite()}`);
   }
-  if (window.Onboarding && !isDesktop() && !state.profile && !/^#\/(rejoindre|org)/.test(location.hash) && Store.status.load === 'ok' && state.subjects.every(untouchedDemo)) setTimeout(openOnboarding, 250);
+  // Mobile : accueil et compte d'abord (une seule fois), puis l'introduction. Ordinateur : rien ne s'ouvre tout seul.
+  if (!isDesktop() && !/^#\/(rejoindre|org)/.test(location.hash) && freshStart() && !(window.Welcome && Welcome.active())) {
+    if (window.Welcome && Welcome.shouldOpen()) setTimeout(() => Welcome.open(welcomeDeps), 120);
+    else setTimeout(openOnboarding, 250);
+  }
   if (Store.status.readOnly) saveAlert('blocked');
   else if (Store.status.load !== 'ok') {
     const day = Store.status.bakAt ? dayLabelLong(Store.status.bakAt + 'T12:00') : '';
