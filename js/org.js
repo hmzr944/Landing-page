@@ -20,7 +20,7 @@
   async function refresh() {
     if (!window.Tutor || !Tutor.signedIn()) return list();
     const rows = await Tutor.rest('/rest/v1/rpc/my_organizations', { body: {} });
-    const orgs = (Array.isArray(rows) ? rows : []).map((r) => ({ id: r.id, name: r.name, sector: r.sector || '', role: r.role }));
+    const orgs = (Array.isArray(rows) ? rows : []).map((r) => ({ id: r.id, name: r.name, sector: r.sector || '', role: r.role, owner: !!r.owner, unit: r.unit || '', onboarded: r.onboarded !== false, setup: r.setup || {} }));
     put(K_ORGS, orgs);
     if (space() !== 'personal' && !orgs.some((o) => o.id === space())) setSpace('personal');
     return orgs;

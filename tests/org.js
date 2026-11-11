@@ -149,8 +149,7 @@ const personal = () => ({ subjects: [{ id: 'persosubj01', title: SECRET_TITLE, c
   {
     const { ctx, page } = await fresh({ fresh: true });
     await page.goto(URL0); await settle(page, 1000);
-    await page.click('.wel-tabs [data-tab="pro"]'); await settle(page, 300);
-    await page.click('.wel [data-wel="join"]'); await settle(page, 700);
+    await page.click('.wel .wel-invite'); await settle(page, 700);
     check('E0 l’accueil mène à l’écran pour rejoindre (coller le lien)', /#\/rejoindre/.test(page.url()) && await page.isVisible('#jpLink'));
     await ctx.close();
   }

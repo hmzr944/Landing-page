@@ -15,12 +15,19 @@
 
   // Retour du lien e-mail : « #access_token=…&refresh_token=… » (avant que le routeur ne lise l'adresse)
   let notice = null;
+  // Lien e-mail refusé par Supabase : expiré, déjà utilisé, ou ouvert ailleurs. Message en français et suite proposée.
+  function linkError(code, desc) {
+    const raw = `${code} ${desc}`.toLowerCase();
+    if (/otp_expired|expired|invalid/.test(raw)) return { ok: false, code: 'expired', msg: 'Ce lien a expiré ou a déjà servi. Demande-en un nouveau : il est valable une heure.' };
+    if (/access_denied/.test(raw)) return { ok: false, code: 'denied', msg: 'La connexion a été annulée.' };
+    return { ok: false, code: 'other', msg: 'Le lien de connexion n’a pas fonctionné. Réessaie depuis l’écran de connexion.' };
+  }
   function captureFragment() {
     const h = location.hash.replace(/^#/, '');
     if (!/(^|&)(access_token|error_description)=/.test(h)) return false;
     const p = new URLSearchParams(h);
     if (p.get('access_token')) { write(fromAuth({ access_token: p.get('access_token'), refresh_token: p.get('refresh_token'), expires_in: p.get('expires_in') })); notice = { ok: true, type: p.get('type') || '' }; }
-    else notice = { ok: false, msg: p.get('error_description') || 'Le lien de connexion n’a pas fonctionné.' };
+    else notice = linkError(p.get('error_code') || p.get('error') || '', p.get('error_description') || '');
     history.replaceState(null, '', location.pathname + '#/');
     return true;
   }
@@ -195,5 +202,35 @@
     return true;
   }
 
-  window.Tutor = { rest, upload, userId, signIn, verifyCode, signUp, signInPassword, recover, resend, updatePassword, signOut, ask, usage, email, signedIn: () => !!read(), notice: () => { const n = notice; notice = null; return n; }, lastEmail: () => { try { return localStorage.getItem('arbor:auth-email') || ''; } catch (e) { return ''; } } };
+  /* Fournisseurs de connexion activés sur le projet (lecture publique de Supabase Auth).
+     Le bouton Google n'apparaît que si Google est réellement configuré : jamais de bouton qui ne marche pas. */
+  let providers = null;
+  async function authProviders() {
+    if (providers) return providers;
+    try { const r = await call('/auth/v1/settings', { method: 'GET' }); providers = { google: !!(r.ok && r.data && r.data.external && r.data.external.google) }; }
+    catch (e) { providers = { google: false }; }
+    return providers;
+  }
+  // Google : la page part vers Google puis revient avec la session dans l'adresse (traitée par captureFragment)
+  function signInGoogle() { location.assign(`${URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(SITE)}`); }
+
+  /* Profil (migration 007) : prénom et étapes d'onboarding franchies, pour reprendre sur un autre appareil.
+     Aucun contenu d'apprentissage personnel n'y est écrit. Sans la migration, tout continue en local. */
+  async function getProfile() {
+    const id = userId(); if (!id) return null;
+    try { const rows = await rest('/rest/v1/profiles', { method: 'GET', query: `?user_id=eq.${id}&select=display_name,onboarding,last_space` }); return (rows && rows[0]) || null; }
+    catch (e) { return null; }
+  }
+  async function saveProfile(patch) {
+    const id = userId(); if (!id) return false;
+    const body = { ...patch, updated_at: new Date().toISOString() };
+    try {
+      const upd = await rest('/rest/v1/profiles', { method: 'PATCH', query: `?user_id=eq.${id}`, body, headers: { Prefer: 'return=representation' } });
+      if (Array.isArray(upd) && upd.length) return true;
+      await rest('/rest/v1/profiles', { body: { user_id: id, ...body } });
+      return true;
+    } catch (e) { return false; }
+  }
+
+  window.Tutor = { authProviders, signInGoogle, getProfile, saveProfile, rest, upload, userId, signIn, verifyCode, signUp, signInPassword, recover, resend, updatePassword, signOut, ask, usage, email, signedIn: () => !!read(), notice: () => { const n = notice; notice = null; return n; }, lastEmail: () => { try { return localStorage.getItem('arbor:auth-email') || ''; } catch (e) { return ''; } } };
 })();

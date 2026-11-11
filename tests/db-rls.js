@@ -192,6 +192,71 @@ check('R6 le rôle anonyme n’a accès à aucune table Business', !psql('set ro
   check('M9 le journal des appels accepte les nouvelles tâches', psql(`insert into public.ai_calls (user_id, mode, model) values ('${dan.id}', 'mystere', 'm'), ('${dan.id}', 'diagnostic', 'm'), ('${dan.id}', 'competences', 'm');`).ok);
 }
 
+// ---------- Onboarding, espaces, équipes, invitations v2 (007), appliquée sur une base déjà en service ----------
+{
+  const m7 = psql(file('supabase/migrations/007_onboarding_workspaces.sql'));
+  check('W0 la migration 007 s’applique sur la base existante', m7.ok, m7.err.slice(0, 300));
+  check('W0b la migration 007 peut être rejouée sans erreur', psql(file('supabase/migrations/007_onboarding_workspaces.sql')).ok);
+  // Profil : chacun le sien
+  check('W1 chacun crée et lit son profil', as(bob, `insert into public.profiles (user_id, display_name, onboarding) values ('${bob.id}', 'Bob', '{"workspace":"business"}');`).ok && as(bob, 'select display_name from public.profiles;').out === 'Bob');
+  check('W2 personne ne lit ni n’écrit le profil d’un autre', as(alice, 'select count(*) from public.profiles;').out === '0' && !as(alice, `insert into public.profiles (user_id) values ('${bob.id}');`).ok && as(alice, `update public.profiles set display_name = 'X' where user_id = '${bob.id}' returning 1;`).out === '');
+  check('W3 un anonyme n’a pas accès aux profils', !psql('set role anon; select * from public.profiles;').ok);
+  check('W4 le profil ne peut pas devenir un fourre-tout', !as(bob, `update public.profiles set onboarding = (select jsonb_object_agg(g::text, repeat('x', 100)) from generate_series(1, 80) g);`).ok);
+  // Organisation : informations, propriétaire
+  const orgC = as(dan, "select public.create_organization('Restaurant C', 'Hôtellerie et restauration', '11-50', 'France', 'fr');").out;
+  check('W5 création avec taille, pays et langue', /^[0-9a-f-]{36}$/.test(orgC) && as(dan, `select size || '|' || country || '|' || language from public.organizations where id = '${orgC}';`).out === '11-50|France|fr');
+  check('W6 l’ancienne création à deux informations marche toujours', /^[0-9a-f-]{36}$/.test(as(dan, "select public.create_organization('Atelier D', 'Industrie');").out));
+  check('W7 l’administrateur enregistre objectifs et progression de l’assistant (fusionnée)', as(dan, `select public.update_organization('${orgC}', p_goals => array['procedures','vente'], p_setup => '{"step":2}');`).ok && as(dan, `select public.update_organization('${orgC}', p_setup => '{"units":true}');`).ok && as(dan, `select (setup->>'step') || (setup->>'units') || cardinality(goals) from public.organizations where id = '${orgC}';`).out === '2true2');
+  check('W8 un non-administrateur ne modifie pas l’organisation', /accès refusé/.test(as(alice, `select public.update_organization('${orgC}', p_name => 'Pirate');`).err) && /accès refusé/.test(as(bob, `select public.update_organization('${orgA}', p_name => 'Pirate');`).err));
+  check('W9 mes espaces indiquent le propriétaire', as(dan, `select owner from public.my_organizations() where id = '${orgC}';`).out === 't' && as(alice, `select owner from public.my_organizations() where id = '${orgA}';`).out === 't');
+  // Équipes
+  const shop = as(dan, `select public.save_unit('${orgC}', 'etablissement', 'Lyon Bellecour');`).out;
+  const team = as(dan, `select public.save_unit('${orgC}', 'equipe', 'Salle', p_parent => '${shop}');`).out;
+  check('W10 l’administrateur crée établissements et équipes', /^[0-9a-f-]{36}$/.test(shop) && /^[0-9a-f-]{36}$/.test(team));
+  check('W11 deux équipes ne portent pas le même nom', /existe déjà/.test(as(dan, `select public.save_unit('${orgC}', 'equipe', 'Salle');`).err));
+  check('W12 une autre organisation ne voit pas ces équipes et ne peut pas en créer', as(alice, 'select count(*) from public.org_units;').out === '0' && /accès refusé/.test(as(alice, `select public.save_unit('${orgC}', 'equipe', 'Pirates');`).err));
+  check('W13 une équipe ne peut pas avoir pour parent une équipe d’une autre organisation', !as(alice, `select public.save_unit('${orgA}', 'equipe', 'Croisée', p_parent => '${shop}');`).ok);
+  // Invitations v2
+  const tw = as(dan, `select public.create_invitation('${orgC}', 'Carla@Magasin-B.fr', 'member', '${team}');`).out;
+  check('W14 invitation rattachée à une équipe', tw.length === 48);
+  check('W15 aperçu avant connexion : organisation, rôle, équipe, adresse masquée, statut', psql(`set role anon; select org_name || '|' || role || '|' || unit || '|' || email_hint || '|' || status from public.invitation_preview('${tw}');`).out === 'Restaurant C|member|Salle|ca•••@magasin-b.fr|valide');
+  check('W16 un faux jeton ne révèle rien', psql("set role anon; select count(*) from public.invitation_preview('" + 'f'.repeat(48) + "');").out === '0');
+  check('W17 l’invitation acceptée place la personne dans son équipe', as(carla, `select public.accept_invitation('${tw}');`).out === orgC && as(carla, `select unit from public.my_organizations() where id = '${orgC}';`).out === 'Salle');
+  check('W18 rouvrir le même lien quand on est déjà membre ramène à l’organisation', as(carla, `select public.accept_invitation('${tw}');`).out === orgC);
+  check('W19 le lien déjà utilisé est refusé à une autre personne, et l’aperçu dit « utilisée »', /déjà utilisée/.test(as(dan, `select public.accept_invitation('${tw}');`).err) && psql(`set role anon; select status from public.invitation_preview('${tw}');`).out === 'utilisee');
+  check('W20 on n’invite pas quelqu’un qui est déjà membre', /déjà partie/.test(as(dan, `select public.create_invitation('${orgC}', 'carla@magasin-b.fr');`).err));
+  check('W21 on n’invite pas dans une équipe d’une autre organisation', /équipe introuvable/.test(as(alice, `select public.create_invitation('${orgA}', 'x@magasin-a.fr', 'member', '${team}');`).err));
+  const t1 = as(dan, `select public.create_invitation('${orgC}', 'serveur@resto.fr');`).out;
+  const t2 = as(dan, `select public.create_invitation('${orgC}', 'serveur@resto.fr');`).out;
+  check('W22 réinviter la même adresse annule l’invitation précédente', psql(`set role anon; select status from public.invitation_preview('${t1}');`).out === 'annulee' && psql(`set role anon; select status from public.invitation_preview('${t2}');`).out === 'valide');
+  const t2id = as(dan, "select id from public.invitations where email = 'serveur@resto.fr' and revoked_at is null;").out;
+  check('W23 une invitation annulée reste tracée et son lien dit « annulée »', as(dan, `select public.revoke_invitation('${t2id}');`).ok && psql(`set role anon; select status from public.invitation_preview('${t2}');`).out === 'annulee');
+  psql(`insert into auth.users values ('00000000-0000-0000-0000-000000000009', 'serveur@resto.fr');`);
+  const srv = U(9, 'serveur@resto.fr');
+  check('W24 un lien annulé ne permet pas d’entrer', /annulée/.test(as(srv, `select public.accept_invitation('${t2}');`).err) && as(srv, 'select count(*) from public.my_organizations();').out === '0');
+  const t3 = as(dan, `select public.create_invitation('${orgC}', 'serveur@resto.fr');`).out;
+  psql(`update public.invitations set expires_at = now() - interval '1 day' where email = 'serveur@resto.fr' and revoked_at is null;`);
+  check('W25 un lien expiré est refusé et l’aperçu dit « expirée »', /expirée/.test(as(srv, `select public.accept_invitation('${t3}');`).err) && psql(`set role anon; select status from public.invitation_preview('${t3}');`).out === 'expiree');
+  // Rôles et propriétaire
+  const tAdm = as(dan, `select public.create_invitation('${orgC}', 'eve@magasin-a.fr', 'admin');`).out;
+  as(eve, `select public.accept_invitation('${tAdm}');`);
+  check('W26 un administrateur ne peut pas rétrograder ni suspendre le propriétaire', /propriétaire/.test(as(eve, `select public.set_member('${orgC}', '${dan.id}', 'member');`).err) && /propriétaire/.test(as(eve, `select public.set_member('${orgC}', '${dan.id}', 'admin', 'suspended');`).err));
+  check('W27 un collaborateur ne change pas son propre rôle', /accès refusé/.test(as(carla, `select public.set_member('${orgC}', '${carla.id}', 'admin');`).err) && as(carla, `select role from public.memberships where org_id = '${orgC}' and user_id = '${carla.id}';`).out === 'member');
+  check('W28 un collaborateur ne s’affecte pas lui-même à une équipe', /accès refusé/.test(as(carla, `select public.set_member_unit('${orgC}', '${carla.id}', '${shop}');`).err));
+  check('W29 l’administrateur change l’équipe d’un membre', as(eve, `select public.set_member_unit('${orgC}', '${carla.id}', '${shop}');`).ok && as(carla, `select unit from public.my_organizations() where id = '${orgC}';`).out === 'Lyon Bellecour');
+  // Parcours collaborateur
+  check('W30 le parcours collaborateur est marqué une fois, pour soi seulement', as(carla, `select public.mark_onboarded('${orgC}');`).ok && as(carla, `select onboarded from public.my_organizations() where id = '${orgC}';`).out === 't' && /accès refusé/.test(as(carla, `select public.mark_onboarded('${orgA}');`).err));
+  // Compétences
+  const skC = as(dan, `insert into public.skills (org_id, name, created_by, importance) values ('${orgC}', 'Accueil client', '${dan.id}', 3) returning id;`).out;
+  check('W31 compétence avec importance, rattachée à une équipe', /^[0-9a-f-]{36}$/.test(skC) && as(dan, `insert into public.skill_units (org_id, skill_id, unit_id) values ('${orgC}', '${skC}', '${team}');`).ok);
+  check('W32 une compétence ne se rattache pas à l’équipe d’une autre organisation', !as(alice, `insert into public.skill_units (org_id, skill_id, unit_id) values ('${orgA}', '${sk}', '${team}');`).ok);
+  check('W33 le manager modifie l’importance ; le collaborateur non', as(dan, `update public.skills set importance = 1 where id = '${skC}' returning importance;`).out === '1' && as(carla, `update public.skills set importance = 3 where id = '${skC}' returning 1;`).out === '');
+  check('W34 le collaborateur voit les compétences de son organisation et leurs équipes', as(carla, 'select count(*) from public.skill_units;').out === '1');
+  check('W35 le collaborateur ne supprime pas une compétence ; l’administrateur oui', as(carla, `delete from public.skills where id = '${skC}' returning 1;`).out === '' && as(dan, `delete from public.skills where id = '${skC}' returning 1;`).out === '1');
+  check('W36 tout est journalisé (organisation, équipes, invitations, membres)', Number(as(dan, `select count(*) from public.audit_logs where org_id = '${orgC}' and action in ('organisation.modifiee', 'unite.enregistree', 'invitation.creee', 'invitation.annulee', 'membre.equipe');`).out) >= 7);
+  check('W37 les anciens scénarios tiennent : l’autre organisation ne voit toujours rien', as(carla, `select count(*) from public.organizations where id = '${orgA}';`).out === '0' && as(eve, `select count(*) from public.memberships where org_id = '${orgB}';`).out === '0');
+}
+
 // ---------- Tables du tuteur (001, 002) toujours protégées ----------
 check('T1 le journal des appels accepte les nouvelles tâches de génération', psql(`insert into public.ai_calls (user_id, mode, model) values ('${bob.id}', 'enrichir', 'm');`).ok);
 check('T2 un utilisateur ne lit pas les compteurs des autres', as(carla, 'select count(*) from public.ai_calls;').out === '0' && as(bob, 'select count(*) from public.ai_calls;').out === '2');

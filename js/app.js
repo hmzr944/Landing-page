@@ -1726,7 +1726,7 @@
         go(link(s.id, s.root.id, s.root.children.filter((c) => c.children.length).length >= 2 ? 'carte' : 'fiche'));
         setTimeout(checkTrophies, 900);
       },
-      saveProfile(p) { state.profile = p; delete state.firstRun; save(); Store.flush(); },
+      saveProfile(p) { state.profile = p; delete state.firstRun; save(); Store.flush(); if (window.Journey) Journey.set({ workspace: Journey.get().workspace || 'student', studentDone: true }); },
     });
   }
 
@@ -3237,15 +3237,19 @@
   Store.onError(saveAlert);
   const isDesktop = () => matchMedia('(min-width: 901px) and (hover: hover) and (pointer: fine)').matches;
   // Premier lancement : rien d'utilisé sur cet appareil (seul le sujet de découverte, intact)
-  const freshStart = () => !!window.Onboarding && !state.profile && Store.status.load === 'ok' && state.subjects.every(untouchedDemo);
+  const freshStart = () => !!window.Onboarding && !state.profile && !(window.Journey && Journey.get().studentDone) && Store.status.load === 'ok' && state.subjects.every(untouchedDemo);
   // Après l'accueil (compte créé, connexion, essai sans compte, invitation) : l'introduction de l'app si rien n'est encore fait
   const welcomeDeps = {
     after(how) {
       if (window.Org && window.Tutor && Tutor.signedIn()) Org.refresh().then(paintSpace).catch(() => {});
       if (how === 'join') { go(Org && Org.pendingInvite() ? `#/rejoindre/${Org.pendingInvite()}` : '#/rejoindre'); return; }
-      render(view);
+      if (how === 'create') { go('#/org/nouvelle'); return; }
+      if (String(how).startsWith('org:')) { if (window.Org) Org.setSpace(how.slice(4)); go(`#/org/${how.slice(4)}`); return; }
+      if (window.Org) Org.setSpace('personal');
+      if (!/^#\/?$/.test(location.hash) && location.hash) go('#/'); else render(view);
+      paintSpace();
       if (freshStart()) setTimeout(openOnboarding, 200);
-      else if (how !== 'guest') FX.toast('Connecté : tu peux parler à Pousse', 'success');
+      else if (how === 'login') FX.toast('Connecté : tu peux parler à Pousse', 'success');
     },
   };
   if (window.Welcome) Welcome.deps(welcomeDeps);
@@ -3266,6 +3270,8 @@
   // Mobile : accueil et compte d'abord (une seule fois), puis l'introduction. Ordinateur : rien ne s'ouvre tout seul.
   if (!isDesktop() && !/^#\/(rejoindre|org)/.test(location.hash) && freshStart() && !(window.Welcome && Welcome.active())) {
     if (window.Welcome && Welcome.shouldOpen()) setTimeout(() => Welcome.open(welcomeDeps), 120);
+    // connecté mais parti avant d'avoir choisi son espace : on reprend à ce choix
+    else if (window.Welcome && Welcome.needsSpace() && !Welcome.active()) setTimeout(() => Welcome.space(welcomeDeps), 120);
     else setTimeout(openOnboarding, 250);
   }
   if (Store.status.readOnly) saveAlert('blocked');

@@ -48,7 +48,11 @@ function fakeAuth(opts = {}) {
     if (u.pathname === '/auth/v1/verify') return body.token === '123456' ? json(200, session(body.email)) : json(403, { error_code: 'otp_expired', msg: 'Token has expired or is invalid' });
     if (u.pathname === '/auth/v1/user' && req.method() === 'PUT') return body.password === 'Ancien1234' ? json(422, { error_code: 'same_password', msg: 'New password should be different from the old password.' }) : json(200, { email: 'lea@exemple.fr' });
     if (u.pathname === '/auth/v1/user') return json(200, { email: 'lea@exemple.fr' });
-    if (u.pathname.startsWith('/rest/v1/rpc/my_organizations')) return json(200, []);
+    if (u.pathname === '/auth/v1/settings') return json(200, { external: { email: true, google: !!opts.google }, disable_signup: false, mailer_autoconfirm: false });
+    if (u.pathname.startsWith('/rest/v1/rpc/my_organizations')) return json(200, opts.orgs || []);
+    if (u.pathname === '/rest/v1/profiles' && req.method() === 'GET') return json(200, opts.profile ? [opts.profile] : []);
+    if (u.pathname === '/rest/v1/profiles' && req.method() === 'PATCH') { if (opts.profile) { Object.assign(opts.profile, body); return json(200, [opts.profile]); } return json(200, []); }
+    if (u.pathname === '/rest/v1/profiles' && req.method() === 'POST') { opts.profile = body; return json(201, null); }
     if (u.pathname.startsWith('/rest/v1/')) return json(200, []);
     return json(404, {});
   };
@@ -78,7 +82,7 @@ function fakeAuth(opts = {}) {
     const { ctx, page } = await open({ scheme });
     const t = `(${scheme})`;
     check(`A1 l'accueil s'ouvre au premier lancement ${t}`, await page.isVisible('.wel') && !(await page.isVisible('.onb')));
-    check(`A2 en-tête : marque, bouton Connexion, segment à deux publics ${t}`, await page.isVisible('.wel-head .wel-brand') && await page.isVisible('.wel-login-chip') && (await page.$$('.wel-tabs [role="tab"]')).length === 2);
+    check(`A2 en-tête : marque et bouton Connexion ; message universel ${t}`, await page.isVisible('.wel-head .wel-brand') && await page.isVisible('.wel-login-chip') && /Tout peut devenir un point de départ pour apprendre/.test(await page.textContent('.wel-hero h1')));
     check(`A3 la promesse et les deux actions sont visibles sans défiler ${t}`, await page.evaluate(() => { const h = document.querySelector('.wel-hero h1').getBoundingClientRect(), b = document.querySelector('.wel-ctas .btn.ghost').getBoundingClientRect(); return h.top >= 0 && b.bottom <= innerHeight; }));
     check(`A4 pas de débordement horizontal ${t}`, await noOverflow(page));
     check(`A5 la barre d'onglets et Pousse sont cachés derrière l'accueil ${t}`, !(await page.isVisible('.bottom-nav')));
@@ -86,9 +90,10 @@ function fakeAuth(opts = {}) {
     await page.evaluate(() => document.querySelector('.wel').scrollTo(0, 400)); await page.waitForTimeout(300);
     check(`A6 l'en-tête devient opaque quand le contenu passe dessous ${t}`, await page.evaluate(() => document.querySelector('.wel').classList.contains('scrolled')));
     await shot(page, `landing-scrolled-${scheme}`);
-    await tap(page, '.wel-tabs [data-tab="pro"]');
-    check(`A7 « Pour mon entreprise » change le contenu (invitation, client mystère) ${t}`, /client mystère/i.test(await page.textContent('.wel-stage')) && await page.isVisible('[data-wel="join"]'));
-    await shot(page, `pro-${scheme}`);
+    check(`A7 cinq points de départ (question, explication, document, photo, problème), pas seulement le PDF ${t}`, (await page.$$('.wel-entries li')).length === 5 && /photo/i.test(await page.textContent('.wel-entries')));
+    check(`A8 trois actions : Commencer, Se connecter, J’ai une invitation ${t}`, /Commencer/.test(await page.textContent('.wel-ctas')) && /Se connecter/.test(await page.textContent('.wel-ctas')) && await page.isVisible('.wel-invite'));
+    await page.waitForTimeout(1600);
+    check(`A9 l’animation Lottie de la pousse se joue (ou Pousse reste affichée sans réseau) ${t}`, await page.evaluate(() => { const b = document.querySelector('.wel-lottie'); return !!b && (b.classList.contains('is-lottie') ? !!b.querySelector('svg path') : !!b.querySelector('.pousse-mini')); }), await page.evaluate(() => (document.querySelector('.wel-lottie') || {}).className));
     await ctx.close();
   }
 
@@ -124,7 +129,10 @@ function fakeAuth(opts = {}) {
     check('B12 adresse non confirmée : message clair et lien pour renvoyer', /pas encore confirmée/.test(await page.textContent('.wel-form-err')) && await page.isVisible('.wel-form-err [data-wel="resend"]'));
     auth.users['camille@exemple.fr'].confirmed = true;
     await tap(page, '.wel-submit', 800);
-    check('B13 une fois confirmée, la connexion ferme l’accueil et ouvre l’introduction', !(await page.isVisible('.wel')) && await page.isVisible('.onb'));
+    check('B13 une fois confirmée, la connexion mène au choix de l’espace (Student ou Business)', await page.isVisible('[data-wel="pick-student"]') && await page.isVisible('[data-wel="business"]'));
+    await shot(page, 'space');
+    await tap(page, '[data-wel="pick-student"]', 700);
+    check('B13b Student ouvre l’introduction', !(await page.isVisible('.wel')) && await page.isVisible('.onb'));
     check('B14 la session est enregistrée', /camille@exemple\.fr/.test(await page.evaluate(() => localStorage.getItem('arbor:auth') || '')));
     check('B15 l’introduction ne dit plus « sans compte »', !/sans compte/.test(await page.textContent('.onb')));
     await page.reload(); await page.waitForTimeout(900);
@@ -140,8 +148,9 @@ function fakeAuth(opts = {}) {
     await tap(page, '.wel-submit', 700);
     check('C1 compte créé : écran « Ton compte est prêt »', /Ton compte est prêt/.test(await page.textContent('.wel-stage')));
     await shot(page, 'ready');
-    await tap(page, '[data-wel="finish"]', 700);
-    check('C2 « Commencer » ouvre l’introduction de l’app', await page.isVisible('.onb') && !(await page.isVisible('.wel')));
+    await tap(page, '.wel-ready [data-wel="space"]', 500);
+    await tap(page, '[data-wel="pick-student"]', 700);
+    check('C2 « Continuer », puis Student, ouvre l’introduction de l’app', await page.isVisible('.onb') && !(await page.isVisible('.wel')));
     await page.click('.onb [data-onb="next"]'); await page.waitForTimeout(300);
     check('C3 l’introduction se poursuit normalement', await page.isVisible('.onb .onb-choice'));
     await ctx.close();
@@ -169,7 +178,7 @@ function fakeAuth(opts = {}) {
     await shot(page, 'login-error');
     await page.fill('#welPass', 'Arbor2026');
     await tap(page, '.wel-submit', 800);
-    check('E3 bonne combinaison : connecté, accueil fermé, introduction ouverte', !(await page.isVisible('.wel')) && await page.isVisible('.onb') && auth.calls.some((c) => c.path === '/auth/v1/token' && /grant_type=password/.test(c.query)));
+    check('E3 bonne combinaison : connecté, puis choix de l’espace', await page.isVisible('[data-wel="pick-student"]') && auth.calls.some((c) => c.path === '/auth/v1/token' && /grant_type=password/.test(c.query)));
     await ctx.close();
   }
 
@@ -212,7 +221,7 @@ function fakeAuth(opts = {}) {
     await page.fill('#welCode', '000000'); await tap(page, '.wel-submit', 500);
     check('G2 code faux : erreur sous le champ', /incorrect|expiré/.test(await page.textContent('#welCodeErr')));
     await page.fill('#welCode', '123456'); await tap(page, '.wel-submit', 800);
-    check('G3 bon code : connecté, introduction ouverte', !(await page.isVisible('.wel')) && await page.isVisible('.onb'));
+    check('G3 bon code : connecté, puis choix de l’espace', await page.isVisible('[data-wel="pick-student"]'));
     await ctx.close();
   }
 
@@ -237,8 +246,7 @@ function fakeAuth(opts = {}) {
   /* I. Entreprise : « J'ai une invitation » mène à l'écran pour rejoindre */
   {
     const { ctx, page } = await open();
-    await tap(page, '.wel-tabs [data-tab="pro"]');
-    await tap(page, '[data-wel="join"]', 700);
+    await tap(page, '.wel-invite', 700);
     check('I1 l’invitation mène à l’écran pour rejoindre', /#\/rejoindre/.test(page.url()) && !(await page.isVisible('.wel')) && !(await page.isVisible('.onb')));
     await ctx.close();
   }
@@ -261,6 +269,62 @@ function fakeAuth(opts = {}) {
     check('K1 320 px : pas de débordement', await noOverflow(page));
     await tap(page, '.wel-ctas [data-wel="signup"]', 600);
     check('K2 320 px : formulaire sans débordement', await noOverflow(page));
+    await ctx.close();
+  }
+
+  /* N. Choix de l'espace : organisations existantes, Business, Google, reprise, lien expiré */
+  {
+    const org = { id: '11111111-2222-3333-4444-555555555555', name: 'Boulangerie Martin', sector: 'Commerce', role: 'manager', owner: false, unit: 'Boutique', onboarded: true, setup: {} };
+    const auth = fakeAuth({ orgs: [org], google: true });
+    const { ctx, page } = await open({ auth });
+    await tap(page, '.wel-login-chip');
+    check('N1 Google activé sur le projet : le bouton apparaît', await page.isVisible('[data-google] button'));
+    await page.fill('#welEmail', 'lea@exemple.fr'); await page.fill('#welPass', 'Arbor2026');
+    await tap(page, '.wel-submit', 900);
+    check('N2 l’organisation existante est proposée avec le rôle et l’équipe', /Boulangerie Martin/.test(await page.textContent('.wel-orgs')) && /Manager/.test(await page.textContent('.wel-orgs')) && /Boutique/.test(await page.textContent('.wel-orgs')));
+    await tap(page, '[data-wel="business"]', 500);
+    check('N3 Business : créer, rejoindre, ou retrouver son organisation', await page.isVisible('[data-wel="create-org"]') && await page.isVisible('.wel-choice[data-wel="join"]') && await page.isVisible('[data-org]'));
+    await shot(page, 'business');
+    await tap(page, '[data-org]', 900);
+    check('N4 retrouver son organisation mène à son espace', page.url().endsWith(`#/org/${org.id}`) && !(await page.isVisible('.wel')));
+    const prof = auth.calls.filter((c) => c.path === '/rest/v1/profiles' && c.method !== 'GET').map((c) => JSON.stringify(c.body.onboarding || {})).join(' ');
+    check('N5 l’espace choisi est noté dans le profil (drapeaux seulement, aucun contenu)', /"workspace":"business"/.test(prof) && !/Arbor2026|lea@/.test(prof), prof.slice(0, 200));
+    await ctx.close();
+  }
+  {
+    const auth = fakeAuth();
+    const { ctx, page } = await open({ auth });
+    await tap(page, '.wel-login-chip');
+    check('N6 Google non activé : aucun bouton Google (pas de bouton factice)', !(await page.isVisible('[data-google] button')));
+    await page.fill('#welEmail', 'lea@exemple.fr'); await page.fill('#welPass', 'Arbor2026');
+    await tap(page, '.wel-submit', 800);
+    await tap(page, '[data-wel="business"]'); await tap(page, '[data-wel="create-org"]', 900);
+    check('N7 « Créer une organisation » mène à l’assistant', /#\/org\/nouvelle/.test(page.url()), page.url());
+    await ctx.close();
+  }
+  {
+    // Reprise : sur un autre appareil, Student déjà commencé : on va directement dans l'app
+    const auth = fakeAuth({ profile: { display_name: null, onboarding: { workspace: 'student', studentDone: true }, last_space: 'personal' } });
+    const { ctx, page } = await open({ auth });
+    await tap(page, '.wel-login-chip');
+    await page.fill('#welEmail', 'lea@exemple.fr'); await page.fill('#welPass', 'Arbor2026');
+    await tap(page, '.wel-submit', 900);
+    check('N8 reprise : espace déjà choisi ailleurs, pas de nouveau choix ni de nouvelle introduction', !(await page.isVisible('.wel')) && !(await page.isVisible('[data-wel="pick-student"]')) && !(await page.isVisible('.onb')));
+    await ctx.close();
+  }
+  {
+    const { ctx, page } = await open({ hash: '#error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid+or+has+expired' });
+    check('N9 lien expiré ou déjà utilisé : message en français et suites proposées', /a expiré ou a déjà servi/.test(await page.textContent('.wel-stage')) && await page.isVisible('.wel-stage [data-wel="login"]') && await page.isVisible('.wel-stage [data-wel="forgot"]'));
+    check('N10 l’erreur ne reste pas dans l’adresse', !/error_code/.test(page.url()));
+    await shot(page, 'linkerr');
+    await ctx.close();
+  }
+  {
+    // Connecté, mais parti avant de choisir son espace : on reprend à ce choix
+    const { ctx, page } = await open({ hash: `#access_token=${jwt('u-x')}&refresh_token=rt&expires_in=3600&token_type=bearer` });
+    check('N11 retour de Google ou d’un lien de connexion sans espace choisi : choix de l’espace', await page.isVisible('[data-wel="pick-student"]'));
+    await page.reload(); await page.waitForTimeout(900);
+    check('N12 en relançant l’app avant d’avoir choisi : on revient au choix de l’espace', await page.isVisible('[data-wel="pick-student"]'));
     await ctx.close();
   }
 
