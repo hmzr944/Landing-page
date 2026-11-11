@@ -30,10 +30,10 @@
     if (captureFragment() && window.FX) { const n = notice; notice = null; FX.toast(n.ok ? 'Connecté : tu peux parler à Pousse' : n.msg, n.ok ? 'success' : 'error', 4200); }
   });
 
-  async function call(path, { method = 'POST', body, token, query = '' } = {}) {
+  async function call(path, { method = 'POST', body, token, query = '', headers: extra = {} } = {}) {
     const res = await fetch(`${URL}${path}${query}`, {
       method,
-      headers: { apikey: KEY, 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      headers: { apikey: KEY, 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...extra },
       body: body ? JSON.stringify(body) : undefined,
     });
     let data = null;
@@ -96,12 +96,12 @@
 
   /* Appel authentifié à l'API de la base (espace professionnel). Le jeton de la personne connectée suffit :
      ce qu'elle peut lire ou écrire est décidé par les règles d'accès de la base, jamais par le navigateur. */
-  async function rest(path, { method = 'POST', body, query = '' } = {}) {
+  async function rest(path, { method = 'POST', body, query = '', headers } = {}) {
     if (!navigator.onLine) { const e = new Error('Pas de connexion.'); e.kind = 'offline'; throw e; }
     const t = await token();
     if (!t) { const e = new Error('Connecte-toi d’abord.'); e.kind = 'auth'; throw e; }
     let r;
-    try { r = await call(path, { method, body, token: t, query }); }
+    try { r = await call(path, { method, body, token: t, query, headers }); }
     catch (err) { const e = new Error('Connexion impossible.'); e.kind = 'offline'; throw e; }
     if (r.status === 401) { write(null); const e = new Error('Ta session a expiré : reconnecte-toi.'); e.kind = 'auth'; throw e; }
     if (!r.ok) { const e = new Error((r.data && (r.data.message || r.data.error)) || 'Action impossible.'); e.kind = 'server'; e.status = r.status; throw e; }

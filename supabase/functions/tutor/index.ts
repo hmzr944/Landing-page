@@ -6,6 +6,7 @@
 //   AI_FALLBACK_MODEL      facultatif, modèle de secours (par défaut llama-3.3-70b-versatile)
 //   TUTOR_MONTHLY_LIMIT    nombre d'échanges par utilisateur et par mois (par défaut 60)
 //   GEN_MONTHLY_LIMIT      générations de contenu par utilisateur et par mois (par défaut 150)
+//   ORG_MONTHLY_LIMIT      appels de l'espace professionnel par utilisateur et par mois (par défaut 400)
 //   TUTOR_ORIGINS          origines autorisées, séparées par des virgules (par défaut le site GitHub Pages)
 // SUPABASE_URL et SUPABASE_SERVICE_ROLE_KEY sont fournis automatiquement par Supabase.
 import { createClient } from "npm:@supabase/supabase-js@2.119.0";
@@ -18,6 +19,58 @@ const admin = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY")
 export const deps: Deps = {
   limit: Number(env("TUTOR_MONTHLY_LIMIT", "60")),
   genLimit: Number(env("GEN_MONTHLY_LIMIT", "150")),
+  orgLimit: Number(env("ORG_MONTHLY_LIMIT", "400")),
+  // Espace professionnel : accès à la base avec la clé serveur. Chaque fonction ne touche que l'organisation demandée,
+  // après vérification du rôle de la personne (org.ts).
+  db: {
+    async role(userId, orgId) {
+      const { data } = await admin.from("memberships").select("role").eq("org_id", orgId).eq("user_id", userId).eq("status", "active").maybeSingle();
+      return data?.role ?? null;
+    },
+    async validatedKnowledge(orgId, limit) {
+      const { data } = await admin.from("knowledge_nodes").select("id,kind,title,body,quote,page,source_version_id").eq("org_id", orgId).eq("status", "valide").limit(limit);
+      return data ?? [];
+    },
+    async knowledgeById(orgId, ids) {
+      if (!ids.length) return [];
+      const { data } = await admin.from("knowledge_nodes").select("id,kind,title,body,quote,page,source_version_id").eq("org_id", orgId).in("id", ids);
+      return data ?? [];
+    },
+    async skillLinks(orgId) {
+      const { data } = await admin.from("skill_knowledge").select("skill_id,knowledge_id").eq("org_id", orgId);
+      return data ?? [];
+    },
+    async insertDiagItems(rows) {
+      const { data, error } = await admin.from("diagnostic_items").insert(rows).select("id");
+      if (error) throw new Error(error.message);
+      return data ?? [];
+    },
+    async getDiagItem(id) {
+      const { data } = await admin.from("diagnostic_items").select("*").eq("id", id).maybeSingle();
+      return data;
+    },
+    async markAnswered(id) {
+      const { data } = await admin.from("diagnostic_items").update({ answered_at: new Date().toISOString() }).eq("id", id).is("answered_at", null).select("id");
+      return !!(data && data.length);
+    },
+    async insertEvidence(rows) {
+      const { error } = await admin.from("evidence_events").insert(rows);
+      if (error) throw new Error(error.message);
+    },
+    async createScenario(row) {
+      const { data, error } = await admin.from("scenario_sessions").insert(row).select("id").single();
+      if (error) throw new Error(error.message);
+      return data.id;
+    },
+    async getScenario(id) {
+      const { data } = await admin.from("scenario_sessions").select("*").eq("id", id).maybeSingle();
+      return data;
+    },
+    async updateScenario(id, patch) {
+      const { error } = await admin.from("scenario_sessions").update(patch).eq("id", id);
+      if (error) throw new Error(error.message);
+    },
+  },
   origins: env("TUTOR_ORIGINS", "https://hmzr944.github.io").split(",").map((s) => s.trim()).filter(Boolean),
   price: { input: Number(env("AI_PRICE_INPUT", "0")), output: Number(env("AI_PRICE_OUTPUT", "0")) },
   async getUser(jwt) {
@@ -26,7 +79,7 @@ export const deps: Deps = {
   },
   // quota séparé pour le dialogue et pour la génération : on compte les appels du mois dans le journal
   async usedThisMonth(userId, month, kind) {
-    const modes = kind === "dialogue" ? ["socratique", "enseigne"] : ["enrichir", "rediger_cours", "rediger_notion", "extraire"];
+    const modes = kind === "dialogue" ? ["socratique", "enseigne"] : kind === "org" ? ["competences", "diagnostic", "mystere"] : ["enrichir", "rediger_cours", "rediger_notion", "extraire"];
     const { count } = await admin.from("ai_calls").select("id", { count: "exact", head: true })
       .eq("user_id", userId).in("mode", modes).gte("at", `${month}-01T00:00:00Z`);
     return count ?? 0;

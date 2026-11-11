@@ -9,9 +9,10 @@
 // - Aucun contenu (passages, réponses) n'est stocké côté serveur.
 
 import { cleanGen, GEN_TASKS, type GenTask, genPrompt, validateGen } from "./generate.ts";
+import { needsModel, ORG_TASKS, type OrgDb, OrgError, type OrgTask, orgTask } from "./org.ts";
 
 export type Mode = "socratique" | "enseigne";
-export type Kind = "dialogue" | "generation";
+export type Kind = "dialogue" | "generation" | "org";
 export interface Passage { page?: number; text: string }
 export interface Turn { role: "tutor" | "student"; text: string }
 export interface TutorRequest {
@@ -33,10 +34,12 @@ export interface ModelResult {
 export interface Deps {
   getUser(jwt: string): Promise<{ id: string } | null>;
   usedThisMonth(userId: string, month: string, kind: Kind): Promise<number>;
-  record(e: { userId: string; month: string; mode: Mode | GenTask; model: string; inputTokens: number; outputTokens: number; costUsd: number; refused: boolean }): Promise<void>;
+  record(e: { userId: string; month: string; mode: Mode | GenTask | "competences" | "diagnostic" | "mystere"; model: string; inputTokens: number; outputTokens: number; costUsd: number; refused: boolean }): Promise<void>;
   callModel(p: { system: string; user: string; schema: Record<string, unknown>; effort: "low" | "medium"; maxTokens?: number }): Promise<ModelResult>;
   limit: number; // échanges de dialogue par mois
   genLimit?: number; // générations de contenu par mois (enrichir un PDF, rédiger un cours)
+  orgLimit?: number; // appels de l'espace professionnel par mois (diagnostic, Client Mystère, compétences)
+  db?: OrgDb; // accès à la base (clé serveur) pour l'espace professionnel
   origins: string[];
   price?: { input: number; output: number }; // dollars par million de jetons ; 0 avec une offre gratuite
   now?: () => Date;
@@ -176,6 +179,7 @@ export async function handle(request: Request, deps: Deps): Promise<Response> {
   try { body = await request.json(); } catch { return json(400, { error: "JSON invalide" }); }
   const m = month((deps.now || (() => new Date()))());
   if (GEN_TASKS.includes((body as { task?: GenTask })?.task as GenTask)) return generate(body, user.id, m, deps, json);
+  if (ORG_TASKS.includes((body as { task?: OrgTask })?.task as OrgTask)) return org(body as Record<string, unknown>, user.id, m, deps, json);
   const v = validate(body);
   if (!v.ok) return json(400, { error: v.error });
   const req = v.req;
@@ -244,4 +248,31 @@ async function generate(body: unknown, userId: string, m: string, deps: Deps, js
   let out: Record<string, unknown>;
   try { out = JSON.parse(res.text); } catch { return json(502, { error: "réponse illisible", usage }); }
   return json(200, { ...cleanGen(req, out), usage });
+}
+
+/* Espace professionnel : rôle vérifié dans la base, preuves écrites ici, quota propre */
+async function org(b: Record<string, unknown>, userId: string, m: string, deps: Deps, json: (s: number, d: unknown) => Response): Promise<Response> {
+  if (!deps.db) return json(501, { error: "espace professionnel indisponible" });
+  const task = b.task as OrgTask;
+  const limit = deps.orgLimit ?? 400;
+  let used = 0;
+  if (needsModel(task)) {
+    used = await deps.usedThisMonth(userId, m, "org");
+    if (used >= limit) return json(429, { error: "quota", used, limit });
+  }
+  const price = deps.price || PRICE;
+  try {
+    const out = await orgTask(task, b, {
+      userId, db: deps.db, callModel: deps.callModel,
+      onModel: async (mode, r) => {
+        used++;
+        const cost = Math.round(((r.inputTokens * price.input + r.outputTokens * price.output) / 1e6) * 1e5) / 1e5;
+        await deps.record({ userId, month: m, mode: mode as "mystere", model: r.model, inputTokens: r.inputTokens, outputTokens: r.outputTokens, costUsd: cost, refused: r.stop === "refusal" });
+      },
+    });
+    return json(200, { ...(out as Record<string, unknown>), usage: { used, limit } });
+  } catch (e) {
+    if (e instanceof OrgError) return json(e.status, { error: e.status === 503 ? "occupe" : e.message });
+    return json(500, { error: "erreur interne", detail: String((e as Error)?.message || e).slice(0, 200) });
+  }
 }

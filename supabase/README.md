@@ -15,15 +15,16 @@ Projet : `https://nnqtgwgwalbbhqzceged.supabase.co` (adresse et clé publiable d
    et `migrations/003_organizations.sql` (espace Business : organisations, rôles, invitations, sources versionnées,
    connaissances traçables, compétences, preuves en ajout seul, journal d'audit, stockage privé « org-sources »),
    puis `migrations/004_org_space.sql` (espaces de la personne, e-mail des membres, annulation d'invitation),
-   puis `migrations/005_documents.sql` (documents et versions de l'organisation, tâche d'extraction).
+   puis `migrations/005_documents.sql` (documents et versions de l'organisation, tâche d'extraction),
+   puis `migrations/006_diagnostic_scenarios.sql` (diagnostic corrigé par le serveur, Client Mystère).
    Crée `ai_usage` et `ai_calls` (RLS activé : chacun ne lit que ses lignes, personne n'écrit depuis le navigateur)
    et la fonction `ai_record_call`, réservée au serveur.
 2. **Connexion par e-mail** : *Authentication* → *URL Configuration*
    - *Site URL* : `https://hmzr944.github.io/Landing-page/`
    - *Redirect URLs* : ajouter `https://hmzr944.github.io/Landing-page/`
    - Facultatif : *Authentication* → *Email Templates* → *Magic Link*, ajouter `Ton code : {{ .Token }}` pour pouvoir se connecter avec le code à 6 chiffres (utile quand le lien s'ouvre dans un autre navigateur).
-3. **Fonction** : *Edge Functions* → *Deploy a new function* → *Via Editor*, nom **`tutor`**, puis créer les trois fichiers
-   `index.ts`, `handler.ts`, `generate.ts` et `model.ts` avec le contenu de `functions/tutor/` (le fichier de test n'est pas à déployer).
+3. **Fonction** : *Edge Functions* → *Deploy a new function* → *Via Editor*, nom **`tutor`**, puis créer les fichiers
+   `index.ts`, `handler.ts`, `generate.ts`, `org.ts` et `model.ts` avec le contenu de `functions/tutor/` (le fichier de test n'est pas à déployer).
    Laisser *Verify JWT* activé.
    Avec la ligne de commande, c'est équivalent : `supabase functions deploy tutor --project-ref nnqtgwgwalbbhqzceged`.
 4. **Secrets** : *Edge Functions* → *Secrets*

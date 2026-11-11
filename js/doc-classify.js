@@ -65,6 +65,7 @@
     [/^(nom|prenom|date( de (naissance|debut|fin))?|signature|adresse|numero|n°|cachet|e-?mail|telephone|statut|name|surname|signed)\s*:/, 'champ de formulaire'],
     [/\b(ce (cours|document|guide|support|module) (vous )?(est|a ete) (propose|realise|redige|concu|compose))|\bce document (reprend|distingue|presente|resume)\b/, 'présentation du document'],
     [/^(sommaire|table des matieres|contents|table of contents)\b/, 'sommaire'],
+    [/\bexemple fictif\b|\bdocument de demonstration\b|\bsans valeur reelle\b|\bfictitious example\b/, 'mention de document fictif'],
     [/^.{0,60}(©|\btous droits reserves\b|\ball rights reserved\b|\blicence creative commons\b).{0,40}$/, 'mentions légales'],
     [/\bbienvenue dans ce (cours|module|guide)\b|\bcomment (etudier|utiliser) ce (cours|guide|document)\b|\bil ne s'agit pas d'un examen\b/, 'mode d’emploi'],
     [/\b(mettre|cocher|entourer) (une croix|la case)\b|\b(a|faire) remplir\b|\bto be completed by\b|\b(fiche|grille) d'(evaluation|appreciation)\b/, 'consigne de formulaire'],

@@ -41,7 +41,7 @@ function as(user, sql) {
 const asService = (sql) => psql(`begin; set local role service_role;\n${sql}\ncommit;`);
 
 // ---------- Mise en place ----------
-for (const f of ['tests/db/supabase-stub.sql', 'supabase/migrations/001_tutor.sql', 'supabase/migrations/002_generation.sql', 'supabase/migrations/003_organizations.sql', 'supabase/migrations/004_org_space.sql', 'supabase/migrations/005_documents.sql']) {
+for (const f of ['tests/db/supabase-stub.sql', 'supabase/migrations/001_tutor.sql', 'supabase/migrations/002_generation.sql', 'supabase/migrations/003_organizations.sql', 'supabase/migrations/004_org_space.sql', 'supabase/migrations/005_documents.sql', 'supabase/migrations/006_diagnostic_scenarios.sql']) {
   const r = psql(file(f));
   check(`M ${path.basename(f)} s'applique`, r.ok, r.err.slice(0, 300));
   if (!r.ok) process.exit(1);
@@ -173,6 +173,23 @@ check('R6 le rôle anonyme n’a accès à aucune table Business', !psql('set ro
   check('D7 l’ajout de document et de version est journalisé', as(alice, "select count(*) from public.audit_logs where action in ('document.ajoute', 'document.version');").out === '2');
   check('D8 le journal des appels accepte la tâche « extraire »', psql(`insert into public.ai_calls (user_id, mode, model) values ('${bob.id}', 'extraire', 'm');`).ok);
   check('D9 une connaissance extraite se rattache à la version, en « proposée »', as(dan, `insert into public.knowledge_nodes (org_id, source_version_id, kind, title, body, quote, page, confidence, created_by) values ('${orgA}', '${vid}', 'produit', 'Autonomie', 'Le vélo Y roule 90 km.', 'roule 90 km', 2, 0.7, '${dan.id}') returning status;`).out === 'propose');
+}
+
+// ---------- Étapes E-G : diagnostic et Client Mystère (006) ----------
+{
+  check('M0 la migration 006 peut être rejouée sans erreur', psql(file('supabase/migrations/006_diagnostic_scenarios.sql')).ok);
+  const kk = as(alice, `select id from public.knowledge_nodes where org_id = '${orgA}' limit 1;`).out;
+  const ins = asService(`insert into public.diagnostic_items (org_id, user_id, session_id, knowledge_id, question, options, correct) values ('${orgA}', '${bob.id}', gen_random_uuid(), '${kk}', 'Q ?', '["a","b","c"]', 1) returning id;`);
+  check('M1 le serveur enregistre une question de diagnostic', ins.ok, ins.err);
+  check('M2 la bonne réponse d’un diagnostic n’est lisible par personne depuis le navigateur (même la personne interrogée)', !as(bob, 'select correct from public.diagnostic_items;').ok && !as(alice, 'select * from public.diagnostic_items;').ok);
+  check('M3 un utilisateur ne peut pas écrire une question ou une réponse', !as(bob, `insert into public.diagnostic_items (org_id, user_id, session_id, knowledge_id, question, options, correct) values ('${orgA}', '${bob.id}', gen_random_uuid(), '${kk}', 'Q', '[]', 0);`).ok);
+  const sc = asService(`insert into public.scenario_sessions (org_id, user_id, spec, state, debrief) values ('${orgA}', '${bob.id}', '{"secret":"besoin caché"}', '{}', '{"score":3}') returning id;`);
+  check('M4 le serveur enregistre une partie de Client Mystère', sc.ok, sc.err);
+  check('M5 la personne voit sa partie et son débrief, mais pas la fiche secrète du client', as(bob, 'select count(*) from public.scenario_sessions;').out === '1' && !as(bob, 'select spec from public.scenario_sessions;').ok && as(bob, "select debrief->>'score' from public.scenario_sessions;").out === '3');
+  check('M6 la manager de l’organisation voit la partie ; l’expert et l’autre organisation non', as(eve, 'select count(*) from public.scenario_sessions;').out === '1' && as(dan, 'select count(*) from public.scenario_sessions;').out === '0' && as(carla, 'select count(*) from public.scenario_sessions;').out === '0');
+  check('M7 personne ne modifie une partie depuis le navigateur', !as(bob, "update public.scenario_sessions set status = 'termine';").ok);
+  check('M8 une partie ne peut pas viser une personne extérieure à l’organisation', !asService(`insert into public.scenario_sessions (org_id, user_id, spec, state) values ('${orgA}', '${carla.id}', '{}', '{}');`).ok);
+  check('M9 le journal des appels accepte les nouvelles tâches', psql(`insert into public.ai_calls (user_id, mode, model) values ('${dan.id}', 'mystere', 'm'), ('${dan.id}', 'diagnostic', 'm'), ('${dan.id}', 'competences', 'm');`).ok);
 }
 
 // ---------- Tables du tuteur (001, 002) toujours protégées ----------

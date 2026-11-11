@@ -131,3 +131,19 @@ Une connaissance de type `sensible` n'est jamais utilisée dans un scénario san
   « à revalider ». Les nouvelles connaissances sont proposées sans doublon. L'historique des versions est conservé.
 - Limite connue : les passages envoyés à l'extraction viennent du navigateur de l'équipe de contenu ; le serveur vérifie
   les extraits contre ces passages, pas contre le fichier stocké (acceptable pour le pilote, à revoir pour la production).
+
+## D9. Compétences, diagnostic, Client Mystère, suivi (appliqué, migration 006, étapes E à G)
+
+- Toute la logique est dans `supabase/functions/tutor/org.ts` : le rôle est vérifié dans la base à chaque appel, seules
+  les connaissances validées servent, et les preuves sont écrites par le serveur uniquement.
+- Diagnostic : questions générées (ou de repli, construites à partir des extraits) ; la bonne réponse reste dans
+  `diagnostic_items`, illisible depuis le navigateur ; une question dont la bonne réponse contient un nombre absent de la
+  connaissance est écartée ; une question ne se répond qu'une fois.
+- Client Mystère : la fiche (besoin caché, objections) reste sur le serveur (`scenario_sessions.spec` non lisible) ; à
+  chaque réplique, un évaluateur séparé relève des comportements observables en citant la phrase exacte du vendeur
+  et compare chaque affirmation aux connaissances validées ; puis le client répond selon sa fiche et l'état de la
+  situation (patience, besoin découvert, objections levées). Le débrief est calculé sans modèle, à partir de l'état.
+- Suivi (`js/org-insight.js`) : l'état d'une connaissance vient des preuves dans le temps ; « maîtrise durable » exige
+  deux réussites à 7 jours d'écart, la dernière juste ; une fragilité d'équipe n'apparaît qu'à partir de 3 observations
+  sur 2 personnes, avec la taille de l'échantillon, la période et la couverture.
+- Quota propre à l'espace professionnel (`ORG_MONTHLY_LIMIT`, 400 appels par personne et par mois par défaut).

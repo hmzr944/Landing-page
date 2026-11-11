@@ -75,7 +75,9 @@
   // En-tête commun d'un espace professionnel : nom, rôle, onglets selon le rôle
   function head(o, tab) {
     const tabs = [['accueil', 'house', 'Accueil']];
+    if (can(o, 'admin', 'manager') && window.OrgLearn) tabs.push(['suivi', 'chart-bar', 'Suivi']);
     if (can(o, 'admin', 'manager', 'expert') && window.OrgDocs) tabs.push(['documents', 'files', 'Documents']);
+    if (can(o, 'admin', 'manager') && window.OrgLearn) tabs.push(['competences', 'target', 'Compétences']);
     if (can(o, 'admin', 'manager')) tabs.push(['equipe', 'users-three', 'Équipe']);
     return `<header class="org-head glass">
         <div class="org-id"><span class="org-badge" aria-hidden="true">${d.ic('buildings', true)}</span><div><h1>${d.esc(o.name)}</h1><p>${d.esc(o.sector || 'Espace professionnel')} · <b>${ROLES[o.role] || o.role}</b></p></div></div>
@@ -86,13 +88,17 @@
   // Ce qui existe déjà et ce qui arrive : on ne montre pas de faux tableau de bord
   function homeView(o) {
     const lead = can(o, 'admin', 'manager');
+    const card = (tab, icn, t, txt) => (window.OrgLearn ? `<a class="org-card" href="#/org/${o.id}/${tab}"><span>${d.ic(icn)}</span><div><b>${t}</b><p>${txt}</p></div></a>` : '');
     const soon = (icn, t, txt) => `<div class="org-card soon"><span>${d.ic(icn)}</span><div><b>${t}</b><p>${txt}</p><small>Bientôt</small></div></div>`;
     return `${head(o, 'accueil')}
       <section class="org-grid">
         ${lead ? `<a class="org-card" href="#/org/${o.id}/equipe"><span>${d.ic('users-three')}</span><div><b>Équipe et invitations</b><p>Invite tes collaborateurs par e-mail et attribue leur rôle.</p></div></a>` : ''}
         ${can(o, 'admin', 'manager', 'expert') ? `<a class="org-card" href="#/org/${o.id}/documents"><span>${d.ic('files')}</span><div><b>Documents de référence</b><p>Fiches produits, procédures : Arbor en extrait les connaissances, avec la page et l’extrait exact. Tu les valides avant tout usage.</p></div></a>` : ''}
-        ${soon('target', lead ? 'Diagnostic de l’équipe' : 'Mon diagnostic', lead ? 'Les fragilités réelles de l’équipe, calculées à partir de preuves, avec la taille de l’échantillon.' : 'Quelques questions pour savoir où tu en es, sans note.')}
-        ${soon('storefront', 'Client mystère', 'Des mises en situation avec un client simulé, évaluées sur des comportements observables.')}
+        ${lead ? card('suivi', 'chart-bar', 'Suivi de l’équipe', 'Les 3 fragilités prioritaires, calculées à partir de preuves réelles, avec la taille de l’échantillon ; chaque personne et sa prochaine activité.') : ''}
+        ${card('diagnostic', 'target', 'Mon diagnostic', 'Quelques questions sur les connaissances validées. Pas de note : tu sais quoi travailler.')}
+        ${card('mystere', 'storefront', 'Client mystère', 'Un client simulé, une conversation libre, un débrief sur des comportements observables et l’exactitude de tes informations.')}
+        ${card('resultats', 'chart-line-up', 'Mes résultats', 'L’état de chaque connaissance d’après tes preuves, et ta prochaine activité.')}
+        ${lead ? card('competences', 'list-checks', 'Compétences', 'Le référentiel de l’équipe, proposé à partir des connaissances validées.') : ''}
       </section>
       <p class="org-note">${d.ic('lock-simple')}Ton espace personnel (cours, révisions, progression) reste sur ton appareil. ${lead ? 'Tu ne vois que ce qui concerne cette organisation.' : 'Ton organisation n’y a pas accès.'}</p>`;
   }
@@ -172,6 +178,7 @@
     setSpace(o.id);
     if (view.tab === 'equipe' && can(o, 'admin', 'manager')) return teamView(app, o);
     if (view.tab === 'documents' && window.OrgDocs) return OrgDocs.render(app, o, view.sub, d, head(o, 'documents'));
+    if (window.OrgLearn && OrgLearn.TABS.includes(view.tab)) return OrgLearn.render(app, o, view, d, head(o, view.tab));
     app.innerHTML = homeView(o);
   }
 

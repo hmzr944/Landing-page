@@ -101,7 +101,7 @@ const personal = () => ({ subjects: [{ id: 'persosubj01', title: SECRET_TITLE, c
     check('B2 dans l’espace professionnel, les menus personnels disparaissent', await page.evaluate(() => document.documentElement.classList.contains('in-org')) && !(await page.isVisible('.bottom-nav')) && !(await page.isVisible('#xp')));
     check('B3 aucune donnée personnelle n’est affichée dans l’espace professionnel', !/Mon cours secret|confidentiel/.test(await page.textContent('#app')));
     check('B4 l’en-tête montre l’espace courant', await page.isVisible('#spaceBtn') && /Magasin de Lyon/.test(await page.textContent('#spaceName')));
-    check('B5 l’accueil ne montre pas de faux tableau de bord : ce qui arrive est marqué « Bientôt »', (await page.$$('.org-card.soon')).length >= 2);
+    check('B5 l’accueil mène à de vrais écrans (diagnostic, client mystère, suivi), sans faux tableau de bord', !(await page.$('.org-card.soon')) && !!(await page.$('a.org-card[href$="/suivi"]')) && !!(await page.$('a.org-card[href$="/mystere"]')));
     await page.click('.org-tabs a[href$="/equipe"]'); await settle(page, 800);
     await page.fill('#oiEmail', 'bob@magasin.fr'); await page.click('#orgInvite .btn'); await settle(page, 600);
     inviteUrl = await page.inputValue('#oiLink').catch(() => '');
