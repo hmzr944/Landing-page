@@ -60,7 +60,13 @@
     if (/weak.?password|password should|at least/.test(raw)) return mk('weak', 'Ce mot de passe est trop faible. Choisis-en un plus long.');
     if (/already.?(registered|exists)|user_already_exists/.test(raw)) return mk('exists', 'Un compte existe déjà avec cette adresse. Connecte-toi.');
     if (/signup.?disabled|signups not allowed/.test(raw)) return mk('other', 'Les inscriptions sont fermées pour le moment.');
-    return mk('other', fallback);
+    // Service d'e-mail de Supabase sans serveur d'envoi (SMTP) : seules les adresses de l'équipe du projet reçoivent des e-mails
+    if (/not.?authori[sz]ed/.test(raw) && /email/.test(raw)) return mk('mail', 'L’envoi d’e-mails n’est pas encore ouvert à cette adresse. L’équipe d’Arbor doit terminer la configuration de l’envoi.');
+    if (/sending.*(confirmation|recovery|email)|smtp|email.*(send|deliver)/.test(raw)) return mk('mail', 'L’e-mail n’a pas pu partir. Réessaie plus tard : l’équipe d’Arbor est prévenue par ses journaux.');
+    if (/email.?address.?invalid|invalid.*email|unable to validate email/.test(raw)) return mk('email', 'Cette adresse e-mail est refusée. Vérifie-la ou essaie une autre adresse.');
+    // Cas imprévu : on garde le code du serveur pour pouvoir le diagnostiquer
+    const code = String(d.error_code || d.error || r.status || '').replace(/[^\w.-]/g, '').slice(0, 40);
+    return mk('other', code ? `${fallback} (code : ${code})` : fallback);
   }
   async function safeCall(path, opts) { try { return await call(path, opts); } catch (e) { return null; } }
   const redirect = () => `?redirect_to=${encodeURIComponent(SITE)}`;
