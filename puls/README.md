@@ -33,9 +33,11 @@ Distingués par la forme, sans couleur supplémentaire :
 ## Design
 
 - **3 couleurs** : ivoire `#F8F4EC`, encre `#1E1B18`, bordeaux `#7A1D2B`. Toutes les nuances sont des mélanges `color-mix` de ces trois.
-- **2 polices** : Cormorant Garamond (titres), Manrope (texte et boutons).
+- **2 polices** : Outfit (titres) et GT Walsheim (texte et boutons). GT Walsheim est sous licence Grilli Type : déposer `GT-Walsheim-Regular.woff2`, `-Medium.woff2`, `-Bold.woff2` dans `puls/fonts/`. Sans ces fichiers, Figtree sert de repli.
 - Bento grid aérée, rayons cohérents (tuiles 18 px, champs 10 px, boutons en pilule).
-- Motion : entrées en cascade, anneau de score, compteurs, file animée à la résolution, rédaction de la réponse en direct. Tout est désactivé avec `prefers-reduced-motion`.
+- Motion : entrées en cascade, anneau de score, compteurs, file animée à la résolution, rédaction de la réponse en direct.
+- Identité « pouls » (`effects.js`) : intro au tracé cardiaque (une fois par session), logo animé, moniteur **Pouls SAV** dont le rythme accélère de 9 bpm par dossier critique, rideau bordeaux entre les moteurs, pastille de navigation glissante, titres révélés mot à mot, sceau de cire « Résolu » à la clôture, halo sous le curseur, boutons aimantés, ondes au clic, grain papier.
+- Tout est désactivé avec `prefers-reduced-motion`.
 - Icônes Phosphor.
 
 ## Raccourcis

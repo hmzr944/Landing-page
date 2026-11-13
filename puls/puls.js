@@ -355,6 +355,8 @@
     let tb = $(".count", thBtn);
     if (!tb) { tb = document.createElement("span"); tb.className = "count"; thBtn.insertBefore(tb, $("kbd", thBtn)); }
     tb.textContent = hot; tb.hidden = hot === 0;
+    window.PULSFX?.movePill();
+    window.PULSFX?.setPulse(openCases().filter((c) => score(c).total >= 70).length);
   }
 
   function go(view) {
@@ -369,6 +371,7 @@
       window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
     };
     if (reduceMotion || state.view === view) return swap();
+    if (window.PULSFX) return window.PULSFX.wipe(swap);
     el.classList.add("leaving");
     setTimeout(swap, 170);
   }
@@ -384,6 +387,7 @@
   }
 
   function afterRender() {
+    window.PULSFX?.afterRender(document);
     countUp($("#view"));
     const ring = $(".ring .val");
     if (ring) {
@@ -461,7 +465,7 @@
     const off = C * (1 - sc.total / 100);
     const ticks = Array.from({ length: 20 }, (_, i) => {
       const on = i < Math.round(c.thermal.index / 5);
-      return `<span class="${on ? "on" : ""} ${on && c.thermal.index >= 60 ? "hot" : ""}" style="height:${30 + i * 3.5}%"></span>`;
+      return `<span class="${on ? "on" : ""} ${on && c.thermal.index >= 60 ? "hot" : ""}" style="height:${30 + i * 3.5}%;--t:${i}"></span>`;
     }).join("");
 
     return `<article class="case" data-id="${c.id}">
@@ -698,7 +702,10 @@
     toast(pending ? "Envoyé en validation" : "Dossier résolu", pending
       ? `Geste de ${euro(r.gesture.amount)} transmis au responsable SAV. Simulation : aucun paiement déclenché.`
       : `Simulation : aucun message ni commande réels pour ${fullName(c)}.`, pending ? "ph-seal-check" : "ph-check-circle");
-    if (item && !reduceMotion) { item.classList.add("leaving"); setTimeout(finish, 480); } else finish();
+    if (reduceMotion) return finish();
+    window.PULSFX?.seal($("#case .case"), $("#reply"), pending);
+    setTimeout(() => item?.classList.add("leaving"), 650);
+    setTimeout(finish, 1150);
   }
 
   function selectCase(id) {

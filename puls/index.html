@@ -7,19 +7,29 @@
   <meta name="description" content="Prototype de poste de commandement SAV livraison pour la gastronomie haut de gamme. Données fictives, actions simulées.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <!-- Deux familles seulement : Cormorant Garamond (titres), Manrope (texte et boutons) -->
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Deux familles : Outfit (titres) et GT Walsheim (texte, boutons).
+       GT Walsheim est une police sous licence (Grilli Type) : déposer les fichiers .woff2 dans puls/fonts/.
+       En leur absence, Figtree (forme géométrique proche) prend le relais. -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
   <link rel="stylesheet" href="puls.css">
 </head>
 <body>
+  <div class="intro" id="intro" aria-hidden="true">
+    <div class="intro-inner">
+      <svg class="intro-pulse" viewBox="0 0 220 40"><path d=""/></svg>
+      <div class="intro-word"><span>Concierge</span><b>PULS</b></div>
+    </div>
+  </div>
+  <div class="wipe" id="wipe" aria-hidden="true"></div>
   <div class="shell">
     <aside class="rail" aria-label="Moteurs PULS">
       <div class="brand">
-        <span class="brand-mark" aria-hidden="true">P</span>
+        <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 60 24"><path class="base" id="brand-ecg-base" d=""/><path id="brand-ecg" d=""/></svg></span>
         <span class="brand-name">Concierge<em>PULS</em></span>
       </div>
       <nav class="rail-nav">
+        <span class="rail-pill" aria-hidden="true"></span>
         <button class="rail-link" data-view="desk"><i class="ph ph-crown-simple"></i><span>Concierge Desk</span><kbd>G D</kbd></button>
         <button class="rail-link" data-view="thermal"><i class="ph ph-thermometer-simple"></i><span>Thermal Guard</span><kbd>G T</kbd></button>
         <button class="rail-link" data-view="proof"><i class="ph ph-camera"></i><span>Proof Studio</span><kbd>G P</kbd></button>
@@ -47,6 +57,10 @@
           <input id="search" type="search" placeholder="Client, commande, ville" autocomplete="off">
           <kbd>/</kbd>
         </label>
+        <div class="monitor" title="Pouls du SAV : il accélère avec le nombre de dossiers critiques">
+          <span class="monitor-label">Pouls SAV<b><span id="pulse-n">58</span> bpm</b></span>
+          <span class="monitor-strip"><svg viewBox="0 0 300 24" width="300" height="24"><path id="ecg" d=""/></svg></span>
+        </div>
         <div class="sim-badge" title="Aucune commande, aucun remboursement, aucun message réel n'est déclenché.">
           <i class="ph ph-flask"></i>Prototype, données fictives
         </div>
@@ -70,6 +84,7 @@
     <form method="dialog"><button class="btn btn-ink">Compris</button></form>
   </dialog>
 
+  <script src="effects.js"></script>
   <script src="puls.js"></script>
 </body>
 </html>
