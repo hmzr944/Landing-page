@@ -119,8 +119,28 @@
     app.innerHTML = `${headHtml}<section class="sec"><p class="hint">Chargement des documents…</p></section>`;
     let srcs = [];
     try { srcs = await sources(o.id); } catch (e) { app.querySelector('.sec').innerHTML = `<p class="hint">${d.esc(e.message)}</p>`; return; }
+    // connaissances par document (validées / à valider), lues dans la base ; en cas d'échec, la colonne reste vide
+    const counts = new Map();
+    if (srcs.length) {
+      try {
+        const vs = await Tutor.rest('/rest/v1/source_versions', { method: 'GET', query: `?source_id=in.(${srcs.map((x) => q(x.id)).join(',')})&select=id,source_id` });
+        const of = new Map((vs || []).map((v) => [v.id, v.source_id]));
+        const ks = of.size ? await Tutor.rest('/rest/v1/knowledge_nodes', { method: 'GET', query: `?source_version_id=in.(${[...of.keys()].map(q).join(',')})&select=status,source_version_id` }) : [];
+        (ks || []).forEach((k) => { const sid = of.get(k.source_version_id); if (!sid) return; const c = counts.get(sid) || { v: 0, p: 0 }; if (k.status === 'valide') c.v++; else if (k.status === 'propose') c.p++; counts.set(sid, c); });
+      } catch (e) { counts.clear(); }
+    }
+    const fmtD = (t) => (t ? new Date(t).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '');
     app.innerHTML = `${headHtml}
       <section class="sec">
+        <h2>Documents <small class="num">${srcs.length}</small></h2>
+        ${srcs.length ? `<div class="tb-wrap"><table class="tb doc-tb"><thead><tr><th scope="col">Document</th><th scope="col">Version</th><th scope="col">Connaissances</th><th scope="col" class="tb-hide-s">Ajouté le</th><th scope="col"><span class="sr-only">Ouvrir</span></th></tr></thead>
+          <tbody>${srcs.map((x) => { const c = counts.get(x.id); return `<tr><td><a class="tb-person" href="#/org/${o.id}/documents/${x.id}">${d.ic('file-pdf')}<b>${d.esc(x.title)}</b></a></td>
+            <td><span class="tb-dim">v${x.current_version}</span></td>
+            <td>${c ? `${c.v ? `<span class="tb-tag pos">${d.ic('seal-check')}${c.v} validée${c.v > 1 ? 's' : ''}</span> ` : ''}${c.p ? `<span class="tb-tag warn">${c.p} à valider</span>` : ''}${!c.v && !c.p ? '<span class="tb-dim">aucune</span>' : ''}` : '<span class="tb-dim">-</span>'}</td>
+            <td class="tb-hide-s tb-dim">${fmtD(x.created_at)}</td>
+            <td class="tb-go"><a href="#/org/${o.id}/documents/${x.id}" aria-label="Ouvrir ${d.esc(x.title)}">${d.ic('caret-right')}</a></td></tr>`; }).join('')}</tbody></table></div>` : '<p class="hint">Aucun document pour l’instant. Ajoutez une procédure ou une fiche produit ci-dessous.</p>'}
+      </section>
+      <section class="sec" id="docAdd">
         <h2>Ajouter un document</h2>
         <p class="hint">Fiche produit, procédure, règlement : Arbor en extrait les connaissances utiles, chacune avec sa page et l’extrait exact. Rien n’est utilisé avant ta validation.</p>
         <form class="org-invite" id="docForm">
@@ -130,10 +150,6 @@
           <div class="doc-progress" id="dfProg" hidden><span id="dfMsg"></span><span class="bar"><span id="dfBar"></span></span></div>
           <p class="hint" id="dfOut" role="status"></p>
         </form>
-      </section>
-      <section class="sec">
-        <h2>Documents <small class="num">${srcs.length}</small></h2>
-        ${srcs.length ? `<ul class="org-list">${srcs.map((s) => `<li><a href="#/org/${o.id}/documents/${s.id}">${d.ic('file-pdf')} ${d.esc(s.title)}</a><small>version ${s.current_version}</small></li>`).join('')}</ul>` : '<p class="hint">Aucun document pour l’instant.</p>'}
       </section>`;
     bindUpload(app, o, null);
   }

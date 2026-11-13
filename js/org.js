@@ -70,16 +70,22 @@
   // Rubrique active : les anciennes adresses restent valides et allument la rubrique qui les contient
   const SECTION = { documents: 'savoir', competences: 'savoir', suivi: 'equipe', apercu: 'equipe', intelligence: 'developper', scenarios: 'developper', diagnostic: 'apprendre', mystere: 'apprendre' };
   function head(o, tab) {
+    const origTab = tab;
     const groups = navOf(o);
     const flat = groups.flatMap(([, items]) => items.map((x) => x[0]));
     if (window.OrgHub && !flat.includes(tab) && SECTION[tab] && flat.includes(SECTION[tab])) tab = SECTION[tab];
     if (window.OrgHub && tab === 'resultats' && !flat.includes('resultats')) tab = 'apprendre';
+    // Ordinateur (D14) : barre latérale ancrée + barre supérieure (js/org-desk.js) ; téléphone : en-tête et onglets existants
+    const desk = window.OrgDesk ? (OrgDesk.use(o, d), true) : false;
+    // écran hors des cinq rubriques (paramètres, canopée d'un responsable…) : sa propre étiquette, sans action
+    const sectionOf = flat.includes(tab) ? tab : origTab;
     return `<header class="org-head glass">
+        ${desk ? `${OrgDesk.brand()}${OrgDesk.spaceBtn(o)}` : ''}
         <div class="org-id"><span class="org-badge" aria-hidden="true">${d.ic('buildings', true)}</span><div><h1>${d.esc(o.name)}</h1><p>${d.esc(o.sector || 'Espace professionnel')} · <b>${ROLES[o.role] || o.role}</b></p></div>
           ${window.OrgHub && o.role === 'admin' && window.OrgShell ? `<a class="icon-btn org-set" href="#/org/${o.id}/parametres" aria-label="Paramètres de l’organisation" ${tab === 'parametres' ? 'aria-current="page"' : ''}>${d.ic('gear-six')}</a>` : ''}</div>
-        <nav class="org-tabs" aria-label="Espace ${d.esc(o.name)}">${groups.map(([gl, items]) => `${gl ? `<span class="org-nav-g" aria-hidden="true">${gl}</span>` : ''}${items.map(([k, icn, l]) => `<a href="#/org/${o.id}${k === 'accueil' ? '' : '/' + k}" ${tab === k ? 'aria-current="page"' : ''}>${d.ic(icn, tab === k)}<span>${l}</span></a>`).join('')}`).join('')}</nav>
-        <div class="org-side-foot">${window.Feedback ? `<button type="button" class="link-btn fb-link" data-org-feedback>${d.ic('chat-teardrop-text')}Donner mon avis</button>` : ''}<button type="button" class="link-btn" data-org-space>${d.ic('swap')}Changer d’espace</button><small>${d.ic('lock-simple')}Ton espace personnel reste sur ton appareil.</small></div>
-      </header>`;
+        <nav class="org-tabs" aria-label="Espace ${d.esc(o.name)}">${groups.map(([gl, items]) => `${gl ? `<span class="org-nav-g" aria-hidden="true">${gl}</span>` : ''}${items.map(([k, icn, l]) => `<a href="#/org/${o.id}${k === 'accueil' ? '' : '/' + k}" title="${l}" ${tab === k ? 'aria-current="page"' : ''}>${d.ic(icn, tab === k)}<span>${l}</span></a>`).join('')}`).join('')}</nav>
+        <div class="org-side-foot">${desk ? OrgDesk.foot(o) : `${window.Feedback ? `<button type="button" class="link-btn fb-link" data-org-feedback>${d.ic('chat-teardrop-text')}Donner mon avis</button>` : ''}<button type="button" class="link-btn" data-org-space>${d.ic('swap')}Changer d’espace</button>`}</div>
+      </header>${desk ? OrgDesk.top(o, sectionOf, origTab, (location.hash.split('/')[4] || ''), groups) : ''}`;
   }
 
   // Ce qui existe déjà et ce qui arrive : on ne montre pas de faux tableau de bord

@@ -277,7 +277,8 @@
     ['epreuve', 'target', 'Commencer par une épreuve', 'Un diagnostic ou une situation simulée ; la suite part de tes erreurs.'],
     ['importer', 'file-arrow-up', 'Importer un document', 'Une procédure ou une fiche produit, structurée en connaissances à valider.'],
   ];
-  function doorsGrid(o) {
+  function doorsGrid(o, deps) {
+    if (deps) d = deps;
     return `<div class="doors">${DOORS.map(([k, icn, t, sub]) => `<a class="door" href="#/org/${o.id}/apprendre/${k}">${d.ic(icn, true)}<span><b>${t}</b><small>${sub}</small></span></a>`).join('')}</div>`;
   }
   async function learn(app, o, head, deps, door) {
