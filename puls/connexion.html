@@ -30,11 +30,23 @@
       <p class="lede">Accédez à votre espace PULS.</p>
       <div class="notice" id="logout-note" hidden style="margin-top:20px"><i class="ph ph-check-circle"></i><span>Vous êtes déconnecté. La session a été effacée de cet onglet.</span></div>
 
-      <form id="account-form" style="margin-top:28px" novalidate>
-        <div class="field"><label for="l-email">E-mail professionnel</label><input id="l-email" type="email" autocomplete="username" disabled></div>
-        <div class="field" style="margin-top:16px"><label for="l-pass">Mot de passe</label><input id="l-pass" type="password" autocomplete="current-password" disabled></div>
-        <button class="btn btn-dark btn-block" type="submit" style="margin-top:20px" disabled>Se connecter</button>
-        <p class="status-line" id="account-status"><i class="ph ph-info"></i><span>Les comptes nominatifs ne sont pas encore ouverts : l'authentification serveur est en cours de développement.</span></p>
+      <div class="notice" id="auth-note" hidden style="margin-top:20px"><i class="ph ph-info"></i><span></span></div>
+      <form id="account-form" style="margin-top:28px" novalidate data-mode="signin">
+        <div class="seg-switch" role="tablist" aria-label="Mode">
+          <button type="button" role="tab" data-mode="signin" aria-selected="true">Se connecter</button>
+          <button type="button" role="tab" data-mode="signup" aria-selected="false">Créer un compte</button>
+        </div>
+        <div class="field" style="margin-top:20px"><label for="l-email">E-mail professionnel</label><input id="l-email" name="email" type="email" autocomplete="username" required></div>
+        <div class="field" style="margin-top:16px" id="pass-field"><label for="l-pass">Mot de passe</label><input id="l-pass" name="password" type="password" autocomplete="current-password" required minlength="8"><span class="help" id="pass-help" hidden>8 caractères minimum.</span></div>
+        <button class="btn btn-dark btn-block" type="submit" style="margin-top:20px" id="account-submit">Se connecter</button>
+        <p class="small" style="margin-top:12px"><button type="button" class="link-btn" id="forgot">Mot de passe oublié</button></p>
+        <p class="status-line" id="account-status" role="status" aria-live="polite"></p>
+      </form>
+      <form id="reset-form" style="margin-top:28px" hidden novalidate>
+        <h2 style="font-size:22px">Nouveau mot de passe</h2>
+        <div class="field" style="margin-top:16px"><label for="l-new">Nouveau mot de passe</label><input id="l-new" type="password" autocomplete="new-password" required minlength="8"><span class="help">8 caractères minimum.</span></div>
+        <button class="btn btn-dark btn-block" type="submit" style="margin-top:20px">Enregistrer et entrer</button>
+        <p class="status-line" id="reset-status" role="status" aria-live="polite"></p>
       </form>
 
       <div class="divider">ou</div>
@@ -51,6 +63,8 @@
   </main>
 </div>
 <script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="supa.js"></script>
 <script src="site.js"></script>
 </body>
 </html>

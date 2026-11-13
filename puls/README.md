@@ -45,11 +45,21 @@ Aucune étape de build pour l'utilisation : servir `puls/` (`python3 -m http.ser
 
 ## Commandes
 ```bash
-python3 site-src/build.py          # régénère les pages du site
-python3 -m http.server 8765        # sert puls/
-node site-src/shots.js             # régénère les captures de l'app
-node site-src/test-site.js         # 70+ contrôles : pages, liens, mobile, formulaire, connexion, PWA
+npm ci                              # outils (TypeScript, types)
+npm run typecheck                   # vérification TypeScript : app + fonctions serveur
+npm run build                       # compile app/src -> app/dist (versionné, servi tel quel)
+npm run ci                          # typecheck + dist à jour + tests de la fonction IA
+npm run test:ai                     # fonction IA, fournisseur simulé
+db/test/run.sh                      # PostgreSQL : migrations + 60 tests d'isolation et de permissions
+python3 site-src/build.py           # régénère les pages du site
+python3 -m http.server 8765         # sert puls/
+node site-src/test-site.cjs         # site, liens, mobile, formulaire, connexion réelle, PWA
+node site-src/test-app.cjs          # app : démonstration et compte (API simulée)
+node site-src/shots.cjs             # régénère les captures de l'app
+npm run check:release               # refuse la mise en production sans informations légales ni point de collecte
 ```
+
+Architecture, audit et décisions : `docs/ARCHITECTURE.md`. Base et serveur : `db/README.md`.
 
 ## Design
 - Ivoire, crème, bordeaux, charbon, gris chauds dérivés.

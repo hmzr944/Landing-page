@@ -224,14 +224,119 @@
   const demoLogin = $("#demo-login");
   if (demoLogin) {
     const params = new URLSearchParams(location.search);
+    const note = (text) => { const n = $("#auth-note"); n.querySelector("span").textContent = text; n.hidden = false; };
     if (params.get("out")) $("#logout-note").hidden = false;
+    if (params.get("expired")) note("Votre session a expiré. Reconnectez-vous.");
+
     demoLogin.addEventListener("submit", (e) => {
       e.preventDefault();
-      const session = { workspace: "Maison Valcour", user: "Inès Valadier", role: "Responsable SAV", mode: "demo", at: new Date().toISOString() };
+      try { sessionStorage.removeItem("puls-auth"); } catch (err) { /* stockage indisponible */ }
+      const session = { mode: "demo", workspace: "Maison Valcour", user: "Inès Valadier", role: "Collaboratrice", roleKey: "agent", at: new Date().toISOString() };
       try { sessionStorage.setItem("puls-session", JSON.stringify(session)); }
       catch (err) { alert("Ce navigateur bloque le stockage de session : l'espace de démonstration ne peut pas s'ouvrir."); return; }
       location.href = "app/";
     });
-    $("#account-form")?.addEventListener("submit", (e) => e.preventDefault());
+
+    const db = window.PULS && window.PULS.client;
+    const form = $("#account-form"), status = $("#account-status"), submit = $("#account-submit");
+    const say = (text, isErr = false) => {
+      status.innerHTML = text ? `<i class="ph ${isErr ? "ph-warning" : "ph-info"}"></i><span>${esc(text)}</span>` : "";
+      status.classList.toggle("err", isErr);
+    };
+    const AUTH_ERR = [
+      [/invalid login credentials/i, "E-mail ou mot de passe incorrect."],
+      [/email not confirmed/i, "Confirmez d'abord votre adresse avec le lien reçu par e-mail."],
+      [/already registered|already been registered/i, "Un compte existe déjà avec cette adresse. Connectez-vous."],
+      [/password should be at least|weak password/i, "Mot de passe trop court ou trop simple : 8 caractères minimum."],
+      [/rate limit|too many/i, "Trop de tentatives. Patientez quelques minutes avant de réessayer."],
+      [/unable to validate email|invalid email/i, "Adresse e-mail invalide."],
+      [/failed to fetch|network/i, "Connexion au serveur impossible. Vérifiez votre réseau."],
+      [/signups not allowed|signup is disabled/i, "Les inscriptions sont fermées sur ce projet."],
+    ];
+    const authErr = (e) => { const m = String((e && e.message) || e); const hit = AUTH_ERR.find(([re]) => re.test(m)); return hit ? hit[1] : `Erreur : ${m}`; };
+    const goApp = () => { try { sessionStorage.removeItem("puls-session"); } catch (err) { /* rien à effacer */ } location.href = "app/"; };
+    const redirect = new URL("connexion.html", location.href).href;
+
+    if (!db) {
+      $$("input, button", form).forEach((el) => { el.disabled = true; });
+      say("Les comptes ne sont pas disponibles : le serveur PULS n'est pas configuré sur ce site.");
+    } else {
+      let mode = "signin";
+      const setMode = (m) => {
+        mode = m;
+        $$(".seg-switch button", form).forEach((b) => b.setAttribute("aria-selected", String(b.dataset.mode === m)));
+        submit.textContent = m === "signin" ? "Se connecter" : "Créer mon compte";
+        $("#l-pass").autocomplete = m === "signin" ? "current-password" : "new-password";
+        $("#pass-help").hidden = m === "signin";
+        $("#forgot").hidden = m !== "signin";
+      };
+      $$(".seg-switch button", form).forEach((b) => b.addEventListener("click", () => { setMode(b.dataset.mode); say(""); }));
+
+      // Retour d'un lien reçu par e-mail (confirmation, réinitialisation) : supabase-js lit le jeton dans l'URL.
+      db.auth.onAuthStateChange((event, session) => {
+        if (event === "PASSWORD_RECOVERY") { form.hidden = true; $("#reset-form").hidden = false; $("#l-new").focus(); return; }
+        if (event === "SIGNED_IN" && session && /access_token/.test(location.hash)) goApp();
+      });
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const email = $("#l-email").value.trim(), password = $("#l-pass").value;
+        if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { say("Indiquez une adresse e-mail valide.", true); return; }
+        if (password.length < 8) { say("Le mot de passe doit contenir au moins 8 caractères.", true); return; }
+        submit.disabled = true;
+        say(mode === "signin" ? "Connexion en cours" : "Création du compte en cours");
+        try {
+          if (mode === "signin") {
+            const { error } = await db.auth.signInWithPassword({ email, password });
+            if (error) throw error;
+            goApp();
+          } else {
+            const { data, error } = await db.auth.signUp({ email, password, options: { emailRedirectTo: redirect } });
+            if (error) throw error;
+            if (data.session) { goApp(); return; }
+            setMode("signin");
+            say(`Compte créé. Ouvrez le lien de confirmation envoyé à ${email}, puis connectez-vous.`);
+          }
+        } catch (err) { say(authErr(err), true); }
+        finally { submit.disabled = false; }
+      });
+
+      $("#forgot").addEventListener("click", async () => {
+        const email = $("#l-email").value.trim();
+        if (!email) { say("Indiquez d'abord votre e-mail, puis cliquez sur « Mot de passe oublié ».", true); $("#l-email").focus(); return; }
+        try {
+          const { error } = await db.auth.resetPasswordForEmail(email, { redirectTo: redirect });
+          if (error) throw error;
+          say("Si un compte existe pour cette adresse, un lien de réinitialisation vient d'être envoyé.");
+        } catch (err) { say(authErr(err), true); }
+      });
+
+      $("#reset-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const pw = $("#l-new").value, st = $("#reset-status");
+        if (pw.length < 8) { st.textContent = "8 caractères minimum."; st.classList.add("err"); return; }
+        const { error } = await db.auth.updateUser({ password: pw });
+        if (error) { st.textContent = authErr(error); st.classList.add("err"); return; }
+        goApp();
+      });
+
+      // Déjà connecté dans cet onglet : proposer d'entrer directement.
+      db.auth.getSession().then(({ data }) => {
+        if (data.session && !params.get("out") && !/access_token/.test(location.hash)) {
+          note(`Session ouverte pour ${data.session.user.email}.`);
+          const b = document.createElement("button");
+          b.className = "btn btn-dark btn-sm"; b.style.marginLeft = "auto"; b.textContent = "Entrer";
+          b.addEventListener("click", goApp);
+          $("#auth-note").appendChild(b);
+        }
+      });
+    }
+  }
+
+  /* ---------- identité légale : affichée seulement si elle est fournie, jamais inventée ---------- */
+  const legalBox = $("#legal-identity");
+  const L = CONFIG.legal;
+  if (legalBox && L && L.controller && L.contactEmail) {
+    legalBox.innerHTML = `<div class="legal-card"><dl><dt>Responsable</dt><dd>${esc(L.controller)}</dd>${L.address ? `<dt>Adresse</dt><dd>${esc(L.address)}</dd>` : ""}${L.registration ? `<dt>Immatriculation</dt><dd>${esc(L.registration)}</dd>` : ""}<dt>Contact</dt><dd><a href="mailto:${esc(L.contactEmail)}">${esc(L.contactEmail)}</a></dd></dl></div>`;
   }
 })();

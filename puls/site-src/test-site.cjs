@@ -1,5 +1,5 @@
 // Test de bout en bout du site public et de l'accès à PULS App.
-// Usage : servir puls/ sur le port 8765 puis `node site-src/test-site.js [dossier-captures]`.
+// Usage : servir puls/ sur le port 8765 puis `node site-src/test-site.cjs [dossier-captures]`.
 const { chromium } = require("playwright");
 const path = require("path");
 const BASE = process.env.PULS_BASE || "http://localhost:8765";
@@ -14,9 +14,9 @@ const ok = (cond, msg) => { console.log(`${cond ? "OK  " : "FAIL"} ${msg}`); if 
   const errs = [];
   const watch = (p, tag) => {
     p.on("pageerror", (e) => errs.push(`${tag} ${e.message}`));
-    p.on("console", (m) => { if (m.type() === "error" && !/GT-Walsheim/.test(m.text()) && !/404/.test(m.text())) errs.push(`${tag} ${m.text()}`); });
+    p.on("console", (m) => { if (m.type() === "error" && !/GT-Walsheim/.test(m.text()) && !/404|400/.test(m.text())) errs.push(`${tag} ${m.text()}`); });
     p.on("requestfailed", (r) => { if (!/GT-Walsheim|fonts\.g|unpkg/.test(r.url())) errs.push(`${tag} échec ${r.url()}`); });
-    p.on("response", (r) => { if (r.status() >= 400 && !/GT-Walsheim/.test(r.url())) errs.push(`${tag} ${r.status()} ${r.url()}`); });
+    p.on("response", (r) => { if (r.status() >= 400 && !/GT-Walsheim|auth\/v1\/token/.test(r.url())) errs.push(`${tag} ${r.status()} ${r.url()}`); });
   };
 
   // 1. toutes les pages, bureau et mobile
@@ -93,7 +93,18 @@ const ok = (cond, msg) => { console.log(`${cond ? "OK  " : "FAIL"} ${msg}`); if 
   await p.waitForURL(/connexion\.html/);
   ok(true, "app : redirection vers la connexion sans session");
   if (OUT) await p.screenshot({ path: path.join(OUT, "site-login.png") });
-  ok(await p.isDisabled("#account-form button"), "connexion : comptes nominatifs désactivés et signalés");
+  ok(await p.isEnabled("#account-submit"), "connexion : comptes nominatifs disponibles (Supabase configuré)");
+  // Appel RÉEL au projet Supabase : identifiants inexistants, aucune donnée créée.
+  await p.fill("#l-email", "compte-inexistant@puls-test.invalid");
+  await p.fill("#l-pass", "mauvais-mot-de-passe");
+  await p.click("#account-submit");
+  await p.waitForFunction(() => /incorrect|Erreur|Trop de tentatives|réseau/.test(document.querySelector("#account-status")?.textContent || ""), null, { timeout: 15000 });
+  const authMsg = (await p.textContent("#account-status")).trim();
+  ok(/E-mail ou mot de passe incorrect/.test(authMsg), `connexion réelle : refus traduit (${authMsg})`);
+  await p.click('.seg-switch [data-mode="signup"]');
+  await p.fill("#l-pass", "court");
+  await p.click("#account-submit");
+  ok((await p.textContent("#account-status")).includes("8 caractères"), "inscription : mot de passe trop court refusé avant tout envoi");
   await p.click("#demo-login button[type=submit]");
   await p.waitForURL(/app\/$/);
   await p.waitForTimeout(1200);

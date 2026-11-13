@@ -1,0 +1,21 @@
+{
+  "name": "puls",
+  "private": true,
+  "description": "PULS : site public, application, migrations et fonctions serveur",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p supabase/functions/tsconfig.json --noEmit",
+    "build": "tsc -p tsconfig.json",
+    "build:site": "python3 site-src/build.py",
+    "test:ai": "node --experimental-strip-types --no-warnings --test supabase/functions/ai/*.test.ts",
+    "test:db": "db/test/run.sh",
+    "check:dist": "npm run build && git diff --exit-code -- app/dist",
+    "check:release": "node scripts/check-release.mjs",
+    "ci": "npm run typecheck && npm run check:dist && npm run test:ai"
+  },
+  "devDependencies": {
+    "@supabase/supabase-js": "2.45.4",
+    "@types/node": "^22.10.2",
+    "typescript": "5.6.3"
+  }
+}

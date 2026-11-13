@@ -2,7 +2,6 @@
    PULS : couche identité et effets
    Chaque effet a une raison :
    - pouls (logo, moniteur) : l'état du SAV, il accélère avec les dossiers critiques
-   - rideau bordeaux : changement de moteur
    - pastille glissante : où l'on se trouve
    - sceau : un dossier est clos, geste de maison
    - halo, aimant, onde : retour tactile sur ce qui est cliquable
@@ -36,34 +35,6 @@ window.PULSFX = (() => {
     }
     const m = $(".monitor");
     if (m) m.classList.toggle("alert", critical >= 3);
-  }
-
-  /* ---------- Intro : une fois par session ---------- */
-  function intro() {
-    const el = $("#intro");
-    if (!el) return;
-    let seen = false;
-    try { seen = sessionStorage.getItem("puls-intro") === "1"; sessionStorage.setItem("puls-intro", "1"); } catch (e) {}
-    if (reduce || seen) { el.remove(); return; }
-    $(".intro-pulse path").setAttribute("d", "M0 20 H70 L78 14 L86 20 H96 L104 4 L114 36 L122 20 H134 L142 12 L150 20 H220");
-    el.classList.add("play");
-    setTimeout(() => el.classList.add("lift"), 1350);
-    setTimeout(() => el.remove(), 2100);
-  }
-
-  /* ---------- Rideau entre les moteurs ---------- */
-  let wiping = false;
-  // Partie 12 : pas de transition plein écran. Le changement de moteur reste un fondu local (puls.js).
-  function wipe(swap) {
-    const w = $("#wipe");
-    if (reduce || !w || wiping) return swap();
-    wiping = true;
-    w.className = "wipe in";
-    setTimeout(() => {
-      swap();
-      w.className = "wipe out";
-      setTimeout(() => { w.className = "wipe"; wiping = false; }, 420);
-    }, 330);
   }
 
   /* ---------- Pastille de navigation ---------- */
@@ -171,5 +142,5 @@ window.PULSFX = (() => {
   document.addEventListener("DOMContentLoaded", initMonitor);
   if (document.readyState !== "loading") initMonitor();
 
-  return { afterRender, wipe, movePill, seal, setPulse, reduce };
+  return { afterRender, movePill, seal, setPulse, reduce };
 })();

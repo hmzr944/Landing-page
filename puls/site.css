@@ -478,3 +478,13 @@ p { margin: 0; }
 .btn:disabled, .btn[disabled] { opacity: .38; cursor: not-allowed; box-shadow: none; transform: none; }
 .field input:disabled { background: var(--cream); cursor: not-allowed; }
 .ws-pick label { grid-template-columns: auto 40px minmax(0, 1fr) auto; }
+.seg-switch { display: grid; grid-template-columns: 1fr 1fr; padding: 4px; border-radius: var(--r-pill); background: var(--cream); gap: 4px; }
+.seg-switch button { border: 0; background: transparent; padding: 9px 12px; border-radius: var(--r-pill); font-weight: 500; font-size: 14.5px; cursor: pointer; color: var(--gray-1); transition: background .18s, color .18s; }
+.seg-switch button[aria-selected="true"] { background: var(--paper); color: var(--charcoal); box-shadow: 0 1px 0 var(--line), 0 8px 18px -12px color-mix(in srgb, var(--charcoal) 40%, transparent); }
+.link-btn { border: 0; background: none; padding: 0; color: var(--gray-1); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; font-size: 14px; }
+.link-btn:hover { color: var(--charcoal); }
+.status-line:empty { display: none; }
+.status-line.err { color: var(--bordeaux); font-weight: 500; }
+.legal-card dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 18px; margin: 0; }
+.legal-card dt { color: var(--gray-2); }
+.legal-card dd { margin: 0; }

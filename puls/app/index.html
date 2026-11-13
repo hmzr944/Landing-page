@@ -16,8 +16,11 @@
     (function () {
       var s = null;
       try { s = JSON.parse(sessionStorage.getItem("puls-session") || "null"); } catch (e) {}
-      if (!s || !s.workspace) { location.replace("../connexion.html?next=app"); return; }
-      window.PULS_SESSION = s;
+      var account = false;
+      try { account = !!sessionStorage.getItem("puls-auth"); } catch (e) {}
+      // Garde côté navigateur : simple aiguillage. La vraie vérification (compte, rôle, entreprise)
+      // est faite par le serveur au démarrage (shell.js) puis par la base à chaque requête (RLS).
+      if (!(s && s.mode === "demo") && !account) { location.replace("../connexion.html?next=app"); return; }
     })();
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -44,7 +47,7 @@
         <button class="rail-link" data-view="carrier"><i class="ph ph-truck"></i><span>Carrier Autopsy</span><kbd>G C</kbd></button>
         <span class="rail-sep" aria-hidden="true"></span>
         <button class="rail-link is-soon" disabled title="Module en cours de développement"><i class="ph ph-chart-line-up"></i><span>Intelligence</span><span class="soon">Bientôt</span></button>
-        <button class="rail-link is-soon" disabled title="Module en cours de développement"><i class="ph ph-sliders-horizontal"></i><span>Configuration</span><span class="soon">Bientôt</span></button>
+        <button class="rail-link" data-view="config"><i class="ph ph-sliders-horizontal"></i><span>Configuration</span><kbd>G F</kbd></button>
       </nav>
       <div class="rail-foot">
         <div class="legend">
@@ -81,7 +84,7 @@
           <i class="ph ph-flask"></i>Prototype, données fictives
         </div>
       </header>
-      <section id="view" class="view" aria-live="polite"></section>
+      <section id="view" class="view" aria-live="polite"><div class="tile" aria-label="Chargement"><div class="skel"><span></span><span></span><span></span><span></span></div></div></section>
     </main>
   </div>
 
@@ -94,14 +97,21 @@
       <div><dt><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd></dt><dd>Choisir un geste de résolution</dd></div>
       <div><dt><kbd>R</kbd></dt><dd>Modifier la réponse au client</dd></div>
       <div><dt><kbd>/</kbd></dt><dd>Rechercher</dd></div>
-      <div><dt><kbd>G</kbd> puis <kbd>D</kbd> <kbd>T</kbd> <kbd>P</kbd> <kbd>C</kbd></dt><dd>Changer de moteur</dd></div>
+      <div><dt><kbd>G</kbd> puis <kbd>D</kbd> <kbd>T</kbd> <kbd>P</kbd> <kbd>C</kbd> <kbd>F</kbd></dt><dd>Changer de moteur, F : configuration</dd></div>
       <div><dt><kbd>Échap</kbd></dt><dd>Fermer, quitter un champ</dd></div>
     </dl>
     <form method="dialog"><button class="btn btn-ink">Compris</button></form>
   </dialog>
 
+  <script src="../config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+  <script src="../supa.js"></script>
+  <script src="demo-data.js"></script>
+  <script src="demo-policies.js"></script>
   <script src="effects.js"></script>
   <script src="puls.js"></script>
+  <!-- Module TypeScript compilé (src/config -> dist/config) ; il s'enregistre dans window.PULS. -->
+  <script type="module" src="dist/config/index.js"></script>
   <script src="shell.js"></script>
 </body>
 </html>

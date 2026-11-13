@@ -1,189 +1,42 @@
 /* =========================================================
-   CONCIERGE // PULS : prototype interactif
-   Données fictives. Aucune commande, aucun remboursement,
-   aucun message réel n'est déclenché.
+   PULS App : moteurs opérationnels (Concierge Desk, Thermal Guard, Proof Studio, Carrier Autopsy)
+   Fabrique appelée par shell.js une fois la session et les données chargées :
+     DATA    : { PRODUCTS, STOCK, CASES, SHIPMENTS, CARRIERS, empty }
+     RULES   : corps des politiques actives, par type (authorization, resolution, criticality, tone)
+     SESSION : { mode, user, role, roleKey, workspace }
+   Aucune règle métier d'entreprise n'est codée ici : tout vient de RULES.
    ========================================================= */
-(() => {
+window.PULS_APP = (DATA, RULES, SESSION) => {
   "use strict";
 
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const NOW = { label: "13 nov., 11:42", hour: 11.7 }; // horloge simulée
-  const COURIER_ZONES = ["Paris", "Lyon"];
-  const COURIER_CUTOFF = 15; // commande coursier possible avant 15h
-  const VALIDATION_THRESHOLD = 150; // € : au-delà, validation responsable
-  const MIN_VERIFIED = 30; // incidents vérifiés minimum pour conclure sur un transporteur
-
-  /* ---------------- Catalogue & stocks ---------------- */
-  const PRODUCTS = {
-    grandcru:   { name: "Coffret Grand Cru, 32 bonbons", cat: "Chocolat", sens: "Élevée", pts: 26, icon: "ph-gift", price: 89, heat: true },
-    calendrier: { name: "Calendrier de l'Avent chocolat", cat: "Chocolat", sens: "Élevée", pts: 26, icon: "ph-calendar-star", price: 65, heat: true },
-    ganache:    { name: "Tablettes ganache, coffret de 6", cat: "Chocolat", sens: "Élevée", pts: 26, icon: "ph-squares-four", price: 54, heat: true },
-    pralines:   { name: "Pralinés à l'ancienne, 400 g", cat: "Confiserie", sens: "Moyenne", pts: 16, icon: "ph-cookie", price: 48, heat: true },
-    glace:      { name: "Bûche glacée vanille praliné", cat: "Surgelé", sens: "Critique", pts: 30, icon: "ph-snowflake", price: 72, heat: false, frozen: true },
-    sables:     { name: "Sablés au beurre, boîte métal", cat: "Biscuits", sens: "Faible", pts: 6, icon: "ph-cookie", price: 24, heat: false },
-    tartiner:   { name: "Pâte à tartiner noisette, 220 g", cat: "Épicerie", sens: "Faible", pts: 6, icon: "ph-jar", price: 18, heat: false },
+  const nowDate = new Date();
+  const NOW = {
+    label: nowDate.toLocaleDateString("fr-FR", { day: "2-digit", month: "short" }) + ", " + nowDate.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }),
+    hour: nowDate.getHours() + nowDate.getMinutes() / 60,
   };
-  const STOCK = {
-    grandcru: { Paris: 14, Lyon: 0 }, calendrier: { Paris: 2, Lyon: 5 }, ganache: { Paris: 0, Lyon: 0, restock: "18 nov." },
-    pralines: { Paris: 9, Lyon: 6 }, glace: { Paris: 0, Lyon: 3 }, sables: { Paris: 40, Lyon: 22 }, tartiner: { Paris: 31, Lyon: 12 },
-  };
+  // Règles de l'entreprise (politiques actives). Absentes : la fonction concernée est indisponible, jamais devinée.
+  const COURIER = RULES.resolution?.courier || null;
+  const GOODWILL = RULES.resolution?.goodwill || {};
+  const LIMIT = RULES.authorization?.limits?.[SESSION.roleKey] ?? 0;
+  const CRIT = RULES.criticality || null;
+  const HOT = CRIT?.priority_threshold ?? Infinity;
+  const TONE = RULES.tone || {};
+  // Garde-fou méthodologique de PULS (pas une règle d'entreprise) : pas de conclusion sous 30 incidents vérifiés.
+  const MIN_VERIFIED = 30;
 
-  /* ---------------- Dossiers ---------------- */
-  const CASES = [
-    {
-      id: "PLS-2481", civ: "Madame", first: "Hélène", last: "Marchetti", tier: "Client privilège", since: 2017, orders: 23, ltv: 3140,
-      city: "Paris", district: "Paris 7e", product: "grandcru", qty: 1, carrier: "Rapide Urbain", source: "client", channel: "E-mail",
-      received: "08:47", emotion: "Déception", incident: "Livré avec 15 h de retard", incidentPts: 16,
-      occasion: "Anniversaire de mariage", occasionWhen: "Hier soir", occasionPts: 25,
-      title: "Un coffret pour 20 ans de mariage, arrivé <em>le lendemain</em>",
-      message: "Le coffret devait être offert hier soir pour nos vingt ans de mariage. Il est arrivé ce matin et les bonbons ont blanchi. Je suis profondément déçue.",
-      thermal: { index: 64, why: "23 h de transit, produit très sensible, dépôt en loge chauffée possible" },
-      events: [
-        { t: "12 nov. 09:14", k: "fait", s: "Rapide Urbain", x: "Pris en charge au hub Paris Gennevilliers" },
-        { t: "12 nov. 17:52", k: "fait", s: "Rapide Urbain", x: "Échec de livraison : destinataire absent" },
-        { t: "13 nov. 08:31", k: "fait", s: "Rapide Urbain", x: "Livré, déposé en loge" },
-        { t: "Estimation", k: "risque", s: "Thermal Guard", x: "Indice thermique estimé 64 / 100 : le blanchiment est plausible, non prouvé" },
-        { t: "Suggestion", k: "action", s: "PULS", x: "Coursier dédié avec un coffret neuf avant 16 h 30" },
-      ],
-      reco: "courier",
-    },
-    {
-      id: "PLS-2479", civ: "Monsieur", first: "Thibault", last: "Lenoir-Aubry", tier: "Client fidèle", since: 2021, orders: 9, ltv: 1180,
-      city: "Lyon", district: "Lyon 6e", product: "glace", qty: 2, carrier: "TransAlpes Froid", source: "detection", channel: "Aucun contact",
-      received: "10:05", emotion: "Non exprimée", incident: "Colis immobilisé, incident froid signalé", incidentPts: 18,
-      occasion: "Réception à domicile", occasionWhen: "Samedi 14 nov.", occasionPts: 25,
-      title: "Deux bûches glacées <em>immobilisées</em> à la veille d'une réception",
-      message: null,
-      thermal: { index: 82, why: "Incident groupe froid déclaré par le transporteur, produit surgelé" },
-      events: [
-        { t: "12 nov. 22:40", k: "fait", s: "TransAlpes Froid", x: "Arrivé au hub Lyon Corbas" },
-        { t: "13 nov. 09:58", k: "fait", s: "TransAlpes Froid", x: "Incident véhicule frigorifique déclaré, colis immobilisé" },
-        { t: "Estimation", k: "risque", s: "Thermal Guard", x: "Rupture de la chaîne du froid possible : seul un contrôle physique peut la confirmer" },
-        { t: "Suggestion", k: "action", s: "PULS", x: "Prévenir le client maintenant et réexpédier en express depuis Lyon" },
-      ],
-      reco: "reship",
-    },
-    {
-      id: "PLS-2476", civ: "Madame", first: "Clémence", last: "Ferrand-Oyono", tier: "Client entreprise", since: 2019, orders: 14, ltv: 4620,
-      city: "Marseille", district: "Marseille 8e", product: "calendrier", qty: 3, carrier: "Hexa Livraison", source: "client", channel: "Téléphone",
-      received: "09:30", emotion: "Inquiétude", incident: "2 articles sur 3 écrasés", incidentPts: 18,
-      occasion: "Cadeaux d'équipe", occasionWhen: "1er décembre", occasionPts: 15,
-      title: "Des calendriers de l'Avent <em>écrasés</em>, à distribuer le 1er décembre",
-      message: "Deux calendriers sur trois arrivent écrasés. J'ai besoin d'une solution avant la fin du mois, ils sont destinés à mon équipe.",
-      thermal: { index: 38, why: "Transit dans les délais, risque surtout mécanique" },
-      events: [
-        { t: "11 nov. 14:02", k: "fait", s: "Hexa Livraison", x: "Pris en charge au hub Marseille Vitrolles" },
-        { t: "12 nov. 11:16", k: "fait", s: "Hexa Livraison", x: "Livré, réserve « carton abîmé » notée par le livreur" },
-        { t: "Estimation", k: "risque", s: "Thermal Guard", x: "Risque thermique faible, dommage mécanique probable" },
-        { t: "Suggestion", k: "action", s: "PULS", x: "Réexpédier 2 calendriers en standard, il reste 18 jours" },
-      ],
-      reco: "reship",
-    },
-    {
-      id: "PLS-2474", civ: "Monsieur", first: "Jean-Baptiste", last: "Kerhervé", tier: "Client fidèle", since: 2020, orders: 7, ltv: 410,
-      city: "Rennes", district: "Rennes", product: "sables", qty: 2, carrier: "Hexa Livraison", source: "client", channel: "Chat",
-      received: "10:52", emotion: "Colère", incident: "3 jours de retard, deuxième incident", incidentPts: 14,
-      occasion: "Usage personnel", occasionWhen: "Aucune date", occasionPts: 3,
-      title: "Un client fidèle, un <em>deuxième</em> retard d'affilée",
-      message: "Toujours rien reçu. C'est la deuxième fois que ça arrive, je commence à me demander si ça vaut la peine de commander chez vous.",
-      thermal: { index: 9, why: "Produit peu sensible à la chaleur" },
-      events: [
-        { t: "09 nov. 16:20", k: "fait", s: "Hexa Livraison", x: "Pris en charge au hub Rennes Chantepie" },
-        { t: "10 nov. 07:45", k: "fait", s: "Hexa Livraison", x: "En attente au hub : surcharge du centre de tri" },
-        { t: "Historique", k: "fait", s: "CRM", x: "Retard de 4 jours sur sa commande de septembre" },
-        { t: "Suggestion", k: "action", s: "PULS", x: "Geste commercial et réexpédition, la fidélité est en jeu" },
-      ],
-      reco: "gesture",
-    },
-    {
-      id: "PLS-2471", civ: "Madame", first: "Aurore", last: "Delacroix-Ba", tier: "Nouveau client", since: 2026, orders: 1, ltv: 54,
-      city: "Paris", district: "Paris 16e", product: "ganache", qty: 1, carrier: "Rapide Urbain", source: "client", channel: "E-mail",
-      received: "07:58", emotion: "Inquiétude", incident: "Tablettes collées entre elles", incidentPts: 15,
-      occasion: "Première commande", occasionWhen: "Aucune date", occasionPts: 8,
-      title: "Une première commande, des tablettes <em>collées</em> entre elles",
-      message: "Les tablettes sont collées entre elles. Est-ce que je peux encore les manger ? C'était ma première commande chez vous.",
-      thermal: { index: 57, why: "Livraison en boîte aux lettres exposée au soleil d'après le livreur" },
-      events: [
-        { t: "12 nov. 10:12", k: "fait", s: "Rapide Urbain", x: "Livré, déposé en boîte aux lettres" },
-        { t: "Estimation", k: "risque", s: "Thermal Guard", x: "Indice thermique estimé 57 / 100, fonte partielle plausible" },
-        { t: "Règle", k: "fait", s: "Qualité", x: "Aucune garantie de consommation ne peut être donnée à distance" },
-        { t: "Suggestion", k: "action", s: "PULS", x: "Rupture de stock : proposer un remboursement et réserver le réassort" },
-      ],
-      reco: "gesture",
-    },
-    {
-      id: "PLS-2468", civ: "Monsieur", first: "Mathis", last: "Oudinot", tier: "Client standard", since: 2024, orders: 3, ltv: 96,
-      city: "Lille", district: "Lille", product: "tartiner", qty: 1, carrier: "Colis Express", source: "client", channel: "Formulaire",
-      received: "Hier", emotion: "Neutre", incident: "Colis non localisé depuis 5 jours", incidentPts: 12,
-      occasion: "Usage personnel", occasionWhen: "Aucune date", occasionPts: 3,
-      title: "Un pot de pâte à tartiner <em>introuvable</em>",
-      message: "Bonjour, mon colis n'a pas bougé depuis lundi sur le suivi. Pouvez-vous vérifier ?",
-      thermal: { index: 6, why: "Produit stable à température ambiante" },
-      events: [
-        { t: "08 nov. 13:40", k: "fait", s: "Colis Express", x: "Pris en charge au hub Lille Lesquin" },
-        { t: "Depuis 5 jours", k: "fait", s: "Colis Express", x: "Aucun nouvel événement de suivi" },
-        { t: "Suggestion", k: "action", s: "PULS", x: "Ouvrir une enquête transporteur et réexpédier sans attendre" },
-      ],
-      reco: "reship",
-    },
-    {
-      id: "PLS-2465", civ: "Madame", first: "Solène", last: "Aït-Kaci", tier: "Client fidèle", since: 2022, orders: 6, ltv: 520,
-      city: "Bordeaux", district: "Bordeaux", product: "pralines", qty: 1, carrier: "Hexa Livraison", source: "detection", channel: "Aucun contact",
-      received: "09:12", emotion: "Non exprimée", incident: "52 h de transit pour 24 h prévues", incidentPts: 12,
-      occasion: "Cadeau", occasionWhen: "Date inconnue", occasionPts: 8,
-      title: "Un cadeau en transit depuis <em>deux jours</em>, sans nouvelles",
-      message: null,
-      thermal: { index: 54, why: "Retard important sur un produit moyennement sensible" },
-      events: [
-        { t: "11 nov. 07:30", k: "fait", s: "Hexa Livraison", x: "Pris en charge au hub Mérignac" },
-        { t: "13 nov. 11:30", k: "fait", s: "Hexa Livraison", x: "Toujours en tournée, 28 h de retard" },
-        { t: "Estimation", k: "risque", s: "Thermal Guard", x: "Indice thermique estimé 54 / 100" },
-        { t: "Suggestion", k: "action", s: "PULS", x: "Prévenir la cliente avant qu'elle ne s'inquiète" },
-      ],
-      reco: "reship",
-    },
-  ];
-
-  /* ---------------- Expéditions en transit (Thermal Guard) ---------------- */
-  const SHIPMENTS = [
-    { ref: "EXP-88412", product: "grandcru", city: "Nice", carrier: "Hexa Livraison", hub: "Marseille Vitrolles", hubTemp: 19, transit: 46, planned: 24 },
-    { ref: "EXP-88407", product: "glace", city: "Lyon", carrier: "TransAlpes Froid", hub: "Lyon Corbas", hubTemp: 9, transit: 20, planned: 24, coldIncident: true, caseId: "PLS-2479" },
-    { ref: "EXP-88386", product: "ganache", city: "Montpellier", carrier: "Hexa Livraison", hub: "Montpellier Fréjorgues", hubTemp: 18, transit: 38, planned: 24 },
-    { ref: "EXP-88390", product: "pralines", city: "Bordeaux", carrier: "Hexa Livraison", hub: "Mérignac", hubTemp: 13, transit: 52, planned: 24, caseId: "PLS-2465" },
-    { ref: "EXP-88399", product: "calendrier", city: "Toulouse", carrier: "Colis Express", hub: "Toulouse Blagnac", hubTemp: 15, transit: 30, planned: 24 },
-    { ref: "EXP-88381", product: "grandcru", city: "Strasbourg", carrier: "Colis Express", hub: "Strasbourg Entzheim", hubTemp: 6, transit: 22, planned: 24 },
-    { ref: "EXP-88395", product: "sables", city: "Lille", carrier: "Rapide Urbain", hub: "Lille Lesquin", hubTemp: 8, transit: 26, planned: 24 },
-    { ref: "EXP-88377", product: "tartiner", city: "Nantes", carrier: "Colis Express", hub: "Nantes Carquefou", hubTemp: 11, transit: 31, planned: 24 },
-  ];
-
-  /* ---------------- Transporteurs (90 derniers jours) ---------------- */
-  const CARRIERS = [
-    { name: "Hexa Livraison", shipments: 2890, verified: 94, unverified: 21,
-      types: [["Retard > 24 h", 41], ["Colis endommagé", 29], ["Échec de livraison", 17], ["Perte", 7]],
-      hubs: [["Marseille Vitrolles", 31], ["Mérignac", 24], ["Montpellier Fréjorgues", 22], ["Rennes Chantepie", 17]] },
-    { name: "Rapide Urbain", shipments: 4120, verified: 61, unverified: 9,
-      types: [["Échec de livraison", 26], ["Retard > 24 h", 19], ["Colis endommagé", 11], ["Perte", 5]],
-      hubs: [["Paris Gennevilliers", 38], ["Lille Lesquin", 23]] },
-    { name: "Colis Express", shipments: 6310, verified: 88, unverified: 5,
-      types: [["Retard > 24 h", 44], ["Perte", 18], ["Colis endommagé", 16], ["Échec de livraison", 10]],
-      hubs: [["Toulouse Blagnac", 30], ["Nantes Carquefou", 27], ["Strasbourg Entzheim", 31]] },
-    { name: "TransAlpes Froid", shipments: 640, verified: 11, unverified: 2,
-      types: [["Incident froid déclaré", 6], ["Retard > 24 h", 5]],
-      hubs: [["Lyon Corbas", 11]] },
-    { name: "Coursiers de la maison", shipments: 210, verified: 2, unverified: 0,
-      types: [["Retard > 1 h", 2]], hubs: [["Paris", 2]] },
-  ];
+  const { PRODUCTS, STOCK, CASES, SHIPMENTS, CARRIERS } = DATA;
 
   /* ---------------- État ---------------- */
   const state = {
     view: "desk",
-    selected: CASES[0].id,
+    selected: CASES[0]?.id ?? null,
     filter: "all",
     query: "",
     resolved: new Set(),
     work: {},    // par dossier : { gesture, opt, read, text, edited, tone }
     proof: {},   // par dossier : { slots, analyzed, conclusion }
-    proofCase: "PLS-2481",
+    proofCase: CASES[0]?.id ?? null,
     carrier: "Hexa Livraison",
     created: new Set(),
   };
@@ -221,16 +74,16 @@
   }
 
   /* ---------------- Score de criticité ---------------- */
-  const TIER_PTS = { "Client privilège": 15, "Client entreprise": 13, "Client fidèle": 10, "Nouveau client": 9, "Client standard": 5 };
-  const EMO_PTS = { "Colère": 10, "Déception": 9, "Inquiétude": 7, "Non exprimée": 5, "Neutre": 3 };
   function score(c) {
     const p = PRODUCTS[c.product];
+    if (!CRIT) return { total: 0, factors: [] };
+    const M = CRIT.max;
     const factors = [
-      ["Sensibilité produit", p.pts, 30],
-      ["Occasion et échéance", c.occasionPts, 25],
-      ["Gravité de l'incident", c.incidentPts, 20],
-      ["Relation client", TIER_PTS[c.tier] ?? 5, 15],
-      ["Émotion exprimée", EMO_PTS[c.emotion] ?? 3, 10],
+      ["Sensibilité produit", CRIT.sensitivity_points[p.level] ?? CRIT.sensitivity_points.unknown ?? 0, M.product],
+      ["Occasion et échéance", Math.min(c.occasionPts, M.occasion), M.occasion],
+      ["Gravité de l'incident", Math.min(c.incidentPts, M.incident), M.incident],
+      ["Relation client", CRIT.relationship_points[c.tier] ?? 0, M.relationship],
+      ["Émotion exprimée", CRIT.emotion_points[c.emotion] ?? 0, M.emotion],
     ];
     return { total: factors.reduce((s, f) => s + f[1], 0), factors };
   }
@@ -260,17 +113,17 @@
       ok: total >= c.qty,
       why: total >= c.qty ? `${total} en stock (Paris ${st.Paris}, Lyon ${st.Lyon})` : `Rupture de stock${st.restock ? `, réassort prévu le ${st.restock}` : ""}`,
     };
-    const inZone = COURIER_ZONES.includes(c.city);
-    const beforeCut = NOW.hour < COURIER_CUTOFF;
+    const inZone = !!COURIER && COURIER.zones.includes(c.city);
+    const beforeCut = !!COURIER && NOW.hour < COURIER.order_before_hour;
     const courier = {
       ok: inZone && beforeCut && local >= c.qty,
-      why: !inZone ? `Hors zone coursier (Paris, Lyon)` : !beforeCut ? "Après l'heure limite de 15 h" : local < c.qty ? `Pas de stock à l'entrepôt de ${c.city}` : `Stock ${c.city} : ${local}, remise avant 16 h 30`,
+      why: !COURIER ? "Aucune règle coursier configurée" : !inZone ? `Hors zone coursier (${COURIER.zones.join(", ")})` : !beforeCut ? `Après l'heure limite de ${COURIER.order_before_hour} h` : local < c.qty ? `Pas de stock à l'entrepôt de ${c.city}` : `Stock ${c.city} : ${local}, remise avant ${COURIER.delivered_before}`,
     };
-    const opts = { avoir: 0.2, half: 0.5, full: 1 };
-    const amount = Math.round(value * opts[w.opt || "avoir"]);
+    const rate = GOODWILL[w.opt || "avoir"];
+    const amount = rate == null ? 0 : Math.round(value * rate);
     const gesture = {
-      ok: true, amount,
-      needsValidation: w.opt !== "avoir" && amount > VALIDATION_THRESHOLD,
+      ok: rate != null, amount,
+      needsValidation: amount > LIMIT,
       why: `Valeur de la commande : ${euro(value)}`,
     };
     return { reship, courier, gesture, value };
@@ -297,11 +150,12 @@
     const facts = `D'après le suivi du transporteur : ${lastFact.charAt(0).toLowerCase() + lastFact.slice(1)}.`;
     let caution = "";
     if (p.heat || p.frozen) {
-      caution = `Nous ne pouvons pas garantir à distance l'état des produits. Par précaution, nous vous recommandons de ne pas les consommer s'ils vous semblent altérés.`;
+      // La seconde phrase est un garde-fou PULS : ne jamais recommander la consommation.
+      caution = `${TONE.caution_sensitive || "Nous ne pouvons pas garantir à distance l'état des produits."} Par précaution, nous vous recommandons de ne pas les consommer s'ils vous semblent altérés.`;
     }
     let action = "";
     if (w.gesture === "courier") {
-      action = `Un coursier vous apportera aujourd'hui, avant 16 h 30, une nouvelle commande « ${p.name} » préparée spécialement pour vous. Nous vous appellerons pour confirmer le créneau qui vous convient.`;
+      action = `Un coursier vous apportera aujourd'hui, avant ${COURIER?.delivered_before || ""}, une nouvelle commande « ${p.name} » préparée spécialement pour vous. Nous vous appellerons pour confirmer le créneau qui vous convient.`;
     } else if (w.gesture === "reship") {
       action = `Nous vous réexpédions ${c.qty > 1 ? "votre commande" : "un nouvel exemplaire"} ${w.opt === "express" ? "en express, pour une livraison demain" : "sous 48 h"}, sans frais. Vous n'avez rien à nous retourner.`;
     } else if (w.gesture === "gesture") {
@@ -313,7 +167,7 @@
       action = `Nous revenons vers vous très rapidement avec une solution.`;
     }
     const close = warm ? `Avec toute notre attention,` : `Bien cordialement,`;
-    return [hello, "", open, "", facts + (caution ? " " + caution : ""), "", action, "", close, "Inès Valadier, Conciergerie"].join("\n");
+    return [hello, "", open, "", facts + (caution ? " " + caution : ""), "", action, "", close, [SESSION.user, TONE.signature].filter(Boolean).join(", ")].join("\n");
   }
 
   function work(id) {
@@ -335,6 +189,7 @@
     thermal: ["Thermal Guard", "Estimer le risque de détérioration avant la réclamation."],
     proof:   ["Proof Studio", "Collecter les preuves sans effort pour le client."],
     carrier: ["Carrier Autopsy", "Identifier les défaillances logistiques sur des incidents vérifiés."],
+    config:  ["Configuration", "Entreprise, catalogue, établissements, transporteurs, politiques et équipe."],
   };
 
   function openCases() { return CASES.filter((c) => !state.resolved.has(c.id)); }
@@ -356,7 +211,7 @@
     if (!tb) { tb = document.createElement("span"); tb.className = "count"; thBtn.insertBefore(tb, $("kbd", thBtn)); }
     tb.textContent = hot; tb.hidden = hot === 0;
     window.PULSFX?.movePill();
-    window.PULSFX?.setPulse(openCases().filter((c) => score(c).total >= 70).length);
+    window.PULSFX?.setPulse(openCases().filter((c) => score(c).total >= HOT).length);
   }
 
   function go(view) {
@@ -378,11 +233,29 @@
   function render() {
     updateRail();
     const el = $("#view");
+    if (state.view === "config") {
+      const mod = window.PULS?.configView;
+      if (mod) mod.mount(el, { session: SESSION, rules: RULES, data: DATA, client: window.PULS?.client || null });
+      else el.innerHTML = `<div class="tile"><div class="empty" style="border:0"><i class="ph ph-warning"></i><strong>Module indisponible</strong>Le module Configuration n'a pas pu être chargé. Rechargez la page.</div></div>`;
+      return;
+    }
+    if (DATA.empty) { el.innerHTML = renderNoData(); afterRender(); return; }
     if (state.view === "desk") el.innerHTML = renderDesk();
     if (state.view === "thermal") el.innerHTML = renderThermal();
     if (state.view === "proof") el.innerHTML = renderProof();
     if (state.view === "carrier") el.innerHTML = renderCarrier();
     afterRender();
+  }
+
+  // Compte réel sans données opérationnelles : on le dit, sans inventer de dossiers.
+  function renderNoData() {
+    const what = { desk: "dossier", thermal: "expédition suivie", proof: "dossier ouvert", carrier: "incident transporteur" }[state.view];
+    return `<div class="tile tile-cream" style="--i:0"><div class="empty" style="border:0">
+      <i class="ph ph-tray"></i><strong>Aucun ${what} dans cet espace</strong>
+      Les dossiers, commandes et expéditions arriveront avec la création manuelle, l'import CSV puis les connexions (phases suivantes).
+      Commencez par configurer votre entreprise.
+      <div style="margin-top:16px"><button class="btn btn-ink" data-go="config"><i class="ph ph-sliders-horizontal"></i>Ouvrir la configuration</button></div>
+    </div></div>`;
   }
 
   function afterRender() {
@@ -405,7 +278,7 @@
   function filteredQueue() {
     const q = state.query.trim().toLowerCase();
     return openCases()
-      .filter((c) => state.filter === "all" || (state.filter === "hot" && score(c).total >= 70) || (state.filter === "detect" && c.source === "detection"))
+      .filter((c) => state.filter === "all" || (state.filter === "hot" && score(c).total >= HOT) || (state.filter === "detect" && c.source === "detection"))
       .filter((c) => !q || [fullName(c), c.id, c.city, PRODUCTS[c.product].name, c.carrier].join(" ").toLowerCase().includes(q))
       .sort((a, b) => score(b).total - score(a).total);
   }
@@ -419,7 +292,7 @@
       const s = score(c).total;
       const p = PRODUCTS[c.product];
       return `<li><button class="q-item ${c.id === state.selected ? "is-sel" : ""} ${state.created.has(c.id) ? "is-new" : ""}" data-case="${c.id}" style="--i:${i}">
-        <span class="q-score ${s >= 70 ? "hot" : ""}">${s}</span>
+        <span class="q-score ${s >= HOT ? "hot" : ""}">${s}</span>
         <span class="q-main">
           <span class="q-top"><span class="q-name">${fullName(c)}</span><span class="q-time">${c.received}</span></span>
           <span class="q-prod">${p.name}</span>
@@ -487,9 +360,9 @@
 
       <section class="tile tile-ink c-score" style="--i:1">
         <div class="tile-head" style="width:100%;margin-bottom:0"><h3>Criticité</h3><span class="hint">sur 100</span></div>
-        <div class="ring ${sc.total >= 70 ? "hot" : ""}">
+        <div class="ring ${sc.total >= HOT ? "hot" : ""}">
           <svg viewBox="0 0 152 152" aria-hidden="true"><circle class="trk" cx="76" cy="76" r="${R}" fill="none" stroke-width="10"/><circle class="val" cx="76" cy="76" r="${R}" fill="none" stroke-width="10" stroke-dasharray="${C}" stroke-dashoffset="${C}" data-off="${off}"/></svg>
-          <div class="ring-num"><b data-count="${sc.total}">0</b><span>${sc.total >= 70 ? "Prioritaire" : sc.total >= 50 ? "À traiter aujourd'hui" : "Standard"}</span></div>
+          <div class="ring-num"><b data-count="${sc.total}">0</b><span>${sc.total >= HOT ? "Prioritaire" : sc.total >= 50 ? "À traiter aujourd'hui" : "Standard"}</span></div>
         </div>
         <div class="factors">
           ${sc.factors.map((f, i) => `<div class="factor" style="--i:${i}"><span class="muted">${f[0]}</span><span class="pts">${f[1]} / ${f[2]}</span><span class="bar" style="width:${(f[1] / f[2]) * 100}%"></span></div>`).join("")}
@@ -508,7 +381,7 @@
       </section>
 
       <section class="tile c-order" style="--i:3">
-        <div class="product"><span class="swatch ${p.pts >= 26 ? "sens-high" : ""}"><i class="ph ${p.icon}"></i></span><div><b>${p.name}</b><br><span class="muted">${c.qty} × ${euro(p.price)}, ${p.cat.toLowerCase()}</span></div></div>
+        <div class="product"><span class="swatch ${["high", "critical"].includes(p.level) ? "sens-high" : ""}"><i class="ph ${p.icon}"></i></span><div><b>${p.name}</b><br><span class="muted">${c.qty} × ${euro(p.price)}, ${p.cat.toLowerCase()}</span></div></div>
         <dl class="kv">
           <dt>Occasion</dt><dd>${c.occasion}</dd>
           <dt>Échéance</dt><dd>${c.occasionWhen}</dd>
@@ -565,12 +438,12 @@
         </div></div>
         <div class="rule ok"><i class="ph ph-coins"></i>Montant : <b>${euro(r.gesture.amount)}</b></div>
         ${r.gesture.needsValidation
-          ? `<div class="rule warn"><i class="ph ph-seal-warning"></i>Au-delà de ${euro(VALIDATION_THRESHOLD)}, un responsable doit valider ce geste.</div>`
+          ? `<div class="rule warn"><i class="ph ph-seal-warning"></i>Au-delà de ${euro(LIMIT)}, votre délégation, un responsable doit valider ce geste.</div>`
           : `<div class="rule ok"><i class="ph ph-check-circle"></i>Dans la délégation du conseiller</div>`}
       </div>`;
     } else if (w.gesture === "courier") {
       panel = `<div class="g-panel">
-        <div class="rule ok"><i class="ph ph-clock"></i>Commande coursier possible jusqu'à 15 h, il est ${NOW.label.split(", ")[1]}</div>
+        <div class="rule ok"><i class="ph ph-clock"></i>Commande coursier possible jusqu'à ${COURIER?.order_before_hour} h, il est ${NOW.label.split(", ")[1]}</div>
         <div class="rule ok"><i class="ph ph-check-circle"></i>Créneau confirmé uniquement après accord du client</div>
         <div class="rule ok"><i class="ph ph-pen-nib"></i>Mot manuscrit joint par la boutique</div>
       </div>`;
@@ -605,7 +478,7 @@
           </div>
           <button class="btn btn-line" data-regen><i class="ph ph-sparkle"></i>Régénérer</button>
         </div>
-        <label class="field-label" for="reply-text">Brouillon proposé par l'assistant, modifiable</label>
+        <label class="field-label" for="reply-text">Brouillon issu d'un modèle de texte, sans IA dans cette version, modifiable</label>
         <textarea id="reply-text" class="reply" spellcheck="true"></textarea>
         <div class="reply-help"><span>${w.edited ? "Modifié par le conseiller" : "Rédigé à partir des faits vérifiés uniquement"}</span><span id="charcount"></span></div>
       </div>
@@ -855,7 +728,7 @@
         <div class="steps" aria-hidden="true">${[0, 1, 2].map((i) => `<span class="${pr.slots[i] ? "on" : ""}"></span>`).join("")}</div>
         <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">
           <button class="btn btn-line" data-sim-photos ${filled === 3 ? "disabled" : ""}><i class="ph ph-images"></i>Simuler l'envoi du client</button>
-          <button class="btn btn-ink" data-analyze ${filled === 3 && !pr.analyzed && !pr.analyzing ? "" : "disabled"}><i class="ph ph-scan"></i>Lancer l'observation</button>
+          <button class="btn btn-ink" data-analyze ${filled === 3 && !pr.analyzed && !pr.analyzing ? "" : "disabled"}><i class="ph ph-scan"></i>Afficher l'exemple</button>
         </div>
       </section>
 
@@ -868,11 +741,11 @@
       </section>
 
       <section class="tile span-3" style="--i:2">
-        <div class="tile-head"><h3>Observations assistées</h3><span class="lvl lvl-risque">Non certifiant</span></div>
+        <div class="tile-head"><h3>Observations</h3><span class="lvl lvl-risque">Exemple simulé</span></div>
         ${pr.analyzing ? `<div class="skel"><span></span><span></span><span></span><span></span></div>`
           : pr.analyzed ? `<ul class="obs">${observations(c).map((o, i) => `<li style="--i:${i}"><span>${o[0]}</span><span class="tag ${o[1] === "À confirmer" ? "tag-bx" : ""}">${o[1]}</span></li>`).join("")}</ul>`
           : `<div class="empty" style="padding:24px"><i class="ph ph-scan"></i>Les observations apparaîtront ici une fois les trois photos reçues.</div>`}
-        <div class="caveat" style="margin-top:14px"><i class="ph ph-warning"></i>L'analyse d'image décrit ce qui est visible. Elle ne peut pas certifier qu'un produit est impropre ni qu'une chaîne du froid a été rompue.</div>
+        <div class="caveat" style="margin-top:14px"><i class="ph ph-warning"></i>Aucune analyse d'image n'est effectuée dans cette version : ces observations sont des exemples fixes. Une analyse future décrira ce qui est visible, sans jamais pouvoir certifier qu'un produit est impropre ni qu'une chaîne du froid a été rompue.</div>
       </section>
 
       <section class="tile tile-bx span-3" style="--i:3">
@@ -1015,7 +888,7 @@
       pr.attached = true;
       const label = { ok: "Preuves jugées suffisantes", more: "Photo complémentaire demandée", qc: "Transmis au contrôle qualité" }[pr.conclusion];
       const at = c.events.findIndex((x) => x.k !== "fait");
-      c.events.splice(at < 0 ? c.events.length : at, 0, { t: "13 nov. " + NOW.label.split(", ")[1], k: "fait", s: "Proof Studio", x: `3 photos reçues du client. ${label}` });
+      c.events.splice(at < 0 ? c.events.length : at, 0, { t: NOW.label, k: "fait", s: "Proof Studio", x: `3 photos reçues du client. ${label}` });
       toast("Preuves jointes", `${c.id} : ${label.toLowerCase()}.`, "ph-paperclip");
       return render();
     }
@@ -1072,14 +945,14 @@
     const k = e.key.toLowerCase();
     if (gPending) {
       gPending = false; clearTimeout(gTimer);
-      const map = { d: "desk", t: "thermal", p: "proof", c: "carrier" };
+      const map = { d: "desk", t: "thermal", p: "proof", c: "carrier", f: "config" };
       if (map[k]) { e.preventDefault(); go(map[k]); }
       return;
     }
     if (k === "g") { gPending = true; gTimer = setTimeout(() => (gPending = false), 900); return; }
     if (k === "/") { e.preventDefault(); $("#search").focus(); return; }
     if (k === "?") { $("#help").showModal(); return; }
-    if (state.view !== "desk" || !state.selected) return;
+    if (state.view !== "desk" || !state.selected || DATA.empty) return;
     if (k === "j") moveSelection(1);
     if (k === "k") moveSelection(-1);
     if (k === "1") selectGesture("reship");
@@ -1088,5 +961,5 @@
     if (k === "r") { e.preventDefault(); const ta = $("textarea.reply"); ta?.focus(); ta?.scrollIntoView({ block: "center", behavior: reduceMotion ? "auto" : "smooth" }); }
   });
 
-  render();
-})();
+  go(SESSION.startView || "desk");
+};

@@ -1,5 +1,5 @@
 // Génère les captures réelles de PULS App utilisées par le site (puls/assets/).
-// Usage : depuis puls/, servir le dossier (python3 -m http.server 8765) puis `node site-src/shots.js`.
+// Usage : depuis puls/, servir le dossier (python3 -m http.server 8765) puis `node site-src/shots.cjs`.
 const { chromium } = require("playwright");
 const path = require("path");
 const OUT = path.join(__dirname, "..", "assets");
@@ -9,7 +9,7 @@ const BASE = process.env.PULS_BASE || "http://localhost:8765";
   const b = await chromium.launch();
   const ctx = await b.newContext({ viewport: { width: 1440, height: 1000 }, reducedMotion: "reduce" });
   await ctx.addInitScript(() => sessionStorage.setItem("puls-session", JSON.stringify({
-    workspace: "Maison Valcour", user: "Inès Valadier", role: "Responsable SAV", mode: "demo",
+    workspace: "Maison Valcour", user: "Inès Valadier", role: "Collaboratrice", roleKey: "agent", mode: "demo",
   })));
   const p = await ctx.newPage();
   await p.goto(BASE + "/app/");

@@ -175,12 +175,60 @@ Auto-Triage (extraction, rattachement, doublons, informations manquantes) sur le
 ### Phase 5 : Performance
 Indicateurs calculés depuis l'historique : entrées, traités, en attente, première réponse, résolution, réouverture, retards, automatisation, coûts ; économies **estimées** séparées des économies **réalisées** ; indemnisations récupérées seulement si confirmées.
 
-## 7. Décisions à valider
+## 7. Décisions validées
 
-1. **Projet Supabase dédié à PULS**, distinct d'Arbor. Recommandé.
-2. **Socle technique de l'app** : rester en JavaScript modulaire sans framework (continuité, aucun build) ou passer à React + TypeScript + Vite (typage, composants, adapté aux écrans de configuration ; demande une compilation avant publication sur GitHub Pages). Recommandation : TypeScript sans réécriture brutale, écran par écran, en commençant par le module Configuration.
-3. **Fournisseur du modèle d'IA** pour les réponses et le tri (côté serveur uniquement).
-4. **Identité légale** pour la page Confidentialité et les contrats (responsable du traitement, contact).
+| Décision | Choix |
+|---|---|
+| Backend | Projet Supabase dédié à PULS : `wqqxthpcqczmwigokhus` |
+| Technologie | TypeScript progressif, sans réécriture ; premier module : Configuration Engine |
+| IA | OpenAI, exclusivement côté serveur, derrière une abstraction de fournisseurs |
+| Identité légale | Rien d'inventé : état « Informations légales à compléter » jusqu'à fourniture ; mise en production bloquée sans elle |
+
+### Vérification de compatibilité (faite avant toute modification)
+
+| Contrainte existante | Conséquence | Solution retenue |
+|---|---|---|
+| App en scripts classiques (variables globales), sans bundler | Un module TypeScript ne peut pas être importé par `puls.js` | `tsc` compile `app/src` en modules ES natifs dans `app/dist` ; ils s'enregistrent dans l'espace de noms partagé `window.PULS`. `shell.js` attend l'événement `puls:config-ready` avant de démarrer |
+| GitHub Pages ne compile rien | La sortie TypeScript doit exister dans le dépôt | `app/dist` est versionné ; `npm run check:dist` (CI) échoue si elle n'est pas à jour |
+| supabase-js chargé par CDN (UMD) | Pas d'import d'exécution côté TypeScript | `import type` uniquement (paquet officiel en dépendance de développement, version identique au CDN : 2.45.4) |
+| Fonctions serveur Supabase en Deno, Deno absent du poste et de la CI | Tests impossibles en Deno ici | Logique écrite sans dépendance à Deno (`handler.ts`, `_shared/ai`), testée sous Node 22 (types retirés à l'exécution) ; seul `index.ts` dépend de Deno |
+| Node retire les types sans les compiler | Interdit certaines syntaxes TypeScript (propriétés de paramètres, énumérations) | Champs explicites dans les classes ; vérifié par les tests |
+| Ajout de `"type": "module"` dans `puls/package.json` | Les scripts Playwright en CommonJS cassaient | Renommés en `.cjs` |
+| Session en `sessionStorage` (règle déjà en place) | supabase-js utilise `localStorage` par défaut | Stockage de session imposé à `sessionStorage`, clé `puls-auth` |
+| Arbor utilise déjà le même dépôt et un autre projet Supabase | Risque de mélange | Migrations PULS dans `puls/db`, fonctions dans `puls/supabase`, projet distinct |
+
+### Architecture IA
+
+```
+Navigateur (conseiller) ── POST /functions/v1/ai { task, company_id, input } + jeton de session
+        │
+        ▼
+Fonction « ai » (Deno, Supabase)
+  index.ts      : branchement (Supabase, secrets, CORS)
+  handler.ts    : jeton vérifié, rôle lu avec les droits de l'utilisateur (RLS), entrées validées et minimisées,
+                  quota mensuel par entreprise, journal sans contenu (ai_calls)
+  _shared/ai/
+    provider.ts : interface AIProvider (sortie structurée JSON Schema), erreurs typées
+    openai.ts   : implémentation OpenAI (Chat Completions, json_schema strict)
+    registry.ts : choix par AI_PROVIDER ; ajouter Anthropic = un fichier + une ligne
+    tasks.ts    : tri (niveau 1) et rédaction (niveau 2) : consignes, schémas, contrôles après génération
+```
+
+Garde-fous vérifiés par les tests : références et e-mails absents du message écartés ; montants non autorisés, affirmations sanitaires et phrase de prudence manquante signalés ; brouillon jamais envoyé (`sent: false`, `requires_review: true`) ; clé et détail des erreurs du fournisseur jamais renvoyés ; aucun contenu dans le journal.
+
+La fonction est écrite et testée mais **pas encore déployée** ni branchée dans l'interface : il faut la clé OpenAI et le modèle (secrets Supabase), puis l'intégration dans Rescue Mode (phase 3).
+
+## 8. État d'avancement de la phase 2
+
+| Élément | État |
+|---|---|
+| Migrations 001 à 003 | Écrites, 60 tests sur PostgreSQL 16 ; **à appliquer** sur le projet Supabase (`db/README.md`) |
+| Comptes (inscription, connexion, mot de passe oublié) | Branchés sur Supabase Auth ; connexion réelle testée (refus d'identifiants inconnus) |
+| Règles sorties du code (P1, P2) | Délégation, coursier, gestes, criticité, ton lus depuis les politiques ; site et app alignés (60 / 150 / 250 / 1 000 €) |
+| Horloge réelle (P6), libellés honnêtes (P4), code mort (P9) | Faits |
+| Module Configuration (TypeScript) | Organisation, établissements, catalogue, transporteurs, stocks, politiques versionnées, équipe, journal |
+| Restant de P1 | Modèle d'indice thermique (pondérations) encore dans le code : à transformer en politique avec Thermal Guard (phase 3) |
+| Import CSV | Non commencé |
 
 ## Commandes
 

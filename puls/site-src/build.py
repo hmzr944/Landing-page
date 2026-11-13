@@ -102,7 +102,7 @@ def footer(root):
   </div>
 </footer>"""
 
-def page(path, title, desc, body, active="", root="", bare=False):
+def page(path, title, desc, body, active="", root="", bare=False, scripts=()):
     head = f"""<!doctype html>
 <html lang="fr" class="no-js">
 <head>
@@ -128,7 +128,7 @@ def page(path, title, desc, body, active="", root="", bare=False):
         content = nav(root, active) + f'\n<main id="contenu">{body}</main>\n' + footer(root)
     out = head + content + f"""
 <script src="{root}config.js"></script>
-<script src="{root}site.js"></script>
+""" + "".join(f'<script src="{x}"></script>\n' for x in scripts) + f"""<script src="{root}site.js"></script>
 </body>
 </html>
 """
@@ -729,7 +729,8 @@ def privacy():
     <p class="muted">Vous pouvez demander l'accès, la rectification ou la suppression de vos données, ainsi que vous opposer à leur traitement, en écrivant à l'adresse de contact indiquée ci-dessous. Vous pouvez aussi saisir la CNIL.</p>
     <h3>Mesure d'audience et cookies</h3>
     <p class="muted">Ce site ne dépose aucun cookie de mesure d'audience ni de publicité.</p>
-    <div class="notice"><i class="ph ph-info"></i><span>Responsable du traitement et adresse de contact : à compléter avant la mise en ligne publique du site.</span></div>
+    <h3>Responsable du traitement</h3>
+    <div id="legal-identity"><div class="notice"><i class="ph ph-info"></i><span><b>Informations légales à compléter.</b> Le responsable du traitement et l'adresse de contact seront indiqués avant toute mise en production avec des données personnelles réelles.</span></div></div>
   </div>
 </div></section>"""
     page("confidentialite.html", "Confidentialité : PULS", "Politique de confidentialité du site PULS.", body, "")
@@ -750,11 +751,23 @@ def login():
       <p class="lede">Accédez à votre espace PULS.</p>
       <div class="notice" id="logout-note" hidden style="margin-top:20px"><i class="ph ph-check-circle"></i><span>Vous êtes déconnecté. La session a été effacée de cet onglet.</span></div>
 
-      <form id="account-form" style="margin-top:28px" novalidate>
-        <div class="field"><label for="l-email">E-mail professionnel</label><input id="l-email" type="email" autocomplete="username" disabled></div>
-        <div class="field" style="margin-top:16px"><label for="l-pass">Mot de passe</label><input id="l-pass" type="password" autocomplete="current-password" disabled></div>
-        <button class="btn btn-dark btn-block" type="submit" style="margin-top:20px" disabled>Se connecter</button>
-        <p class="status-line" id="account-status"><i class="ph ph-info"></i><span>Les comptes nominatifs ne sont pas encore ouverts : l'authentification serveur est en cours de développement.</span></p>
+      <div class="notice" id="auth-note" hidden style="margin-top:20px"><i class="ph ph-info"></i><span></span></div>
+      <form id="account-form" style="margin-top:28px" novalidate data-mode="signin">
+        <div class="seg-switch" role="tablist" aria-label="Mode">
+          <button type="button" role="tab" data-mode="signin" aria-selected="true">Se connecter</button>
+          <button type="button" role="tab" data-mode="signup" aria-selected="false">Créer un compte</button>
+        </div>
+        <div class="field" style="margin-top:20px"><label for="l-email">E-mail professionnel</label><input id="l-email" name="email" type="email" autocomplete="username" required></div>
+        <div class="field" style="margin-top:16px" id="pass-field"><label for="l-pass">Mot de passe</label><input id="l-pass" name="password" type="password" autocomplete="current-password" required minlength="8"><span class="help" id="pass-help" hidden>8 caractères minimum.</span></div>
+        <button class="btn btn-dark btn-block" type="submit" style="margin-top:20px" id="account-submit">Se connecter</button>
+        <p class="small" style="margin-top:12px"><button type="button" class="link-btn" id="forgot">Mot de passe oublié</button></p>
+        <p class="status-line" id="account-status" role="status" aria-live="polite"></p>
+      </form>
+      <form id="reset-form" style="margin-top:28px" hidden novalidate>
+        <h2 style="font-size:22px">Nouveau mot de passe</h2>
+        <div class="field" style="margin-top:16px"><label for="l-new">Nouveau mot de passe</label><input id="l-new" type="password" autocomplete="new-password" required minlength="8"><span class="help">8 caractères minimum.</span></div>
+        <button class="btn btn-dark btn-block" type="submit" style="margin-top:20px">Enregistrer et entrer</button>
+        <p class="status-line" id="reset-status" role="status" aria-live="polite"></p>
       </form>
 
       <div class="divider">ou</div>
@@ -770,7 +783,8 @@ def login():
     </div>
   </main>
 </div>"""
-    page("connexion.html", "Connexion : PULS", "Connexion à l'espace professionnel PULS.", body, bare=True)
+    page("connexion.html", "Connexion : PULS", "Connexion à l'espace professionnel PULS.", body, bare=True,
+         scripts=("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js", "supa.js"))
 
 if __name__ == "__main__":
     home(); platform(); sectors(); integrations(); security(); demo(); privacy(); login()
