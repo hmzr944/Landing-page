@@ -36,6 +36,11 @@ const fresh = () => ({
   retention: 365,
   revals: [{ id: 'rv1', user_id: 'u-bob', skill_id: 'sk1', knowledge_id: 'k-retour', new_knowledge_id: null, change_id: 'ch1', change_item_id: 'it1', reason: 'La règle « Délai de retour » a changé : maintenant « 14 jours ».', status: 'requires_revalidation', created_at: iso(0) }],
   feedback: [], no010: false, feedbackFail: false,
+  // Arbor League (011) : réponses simulées des fonctions de la base (la logique réelle est testée par tests/db-rls.js, section L)
+  no011: false,
+  awards: [{ user_id: 'u-bob', trophy: 'premiere_pousse', knowledge_id: 'k-autonomie', evidence_id: 1, at: iso(3) }, { user_id: 'u-chloe', trophy: 'resilience', knowledge_id: 'k-batterie', evidence_id: 5, at: iso(1) }],
+  ranks: { 'u-bob': 2, 'u-chloe': 2 },
+  cordees: [], mentorships: [], season: null, challenges: [], leagueCalls: [],
   oos: [{ id: 'oo1', user_id: 'u-chloe', claim: 'On peut aussi passer par la borne en caisse 3', context: 'simulation:client', rationale: 'pratique de terrain plausible', status: 'a_examiner', created_at: iso(1) }],
 });
 let db = fresh();
@@ -82,6 +87,34 @@ function rpc(me, name, b) {
   if (name === 'erase_my_org_data') { const n = db.evidence.filter((e) => e.user_id === me.id).length; db.evidence = db.evidence.filter((e) => e.user_id !== me.id); return { evidence: n, simulations: 1, actions: 1 }; }
   if (name === 'set_retention') { if (me.role !== 'admin') return [403, { message: 'accès refusé' }]; db.retention = b.p_days; return null; }
   if (name === 'create_invitation') return 'ab'.repeat(24);
+  if (/^(my_league|league_)/.test(name)) {
+    if (db.no011) return [404, { code: 'PGRST202', message: `Could not find the function public.${name}` }];
+    db.leagueCalls.push([me.id, name, b]);
+    const memberIds = Object.values(U).map((u) => u.id);
+    if (name === 'my_league') {
+      const mine = db.awards.filter((a) => a.user_id === me.id);
+      const K = { 'k-autonomie': 'Autonomie de l’Alto 500', 'k-batterie': 'Batterie endommagée', 'k-retour': 'Délai de retour' };
+      return { rank: db.ranks[me.id] || 1, applied: mine.length ? 1 : 0, durable: mine.filter((a) => a.trophy === 'feuille_or').length, transfer: 0,
+        next: { rank: (db.ranks[me.id] || 1) + 1, label: 'Arbuste', min_applied: 3, min_durable: 1, min_transfer: 0 },
+        awards: mine.map((a) => ({ trophy: a.trophy, knowledge: K[a.knowledge_id] || null, knowledge_id: a.knowledge_id, evidence_id: a.evidence_id, evidence: { activity: 'simulation', context: 'simulation:client', at: a.at }, at: a.at })), ranks: [] };
+    }
+    if (name === 'league_board') {
+      return { members: Object.values(U).map((u) => ({ user_id: u.id, name: u.email.split('@')[0], rank: db.ranks[u.id] || 1,
+          trophies: Object.values(db.awards.filter((a) => a.user_id === u.id).reduce((acc, a) => { (acc[a.trophy] = acc[a.trophy] || { trophy: a.trophy, count: 0, last: a.at }).count++; return acc; }, {})), season_awards: 0 })),
+        cordees: db.cordees, season: db.season, challenges: db.challenges, past_seasons: [] };
+    }
+    const lead2 = ['admin', 'manager'].includes(me.role);
+    if (!lead2) return [403, { message: 'accès refusé' }];
+    if (name === 'league_save_cordee') { const c = { id: `c${db.cordees.length + 1}`, name: b.p_name, kind: b.p_kind, members: (b.p_members || []).filter((x) => memberIds.includes(x)).length, member_ids: (b.p_members || []).filter((x) => memberIds.includes(x)), trophies: 0, applied: 0 }; db.cordees.push(c); return c.id; }
+    if (name === 'league_start_mentorship') {
+      if (b.p_mentor === b.p_mentee) return [400, { message: 'un mentor accompagne une autre personne' }];
+      if (!db.awards.some((a) => a.user_id === b.p_mentor)) return [400, { message: 'le mentor doit avoir appliqué cette connaissance' }];
+      const m = { id: `m${db.mentorships.length + 1}`, mentor_id: b.p_mentor, mentee_id: b.p_mentee, knowledge_id: b.p_knowledge, status: 'actif', started_at: new Date().toISOString() }; db.mentorships.push(m); return m.id;
+    }
+    if (name === 'league_create_season') { db.season = { id: 'se1', name: b.p_name, starts_at: b.p_starts, ends_at: b.p_ends }; return 'se1'; }
+    if (name === 'league_create_challenge') { db.challenges.push({ id: `ch${db.challenges.length + 1}`, title: b.p_title, cordee_id: b.p_cordee, target_ratio: b.p_ratio, achieved_at: null, knowledge: ['Délai de retour'] }); return 'ok'; }
+    return [404, { message: `rpc inconnue ${name}` }];
+  }
   if (name === 'review_out_of_scope') { if (!['admin', 'manager', 'expert'].includes(me.role)) return [403, { message: 'accès refusé' }]; db.oos.find((x) => x.id === b.p_id).status = b.p_status; return null; }
   if (name === 'cancel_revalidation') { if (!lead) return [403, { message: 'accès refusé' }]; db.revals.find((x) => x.id === b.p_id).status = 'annulee'; return null; }
   return [404, { message: `rpc inconnue ${name}` }];
@@ -127,6 +160,8 @@ function handle(r) {
     }
     return ok(db.feedback.filter((f) => f.user_id === me.id || (f.org_id === ORG && lead)));
   }
+  if (p === '/rest/v1/league_mentorships') return db.no011 ? ok({ code: 'PGRST205', message: "Could not find the table 'public.league_mentorships'" }, 404) : ok(db.mentorships);
+  if (p === '/rest/v1/source_versions' && eq('source_id')) return ok([{ id: 'v1', version: 1, page_count: 3 }, { id: 'v2', version: 2, page_count: 3 }].filter((v) => !u.searchParams.get('version') || `eq.${v.version}` === u.searchParams.get('version')));
   if (p === '/rest/v1/skill_revalidations') return db.no008 ? ok(MISSING, 404) : ok(db.revals.filter((r) => lead || r.user_id === me.id));
   if (p === '/rest/v1/out_of_scope_knowledge') return db.no008 ? ok(MISSING, 404) : ok(db.oos.filter((r) => ['admin', 'manager', 'expert'].includes(me.role) || r.user_id === me.id));
   if (p === '/rest/v1/organizations') return ok([{ retention_days: db.retention }]);

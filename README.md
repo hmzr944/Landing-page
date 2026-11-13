@@ -170,7 +170,12 @@ node tests/explore.js
 node tests/pdf-structure.js
 node tests/foundations.js
 node tests/tutor.js
+node tests/org-setup.js
+node tests/league.js
+node tests/org-shell.js
 ```
+
+Les suites Business (`tests/org*.js`, `tests/league.js`, `tests/feedback.js`) simulent Supabase ; `tests/db-rls.js` rejoue les migrations sur un PostgreSQL local.
 
 `tests/data-safety.js` sert le dépôt sur un port local et vérifie : données illisibles conservées, copie de secours, alerte de stockage plein, sauvegarde et restauration complètes, absence de doublons, liens `javascript:` neutralisés, écriture à la fermeture, et aucune erreur JavaScript sur les écrans principaux.
 

@@ -108,3 +108,37 @@ désavantagé.
 **Double voile** : les pairs voient rangs, trophées, cordées et défis (fonction `league_board`, sans preuve ni erreur).
 La personne voit ses trophées avec leur preuve source. Le manager voit compétences, progression, besoins de formation
 et trophées ; l'interface ne lui montre plus les fausses certitudes individuelles (voir A1).
+
+## F. Réalisation et validation (v48)
+**Livré** : navigation par intention (`js/org.js` `navOf`, 5 rubriques au plus, Paramètres en icône), Cockpit, Mon équipe,
+Base de savoir, Développer (Diagnostiquer / Entraîner), Mon apprentissage (`js/org-hub.js`) ; Setup Express
+(`js/org-setup.js`, `js/textpdf.js`) ; arrivée collaborateur en un écran et accueil d'action (`js/org-onboarding.js`,
+`js/league.js`) ; Canopée, trophées avec preuve, cordées, mentorat, saisons et défis (`js/league.js`) ;
+migration `011_league.sql` (moteur dans la base). Les anciens écrans restent joignables par leur adresse
+(suivi, intelligence, documents, compétences, scénarios, aperçu, paramètres) ; l'assistant détaillé reste dans
+Paramètres et à `#/org/nouvelle/detaillee`.
+
+**Choix faits pendant la réalisation**
+- Une règle écrite devient un PDF minimal produit dans le navigateur (`TextPdf`), puis suit exactement le chemin d'un
+  document importé : dépôt, extraction, vérification de la provenance par le serveur sur le fichier stocké.
+  Aucune exception de provenance n'est créée pour le Setup Express.
+- « Tout valider » appelle `set_knowledge_status` carte par carte : la base refuse toute carte dont l'extrait n'a pas
+  été retrouvé (009) et la raison s'affiche sur la carte. Une carte exclue est marquée « rejetée » (décision explicite).
+- Les compétences proposées partent des seules connaissances validées.
+- Cockpit et Mon équipe tolèrent une table absente (migration non appliquée : état « pas encore de données ») mais
+  affichent toute autre erreur (réseau, droits) au lieu d'un faux vide.
+- Double voile, option 1 (interface) : côté responsable, « fausse certitude » et « à retravailler » deviennent
+  « À renforcer ». L'option 2 (voile dans la base) reste à décider après le pilote.
+- Le Cockpit reprend les actions de l'ancienne vue d'ensemble (revalidations, angle mort, connaissances de terrain
+  hors référentiel) ; le diagnostic et le client mystère restent proposés au manager dans « Entraîner ».
+
+**Tests (locaux, base et serveur simulés ou PostgreSQL 16 local)**
+| Suite | Vérifie |
+|---|---|
+| `tests/org-setup.js` | les 3 étapes, double clic, règle écrite en PDF, cartes, modifier, exclure, provenance refusée, compétences, invitation, reprise |
+| `tests/league.js` | Canopée, trophées et preuve, tableau sans fragilité, cordées, mentorat (règles), saison et défi, sans 011 |
+| `tests/org-shell.js` | navigation par rôle (5 rubriques), Cockpit, double voile, accueil collaborateur, Explorer |
+| `tests/db-rls.js` section L | moteur League réel dans PostgreSQL (dates des preuves, rang qui ne baisse pas, anti-collusion, board sans erreur) |
+
+**Ce qui reste à vérifier en production** (impossible ici sans compte ni base réelle) : migration 011 appliquée,
+rattrapage des trophées des preuves existantes, Setup Express avec la vraie fonction `extraire` sur une règle écrite.
