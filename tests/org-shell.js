@@ -83,11 +83,13 @@ const db = () => M.state.db;
     await go(page, `#/org/${ORG}/developper/entrainer`, 1300);
     check('B4 accès conservés dans « Développer » (client mystère, diagnostic) et « Mon équipe » dans la navigation', !!(await page.$('#app a[href$="/mystere"]')) && !!(await page.$('#app a[href$="/diagnostic"]')) && !!(await page.$('.org-tabs a[href$="/equipe"]')));
     await go(page, `#/org/${ORG}`, 1300);
-    const box = await page.evaluate(() => { const h = document.querySelector('.org-head').getBoundingClientRect(), s = document.querySelector('#app > .sec').getBoundingClientRect(); return { pos: getComputedStyle(document.querySelector('.org-head')).position, hr: h.right, sl: s.left, dir: getComputedStyle(document.querySelector('.org-tabs')).flexDirection }; });
+    const box = await page.evaluate(() => { const h = document.querySelector('.org-head').getBoundingClientRect(), s = document.querySelector('#app > .pg, #app > .sec').getBoundingClientRect(); return { pos: getComputedStyle(document.querySelector('.org-head')).position, hr: h.right, sl: s.left, dir: getComputedStyle(document.querySelector('.org-tabs')).flexDirection }; });
     check('B5 ordinateur : barre latérale fixe à gauche, le contenu commence après elle', box.pos === 'fixed' && box.dir === 'column' && box.hr <= box.sl, JSON.stringify(box));
     if (process.env.ARBOR_SHOTS) await page.screenshot({ path: path.join(process.env.ARBOR_SHOTS, 'xp-overview.png'), fullPage: true });
-    await page.click('[data-org-space]'); await wait(page, 500);
-    check('B6 « Changer d’espace » ouvre le choix des espaces', /Mes espaces/.test(await page.textContent('#modal')));
+    // un seul sélecteur d'espace sur ordinateur (D14) : en tête de la barre latérale
+    await page.click('[data-space-menu]'); await wait(page, 300);
+    check('B6 le sélecteur d’espace (barre latérale) ouvre le choix des espaces', /Espace personnel/.test(await page.textContent('.desk-menu')) && /Magasin de Lyon/.test(await page.textContent('.desk-menu')));
+    await page.keyboard.press('Escape');
     await ctx.close();
   }
 

@@ -173,6 +173,8 @@ node tests/tutor.js
 node tests/org-setup.js
 node tests/league.js
 node tests/org-shell.js
+node tests/org-desktop.js
+ARBOR_SHOTS=/tmp/captures node tests/desktop-shots.js   # captures 1366, 1440, 1920 et téléphone
 ```
 
 Les suites Business (`tests/org*.js`, `tests/league.js`, `tests/feedback.js`) simulent Supabase ; `tests/db-rls.js` rejoue les migrations sur un PostgreSQL local.
