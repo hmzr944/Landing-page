@@ -4,9 +4,13 @@ Projet : `https://wqqxthpcqczmwigokhus.supabase.co` (dédié à PULS, distinct d
 L'adresse et la clé *publishable* figurent dans `puls/config.js` : elles sont publiques par conception.
 **Ne jamais** mettre la clé serveur (*secret* / *service_role*) ni la clé OpenAI dans un fichier du dépôt.
 
-## 1. Appliquer les migrations (une fois, dans l'ordre)
+## 1. Installer la base (une fois)
 
-Tableau de bord Supabase, puis **SQL Editor**, puis **New query** : coller le contenu du fichier, puis **Run**.
+**Le plus simple** : le fichier `setup.sql` regroupe les trois migrations. Tableau de bord Supabase, puis **SQL Editor**,
+puis **New query** : coller tout le contenu de `setup.sql`, puis **Run**. Message attendu : « Success. No rows returned ».
+À n'exécuter qu'une fois : une seconde exécution échoue (« type already exists ») sans rien abîmer.
+
+Détail des migrations regroupées, dans l'ordre :
 
 1. `migrations/001_configuration_engine.sql` : entreprises, rôles, organisation, catalogue, établissements, transporteurs, stocks, politiques versionnées, dossiers, actions, journal d'audit, RLS.
 2. `migrations/002_onboarding.sql` : création d'entreprise, gestion des membres, configuration de démonstration.

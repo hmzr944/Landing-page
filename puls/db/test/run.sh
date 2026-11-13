@@ -21,3 +21,10 @@ for t in "$DIR"/*_test.sql; do
   for f in "$DIR"/../migrations/*.sql; do run "${PSQL[@]}" -d "$DB" -f "$f"; done
   run "${PSQL[@]}" -d "$DB" -f "$t"
 done
+
+# Le fichier regroupé (setup.sql) doit s'appliquer d'un bloc sur une base vierge et être à jour.
+echo "installation setup.sql"
+run dropdb --if-exists "$DB" >/dev/null 2>&1; run createdb "$DB"
+run "${PSQL[@]}" -d "$DB" -f "$DIR/supabase_stub.sql"
+run "${PSQL[@]}" -d "$DB" -1 -f "$DIR/../setup.sql"
+echo "setup.sql : appliqué sans erreur, en une seule transaction"
