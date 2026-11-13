@@ -444,6 +444,102 @@ check('R6 le rôle anonyme n’a accès à aucune table Business', !psql('set ro
   check('F8 l’effacement de mes données d’organisation efface aussi mes retours de cette organisation', as(carla, 'select count(*) from public.feedback;').out === '0');
 }
 
+// ---------- Arbor League (011) : trophées et rangs fondés sur les preuves, double voile, cordées, mentorat, saisons ----------
+{
+  const m11 = psql(file('supabase/migrations/011_league.sql'));
+  check('L0 la migration 011 s’applique sur la base existante (historique recalculé) et peut être rejouée', m11.ok && psql(file('supabase/migrations/011_league.sql')).ok, m11.err.slice(0, 400));
+  const P = (n, email) => ({ id: `00000000-0000-0000-0000-0000000000${n}`, email });
+  const leo = P(20, 'leo@verger.fr'), mia = P(21, 'mia@verger.fr'), noe = P(22, 'noe@verger.fr'), zoe = P(23, 'zoe@verger.fr');
+  psql(`insert into auth.users values ${[leo, mia, noe, zoe].map((u) => `('${u.id}', '${u.email}')`).join(',')};`);
+  const orgV = as(leo, `select public.create_organization('Le Verger', 'retail');`).out;
+  [mia, noe, zoe].forEach((u) => { const t = as(leo, `select public.create_invitation('${orgV}', '${u.email}', 'member');`).out; as(u, `select public.accept_invitation('${t}');`); });
+  const src = asService(`insert into public.sources (org_id, title, created_by) values ('${orgV}', 'Guide', '${leo.id}') returning id;`).out;
+  const ver = asService(`insert into public.source_versions (org_id, source_id, version, storage_path, uploaded_by) values ('${orgV}', '${src}', 1, '${orgV}/${src}/v1.pdf', '${leo.id}') returning id;`).out;
+  const K = (t) => asService(`insert into public.knowledge_nodes (org_id, source_version_id, kind, title, body, quote, page, status, created_by) values ('${orgV}', '${ver}', 'regle', '${t}', '${t}', '${t} extrait', 1, 'valide', '${leo.id}') returning id;`).out;
+  const k1 = K('Accueil client'), k2 = K('Retour produit'), k3 = K('Garantie'), k4 = K('Sécurité'), k5 = K('Caisse');
+  const ev = (u, k, outcome, level, ctx, daysAgo, session = null, extra = '') => asService(`insert into public.evidence_events (org_id, user_id, knowledge_id, activity, outcome, evaluator, level, context, session_id, at${extra ? ', detail' : ''})
+    values ('${orgV}', '${u.id}', '${k}', 'simulation', '${outcome}', 'ia', ${level === null ? 'null' : level}, '${ctx}', ${session ? `md5('${session}')::uuid` : 'null'}, now() - interval '${daysAgo} days'${extra ? `, '${extra}'` : ''}) returning id;`).out;
+  const awards = (u, key) => asService(`select count(*) from public.league_awards where org_id = '${orgV}' and user_id = '${u.id}'${key ? ` and trophy_key = '${key}'` : ''};`).out;
+  const rank = (u) => asService(`select coalesce(max(rank), 1) from public.league_rank_history where org_id = '${orgV}' and user_id = '${u.id}';`).out;
+  // Première pousse : seulement une application (niveau >= 4), pas un QCM
+  asService(`insert into public.evidence_events (org_id, user_id, knowledge_id, activity, outcome, evaluator, level, context)  values ('${orgV}', '${mia.id}', '${k1}', 'diagnostic', 'juste', 'regle', 2, 'diagnostic', now() - interval '21 days');`);
+  check('L1 une réponse juste de diagnostic (reconnue) ne donne pas « Première pousse »', awards(mia, 'premiere_pousse') === '0' && rank(mia) === '1');
+  const e1 = ev(mia, k1, 'juste', 4, 'simulation:client', 20, 's1');
+  check('L2 première application : « Première pousse », datée et rattachée à sa preuve ; rang Pousse',
+    asService(`select evidence_id || '|' || (awarded_at = (select at from public.evidence_events where id = ${e1})) from public.league_awards where user_id = '${mia.id}' and trophy_key = 'premiere_pousse';`).out === `${e1}|true` && rank(mia) === '2');
+  ev(mia, k2, 'juste', 4, 'simulation:client', 19, 's2');
+  check('L3 pas de double récompense (une seule « Première pousse »)', awards(mia, 'premiere_pousse') === '1');
+  ev(mia, k1, 'juste', 4, 'simulation:procedure', 18, 's3');
+  check('L4 une connaissance appliquée dans deux contextes : « Maître du terrain », une fois par connaissance', awards(mia, 'maitre_terrain') === '1');
+  ev(mia, k1, 'juste', 4, 'simulation:technique', 17, 's4');
+  check('L4b un troisième contexte ne la redonne pas', awards(mia, 'maitre_terrain') === '1');
+  // Résilience : erreur puis application dans une autre partie ; pas dans la même partie
+  ev(noe, k3, 'faux', null, 'simulation:client', 15, 'n1'); ev(noe, k3, 'juste', 4, 'simulation:client', 15, 'n1');
+  check('L5 erreur puis réussite dans la même partie : pas encore de résilience', awards(noe, 'resilience') === '0');
+  ev(noe, k3, 'juste', 4, 'simulation:client', 10, 'n2');
+  check('L5b erreur puis application juste dans une autre partie : « Feuille de résilience » (l’échec initial n’est pas pénalisé)', awards(noe, 'resilience') === '1' && rank(noe) === '2');
+  // Feuille d'or : 7 jours d'écart, dernière juste
+  ev(mia, k2, 'juste', 4, 'simulation:client', 5, 's5');
+  check('L6 réussites à au moins 7 jours d’écart : « Feuille d’or »', awards(mia, 'feuille_or') === '1');
+  ev(mia, k3, 'juste', 4, 'simulation:client', 30, 's6'); ev(mia, k3, 'juste', 4, 'simulation:client', 2, 's7');
+  ev(mia, k4, 'juste', 4, 'simulation:client', 30, 's8'); ev(mia, k4, 'juste', 4, 'simulation:client', 1, 's9');
+  check('L7 trois feuilles d’or : « Arbre de savoir » ; rang Arbuste (3 appliquées, 1 durable)', awards(mia, 'feuille_or') === '3' && awards(mia, 'arbre_savoir') === '1' && Number(rank(mia)) >= 3, rank(mia));
+  ev(mia, k1, 'faux', null, 'simulation:client', 0, 's10');
+  check('L8 une erreur ultérieure ne retire ni trophée ni rang', awards(mia, 'feuille_or') === '3' && Number(rank(mia)) >= 3);
+  // Double voile
+  check('L9 chacun lit ses trophées avec leur preuve source ; pas ceux des autres', as(mia, 'select count(*) from public.league_awards where evidence_id is not null;').out === awards(mia) && as(mia, `select count(*) from public.league_awards where user_id = '${noe.id}';`).out === '0');
+  check('L10 personne n’écrit un trophée, un rang ou un mentorat depuis le navigateur', !as(mia, `insert into public.league_awards (org_id, user_id, trophy_key, scope_key) values ('${orgV}', '${mia.id}', 'mentor', 'x');`).ok
+    && !as(mia, `insert into public.league_rank_history (org_id, user_id, rank) values ('${orgV}', '${mia.id}', 5);`).ok && !as(leo, `update public.league_awards set trophy_key = 'mentor';`).ok);
+  const board = as(noe, `select public.league_board('${orgV}');`);
+  check('L11 tableau public : rangs et trophées de chacun, sans preuve, sans erreur, sans confiance', board.ok && /arbre_savoir/.test(board.out) && /"rank": 3|"rank":3/.test(board.out) && !/evidence|faux|confidence|resilience_detail/.test(board.out.replace(/resilience/g, 'r')), board.out.slice(0, 160));
+  check('L12 une autre organisation n’a pas accès au tableau', /accès refusé/.test(as(alice, `select public.league_board('${orgV}');`).err) && as(alice, 'select count(*) from public.league_awards;').out === '0');
+  const mine = JSON.parse(as(mia, `select public.my_league('${orgV}');`).out || '{}');
+  check('L13 ma League : rang, compteurs, prochain rang, trophées avec la preuve et la connaissance', mine.rank >= 3 && mine.applied === 4 && mine.durable === 3 && mine.awards.some((a) => a.trophy === 'feuille_or' && a.evidence && a.knowledge));
+  // Mentorat (greffon)
+  check('L14 mentorat : réservé aux responsables, le mentor doit avoir appliqué la connaissance, pas d’auto-désignation',
+    /accès refusé/.test(as(mia, `select public.league_start_mentorship('${orgV}', '${mia.id}', '${noe.id}', '${k1}');`).err)
+    && /appliqué/.test(as(leo, `select public.league_start_mentorship('${orgV}', '${zoe.id}', '${noe.id}', '${k1}');`).err)
+    && !as(leo, `select public.league_start_mentorship('${orgV}', '${mia.id}', '${mia.id}', '${k1}');`).ok);
+  const ment = as(leo, `select public.league_start_mentorship('${orgV}', '${mia.id}', '${noe.id}', '${k1}');`).out;
+  check('L15 être désignée mentor ne rapporte rien', /^[0-9a-f-]{36}$/.test(ment) && awards(mia, 'mentor') === '0');
+  ev(noe, k1, 'juste', 4, 'simulation:client', 0, 'n3');
+  check('L16 la personne accompagnée applique la connaissance : « Mentor » pour le mentor, une seule fois, mentorat réussi',
+    awards(mia, 'mentor') === '1' && asService(`select status from public.league_mentorships where id = '${ment}';`).out === 'reussi');
+  ev(noe, k1, 'juste', 4, 'simulation:procedure', 0, 'n4');
+  check('L16b une nouvelle application ne redonne pas « Mentor »', awards(mia, 'mentor') === '1');
+  // anti-collusion : validation humaine par le mentor lui-même
+  as(leo, `select public.set_member('${orgV}', '${zoe.id}', 'manager');`);
+  ev(zoe, k5, 'juste', 4, 'simulation:client', 3, 'z1');
+  const m2 = as(leo, `select public.league_start_mentorship('${orgV}', '${zoe.id}', '${mia.id}', '${k5}');`).out;
+  as(zoe, `select public.record_human_validation('${orgV}', '${mia.id}', 'juste', 'vu en caisse', null, '${k5}');`);
+  check('L17 une validation au poste faite par le mentor ne lui rapporte pas « Mentor »', awards(zoe, 'mentor') === '0' && asService(`select status from public.league_mentorships where id = '${m2}';`).out === 'actif');
+  ev(mia, k5, 'juste', 4, 'simulation:client', 0, 's11');
+  check('L17b une application observée par ailleurs, oui', awards(zoe, 'mentor') === '1');
+  // Cordées
+  check('L18 cordée : créée par un responsable seulement', !as(mia, `select public.league_save_cordee('${orgV}', 'Caisse', 'equipe', array['${mia.id}']::uuid[]);`).ok);
+  const cord = as(leo, `select public.league_save_cordee('${orgV}', 'Équipe caisse', 'equipe', array['${mia.id}', '${noe.id}', '${alice.id}']::uuid[]);`).out;
+  const b2 = JSON.parse(as(noe, `select public.league_board('${orgV}');`).out);
+  const c = (b2.cordees || []).find((x) => x.id === cord) || {};
+  check('L19 une personne extérieure n’est pas ajoutée ; la cordée montre un progrès collectif, sans détail individuel', c.members === 2 && c.applied > 0 && !/faux/.test(JSON.stringify(c)), JSON.stringify(c));
+  // Saisons et défis
+  const season = as(leo, `select public.league_create_season('${orgV}', 'Printemps', now() - interval '1 day', now() + interval '30 days');`).out;
+  check('L20 deux saisons ne se chevauchent pas', /chevauch|couvre/.test(as(leo, `select public.league_create_season('${orgV}', 'Doublon', now(), now() + interval '5 days');`).err));
+  check('L21 un défi porte sur des connaissances validées de l’organisation', !as(leo, `select public.league_create_challenge('${orgV}', '${season}', 'Défi', array['00000000-0000-0000-0000-000000000099']::uuid[], 1, '${cord}');`).ok);
+  const ch = as(leo, `select public.league_create_challenge('${orgV}', '${season}', 'Garantie maîtrisée', array['${k3}']::uuid[], 1, '${cord}');`).out;
+  ev(mia, k3, 'juste', 4, 'simulation:client', 0, 's12');
+  check('L22 défi pas encore atteint tant que tout le groupe n’y est pas (personne n’est pénalisé pour autant)', asService(`select achieved_at is null from public.league_challenges where id = '${ch}';`).out === 't' && awards(mia, 'defi_releve') === '0');
+  ev(noe, k3, 'juste', 4, 'simulation:procedure', 0, 'n5');
+  check('L23 défi atteint : « Défi relevé » de saison pour chaque membre de la cordée', awards(mia, 'defi_releve') === '1' && awards(noe, 'defi_releve') === '1' && asService(`select count(*) from public.league_awards where trophy_key = 'defi_releve' and season_id = '${season}';`).out === '2');
+  const b3 = JSON.parse(as(mia, `select public.league_board('${orgV}');`).out);
+  const me3 = b3.members.find((x) => x.user_id === mia.id);
+  check('L24 le score de saison ne compte que la saison (un nouveau venu n’est pas désavantagé)', me3.season_awards < Number(awards(mia)) && me3.season_awards >= 1 && b3.season && b3.season.name === 'Printemps', JSON.stringify(me3));
+  // Recalcul idempotent, effacement
+  const before = asService(`select count(*) from public.league_awards where org_id = '${orgV}';`).out;
+  check('L25 recalcul de l’historique : idempotent (aucun trophée en double)', as(leo, `select public.league_backfill('${orgV}');`).ok && asService(`select count(*) from public.league_awards where org_id = '${orgV}';`).out === before && /accès refusé/.test(as(mia, `select public.league_backfill('${orgV}');`).err));
+  as(noe, `select public.erase_my_org_data('${orgV}');`);
+  check('L26 effacement de mes données : mes trophées et mon rang disparaissent, pas ceux des autres', awards(noe) === '0' && rank(noe) === '1' && Number(awards(mia)) > 0);
+}
+
 // ---------- Tables du tuteur (001, 002) toujours protégées ----------
 check('T1 le journal des appels accepte les nouvelles tâches de génération', psql(`insert into public.ai_calls (user_id, mode, model) values ('${bob.id}', 'enrichir', 'm');`).ok);
 check('T2 un utilisateur ne lit pas les compteurs des autres', as(carla, 'select count(*) from public.ai_calls;').out === '0' && as(bob, 'select count(*) from public.ai_calls;').out === '2');
