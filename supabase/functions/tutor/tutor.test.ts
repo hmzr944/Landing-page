@@ -373,3 +373,22 @@ Deno.test("provenance : SHA-256 réel des octets du PDF ; l'empreinte déclarée
   const altered = bytes.slice(); altered[altered.length - 10] ^= 1;
   assert((await sha256Hex(altered)) !== sha);
 });
+
+Deno.test("règle écrite (Setup Express) : le PDF produit dans le navigateur est relu par le serveur, accents compris, et ses extraits sont retrouvés", async () => {
+  // le module navigateur s'installe sur globalThis quand il n'y a pas de module.exports
+  await import("../../../js/textpdf.js");
+  const TextPdf = (globalThis as unknown as { TextPdf: { make: (t: string, o: Record<string, unknown>) => Uint8Array } }).TextPdf;
+  const regle = "Lorsqu’un client demande un remboursement, nous devons vérifier le ticket de caisse et l’état du produit avant de proposer une solution. Au-delà de 30 jours, on propose un avoir (« bon d’achat ») de 100 €.";
+  const bytes = TextPdf.make(regle, { title: "Règle : remboursement", author: "Léa Martin", date: new Date("2026-11-13T10:00:00Z") });
+  const pages = await pdfPages(bytes);
+  assertEquals(pages.length, 1);
+  assert(pages[0].includes("vérifier le ticket de caisse"), pages[0].slice(0, 200));
+  assert(pages[0].includes("Léa Martin"));
+  assert(pages[0].includes("100 €"));
+  assert(passageFound("nous devons vérifier le ticket de caisse et l’état du produit avant de proposer une solution", pages, 1));
+  assert(/^[0-9a-f]{64}$/.test(await sha256Hex(bytes)));
+  // un long texte passe sur plusieurs pages, toujours lisible
+  const long = TextPdf.make(Array.from({ length: 80 }, (_, i) => `Règle ${i + 1} : toujours vérifier l’étiquette du produit numéro ${i + 1}.`).join("\n"), { title: "Long" });
+  const lp = await pdfPages(long);
+  assert(lp.length >= 2 && lp[lp.length - 1].includes("numéro 80"));
+});
