@@ -29,6 +29,7 @@
       su: () => soft(rest('/rest/v1/skill_units', `?org_id=eq.${q(o.id)}&select=skill_id,unit_id`), []),
       revals: () => soft(rest('/rest/v1/skill_revalidations', `?org_id=eq.${q(o.id)}&select=*&order=created_at.desc`), null),
       changes: () => soft(rest('/rest/v1/policy_changes', `?org_id=eq.${q(o.id)}&select=id,source_id,status,summary,created_at&order=created_at.desc&limit=30`), null),
+      feedback: () => soft(rest('/rest/v1/feedback', `?org_id=eq.${q(o.id)}&select=*&order=created_at.desc&limit=200`), null),
       oos: () => soft(rest('/rest/v1/out_of_scope_knowledge', `?org_id=eq.${q(o.id)}&select=*&order=created_at.desc&limit=100`), null),
       sources: () => soft(rest('/rest/v1/sources', `?org_id=eq.${q(o.id)}&select=id,title`), []),
       actions: () => soft(rest('/rest/v1/learning_actions', `?org_id=eq.${q(o.id)}&user_id=eq.${q(Tutor.userId())}&select=*&order=created_at.desc`), []),
@@ -60,6 +61,7 @@
       ${card('diagnostic', 'target', 'Mon diagnostic', 'Quelques questions sur les connaissances validées, sans note.')}
       ${card('mystere', 'storefront', 'Client mystère', 'Une situation simulée et un débrief sur des comportements observables.')}
       ${card('resultats', 'chart-line-up', 'Mon parcours', 'Mes compétences, mes preuves et la suite.')}
+      ${window.Feedback ? `<button type="button" class="org-card fb-card" data-org-feedback><span>${d.ic('chat-teardrop-text')}</span><div><b>Donner mon avis</b><p>Trois questions sur ton expérience, environ deux minutes.</p></div></button>` : ''}
     </section>`;
   }
   async function overviewLead(app, o, head, resume) {
@@ -145,18 +147,19 @@
     d = deps;
     loading(app, head);
     let x;
-    try { x = await load(o, ['evs', 'ks', 'ms', 'skills', 'links', 'su', 'revals', 'changes', 'oos', 'sources']); }
+    try { x = await load(o, ['evs', 'ks', 'ms', 'skills', 'links', 'su', 'revals', 'changes', 'oos', 'sources', 'feedback']); }
     catch (e) { app.querySelector('.sec').innerHTML = `<p class="hint">${d.esc(e.message)}</p>`; return; }
     const { evs, ks, ms } = x;
     app.innerHTML = `${head}
       <section class="sec intel-intro"><h2>Intelligence</h2><p class="hint">Les signaux de l’équipe, calculés par les mêmes moteurs que le reste d’Arbor, avec leurs limites. Ce sont des pistes à vérifier, jamais un jugement des personnes.</p>
-        <nav class="intel-toc" aria-label="Sections">${[['rdBox', 'Angles morts'], ['mxBox', 'Confiance'], ['loopBox', 'Parcours'], ['wdList', 'Procédures'], ['rvBox', 'Revalidations'], ['oosBox', 'Hors référentiel']].map(([id, l]) => `<a href="#${id}" data-jump="${id}">${l}</a>`).join('')}</nav></section>
+        <nav class="intel-toc" aria-label="Sections">${[['rdBox', 'Angles morts'], ['mxBox', 'Confiance'], ['loopBox', 'Parcours'], ['wdList', 'Procédures'], ['rvBox', 'Revalidations'], ['oosBox', 'Hors référentiel'], ['fbkBox', 'Retours']].map(([id, l]) => `<a href="#${id}" data-jump="${id}">${l}</a>`).join('')}</nav></section>
       <div id="rdBox"></div>
       <section class="sec" id="mxBox"></section>
       <section class="sec" id="loopBox"></section>
       <section class="sec" id="wdList"></section>
       <section class="sec" id="rvBox"></section>
-      <section class="sec" id="oosBox"></section>`;
+      <section class="sec" id="oosBox"></section>
+      <section class="sec" id="fbkBox"></section>`;
     app.querySelectorAll('[data-jump]').forEach((a) => { a.onclick = (e) => { e.preventDefault(); const t = app.querySelector(`#${a.dataset.jump}`); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' }); }; });
     OrgEngines.radar(app.querySelector('#rdBox'), o, d, evs, ks, ms);
     renderMatrix(app.querySelector('#mxBox'), OrgInsight.matrix(evs, ks), { team: true });
@@ -164,6 +167,27 @@
     renderChanges(app.querySelector('#wdList'), o, x);
     renderRevals(app.querySelector('#rvBox'), o, x);
     renderOos(app.querySelector('#oosBox'), o, x.oos, ms);
+    renderFeedback(app.querySelector('#fbkBox'), x.feedback, ms);
+  }
+  // Retours des participants (migration 010) : seulement ce qui a été écrit, avec le nombre de réponses derrière chaque moyenne
+  function renderFeedback(box, rows, ms) {
+    const H = `<h2>${d.ic('chat-teardrop-text', true)}Retours des participants</h2>`;
+    if (rows === null) { box.innerHTML = `${H}<p class="empty-note">${d.ic('info')}Disponible après la mise à jour de la base (migration 010).</p>`; return; }
+    if (!rows.length) { box.innerHTML = `${H}<p class="hint">Aucun retour pour l’instant. Chacun peut en donner depuis « Donner mon avis ».</p>`; return; }
+    const avg = (k) => { const v = rows.map((r) => r[k]).filter((n) => n); return v.length ? { m: (v.reduce((a, b) => a + b, 0) / v.length).toFixed(1).replace('.', ','), n: v.length } : null; };
+    const L = avg('learned_score'), E = avg('ease');
+    const use = (v) => rows.filter((r) => r.would_use === v).length, used = rows.filter((r) => r.would_use).length;
+    const W = { oui: 'Oui', peut_etre: 'Peut-être', non: 'Non' };
+    box.innerHTML = `${H}<p class="hint">${plural(rows.length, 'retour')}, de ${plural(new Set(rows.map((r) => r.user_id)).size, 'personne')}. Les moyennes indiquent le nombre de réponses sur lesquelles elles portent.</p>
+      <div class="fbk-sum">
+        <div><b class="num">${L ? `${L.m}/5` : '–'}</b><small>impression d’apprendre${L ? ` (${plural(L.n, 'réponse')})` : ''}</small></div>
+        <div><b class="num">${used ? `${use('oui')} oui` : '–'}</b><small>${used ? `${use('peut_etre')} peut-être, ${use('non')} non : y reviendraient d’eux-mêmes` : 'personne n’a encore répondu'}</small></div>
+        <div><b class="num">${E ? `${E.m}/5` : '–'}</b><small>facilité d’utilisation${E ? ` (${plural(E.n, 'réponse')})` : ''}</small></div>
+      </div>
+      <ul class="fbk-list">${rows.slice(0, 30).map((r) => `<li><small>${d.esc(emailOf(ms, r.user_id))} · ${fmt(r.created_at)}${r.pilot_step ? ` · ${d.esc(r.pilot_step)}` : ''}</small>
+        ${r.blocked ? `<span><b>Ce qui a coincé :</b> ${d.esc(r.blocked)}</span>` : ''}
+        ${r.learned || r.learned_score ? `<span><b>Apprendre :</b> ${r.learned_score ? `${r.learned_score}/5` : ''}${r.learned ? ` ${d.esc(r.learned)}` : ''}</span>` : ''}
+        ${r.would_use ? `<span><b>Y revenir :</b> ${W[r.would_use]}${r.would_use_why ? `, ${d.esc(r.would_use_why)}` : ''}</span>` : ''}</li>`).join('')}</ul>`;
   }
   // Matrice confiance × compétence : 2 × 2, toujours avec le nombre de mesures et ce qui n'est pas mesuré
   function renderMatrix(box, m, { team = false } = {}, deps) {

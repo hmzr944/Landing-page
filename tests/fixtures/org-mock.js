@@ -35,6 +35,7 @@ const fresh = () => ({
   ],
   retention: 365,
   revals: [{ id: 'rv1', user_id: 'u-bob', skill_id: 'sk1', knowledge_id: 'k-retour', new_knowledge_id: null, change_id: 'ch1', change_item_id: 'it1', reason: 'La règle « Délai de retour » a changé : maintenant « 14 jours ».', status: 'requires_revalidation', created_at: iso(0) }],
+  feedback: [], no010: false, feedbackFail: false,
   oos: [{ id: 'oo1', user_id: 'u-chloe', claim: 'On peut aussi passer par la borne en caisse 3', context: 'simulation:client', rationale: 'pratique de terrain plausible', status: 'a_examiner', created_at: iso(1) }],
 });
 let db = fresh();
@@ -114,6 +115,18 @@ function handle(r) {
   if (p === '/rest/v1/policy_changes') return ok(lead || me.role === 'expert' ? [{ id: 'ch1', status: 'ouvert', to_version_id: 'v2', created_at: iso(0), summary: { modifie: 1, supprime: 0, nouveau: 1, reformule: 0, inchange: 1, analysed: true } }] : []);
   if (p === '/rest/v1/policy_change_items') return ok(db.items);
   if (p === '/rest/v1/invitations') return ok(r.method() === 'GET' ? [{ id: 'inv1', email: 'zoe@magasin.fr', role: 'member', expires_at: new Date(Date.now() + 6e8).toISOString(), created_at: iso(0) }].filter(() => u.searchParams.get('email')) : null);
+  // Retours (migration 010) : écriture par la personne elle-même ; lecture par l'auteur et les responsables de l'organisation
+  if (p === '/rest/v1/feedback') {
+    if (db.no010) return ok({ code: 'PGRST205', message: "Could not find the table 'public.feedback' in the schema cache" }, 404);
+    if (r.method() === 'POST') {
+      if (db.feedbackFail) return ok({ message: 'erreur interne' }, 500);
+      if (b.user_id) return ok({ message: 'permission denied for column user_id' }, 403);
+      if (b.org_id && b.org_id !== ORG) return ok({ message: 'new row violates row-level security policy' }, 403);
+      db.feedback.push({ id: `fb${db.feedback.length + 1}`, user_id: me.id, created_at: new Date().toISOString(), ...b });
+      return ok(null, 201);
+    }
+    return ok(db.feedback.filter((f) => f.user_id === me.id || (f.org_id === ORG && lead)));
+  }
   if (p === '/rest/v1/skill_revalidations') return db.no008 ? ok(MISSING, 404) : ok(db.revals.filter((r) => lead || r.user_id === me.id));
   if (p === '/rest/v1/out_of_scope_knowledge') return db.no008 ? ok(MISSING, 404) : ok(db.oos.filter((r) => ['admin', 'manager', 'expert'].includes(me.role) || r.user_id === me.id));
   if (p === '/rest/v1/organizations') return ok([{ retention_days: db.retention }]);

@@ -45,6 +45,12 @@ Durée : environ 1 heure. Matériel : un ordinateur (1366 × 768 ou plus), un t�
 | 12 | C | Mon parcours → refaire une situation sur la nouvelle règle, réussir | la revalidation disparaît, l'ancienne preuve reste |
 | 13 | C | Mes données → Télécharger | fichier JSON avec ses seules données |
 
+## 2 bis. Les retours des participants
+Avant le pilote, appliquer la migration 010 (guide Supabase). Chaque participant répond ensuite dans l'application :
+« Donner mon avis » (barre latérale ou carte de la vue d'ensemble ; dans l'espace personnel : Réglages). Trois questions,
+deux minutes, à faire à la fin de la séance puis une fois en fin de semaine. Les retours de l'organisation apparaissent
+dans Intelligence, section « Retours des participants ».
+
 ## 3. À me renvoyer
 Pour chaque étape : OK ou le message exact affiché, avec une capture si possible. Je corrige et j'ajoute un test
 pour chaque écart constaté. Ne m'envoie jamais de mot de passe ni de clé.

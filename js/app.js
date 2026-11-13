@@ -2547,6 +2547,7 @@
           <select id="theme" name="theme">
             ${[['auto', 'Automatique (comme le téléphone)'], ['light', 'Jour'], ['dark', 'Nuit']].map(([v, l]) => `<option value="${v}" ${st.theme === v ? 'selected' : ''}>${l}</option>`).join('')}
           </select>
+          ${window.Feedback ? `<div class="row-btns"><button type="button" class="btn ghost sm fb-link" id="fbOpen">${ic('chat-teardrop-text')}Donner mon avis sur Arbor</button></div>` : ''}
           <p class="hint">Version ${esc(window.ARBOR_VERSION || '')} <span class="hide-desktop">· <button type="button" class="link-btn" id="onbAgain">Revoir l’introduction</button></span></p>
         </div>
         <div class="field-row">
@@ -2621,6 +2622,8 @@
       }
       $('#expAll', el).onclick = () => exportBackup();
       $('#onbAgain', el).onclick = () => { closeModal(); openOnboarding(); };
+      // Retour depuis l'espace personnel : rien du cours n'est envoyé, seulement les réponses au formulaire
+      if ($('#fbOpen', el)) $('#fbOpen', el).onclick = () => { closeModal(); Feedback.open({ space: 'student', org: null, deps: { ic, esc, toast: (m, k) => FX.toast(m, k) } }); };
       const out = $('#acctOut', el); if (out) out.onclick = () => { Tutor.signOut(); try { localStorage.removeItem('arbor:orgs'); } catch (e) { /* rien */ } paintSpace(); closeModal(); FX.toast('Déconnecté', 'success'); };
       const oc = $('#orgCreate', el); if (oc) oc.onclick = () => Org.createModal(orgDeps());
       $$('[data-close-modal]', el).forEach((a) => { a.addEventListener('click', () => closeModal()); });

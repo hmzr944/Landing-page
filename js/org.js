@@ -48,6 +48,7 @@
 
   /* ---------- Écrans ---------- */
   let d = null; // outils de l'app : esc, ic, openModal, closeModal, toast, go
+  let current = null; // organisation affichée (pour le formulaire de retour)
   // En-tête commun d'un espace professionnel : nom, rôle, onglets selon le rôle
   // Navigation de l'espace selon le rôle (docs/experience-architecture.md, D12). Masquer un lien n'est pas une protection :
   // chaque écran et chaque action restent vérifiés par la base (RLS) et par le serveur.
@@ -73,7 +74,7 @@
     return `<header class="org-head glass">
         <div class="org-id"><span class="org-badge" aria-hidden="true">${d.ic('buildings', true)}</span><div><h1>${d.esc(o.name)}</h1><p>${d.esc(o.sector || 'Espace professionnel')} · <b>${ROLES[o.role] || o.role}</b></p></div></div>
         <nav class="org-tabs" aria-label="Espace ${d.esc(o.name)}">${groups.map(([gl, items]) => `<span class="org-nav-g" aria-hidden="true">${gl}</span>${items.map(([k, icn, l]) => `<a href="#/org/${o.id}${k === 'accueil' ? '' : '/' + k}" ${tab === k ? 'aria-current="page"' : ''}>${d.ic(icn, tab === k)}<span>${l}</span></a>`).join('')}`).join('')}</nav>
-        <div class="org-side-foot"><button type="button" class="link-btn" data-org-space>${d.ic('swap')}Changer d’espace</button><small>${d.ic('lock-simple')}Ton espace personnel reste sur ton appareil.</small></div>
+        <div class="org-side-foot">${window.Feedback ? `<button type="button" class="link-btn fb-link" data-org-feedback>${d.ic('chat-teardrop-text')}Donner mon avis</button>` : ''}<button type="button" class="link-btn" data-org-space>${d.ic('swap')}Changer d’espace</button><small>${d.ic('lock-simple')}Ton espace personnel reste sur ton appareil.</small></div>
       </header>`;
   }
 
@@ -174,7 +175,14 @@
   /* Point d'entrée du routeur : #/org/<id>[/equipe] et #/rejoindre/<jeton> */
   async function render(app, view, deps) {
     d = deps;
-    if (!app.dataset.orgSpaceBound) { app.dataset.orgSpaceBound = '1'; app.addEventListener('click', (e) => { if (e.target.closest('[data-org-space]')) openSwitcher(d); }); }
+    if (!app.dataset.orgSpaceBound) {
+      app.dataset.orgSpaceBound = '1';
+      app.addEventListener('click', (e) => {
+        if (e.target.closest('[data-org-space]')) openSwitcher(d);
+        // retour du pilote : rattaché à l'organisation ouverte (lisible par ses responsables)
+        if (e.target.closest('[data-org-feedback]') && window.Feedback && current) Feedback.open({ space: 'business', org: { id: current.id, name: current.name }, deps: d });
+      });
+    }
     if (window.OrgOnboarding) OrgOnboarding.use(d);
     if (view.name === 'join') return joinView(app, view.token);
     if (view.id === 'nouvelle' && window.OrgOnboarding) return OrgOnboarding.wizard(app, null, 'infos', d);
@@ -182,6 +190,7 @@
     if (!o && window.Tutor && Tutor.signedIn()) { try { await refresh(); } catch (e) { /* hors ligne : liste connue */ } o = orgOf(view.id); }
     if (!o) { app.innerHTML = `<section class="sec org-join"><h1>Espace introuvable</h1><p>Tu ne fais pas (ou plus) partie de cette organisation.</p><div class="row-btns"><a class="btn ghost" href="#/">Revenir à mon espace personnel</a></div></section>`; return; }
     setSpace(o.id);
+    current = o;
     if (window.OrgOnboarding) {
       if (view.tab === 'configurer') return OrgOnboarding.wizard(app, o, view.sub, d);
       // Invité qui n'a pas encore vu la présentation : elle passe avant tout (une seule fois)

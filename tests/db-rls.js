@@ -423,6 +423,27 @@ check('R6 le rôle anonyme n’a accès à aucune table Business', !psql('set ro
   check('Z23 l’effacement les supprime aussi', as(dan, `select count(*) from public.skill_revalidations where user_id = '${eve.id}';`).out === '0' && as(dan, `select count(*) from public.out_of_scope_knowledge where user_id = '${eve.id}';`).out === '0');
 }
 
+// ---------- Retours des participants (010) ----------
+{
+  const m10 = psql(file('supabase/migrations/010_feedback.sql'));
+  check('F0 la migration 010 s’applique et peut être rejouée', m10.ok && psql(file('supabase/migrations/010_feedback.sql')).ok, m10.err.slice(0, 300));
+  const orgC = as(dan, "select id from public.organizations where name = 'Restaurant C';").out;
+  const orgA = as(alice, "select id from public.organizations limit 1;").out;
+  const fb = (u, cols, vals) => as(u, `insert into public.feedback (${cols}) values (${vals});`);
+  check('F1 un membre envoie un retour rattaché à son organisation ; l’auteur est imposé (pas d’usurpation)',
+    fb(carla, 'org_id, space, blocked, learned_score', `'${orgC}', 'business', 'Bouton introuvable', 4`).ok && as(dan, `select user_id from public.feedback where org_id = '${orgC}';`).out === carla.id
+    && !fb(carla, 'org_id, space, blocked, user_id', `'${orgC}', 'business', 'x', '${dan.id}'`).ok);
+  check('F2 impossible d’écrire un retour dans une organisation dont on n’est pas membre', !fb(carla, 'org_id, space, blocked', `'${orgA}', 'business', 'intrusion'`).ok);
+  check('F3 un retour Student n’a pas d’organisation ; un retour vide est refusé', fb(carla, 'space, would_use', `'student', 'oui'`).ok && !fb(carla, 'space', `'student'`).ok && !fb(carla, 'space, blocked', `'student' , ''`).ok && !fb(carla, 'org_id, space, blocked', `null, 'business', 'x'`).ok);
+  check('F4 les responsables lisent les retours de leur organisation, jamais les retours Student', as(dan, 'select count(*) from public.feedback;').out === '1');
+  check('F5 un collègue (expert) ne lit pas le retour d’un autre ; une autre organisation ne voit rien', as({ id: '00000000-0000-0000-0000-000000000010', email: 'expert@resto.fr' }, 'select count(*) from public.feedback;').out === '0' && as(alice, 'select count(*) from public.feedback;').out === '0');
+  check('F6 l’auteur voit ses deux retours, ne peut pas les modifier, peut les effacer', as(carla, 'select count(*) from public.feedback;').out === '2' && !as(carla, "update public.feedback set blocked = 'autre';").ok
+    && as(carla, "delete from public.feedback where space = 'student';").ok && as(carla, 'select count(*) from public.feedback;').out === '1');
+  check('F7 un responsable ne peut pas effacer le retour d’un autre', as(dan, 'delete from public.feedback;').ok && as(carla, 'select count(*) from public.feedback;').out === '1');
+  as(carla, `select public.erase_my_org_data('${orgC}');`);
+  check('F8 l’effacement de mes données d’organisation efface aussi mes retours de cette organisation', as(carla, 'select count(*) from public.feedback;').out === '0');
+}
+
 // ---------- Tables du tuteur (001, 002) toujours protégées ----------
 check('T1 le journal des appels accepte les nouvelles tâches de génération', psql(`insert into public.ai_calls (user_id, mode, model) values ('${bob.id}', 'enrichir', 'm');`).ok);
 check('T2 un utilisateur ne lit pas les compteurs des autres', as(carla, 'select count(*) from public.ai_calls;').out === '0' && as(bob, 'select count(*) from public.ai_calls;').out === '2');
