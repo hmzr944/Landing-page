@@ -1,7 +1,7 @@
 /* Service worker d'Arbor : l'application fonctionne hors connexion.
    Fichiers de l'app : réseau d'abord (pour les mises à jour), cache en secours.
    Bibliothèques des CDN (polices Fontshare, icônes, pdf.js) : cache d'abord. */
-const VERSION = 'arbor-v45';
+const VERSION = 'arbor-v46';
 const SHELL = [
   './', './index.html', './styles.css', './manifest.webmanifest',
   './js/srs.js', './js/store.js', './js/db.js', './js/tutor.js', './js/org.js', './js/org-docs.js', './js/evidence.js', './js/adaptive.js', './js/org-insight.js', './js/org-learn.js', './js/org-engines.js', './js/org-shell.js', './js/org-sandbox.js', './js/org-onboarding.js', './js/markdown.js', './js/fx.js', './js/trophies.js', './js/pousse-dex.js', './js/lesson.js', './js/mastery.js', './js/insight.js', './js/explore.js', './js/dialogue.js', './js/onboarding.js', './js/journey.js', './js/welcome.js', './js/motion.js', './assets/pousse-grow.json', './js/doc-classify.js', './js/pdf-import.js', './js/ai.js', './js/course.js', './js/storm.js', './js/local-ai.js',

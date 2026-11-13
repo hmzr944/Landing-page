@@ -3489,3 +3489,12 @@ html.in-sandbox .sbx { border: 2px dashed color-mix(in oklab, var(--doing) 55%, 
 .rv-list li, .oos-list li { flex-wrap: wrap; gap: 8px; }
 .st-doors .door { font: inherit; text-align: left; cursor: pointer; width: 100%; }
 .st-doors .door:focus-visible, .door:focus-visible { outline: none; box-shadow: var(--ring); }
+
+/* G7 : écrans d’ordinateur peu hauts (1366 × 768) et grille régulière des indicateurs */
+@media (min-width: 1024px) and (max-height: 860px) {
+  html.in-org #app > .org-head { top: 74px; max-height: calc(100dvh - 86px); padding: 12px 10px 10px; gap: 8px; }
+  html.in-org .org-tabs a { padding: 6px 10px; }
+  html.in-org .org-nav-g { margin: 8px 10px 2px; }
+  html.in-org .org-side-foot small { display: none; }
+}
+@media (min-width: 1024px) { .ov-metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
