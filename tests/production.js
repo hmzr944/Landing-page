@@ -118,7 +118,7 @@ const check = (name, ok, extra = '') => { console.log(`${ok ? '✓' : '✗'} ${n
     const ctl = await page.evaluate(() => !!navigator.serviceWorker.controller);
     check('C4 le service worker s’installe et contrôle la page après rechargement', sw.active && ctl, JSON.stringify(sw));
     const cache = await page.evaluate(async () => { const keys = await caches.keys(); const v = keys.find((k) => /arbor-v\d+/.test(k)); const c = v ? await caches.open(v) : null; return { v, n: c ? (await c.keys()).length : 0 }; });
-    check('C5 le cache de l’application est celui de la version publiée (version publiée) et contient l’application', cache.v === (process.env.ARBOR_CACHE || 'arbor-v46') && cache.n >= 40, JSON.stringify(cache));
+    check('C5 le cache de l’application est celui de la version publiée (version publiée) et contient l’application', cache.v === (process.env.ARBOR_CACHE || (require('fs').readFileSync(require('path').join(__dirname, '..', 'sw.js'), 'utf8').match(/arbor-v\d+/) || [])[0]) && cache.n >= 40, JSON.stringify(cache));
     // hors connexion : on crée un cours, on coupe le réseau, on recharge
     await go(page, '#/cours', 1000);
     await page.click('[data-act="new-subject"]'); await wait(page, 400);
