@@ -193,6 +193,10 @@
   }
 
   /* ---------- Suivi de l'équipe (manager) ---------- */
+  // Double voile (docs/business-v2.md) : côté responsable, une erreur ou une fausse certitude individuelle devient
+  // « à renforcer » (un besoin de formation). La personne, elle, voit tout dans « Mon parcours ».
+  const VEIL = { fausse_certitude: ['À renforcer', 'besoin de formation repéré'], a_retravailler: ['À renforcer', 'besoin de formation repéré'], a_preciser: ['À consolider', 'réponse à étayer'] };
+  const veiled = (p) => ({ ...p, items: p.items.map((x) => (VEIL[x.state] ? { ...x, state: 'a_renforcer', label: VEIL[x.state][0], why: VEIL[x.state][1] } : x)) });
   async function teamView(app, o, head, focus) {
     app.innerHTML = `${head}<section class="sec"><p class="hint">Chargement…</p></section>`;
     let evs, ks, ms;
@@ -204,7 +208,7 @@
       const p = OrgInsight.person(focus, evs, ks);
       app.innerHTML = `${head}<section class="sec org-learn"><p><a href="#/org/${o.id}/suivi">${d.ic('arrow-left')} L’équipe</a></p><h2>${d.esc(nameOf(focus))}</h2>
         <p class="hint">${p.n} preuve${p.n > 1 ? 's' : ''} · ${p.diagnostics} diagnostic${p.diagnostics > 1 ? 's' : ''} · ${p.simulations} simulation${p.simulations > 1 ? 's' : ''}${p.last ? ` · dernière activité le ${fmtDate(p.last)}` : ''}. Seule l’activité dans cet espace professionnel est visible ; l’espace personnel ne l’est jamais.</p>
-        ${nextBox(o, p.next)}${stateRows(p)}</section><div id="hvBox"></div>`;
+        ${nextBox(o, p.next)}${stateRows(veiled(p))}</section><div id="hvBox"></div>`;
       if (window.OrgEngines) OrgEngines.humanValidation(app.querySelector('#hvBox'), o, d, focus);
       return;
     }
@@ -215,7 +219,7 @@
           : `<p class="empty-note">${d.ic('info')}Pas assez de données pour conclure${t.insufficient ? ` (${t.insufficient} connaissance${t.insufficient > 1 ? 's' : ''} avec des erreurs, mais un échantillon trop petit)` : ''}. Propose le diagnostic et un client mystère à l’équipe.</p>`}
       </section>
       <section class="sec org-learn"><h2>L’équipe</h2>
-        ${learners.length ? `<ul class="org-list team-rows">${learners.map((m) => { const p = OrgInsight.person(m.user_id, evs, ks); return `<li><a href="#/org/${o.id}/suivi/${m.user_id}">${d.esc(m.email || 'Membre')}</a><small>${p.n ? `${p.diagnostics} diag. · ${p.simulations} simul.${p.falseCertainties ? ` · <b>${p.falseCertainties} fausse${p.falseCertainties > 1 ? 's' : ''} certitude${p.falseCertainties > 1 ? 's' : ''}</b>` : ''}` : 'aucune activité'}</small><small class="nx">${d.esc(p.next.text)}</small></li>`; }).join('')}</ul>` : '<p class="hint">Aucun collaborateur pour l’instant. Invite ton équipe depuis l’onglet Équipe.</p>'}
+        ${learners.length ? `<ul class="org-list team-rows">${learners.map((m) => { const p = OrgInsight.person(m.user_id, evs, ks); return `<li><a href="#/org/${o.id}/suivi/${m.user_id}">${d.esc(m.email || 'Membre')}</a><small>${p.n ? `${p.diagnostics} diag. · ${p.simulations} simul.${p.falseCertainties ? ` · ${p.falseCertainties} point${p.falseCertainties > 1 ? 's' : ''} à renforcer` : ''}` : 'aucune activité'}</small><small class="nx">${d.esc(p.next.text)}</small></li>`; }).join('')}</ul>` : '<p class="hint">Aucun collaborateur pour l’instant. Invite ton équipe depuis l’onglet Équipe.</p>'}
       </section><div id="rdBox"></div>`;
     if (window.OrgEngines) OrgEngines.radar(app.querySelector('#rdBox'), o, d, evs, ks, ms);
   }

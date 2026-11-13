@@ -153,7 +153,7 @@ const tasks = (t) => db.sent.filter((x) => x.path === '/functions/v1/tutor' && x
   {
     const { ctx, page } = await as('eve');
     await page.goto(`${URL0}#/org/${ORG}`); await wait(page, 900);
-    check('A1 un manager a l’onglet Scénarios', !!(await page.$('.org-tabs a[href$="/scenarios"]')));
+    check('A1 un manager a la rubrique Développer (scénarios dans « Entraîner »)', !!(await page.$('.org-tabs a[href$="/developper"]')));
     await go(page, `#/org/${ORG}/scenarios`);
     await page.selectOption('#scKind', 'procedure'); await page.fill('#scBrief', 'Un client sans ticket');
     await page.click('#scForm button'); await wait(page, 900);
@@ -171,7 +171,7 @@ const tasks = (t) => db.sent.filter((x) => x.path === '/functions/v1/tutor' && x
   {
     const { ctx, page } = await as('bob');
     await page.goto(`${URL0}#/org/${ORG}`); await wait(page, 900);
-    check('B1 un collaborateur n’a pas l’onglet Scénarios', !(await page.$('.org-tabs a[href$="/scenarios"]')));
+    check('B1 un collaborateur n’a ni Développer ni Scénarios', !(await page.$('.org-tabs a[href$="/developper"]')) && !(await page.$('.org-tabs a[href$="/scenarios"]')));
     await go(page, `#/org/${ORG}/mystere`);
     check('B2 le scénario publié est proposé sur l’écran Client mystère', /Scénarios de ton équipe/.test(await text(page)) && /Retour sans ticket/.test(await text(page)));
     await page.click('#msScen [data-play]'); await wait(page, 900);

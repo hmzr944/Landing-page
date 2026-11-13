@@ -131,8 +131,8 @@ const fiche = (autonomy) => `<html><head><meta charset="utf-8"></head><body styl
   {
     const { ctx, page } = await as('alice');
     await page.goto(`${URL0}#/org/${ORG}`); await wait(page, 900);
-    check('A1 l’espace propose l’onglet Documents à l’équipe de contenu', !!(await page.$('.org-tabs a[href$="/documents"]')));
-    await page.click('.org-tabs a[href$="/documents"]'); await wait(page);
+    check('A1 l’espace propose la Base de savoir à l’équipe de contenu', !!(await page.$('.org-tabs a[href$="/savoir"]')));
+    await page.click('.org-tabs a[href$="/savoir"]'); await wait(page);
     await upload(page, v1, 'Fiche produit Alto 500');
     check('A2 le fichier est déposé dans le dossier privé de l’organisation', db.uploads.length === 1 && db.uploads[0].key === `${ORG}/${db.sources[0].id}/v1.pdf` && db.uploads[0].type === 'application/pdf');
     const passages = db.extractCalls.flatMap((c) => c.passages);
@@ -187,7 +187,7 @@ const fiche = (autonomy) => `<html><head><meta charset="utf-8"></head><body styl
   {
     const { ctx, page } = await as('bob');
     await page.goto(`${URL0}#/org/${ORG}`); await wait(page, 900);
-    check('F1 un collaborateur n’a pas l’onglet Documents', !(await page.$('.org-tabs a[href$="/documents"]')));
+    check('F1 un collaborateur n’a ni Base de savoir ni Documents', !(await page.$('.org-tabs a[href$="/savoir"]')) && !(await page.$('.org-tabs a[href$="/documents"]')));
     await page.evaluate((o) => { location.hash = `#/org/${o}/documents`; }, ORG); await wait(page, 800);
     check('F2 même en tapant l’adresse, il ne peut pas envoyer de document', !(await page.$('#docForm')) && /équipe de contenu/.test(await page.textContent('#app')));
     await ctx.close();

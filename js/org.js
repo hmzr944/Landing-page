@@ -55,25 +55,29 @@
   // Sur ordinateur, ce même en-tête devient une barre latérale (CSS) ; sur téléphone, des onglets défilants.
   function navOf(o) {
     const lead = can(o, 'admin', 'manager'), content = can(o, 'admin', 'manager', 'expert');
+    if (window.OrgHub && lead) return [[null, [['accueil', 'gauge', 'Cockpit'], ['equipe', 'users-three', 'Mon équipe'], ['savoir', 'books', 'Base de savoir'], ['developper', 'plant', 'Développer'], ['apprendre', 'student', 'Mon apprentissage']]]];
+    if (window.OrgHub && content) return [[null, [['accueil', 'gauge', 'Accueil'], ['savoir', 'books', 'Base de savoir'], ['apprendre', 'student', 'Mon apprentissage']]]];
+    if (window.OrgHub) return [[null, [['accueil', 'house', 'Accueil'], ...(window.League ? [['canopee', 'tree', 'Canopée']] : []), ['apprendre', 'compass', 'Explorer'], ['resultats', 'chart-line-up', 'Mon parcours']]]];
+    // sans les écrans v2 (module absent) : navigation précédente
     const shell = !!window.OrgShell;
     const g = [];
-    g.push(['Pilotage', [['accueil', 'squares-four', 'Vue d’ensemble'],
-      ...(lead && window.OrgLearn ? [['suivi', 'users-three', 'Équipe']] : []),
-      ...(lead && shell ? [['intelligence', 'brain', 'Intelligence']] : [])]]);
-    if (content) g.push(['Contenu', [...(window.OrgDocs ? [['documents', 'files', 'Documents']] : []),
-      ...(lead && window.OrgLearn ? [['competences', 'target', 'Compétences']] : []),
-      ...(lead && window.OrgEngines ? [['scenarios', 'film-script', 'Scénarios']] : [])]]);
+    g.push(['Pilotage', [['accueil', 'squares-four', 'Vue d’ensemble'], ...(lead && window.OrgLearn ? [['suivi', 'users-three', 'Équipe']] : []), ...(lead && shell ? [['intelligence', 'brain', 'Intelligence']] : [])]]);
+    if (content) g.push(['Contenu', [...(window.OrgDocs ? [['documents', 'files', 'Documents']] : []), ...(lead && window.OrgLearn ? [['competences', 'target', 'Compétences']] : []), ...(lead && window.OrgEngines ? [['scenarios', 'film-script', 'Scénarios']] : [])]]);
     g.push(['Apprendre', [...(shell ? [['apprendre', 'plant', 'Apprendre']] : []), ...(window.OrgLearn ? [['resultats', 'chart-line-up', 'Mon parcours']] : [])]]);
-    if (lead) g.push(['Administration', [['equipe', 'user-gear', 'Membres et accès'],
-      ...(window.OrgSandbox ? [['apercu', 'eye', 'Aperçu collaborateur']] : []),
-      ...(o.role === 'admin' && shell ? [['parametres', 'gear-six', 'Paramètres']] : [])]]);
+    if (lead) g.push(['Administration', [['equipe', 'user-gear', 'Membres et accès'], ...(window.OrgSandbox ? [['apercu', 'eye', 'Aperçu collaborateur']] : []), ...(o.role === 'admin' && shell ? [['parametres', 'gear-six', 'Paramètres']] : [])]]);
     return g.filter(([, items]) => items.length);
   }
+  // Rubrique active : les anciennes adresses restent valides et allument la rubrique qui les contient
+  const SECTION = { documents: 'savoir', competences: 'savoir', suivi: 'equipe', apercu: 'equipe', intelligence: 'developper', scenarios: 'developper', diagnostic: 'apprendre', mystere: 'apprendre' };
   function head(o, tab) {
     const groups = navOf(o);
+    const flat = groups.flatMap(([, items]) => items.map((x) => x[0]));
+    if (window.OrgHub && !flat.includes(tab) && SECTION[tab] && flat.includes(SECTION[tab])) tab = SECTION[tab];
+    if (window.OrgHub && tab === 'resultats' && !flat.includes('resultats')) tab = 'apprendre';
     return `<header class="org-head glass">
-        <div class="org-id"><span class="org-badge" aria-hidden="true">${d.ic('buildings', true)}</span><div><h1>${d.esc(o.name)}</h1><p>${d.esc(o.sector || 'Espace professionnel')} · <b>${ROLES[o.role] || o.role}</b></p></div></div>
-        <nav class="org-tabs" aria-label="Espace ${d.esc(o.name)}">${groups.map(([gl, items]) => `<span class="org-nav-g" aria-hidden="true">${gl}</span>${items.map(([k, icn, l]) => `<a href="#/org/${o.id}${k === 'accueil' ? '' : '/' + k}" ${tab === k ? 'aria-current="page"' : ''}>${d.ic(icn, tab === k)}<span>${l}</span></a>`).join('')}`).join('')}</nav>
+        <div class="org-id"><span class="org-badge" aria-hidden="true">${d.ic('buildings', true)}</span><div><h1>${d.esc(o.name)}</h1><p>${d.esc(o.sector || 'Espace professionnel')} · <b>${ROLES[o.role] || o.role}</b></p></div>
+          ${window.OrgHub && o.role === 'admin' && window.OrgShell ? `<a class="icon-btn org-set" href="#/org/${o.id}/parametres" aria-label="Paramètres de l’organisation" ${tab === 'parametres' ? 'aria-current="page"' : ''}>${d.ic('gear-six')}</a>` : ''}</div>
+        <nav class="org-tabs" aria-label="Espace ${d.esc(o.name)}">${groups.map(([gl, items]) => `${gl ? `<span class="org-nav-g" aria-hidden="true">${gl}</span>` : ''}${items.map(([k, icn, l]) => `<a href="#/org/${o.id}${k === 'accueil' ? '' : '/' + k}" ${tab === k ? 'aria-current="page"' : ''}>${d.ic(icn, tab === k)}<span>${l}</span></a>`).join('')}`).join('')}</nav>
         <div class="org-side-foot">${window.Feedback ? `<button type="button" class="link-btn fb-link" data-org-feedback>${d.ic('chat-teardrop-text')}Donner mon avis</button>` : ''}<button type="button" class="link-btn" data-org-space>${d.ic('swap')}Changer d’espace</button><small>${d.ic('lock-simple')}Ton espace personnel reste sur ton appareil.</small></div>
       </header>`;
   }
@@ -98,25 +102,40 @@
       <p class="org-note">${d.ic('lock-simple')}Ton espace personnel (cours, révisions, progression) reste sur ton appareil. ${lead ? 'Tu ne vois que ce qui concerne cette organisation.' : 'Ton organisation n’y a pas accès.'}</p>`;
   }
 
-  async function teamView(app, o) {
-    app.innerHTML = `${head(o, 'equipe')}<section class="sec"><p class="hint">Chargement de l’équipe…</p></section>`;
+  // Membres, rôles, équipes, invitations : rendu dans un conteneur (Mon équipe) ou en page (sans les écrans v2)
+  async function accessBlock(box, o) {
     let ms = [], us = [];
-    try { ms = await members(o.id); } catch (e) { app.querySelector('.sec').innerHTML = `<p class="hint">${d.esc(e.message)}</p>`; return; }
+    try { ms = await members(o.id); } catch (e) { box.innerHTML = `<section class="sec"><p class="hint">${d.esc(e.message)}</p></section>`; return; }
     try { us = await Tutor.rest('/rest/v1/org_units', { method: 'GET', query: `?org_id=eq.${encodeURIComponent(o.id)}&select=id,kind,name&order=kind,name` }); } catch (e) { us = []; }
     const canMove = (m) => us.length && (o.role === 'admin' || m.role !== 'admin');
-    app.innerHTML = `${head(o, 'equipe')}
+    const me = window.Tutor && Tutor.userId();
+    // le rôle se règle au moment où il devient utile (ajouter un manager), par l'administrateur seulement
+    const canRole = (m) => o.role === 'admin' && m.user_id !== me;
+    box.innerHTML = `
       <section class="sec"><h2>Inviter une personne</h2><div id="teamInvite"></div></section>
       <section class="sec">
-        <h2>Membres <small class="num">${ms.length}</small></h2>
-        <ul class="org-list">${ms.map((m) => `<li><span>${d.esc(m.email || 'Membre')}<small> · ${ROLES[m.role] || m.role}${m.status === 'suspended' ? ' · suspendu' : ''}</small></span>${canMove(m) ? `<select aria-label="Équipe de ${d.esc(m.email || 'ce membre')}" data-unit="${m.user_id}"><option value="">Sans équipe</option>${us.map((u) => `<option value="${u.id}" ${m.unit_id === u.id ? 'selected' : ''}>${d.esc(u.name)}</option>`).join('')}</select>` : ''}</li>`).join('')}</ul>
+        <h2>Membres et accès <small class="num">${ms.length}</small></h2>
+        <ul class="org-list">${ms.map((m) => `<li><span>${d.esc(m.email || 'Membre')}<small> · ${ROLES[m.role] || m.role}${m.status === 'suspended' ? ' · suspendu' : ''}</small></span>
+          <span class="row-btns">${canRole(m) ? `<select aria-label="Rôle de ${d.esc(m.email || 'ce membre')}" data-role="${m.user_id}">${Object.entries(ROLES).map(([k, l]) => `<option value="${k}" ${m.role === k ? 'selected' : ''}>${l}</option>`).join('')}</select>` : ''}
+          ${canMove(m) ? `<select aria-label="Équipe de ${d.esc(m.email || 'ce membre')}" data-unit="${m.user_id}"><option value="">Sans équipe</option>${us.map((u) => `<option value="${u.id}" ${m.unit_id === u.id ? 'selected' : ''}>${d.esc(u.name)}</option>`).join('')}</select>` : ''}</span></li>`).join('')}</ul>
         ${o.role === 'admin' && !us.length && window.OrgOnboarding ? `<p class="hint">Pour ranger les membres par équipe ou établissement : <a href="#/org/${o.id}/configurer/structure">créer des équipes</a>.</p>` : ''}
+        ${window.OrgSandbox ? `<p class="hint"><a href="#/org/${o.id}/apercu">${d.ic('eye')} Voir Arbor comme un collaborateur</a> (aperçu fictif, rien n’est enregistré)</p>` : ''}
       </section>`;
-    if (window.OrgOnboarding) OrgOnboarding.inviteBox(app.querySelector('#teamInvite'), o);
-    if (window.OrgEngines) { const rb = document.createElement('div'); app.appendChild(rb); OrgEngines.retention(rb, o, d); }
-    app.querySelectorAll('[data-unit]').forEach((sel) => { sel.onchange = async () => {
+    if (window.OrgOnboarding) OrgOnboarding.inviteBox(box.querySelector('#teamInvite'), o);
+    if (window.OrgEngines) { const rb = document.createElement('div'); box.appendChild(rb); OrgEngines.retention(rb, o, d); }
+    box.querySelectorAll('[data-unit]').forEach((sel) => { sel.onchange = async () => {
       try { await Tutor.rest('/rest/v1/rpc/set_member_unit', { body: { p_org: o.id, p_user: sel.dataset.unit, p_unit: sel.value || null } }); d.toast('Équipe mise à jour', 'success'); }
-      catch (x) { d.toast(x.message, 'error'); teamView(app, o); }
+      catch (x) { d.toast(x.message, 'error'); accessBlock(box, o); }
     }; });
+    box.querySelectorAll('[data-role]').forEach((sel) => { sel.onchange = async () => {
+      try { await Tutor.rest('/rest/v1/rpc/set_member', { body: { p_org: o.id, p_user: sel.dataset.role, p_role: sel.value, p_status: 'active' } }); d.toast('Rôle mis à jour', 'success'); }
+      catch (x) { d.toast(/au moins un administrateur/.test(x.message) ? 'Il faut au moins un administrateur actif.' : x.message, 'error'); accessBlock(box, o); }
+    }; });
+  }
+  async function teamView(app, o) {
+    if (window.OrgHub) return OrgHub.team(app, o, head(o, 'equipe'), d, accessBlock);
+    app.innerHTML = `${head(o, 'equipe')}<div id="teamAccess"><section class="sec"><p class="hint">Chargement de l’équipe…</p></section></div>`;
+    return accessBlock(app.querySelector('#teamAccess'), o);
   }
 
   const STATUS_MSG = {
@@ -185,6 +204,8 @@
     }
     if (window.OrgOnboarding) OrgOnboarding.use(d);
     if (view.name === 'join') return joinView(app, view.token);
+    // Création : Setup Express en trois étapes (l'assistant détaillé reste dans Paramètres)
+    if (view.id === 'nouvelle' && window.OrgSetup && view.tab !== 'detaillee') return OrgSetup.render(app, null, 'identite', d);
     if (view.id === 'nouvelle' && window.OrgOnboarding) return OrgOnboarding.wizard(app, null, 'infos', d);
     let o = orgOf(view.id);
     if (!o && window.Tutor && Tutor.signedIn()) { try { await refresh(); } catch (e) { /* hors ligne : liste connue */ } o = orgOf(view.id); }
@@ -193,12 +214,23 @@
     current = o;
     if (window.OrgOnboarding) {
       if (view.tab === 'configurer') return OrgOnboarding.wizard(app, o, view.sub, d);
+      if (view.tab === 'demarrer' && window.OrgSetup) return OrgSetup.render(app, o, view.sub, d);
       // Invité qui n'a pas encore vu la présentation : elle passe avant tout (une seule fois)
       if (view.tab === 'bienvenue' || (o.onboarded === false && !o.owner && view.tab === 'accueil')) return OrgOnboarding.arrival(app, o);
       if (view.tab === 'competences' && can(o, 'admin', 'manager')) {
-        app.innerHTML = `${head(o, 'competences')}<section class="sec org-learn"><h2>Compétences</h2><p class="hint">Une compétence est une capacité observable au travail, reliée aux connaissances validées qu’elle demande.</p><div id="skEd"></div></section>`;
+        app.innerHTML = `${head(o, 'competences')}${window.OrgHub ? OrgHub.pipeHead(o, d, 'skills') : ''}<section class="sec org-learn"><h2>Compétences</h2><p class="hint">Une compétence est une capacité observable au travail, reliée aux connaissances validées qu’elle demande.</p><div id="skEd"></div></section>`;
         return OrgOnboarding.skillsEditor(app.querySelector('#skEd'), o);
       }
+    }
+    if (window.OrgHub) {
+      const lead = can(o, 'admin', 'manager'), content = can(o, 'admin', 'manager', 'expert');
+      if (view.tab === 'accueil' && lead) return OrgHub.cockpit(app, o, head(o, 'accueil'), d);
+      if (view.tab === 'accueil' && !content && window.League) return League.home(app, o, head(o, 'accueil'), d);
+      if (view.tab === 'savoir' && content) return OrgHub.knowledge(app, o, head(o, 'savoir'), d, view.sub);
+      if (view.tab === 'developper' && lead) return OrgHub.develop(app, o, head(o, 'developper'), d, view.sub);
+      if (view.tab === 'apprendre' && content) return OrgHub.myLearning(app, o, head(o, 'apprendre'), d, view.sub);
+      if (view.tab === 'canopee' && window.League) return League.canopy(app, o, head(o, 'canopee'), d);
+      if (['savoir', 'developper'].includes(view.tab)) { app.innerHTML = `${head(o, 'accueil')}<section class="sec"><p class="hint">Cet écran est réservé ${view.tab === 'savoir' ? 'à l’équipe de contenu' : 'aux managers et administrateurs'}.</p></section>`; return; }
     }
     if (window.OrgShell) {
       const lead = can(o, 'admin', 'manager');

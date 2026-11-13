@@ -45,14 +45,15 @@ const db = () => M.state.db;
 
   /* A. Navigation selon le rôle et routes directes */
   {
-    const expect = { ana: ['accueil', 'suivi', 'intelligence', 'documents', 'competences', 'scenarios', 'apprendre', 'resultats', 'equipe', 'apercu', 'parametres'],
-      eve: ['accueil', 'suivi', 'intelligence', 'documents', 'competences', 'scenarios', 'apprendre', 'resultats', 'equipe', 'apercu'],
-      paul: ['accueil', 'documents', 'apprendre', 'resultats'], bob: ['accueil', 'apprendre', 'resultats'] };
+    // Navigation par intention (docs/business-v2.md, D13) : 5 rubriques au plus ; les paramètres sont une icône (administrateur)
+    const expect = { ana: ['accueil', 'equipe', 'savoir', 'developper', 'apprendre'], eve: ['accueil', 'equipe', 'savoir', 'developper', 'apprendre'],
+      paul: ['accueil', 'savoir', 'apprendre'], bob: ['accueil', 'canopee', 'apprendre', 'resultats'] };
     for (const who of Object.keys(expect)) {
       const { ctx, page } = await as(who);
       await page.goto(`${URL0}#/org/${ORG}`); await wait(page, 1200);
       const got = await navHrefs(page);
-      check(`A1 ${M.U[who].role} : la navigation montre exactement ses écrans`, got.join() === expect[who].join(), got.join());
+      check(`A1 ${M.U[who].role} : la navigation montre exactement ses rubriques (5 au plus)`, got.join() === expect[who].join() && got.length <= 5, got.join());
+      check(`A1b ${M.U[who].role} : l’icône Paramètres seulement pour l’administrateur`, !!(await page.$('.org-set')) === (who === 'ana'));
       await ctx.close();
     }
     const { ctx, page } = await as('bob');
@@ -75,12 +76,13 @@ const db = () => M.state.db;
     const { ctx, page } = await as('eve');
     await page.goto(`${URL0}#/org/${ORG}`); await wait(page, 1400);
     const t = await text(page);
-    check('B1 indicateurs calculés avec leur base (compétences, fragilités, revalidations, procédures, activité, fausses certitudes)',
-      /compétences acquises/.test(t) && /fragilité collective/.test(t) && /à revalider/.test(t) && /procédure/.test(t) && /observations cette semaine/.test(t) && /fausses certitudes/.test(t) && (await page.$$('.ov-metric small')).length === 6);
-    check('B2 sans assez de mesures, la confiance est dite « non mesurée » au lieu d’un chiffre inventé', /confiance non mesurée/.test(t));
-    const acts = await page.$$eval('.ov-list b', (bs) => bs.map((b) => b.textContent));
-    check('B3 actions prioritaires réelles : revalidation en attente, angle mort, connaissance de terrain', acts.some((a) => /revalidation/.test(a)) && acts.some((a) => /Batterie endommagée/.test(a)) && acts.some((a) => /hors référentiel/.test(a)), acts.join(' | '));
-    check('B4 accès directs conservés (suivi, diagnostic, client mystère, parcours)', !!(await page.$('a.org-card[href$="/suivi"]')) && !!(await page.$('a.org-card[href$="/mystere"]')) && !!(await page.$('a.org-card[href$="/diagnostic"]')));
+    check('B1 Cockpit : état des données (une procédure a changé) et indicateurs calculés avec leur base', /Cockpit/.test(t) && /Une procédure a changé/.test(t) && /compétences acquises/.test(t) && /à renforcer/.test(t) && /à revalider/.test(t) && /réponses cette semaine/.test(t));
+    check('B2 double voile : aucun nom ni « fausse certitude » individuelle dans le Cockpit', !/bob@|chloe@|Fausse certitude|fausses certitudes/.test(t));
+    const acts = await page.$$eval('.hub-todo li', (bs) => bs.map((b) => b.textContent));
+    check('B3 « À faire aujourd’hui » : revalidation en attente, angle mort, connaissance de terrain', acts.some((a) => /revalidation/.test(a)) && acts.some((a) => /Batterie endommagée/.test(a)) && acts.some((a) => /hors référentiel/.test(a)), acts.join(' | '));
+    await go(page, `#/org/${ORG}/developper/entrainer`, 1300);
+    check('B4 accès conservés dans « Développer » (client mystère, diagnostic) et « Mon équipe » dans la navigation', !!(await page.$('#app a[href$="/mystere"]')) && !!(await page.$('#app a[href$="/diagnostic"]')) && !!(await page.$('.org-tabs a[href$="/equipe"]')));
+    await go(page, `#/org/${ORG}`, 1300);
     const box = await page.evaluate(() => { const h = document.querySelector('.org-head').getBoundingClientRect(), s = document.querySelector('#app > .sec').getBoundingClientRect(); return { pos: getComputedStyle(document.querySelector('.org-head')).position, hr: h.right, sl: s.left, dir: getComputedStyle(document.querySelector('.org-tabs')).flexDirection }; });
     check('B5 ordinateur : barre latérale fixe à gauche, le contenu commence après elle', box.pos === 'fixed' && box.dir === 'column' && box.hr <= box.sl, JSON.stringify(box));
     if (process.env.ARBOR_SHOTS) await page.screenshot({ path: path.join(process.env.ARBOR_SHOTS, 'xp-overview.png'), fullPage: true });
@@ -114,7 +116,10 @@ const db = () => M.state.db;
     const { ctx, page } = await as('bob', { width: 390, height: 844 });
     await page.goto(`${URL0}#/org/${ORG}`); await wait(page, 1300);
     const t = await text(page);
-    check('D1 le collaborateur voit sa revalidation, son plan et les cinq portes', /compétence à revalider/.test(t) && /14 jours/.test(t) && (await page.$$('.doors .door')).length === 5);
+    check('D1 accueil collaborateur : sa vraie mission (revalidation), sa progression, l’accès à la Canopée et à Explorer', /Ta mission/.test(t) && /procédure de retour a changé/.test(t) && /Ta progression/.test(t) && !!(await page.$('#app a[href$="/canopee"]')) && !!(await page.$('#app a[href$="/apprendre"]')));
+    await go(page, `#/org/${ORG}/apprendre`, 1100);
+    check('D1b « Explorer » garde les cinq portes', (await page.$$('.doors .door')).length === 5);
+    await go(page, `#/org/${ORG}`, 1100);
     const pos = await page.evaluate(() => getComputedStyle(document.querySelector('.org-head')).position);
     check('D2 téléphone : pas de barre latérale, onglets en haut, aucun débordement', pos !== 'fixed' && !(await overflow(page)));
     const before = reqs.length;

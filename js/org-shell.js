@@ -255,7 +255,7 @@
     app.innerHTML = `${head}
       <section class="sec"><h2>Paramètres</h2>
         <ul class="org-list set-list">
-          <li><span><b>Organisation, objectifs, équipes et établissements</b><small>L’assistant de configuration, étape par étape ; chaque étape est enregistrée avant de passer à la suivante.</small></span><a class="btn ghost sm" href="#/org/${o.id}/configurer/infos">${d.ic('sliders-horizontal')}Ouvrir</a></li>
+          <li><span><b>Configuration détaillée</b><small>Taille, pays, langue, objectifs, équipes et établissements : l’assistant complet, étape par étape ; chaque étape est enregistrée avant de passer à la suivante.</small></span><a class="btn ghost sm" href="#/org/${o.id}/configurer/infos">${d.ic('sliders-horizontal')}Ouvrir</a></li>
           <li><span><b>Membres, rôles et invitations</b><small>Qui fait partie de l’organisation et avec quel rôle.</small></span><a class="btn ghost sm" href="#/org/${o.id}/equipe">${d.ic('user-gear')}Ouvrir</a></li>
         </ul></section>
       <div id="retBox"></div>

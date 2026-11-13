@@ -154,8 +154,8 @@ const personal = () => ({ version: 2, subjects: [{ id: 'perso1', title: SECRET, 
   /* A. L'administrateur crée son organisation avec l'assistant */
   {
     const { ctx, page } = await fresh({ who: people.alice });
-    await page.goto(`${URL0}#/org/nouvelle`); await settle(page, 900);
-    check('A1 l’assistant s’ouvre à l’étape 1 sur 6, avec une seule décision', /Étape 1 sur 6/.test(await page.textContent('.obz-count')) && (await page.$$('.obz-steps span')).length === 6);
+    await page.goto(`${URL0}#/org/nouvelle/detaillee`); await settle(page, 900);
+    check('A1 l’assistant détaillé s’ouvre à l’étape 1 sur 6, avec une seule décision', /Étape 1 sur 6/.test(await page.textContent('.obz-count')) && (await page.$$('.obz-steps span')).length === 6);
     await page.click('#obzNext'); await settle(page, 300);
     check('A2 le nom est le seul champ obligatoire, et l’erreur s’affiche sous le champ', /Indique le nom/.test(await page.textContent('#obNameErr')) && db.orgs.length === 0);
     await page.fill('#obName', 'Boulangerie Martin'); await page.selectOption('#obSector', 'Commerce et distribution');
@@ -271,15 +271,14 @@ const personal = () => ({ version: 2, subjects: [{ id: 'perso1', title: SECRET, 
     await page.fill('#welEmail', people.bob.email); await page.fill('#welPass', people.bob.pass); await page.click('.wel-submit'); await settle(page, 1600);
     check('C2 connecté : invitation acceptée, arrivée du collaborateur (et non l’accueil Student)', /\/bienvenue$/.test(page.url()) && /Bienvenue dans Boulangerie Martin/.test(await page.textContent('.obz-arrival')) && /équipe/.test(await page.textContent('.obz-arrival')) && /Vente/.test(await page.textContent('.obz-arrival')), page.url());
     await shot(page, 'c2-bienvenue');
-    await page.click('#arNext'); await settle(page, 600);
-    check('C3 il voit les compétences attendues et comment sa progression est évaluée', /Accueillir un client/.test(await page.textContent('.obz-arrival')) && /preuves/.test(await page.textContent('.obz-arrival')));
-    await page.click('#arNext'); await settle(page, 600);
+    check('C3 il voit la promesse et les compétences au programme, sur le même écran', /Tes résultats t’aident à progresser\. Ton espace personnel reste privé\./.test(await page.textContent('.obz-arrival')) && /Accueillir un client/.test(await page.textContent('.obz-arrival')));
+    await page.click('.obz-privacy-box summary'); await settle(page, 300);
     const priv = await page.textContent('.obz-privacy');
-    check('C4 il sait ce qui est observé, qui voit ses résultats, et que son espace personnel reste privé', /Observé/.test(priv) && /managers et administrateurs/.test(priv) && /espace personnel/.test(priv));
+    check('C4 il sait ce qui est observé, qui voit ses résultats, que ses collègues ne voient jamais ses erreurs et que son espace personnel reste privé', /Observé/.test(priv) && /managers et administrateurs/.test(priv) && /jamais tes erreurs/.test(priv) && /espace personnel/.test(priv));
     await shot(page, 'c4-confidentialite');
-    check('C5 trois écrans seulement, rien à configurer', (await page.$$('.obz-dots span')).length === 3 && !(await page.$('.obz-form')));
+    check('C5 un seul écran, un seul bouton « C’est parti », rien à configurer', !(await page.$('.obz-dots')) && !(await page.$('#arNext')) && !(await page.$('.obz-form')) && /C’est parti/.test(await page.textContent('#arGo')));
     await page.click('#arGo'); await settle(page, 1000);
-    check('C6 il commence par le diagnostic ; la présentation est notée comme vue', /\/diagnostic$/.test(page.url()) && db.members.find((x) => x.user === people.bob.id).onboarded === true);
+    check('C6 il arrive sur son accueil ; la présentation est notée comme vue', new RegExp(`#/org/${orgId}$`).test(page.url()) && db.members.find((x) => x.user === people.bob.id).onboarded === true, page.url());
     await page.goto(`${URL0}#/org/${orgId}`); await settle(page, 900);
     check('C7 la présentation ne revient pas', !(await page.isVisible('.obz-arrival')) && await page.isVisible('.org-head'));
     check('C8 un collaborateur n’a ni configuration ni équipe', !(await page.$('a[href*="/configurer"]')) && !(await page.$('.org-tabs a[href$="/equipe"]')));

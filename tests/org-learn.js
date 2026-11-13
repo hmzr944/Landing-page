@@ -99,7 +99,8 @@ function handle(r) {
   {
     const { ctx, page } = await as('bob');
     await page.goto(`${URL0}#/org/${ORG}`); await wait(page, 900);
-    check('A1 l’accueil propose le diagnostic, le client mystère et les résultats (plus de « Bientôt »)', !!(await page.$(`a[href="#/org/${ORG}/diagnostic"]`)) && !!(await page.$(`a[href="#/org/${ORG}/mystere"]`)) && !(await page.$('.org-card.soon')));
+    await page.evaluate((h) => { location.hash = h; }, `#/org/${ORG}/apprendre/epreuve`); await wait(page, 900);
+    check('A1 « Explorer » propose le diagnostic et le client mystère (plus de « Bientôt »)', !!(await page.$(`a[href="#/org/${ORG}/diagnostic"]`)) && !!(await page.$(`a[href="#/org/${ORG}/mystere"]`)) && !(await page.$('.org-card.soon')));
     check('A2 un collaborateur n’a ni Suivi ni Compétences', !(await page.$('.org-tabs a[href$="/suivi"]')) && !(await page.$('.org-tabs a[href$="/competences"]')));
     await go(page, `#/org/${ORG}/diagnostic`);
     await page.click('#dgGo'); await wait(page, 800);
@@ -158,7 +159,7 @@ function handle(r) {
     check('D3 chaque personne a sa prochaine activité', /Revoir « Batterie endommagée »/.test(t2) && (await page.$$('.team-rows li')).length >= 2);
     await page.click(`a[href="#/org/${ORG}/suivi/u-bob"]`); await wait(page, 1000);
     const t3 = await page.textContent('#app');
-    check('D4 le détail d’une personne : états expliqués, rappel que l’espace personnel n’est jamais visible', /bob@magasin\.fr/.test(t3) && /Fausse certitude/.test(t3) && /espace personnel ne l’est jamais/.test(t3));
+    check('D4 le détail d’une personne (double voile) : besoins « à renforcer », pas d’erreur individuelle nommée, espace personnel jamais visible', /bob@magasin\.fr/.test(t3) && /À renforcer/.test(t3) && !/Fausse certitude/.test(t3) && /espace personnel ne l’est jamais/.test(t3));
 
     /* E. Compétences */
     await go(page, `#/org/${ORG}/competences`);

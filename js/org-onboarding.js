@@ -391,37 +391,25 @@
     let skills = [], unitName = o.unit || '';
     try { skills = await Tutor.rest('/rest/v1/skills', { method: 'GET', query: `?org_id=eq.${q(o.id)}&select=name,description&order=created_at&limit=7` }); } catch (e) { skills = []; }
     const role = Org.ROLES[o.role] || o.role;
-    const dots = (i) => `<div class="obz-dots" aria-label="Écran ${i + 1} sur 3">${[0, 1, 2].map((j) => `<span class="${j === i ? 'cur' : j < i ? 'done' : ''}"></span>`).join('')}</div>`;
-    const screens = [
-      `<span class="obz-badge">${d.ic('hand-waving', true)}</span>
-       <h1>Bienvenue dans ${d.esc(o.name)}</h1>
-       <p class="obz-lede">Tu rejoins l’espace de formation de ton organisation, en tant que <b>${d.esc(role)}</b>${unitName ? `, équipe <b>${d.esc(unitName)}</b>` : ''}.</p>
-       <p>Arbor t’aide à maîtriser ce que ton métier demande ici : les produits, les procédures, la relation client. Tu t’entraînes sur des situations réelles, à partir des documents validés par ton organisation.</p>`,
-      `<span class="obz-badge">${d.ic('target', true)}</span>
-       <h1>Ce que tu vas apprendre</h1>
-       ${skills.length ? `<ul class="obz-skills">${skills.map((s) => `<li>${d.ic('check-circle', true)}<span><b>${d.esc(s.name)}</b>${s.description ? `<small>${d.esc(s.description)}</small>` : ''}</span></li>`).join('')}</ul>`
-         : '<p class="obz-lede">Ton responsable définit encore les compétences attendues. Tu peux déjà faire le point sur les connaissances validées.</p>'}
-       <p class="hint">Ta progression se mesure par des preuves : tes réponses au diagnostic et tes simulations, corrigées à partir des documents. Jamais par le temps passé.</p>`,
-      `<span class="obz-badge">${d.ic('eye', true)}</span>
-       <h1>Ce qui est observé, et qui le voit</h1>
-       <ul class="obz-privacy">
-         <li>${d.ic('check-circle', true)}<span><b>Observé</b>Tes réponses au diagnostic, ta confiance déclarée, tes conversations de simulation et leur débrief, dans cet espace seulement.</span></li>
-         <li>${d.ic('users-three', true)}<span><b>Qui voit tes résultats</b>Toi, et les managers et administrateurs de ${d.esc(o.name)}. Pas les autres collaborateurs.</span></li>
-         <li>${d.ic('lock-simple', true)}<span><b>Jamais visible</b>Ton espace personnel Student (tes cours, tes révisions) reste sur ton appareil. ${d.esc(o.name)} n’y a pas accès.</span></li>
-         <li>${d.ic('info', true)}<span><b>Pourquoi</b>Te proposer la bonne activité, et aider ton équipe à repérer ce qui est fragile. Une conclusion sur l’équipe n’apparaît qu’avec assez d’observations.</span></li>
-       </ul>`,
-    ];
+    // Une seule page : on commence tout de suite ; la confidentialité reste consultable en un geste
     app.innerHTML = `<section class="obz obz-arrival">
-      <div class="obz-body">${dots(step)}${screens[step]}</div>
-      <footer class="obz-foot">
-        ${step > 0 ? `<button class="btn ghost" id="arBack">${d.ic('arrow-left')}Retour</button>` : ''}
-        ${step < 2 ? `<button class="btn big" id="arNext">Continuer${d.ic('arrow-right')}</button>` : `<button class="btn big" id="arGo">${d.ic('play', true)}Faire mon diagnostic</button><button class="link-btn" id="arLater">Plus tard</button>`}
-      </footer></section>`;
-    const b = app.querySelector('#arBack'); if (b) b.onclick = () => arrival(app, o, step - 1);
-    const n = app.querySelector('#arNext'); if (n) n.onclick = () => arrival(app, o, step + 1);
+      <div class="obz-body">
+        <span class="obz-badge">${(window.Mascot && Mascot.mini({ size: 60, mood: 'happy' })) || d.ic('hand-waving', true)}</span>
+        <h1>Bienvenue dans ${d.esc(o.name)}</h1>
+        <p class="obz-lede">Tu rejoins l’espace de formation en tant que <b>${d.esc(role)}</b>${unitName ? `, équipe <b>${d.esc(unitName)}</b>` : ''}.</p>
+        <p class="obz-promise"><b>Tes résultats t’aident à progresser. Ton espace personnel reste privé.</b></p>
+        ${skills.length ? `<p class="hint">Au programme : ${skills.slice(0, 4).map((s) => d.esc(s.name)).join(', ')}${skills.length > 4 ? '…' : ''}.</p>` : ''}
+        <details class="obz-privacy-box"><summary>${d.ic('shield-check')}Ce qui est observé, et qui le voit</summary>
+          <ul class="obz-privacy">
+            <li>${d.ic('check-circle', true)}<span><b>Observé</b>Tes réponses au diagnostic, ta confiance déclarée, tes simulations et leur débrief, dans cet espace seulement.</span></li>
+            <li>${d.ic('users-three', true)}<span><b>Qui voit tes résultats</b>Toi, et les managers et administrateurs de ${d.esc(o.name)}. Tes collègues voient seulement ton rang et tes trophées, jamais tes erreurs.</span></li>
+            <li>${d.ic('lock-simple', true)}<span><b>Jamais visible</b>Ton espace personnel Student (tes cours, tes révisions) reste sur ton appareil. ${d.esc(o.name)} n’y a pas accès.</span></li>
+          </ul></details>
+      </div>
+      <footer class="obz-foot"><span></span><button class="btn big" id="arGo">${d.ic('play', true)}C’est parti</button></footer></section>`;
+    void step;
     const done = async (to) => { await rpc('mark_onboarded', { p_org: o.id }).catch(() => {}); o.onboarded = true; await Org.refresh().catch(() => {}); if (window.Journey) Journey.set({ workspace: Journey.get().workspace || 'business' }); d.go(to); };
-    const g = app.querySelector('#arGo'); if (g) g.onclick = () => done(`#/org/${o.id}/diagnostic`);
-    const l = app.querySelector('#arLater'); if (l) l.onclick = () => done(`#/org/${o.id}`);
+    app.querySelector('#arGo').onclick = () => done(`#/org/${o.id}`);
   }
 
   /* ---------- Point d'entrée ---------- */
@@ -443,6 +431,8 @@
     d = deps || d;
     const st = o.setup || {};
     if (o.role !== 'admin' || !st.step || st.done) return '';
+    // mise en route express (3 étapes)
+    if (st.express) return `<a class="obz-resume" href="#/org/${o.id}/demarrer/${st.step === 'experience' ? 'experience' : 'savoir'}">${d.ic('arrow-clockwise')}<span><b>Reprendre la mise en route</b><small>${st.step === 'experience' ? 'Étape 3 sur 3 : première expérience' : 'Étape 2 sur 3 : premier savoir'}</small></span>${d.ic('caret-right')}</a>`;
     const i = Math.max(0, STEPS.findIndex(([k]) => k === st.step));
     return `<a class="obz-resume" href="#/org/${o.id}/configurer/${st.step}">${d.ic('arrow-clockwise')}<span><b>Reprendre la configuration</b><small>Étape ${i + 1} sur ${STEPS.length} : ${STEPS[i][2]}</small></span>${d.ic('caret-right')}</a>`;
   }
