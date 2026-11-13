@@ -1,45 +1,57 @@
-# Concierge // PULS
+# PULS
 
-Prototype interactif d'un poste de commandement SAV livraison pour la gastronomie haut de gamme.
-**Données fictives, actions simulées** : aucune commande, aucun remboursement, aucun message réel n'est déclenché.
+**Save the experience.** Plateforme d'hospitalité opérationnelle et de gestion proactive des incidents post-achat.
 
-Ouvrir `puls/index.html` dans un navigateur (ou `python3 -m http.server` depuis `puls/`). Aucune étape de build.
+Deux expériences, une identité :
 
-## Les quatre moteurs
-
-| Moteur | Rôle | Dans le prototype |
+| | Dossier | Rôle |
 |---|---|---|
-| Concierge Desk | Décider et résoudre | File d'urgence triée par criticité, fiche client et commande, 3 gestes avec règles, réponse IA modifiable, relecture obligatoire |
-| Thermal Guard | Estimer le risque de détérioration | Indice thermique **estimé** (produit + retard + météo hub + incident froid), ouverture d'un dossier préventif |
-| Proof Studio | Collecter les preuves | 3 photos guidées (dépôt réel ou simulation), observations **non certifiantes**, conclusion du conseiller |
-| Carrier Autopsy | Identifier les défaillances | Taux d'incidents **vérifiés**, intervalle de confiance à 95 % (Wilson), aucune conclusion sous 30 incidents |
+| **PULS Website** | `puls/*.html`, `puls/secteurs/` | Site public : présenter, expliquer, commercialiser, demander une démonstration |
+| **PULS App** | `puls/app/` | Espace professionnel installable (PWA), accessible après connexion |
 
-## Règle fondamentale : trois niveaux de vérité
+Aucune étape de build pour l'utilisation : servir `puls/` (`python3 -m http.server`) et ouvrir `index.html`.
 
-Distingués par la forme, sans couleur supplémentaire :
+## Étape 1 : audit de l'existant (13 nov. 2026)
 
-- ● **Fait vérifié** : remonté par le transporteur (pastille pleine, encre)
-- ◌ **Risque estimé** : calculé, jamais mesuré (pastille pointillée)
-- ◆ **Action recommandée** : proposée, le conseiller décide (losange bordeaux)
+- Le dépôt héberge un autre produit, **Arbor** (racine du dépôt, `js/`, `supabase/`), en HTML/CSS/JS sans build, avec un backend **Supabase** (PostgreSQL, RLS, fonctions Edge) déjà structuré en organisations, rôles et journal d'audit. PULS n'en dépend pas et n'y touche pas.
+- **PULS** se limitait au prototype Concierge Desk : quatre moteurs (Concierge Desk, Thermal Guard, Proof Studio, Carrier Autopsy), données fictives en mémoire, aucune persistance, aucun backend, aucune authentification.
+- Conservé intégralement : direction artistique, trois niveaux de vérité, criticité explicable, gestes avec règles (stock, zones, délégation), réponse IA relue, raccourcis clavier, identité « pouls ».
+- Modifié dans l'app : suppression de l'intro et du rideau plein écran, animations ramenées vers 150 à 200 ms (Partie 12).
 
-## Garde-fous métier
+### Choix techniques
+- **Site public : HTML statique généré** (`site-src/build.py`). Rapide, indexable, sans dépendance. Le gabarit commun (navigation, pied de page) n'existe qu'à un endroit.
+- **App : conservée en JavaScript sans framework** pour cette étape, afin de ne pas réécrire un prototype qui fonctionne. La migration React / TypeScript se justifiera avec la persistance et la configuration multi-entreprise.
+- **Backend visé : PostgreSQL avec isolation par workspace au niveau base (RLS)**, sur le modèle déjà éprouvé dans `supabase/` pour Arbor, dans un schéma séparé.
 
-- Réexpédition impossible sans stock réel (ex. tablettes ganache en rupture).
-- Coursier : zones Paris et Lyon uniquement, avant 15 h, avec stock dans l'entrepôt local.
-- Geste commercial au-delà de 150 € : envoi en validation responsable.
-- Le brouillon IA n'affirme jamais qu'un produit est consommable ou impropre.
-- La recommandation n'est jamais appliquée automatiquement.
+## Ce qui fonctionne aujourd'hui
+
+**Site public** : accueil, plateforme (avec simulateur d'arbitrage interactif), page secteurs et 5 pages métier, intégrations, sécurité, démonstration et contact, confidentialité, connexion. Captures réelles de l'app (`assets/`, générées par `site-src/shots.js`).
+
+**Formulaire de démonstration** : validation, refus des adresses personnelles, consentement, préremplissage par URL (`demo.html?sujet=integration&secteur=luxe`), confirmation. Branchement CRM : renseigner `leadEndpoint` dans `config.js` (POST JSON). Sans point de collecte, la confirmation le dit explicitement et propose de copier la demande.
+
+**Connexion et app** : l'app redirige vers `connexion.html` sans session ; l'espace de démonstration ouvre une session dans `sessionStorage` (onglet courant), effacée à la déconnexion. Manifeste, icônes, service worker limité aux fichiers d'interface (jamais de données), bouton d'installation quand le navigateur le propose.
+
+## Ce qui n'est pas encore réel (affiché comme tel)
+
+- Comptes nominatifs et authentification serveur : le formulaire de compte est désactivé et signalé.
+- Multi-entreprise, rôles, configuration : modules « Intelligence » et « Configuration » marqués « Bientôt » dans l'app.
+- Intégrations : seules les données de démonstration sont « Disponibles ».
+- Aucune certification de sécurité n'est revendiquée.
+
+## Prochaines étapes
+3. Authentification serveur (comptes, sessions, rôles).
+5. Schéma multi-tenant PostgreSQL avec RLS, testé par des requêtes croisées entre entreprises.
+6. Persistance des dossiers, moteur d'arbitrage dans l'app, configuration du catalogue et des seuils, Proof Studio côté client (lien expirant, téléversement privé), exports Carrier Autopsy.
+
+## Commandes
+```bash
+python3 site-src/build.py          # régénère les pages du site
+python3 -m http.server 8765        # sert puls/
+node site-src/shots.js             # régénère les captures de l'app
+node site-src/test-site.js         # 70+ contrôles : pages, liens, mobile, formulaire, connexion, PWA
+```
 
 ## Design
-
-- **3 couleurs** : ivoire `#F8F4EC`, encre `#1E1B18`, bordeaux `#7A1D2B`. Toutes les nuances sont des mélanges `color-mix` de ces trois.
-- **2 polices** : Outfit (titres) et GT Walsheim (texte et boutons). GT Walsheim est sous licence Grilli Type : déposer `GT-Walsheim-Regular.woff2`, `-Medium.woff2`, `-Bold.woff2` dans `puls/fonts/`. Sans ces fichiers, Figtree sert de repli.
-- Bento grid aérée, rayons cohérents (tuiles 18 px, champs 10 px, boutons en pilule).
-- Motion : entrées en cascade, anneau de score, compteurs, file animée à la résolution, rédaction de la réponse en direct.
-- Identité « pouls » (`effects.js`) : intro au tracé cardiaque (une fois par session), logo animé, moniteur **Pouls SAV** dont le rythme accélère de 9 bpm par dossier critique, rideau bordeaux entre les moteurs, pastille de navigation glissante, titres révélés mot à mot, sceau de cire « Résolu » à la clôture, halo sous le curseur, boutons aimantés, ondes au clic, grain papier.
-- Tout est désactivé avec `prefers-reduced-motion`.
-- Icônes Phosphor.
-
-## Raccourcis
-
-`J` / `K` dossier suivant / précédent · `1` `2` `3` gestes · `R` réponse · `/` recherche · `G` puis `D` `T` `P` `C` moteurs · `?` aide
+- Ivoire, crème, bordeaux, charbon, gris chauds dérivés.
+- Outfit (titres), GT Walsheim (texte, fichiers sous licence à déposer dans `fonts/`, repli Figtree).
+- Icônes Phosphor. `prefers-reduced-motion` respecté partout.

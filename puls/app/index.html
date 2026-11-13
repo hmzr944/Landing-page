@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PULS App</title>
+  <meta name="description" content="Espace professionnel PULS : détecter, comprendre, arbitrer et résoudre les incidents de livraison.">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#F8F4EC">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <!-- Garde de session : l'espace applicatif n'est accessible qu'après connexion.
+       La session vit dans sessionStorage (onglet courant), jamais dans le stockage partagé. -->
+  <script>
+    (function () {
+      var s = null;
+      try { s = JSON.parse(sessionStorage.getItem("puls-session") || "null"); } catch (e) {}
+      if (!s || !s.workspace) { location.replace("../connexion.html?next=app"); return; }
+      window.PULS_SESSION = s;
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Deux familles : Outfit (titres) et GT Walsheim (texte, boutons).
+       GT Walsheim est une police sous licence (Grilli Type) : déposer les fichiers .woff2 dans puls/fonts/.
+       En leur absence, Figtree (forme géométrique proche) prend le relais. -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+  <link rel="stylesheet" href="puls.css">
+</head>
+<body>
+  <div class="shell">
+    <aside class="rail" aria-label="Moteurs PULS">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 60 24"><path class="base" id="brand-ecg-base" d=""/><path id="brand-ecg" d=""/></svg></span>
+        <span class="brand-name">PULS<em>Save the experience</em></span>
+      </div>
+      <nav class="rail-nav">
+        <span class="rail-pill" aria-hidden="true"></span>
+        <button class="rail-link" data-view="desk"><i class="ph ph-crown-simple"></i><span>Concierge Desk</span><kbd>G D</kbd></button>
+        <button class="rail-link" data-view="thermal"><i class="ph ph-thermometer-simple"></i><span>Thermal Guard</span><kbd>G T</kbd></button>
+        <button class="rail-link" data-view="proof"><i class="ph ph-camera"></i><span>Proof Studio</span><kbd>G P</kbd></button>
+        <button class="rail-link" data-view="carrier"><i class="ph ph-truck"></i><span>Carrier Autopsy</span><kbd>G C</kbd></button>
+        <span class="rail-sep" aria-hidden="true"></span>
+        <button class="rail-link is-soon" disabled title="Module en cours de développement"><i class="ph ph-chart-line-up"></i><span>Intelligence</span><span class="soon">Bientôt</span></button>
+        <button class="rail-link is-soon" disabled title="Module en cours de développement"><i class="ph ph-sliders-horizontal"></i><span>Configuration</span><span class="soon">Bientôt</span></button>
+      </nav>
+      <div class="rail-foot">
+        <div class="legend">
+          <span class="lvl lvl-fait">Fait vérifié</span>
+          <span class="lvl lvl-risque">Risque estimé</span>
+          <span class="lvl lvl-action">Action recommandée</span>
+        </div>
+        <div class="workspace" id="workspace"></div>
+        <div class="rail-actions">
+          <button class="ghost-btn" data-open-help><i class="ph ph-keyboard"></i>Raccourcis <kbd>?</kbd></button>
+          <button class="ghost-btn" id="install-btn" hidden><i class="ph ph-download-simple"></i>Installer</button>
+          <button class="ghost-btn" id="logout-btn"><i class="ph ph-sign-out"></i>Déconnexion</button>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="topbar-title">
+          <h1 id="view-title">Concierge Desk</h1>
+          <p id="view-sub">Décider et résoudre, dossier par dossier.</p>
+        </div>
+        <label class="search">
+          <i class="ph ph-magnifying-glass"></i>
+          <span class="sr-only">Rechercher un dossier</span>
+          <input id="search" type="search" placeholder="Client, commande, ville" autocomplete="off">
+          <kbd>/</kbd>
+        </label>
+        <div class="monitor" title="Pouls du SAV : il accélère avec le nombre de dossiers critiques">
+          <span class="monitor-label">Pouls SAV<b><span id="pulse-n">58</span> bpm</b></span>
+          <span class="monitor-strip"><svg viewBox="0 0 300 24" width="300" height="24"><path id="ecg" d=""/></svg></span>
+        </div>
+        <div class="sim-badge" title="Aucune commande, aucun remboursement, aucun message réel n'est déclenché.">
+          <i class="ph ph-flask"></i>Prototype, données fictives
+        </div>
+      </header>
+      <section id="view" class="view" aria-live="polite"></section>
+    </main>
+  </div>
+
+  <div id="toasts" class="toasts" role="status" aria-live="polite"></div>
+
+  <dialog id="help" class="help">
+    <h2>Raccourcis clavier</h2>
+    <dl>
+      <div><dt><kbd>J</kbd> <kbd>K</kbd></dt><dd>Dossier suivant, précédent</dd></div>
+      <div><dt><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd></dt><dd>Choisir un geste de résolution</dd></div>
+      <div><dt><kbd>R</kbd></dt><dd>Modifier la réponse au client</dd></div>
+      <div><dt><kbd>/</kbd></dt><dd>Rechercher</dd></div>
+      <div><dt><kbd>G</kbd> puis <kbd>D</kbd> <kbd>T</kbd> <kbd>P</kbd> <kbd>C</kbd></dt><dd>Changer de moteur</dd></div>
+      <div><dt><kbd>Échap</kbd></dt><dd>Fermer, quitter un champ</dd></div>
+    </dl>
+    <form method="dialog"><button class="btn btn-ink">Compris</button></form>
+  </dialog>
+
+  <script src="effects.js"></script>
+  <script src="puls.js"></script>
+  <script src="shell.js"></script>
+</body>
+</html>

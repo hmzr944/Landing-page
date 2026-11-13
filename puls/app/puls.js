@@ -210,7 +210,7 @@
     $$("[data-count]", root).forEach((el) => {
       const target = parseFloat(el.dataset.count);
       if (reduceMotion) { el.textContent = target; return; }
-      const start = performance.now(), dur = 900;
+      const start = performance.now(), dur = 500;
       const step = (now) => {
         const p = Math.min(1, (now - start) / dur);
         el.textContent = Math.round(target * (1 - Math.pow(1 - p, 3)));
@@ -371,9 +371,8 @@
       window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
     };
     if (reduceMotion || state.view === view) return swap();
-    if (window.PULSFX) return window.PULSFX.wipe(swap);
     el.classList.add("leaving");
-    setTimeout(swap, 170);
+    setTimeout(swap, 150);
   }
 
   function render() {
@@ -704,8 +703,8 @@
       : `Simulation : aucun message ni commande réels pour ${fullName(c)}.`, pending ? "ph-seal-check" : "ph-check-circle");
     if (reduceMotion) return finish();
     window.PULSFX?.seal($("#case .case"), $("#reply"), pending);
-    setTimeout(() => item?.classList.add("leaving"), 650);
-    setTimeout(finish, 1150);
+    setTimeout(() => item?.classList.add("leaving"), 450);
+    setTimeout(finish, 700);
   }
 
   function selectCase(id) {

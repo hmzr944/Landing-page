@@ -53,6 +53,7 @@ window.PULSFX = (() => {
 
   /* ---------- Rideau entre les moteurs ---------- */
   let wiping = false;
+  // Partie 12 : pas de transition plein écran. Le changement de moteur reste un fondu local (puls.js).
   function wipe(swap) {
     const w = $("#wipe");
     if (reduce || !w || wiping) return swap();
@@ -167,8 +168,8 @@ window.PULSFX = (() => {
     setTimeout(() => s.remove(), 650);
   });
 
-  document.addEventListener("DOMContentLoaded", () => { initMonitor(); intro(); });
-  if (document.readyState !== "loading") { initMonitor(); intro(); }
+  document.addEventListener("DOMContentLoaded", initMonitor);
+  if (document.readyState !== "loading") initMonitor();
 
   return { afterRender, wipe, movePill, seal, setPulse, reduce };
 })();

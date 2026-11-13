@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="fr" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Connexion : PULS</title>
+<meta name="description" content="Connexion à l&#x27;espace professionnel PULS.">
+<meta name="theme-color" content="#F8F4EC">
+<meta property="og:title" content="Connexion : PULS">
+<meta property="og:description" content="Connexion à l&#x27;espace professionnel PULS.">
+<link rel="icon" href="favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+<link rel="stylesheet" href="site.css">
+<script>document.documentElement.classList.remove("no-js")</script>
+</head>
+<body>
+<div class="login-page">
+  <aside class="login-side">
+    <a class="logo" href="index.html" style="color:var(--ivory)"><span class="logo-mark"><svg viewBox="0 0 60 24" aria-hidden="true"><path d="M0 12 h12 l3 -3 l3 3 h3 l3 -10 l3 18 l3 -8 h4 l4 -4 l4 4 h18"/></svg></span>PULS</a>
+    <svg class="bg" viewBox="0 0 1600 120" aria-hidden="true"><path d="M0 60 H820 l10 -9 l10 9 h10 l10 -49 l12 80 l10 -31 h12 l10 -14 l10 14 H1600"/></svg>
+    <div><h2>Save the experience.</h2><p>L'espace professionnel où vos équipes détectent, comprennent, arbitrent et résolvent les incidents de livraison.</p></div>
+  </aside>
+  <main class="login-main" id="contenu">
+    <div class="login-box">
+      <p class="small" style="margin-bottom:28px"><a class="link" href="index.html"><i class="ph ph-arrow-left"></i>Retour au site</a></p>
+      <h1>Connexion</h1>
+      <p class="lede">Accédez à votre espace PULS.</p>
+      <div class="notice" id="logout-note" hidden style="margin-top:20px"><i class="ph ph-check-circle"></i><span>Vous êtes déconnecté. La session a été effacée de cet onglet.</span></div>
+
+      <form id="account-form" style="margin-top:28px" novalidate>
+        <div class="field"><label for="l-email">E-mail professionnel</label><input id="l-email" type="email" autocomplete="username" disabled></div>
+        <div class="field" style="margin-top:16px"><label for="l-pass">Mot de passe</label><input id="l-pass" type="password" autocomplete="current-password" disabled></div>
+        <button class="btn btn-dark btn-block" type="submit" style="margin-top:20px" disabled>Se connecter</button>
+        <p class="status-line" id="account-status"><i class="ph ph-info"></i><span>Les comptes nominatifs ne sont pas encore ouverts : l'authentification serveur est en cours de développement.</span></p>
+      </form>
+
+      <div class="divider">ou</div>
+
+      <form id="demo-login">
+        <h2 style="font-size:22px">Espace de démonstration</h2>
+        <div class="ws-pick">
+          <label><input type="radio" name="ws" value="valcour" checked><span class="m">MV</span><span><b>Maison Valcour</b><span>Chocolaterie fictive, données simulées</span></span><span class="badge badge-ok">Démo</span></label>
+        </div>
+        <button class="btn btn-primary btn-block" type="submit" style="margin-top:16px">Entrer dans l'espace de démonstration <i class="ph ph-arrow-right"></i></button>
+        <p class="status-line"><i class="ph ph-flask"></i><span>Aucune commande, aucun remboursement ni aucun message réel n'est déclenché. La session s'efface à la fermeture de l'onglet.</span></p>
+      </form>
+    </div>
+  </main>
+</div>
+<script src="config.js"></script>
+<script src="site.js"></script>
+</body>
+</html>
