@@ -1,0 +1,79 @@
+# Tests automatiques d'Arbor. Ce flux ne déploie rien : aucune publication, aucun secret, lecture seule du dépôt.
+# La publication reste celle de GitHub Pages depuis main, inchangée.
+name: Tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  serveur:
+    name: Fonction tutor (Deno)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - run: deno test --allow-net --allow-env --allow-read supabase/functions/tutor/
+
+  base:
+    name: Base de données (RLS, PostgreSQL 16)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: PostgreSQL 16 présent
+        run: |
+          if [ ! -x /usr/lib/postgresql/16/bin/initdb ]; then sudo apt-get update && sudo apt-get install -y postgresql-16; fi
+          /usr/lib/postgresql/16/bin/initdb --version
+      - run: node tests/db-rls.js
+
+  navigateur:
+    name: Navigateur (${{ matrix.groupe }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - groupe: student
+            suites: welcome onboarding student-path home-adaptive learning-flow foundations explore motion responsive
+          - groupe: import
+            suites: pdf-structure pdf-mixed data-safety engines
+          - groupe: business
+            suites: org org-setup org-learn org-engines org-docs org-onboarding org-shell org-desktop org-insight
+          - groupe: serveur-simule
+            suites: tutor ai-server league feedback
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Playwright 1.63.0 et Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.63.0
+          npx playwright install --with-deps chromium
+      - name: Suites
+        env:
+          SUITES: ${{ matrix.suites }}
+        run: |
+          echoue=""
+          for s in $SUITES; do
+            echo "::group::$s"
+            if node "tests/$s.js"; then echo "$s : réussi"; else echo "::error::$s a échoué"; echoue="$echoue $s"; fi
+            echo "::endgroup::"
+          done
+          if [ -n "$echoue" ]; then echo "Suites en échec :$echoue"; exit 1; fi
