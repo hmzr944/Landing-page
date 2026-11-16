@@ -176,6 +176,7 @@ node tests/org-shell.js
 node tests/org-desktop.js
 node tests/home-adaptive.js        # accueil Student : une action principale selon l'état
 node tests/student-path.js         # parcours étudiant réel : import depuis l'introduction, texte complet, accueil qui avance
+node tests/corpus-metier.js        # corpus métier n° 1 : manifeste cohérent, 8 PDF lus par l'espace Business
 ARBOR_SHOTS=/tmp/captures node tests/desktop-shots.js   # captures 1366, 1440, 1920 et téléphone
 ```
 
