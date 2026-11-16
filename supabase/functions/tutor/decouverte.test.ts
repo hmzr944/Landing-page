@@ -1,7 +1,7 @@
 // Découverte Business (simulation avant toute organisation) :  deno test --allow-env --allow-net --allow-read
 import { assert, assertEquals } from "jsr:@std/assert@1";
 import { type Deps, handle } from "./handler.ts";
-import { MAX_TURNS } from "./decouverte.ts";
+import { DC_MAX_TURNS as MAX_TURNS } from "./decouverte.ts";
 
 const req = (b: unknown, jwt = "jeton-valide") =>
   new Request("http://localhost/tutor", { method: "POST", headers: { authorization: `Bearer ${jwt}`, origin: "https://hmzr944.github.io", "content-type": "application/json" }, body: JSON.stringify(b) });
