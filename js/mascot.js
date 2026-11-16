@@ -138,7 +138,7 @@
           <g class="m-glints"><path d="M40 22 l1.4 3.2 3.2 1.4 -3.2 1.4 -1.4 3.2 -1.4 -3.2 -3.2 -1.4 3.2 -1.4 z"/><path d="M82 14 l1.1 2.6 2.6 1.1 -2.6 1.1 -1.1 2.6 -1.1 -2.6 -2.6 -1.1 2.6 -1.1 z"/></g>
           <g class="m-flies"><g class="m-orbit o1"><circle cx="12" cy="70" r="2.4"/></g><g class="m-orbit o2"><circle cx="108" cy="60" r="1.9"/></g><g class="m-orbit o3"><circle cx="60" cy="16" r="2.1"/></g></g>
         </g>
-        <g class="m-zzz"><text x="88" y="40">z</text><text x="96" y="28">z</text><text x="104" y="16">Z</text></g>
+        <g class="m-zzz" aria-hidden="true"><text x="88" y="40">z</text><text x="96" y="28">z</text><text x="104" y="16">Z</text></g>
         <g class="m-sparkles">
           <path d="M18 30 l3 7 7 3 -7 3 -3 7 -3 -7 -7 -3 7 -3 z"/><path d="M100 50 l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2 z"/>
           <path d="M96 12 l2 4 4 2 -4 2 -2 4 -2 -4 -4 -2 4 -2 z"/>

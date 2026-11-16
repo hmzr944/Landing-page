@@ -289,13 +289,16 @@
     const plan = Mastery.plan(state, ov, canLesson);
     const lv = state.lastVisit && subjectById(state.lastVisit.sid);
     const lvn = lv && find(lv.root, state.lastVisit.nid);
-    const resume = lvn && Date.now() - state.lastVisit.at < 14 * SRS.DAY ? { s: lv, n: lvn.node } : null;
+    const resume = lvn && state.lastVisit.kind !== 'lesson' && Date.now() - state.lastVisit.at < 14 * SRS.DAY ? { s: lv, n: lvn.node } : null;
     if (ov.due) return { kind: 'review', ov, plan };
-    const hard = plan.fragile.find((x) => Mastery.struggling && Mastery.struggling(x.n));
+    // une notion difficile déjà rouverte aujourd'hui ne bloque plus l'accueil : on passe à la suite
+    const seenToday = (n) => state.lastVisit && state.lastVisit.nid === n.id && Date.now() - state.lastVisit.at < 12 * 3600e3;
+    const hard = plan.fragile.find((x) => Mastery.struggling && Mastery.struggling(x.n) && !seenToday(x.n));
     if (hard) return { kind: 'struggle', ov, plan, s: hard.s, n: hard.n };
-    if (resume) return { kind: 'resume', ov, plan, s: resume.s, n: resume.n };
+    // travail du jour (leçon suivante, nouvelles cartes) : la session existante, qui les enchaîne
     if (plan.lesson) return { kind: 'lesson', ov, plan, s: plan.lesson.s, n: plan.lesson.n };
     if (ov.newToday || plan.fragile.length) return { kind: 'continue', ov, plan };
+    if (resume) return { kind: 'resume', ov, plan, s: resume.s, n: resume.n };
     return { kind: 'explore', ov, plan };
   }
   // Les cinq portes d'entrée restent accessibles après le premier lancement (même moteur : notions, révisions, observations)
@@ -1372,7 +1375,7 @@
     const items = checklistItems(p, node);
     const sug = show ? suggestedGrade(p, node) : null;
     const KIND = {
-      cloze: [p.fromHighlight ? 'highlighter-circle' : 'text-aa', p.fromHighlight ? 'Tiré de ton surlignage' : 'Complète la phrase'],
+      cloze: [p.fromHighlight ? 'highlighter-circle' : 'text-aa', p.fromHighlight ? 'Phrase clé de ton cours' : 'Complète la phrase'],
       recall: ['brain', 'Rappel libre'],
       branch: ['tree-structure', 'Rappel de la branche'],
       exercise: ['pencil-simple-line', 'Exercice'],
@@ -2000,8 +2003,9 @@
     }
     if (f.kind === 'resume' || f.kind === 'lesson') {
       const act = f.kind === 'resume' ? `<a class="btn big" href="${link(f.s.id, f.n.id)}">${ic('arrow-u-up-left', true)}Reprendre mon apprentissage</a>` : `<button class="btn big" data-act="lesson-next">${ic('play-circle', true)}Reprendre mon apprentissage</button>`;
+      const after = steps.filter((x) => x.kind !== 'lesson').map((x) => x.label);
       return `${title(f.kind === 'resume' ? 'Là où tu t’étais arrêté' : 'Ta prochaine leçon', esc(f.n.title))}
-        <p class="hero-sub">${esc(f.s.title)}${steps.length ? ` · ensuite : ${esc(steps.map((x) => x.label).join(', '))}` : ''}</p>
+        <p class="hero-sub">${esc(f.s.title)}${after.length ? ` · ensuite : ${esc(after.join(', '))}` : ''}</p>
         <div class="row-btns">${act}${second}</div>${other}`;
     }
     if (f.kind === 'continue') {

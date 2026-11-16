@@ -131,9 +131,10 @@
           <button type="button" class="btn big" data-wel="signup">Commencer</button>
           <button type="button" class="btn big ghost" data-wel="login">Se connecter</button>
         </div>
+        <button type="button" class="link-btn wel-guest" data-wel="guest">Essayer sans compte</button>
         <button type="button" class="link-btn wel-invite" data-wel="join">${ic('envelope-open')}J’ai une invitation</button>
       </section>
-      <footer class="wel-foot"><button type="button" class="link-btn" data-wel="guest">Essayer sans compte</button><p>Sans compte, tes cours restent sur ce téléphone ; Pousse, l’analyse avancée et l’espace Business demandent un compte.</p></footer>`;
+      <footer class="wel-foot"><p>Sans compte, tes cours restent sur ce téléphone ; Pousse, l’analyse avancée et l’espace Business demandent un compte.</p></footer>`;
   }
 
   // Choix de l'espace : un seul compte, deux environnements, rien n'est définitif

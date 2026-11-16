@@ -18,7 +18,9 @@
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
   // Une phrase qui se comprend seule (pas « Ces fichiers… », « Cependant… ») et qui parle de la notion
-  const ANAPHOR = /^(ces?|cet|cette|cela|ça|il|elle|ils|elles|on|déjà|cependant|mais|donc|ainsi|alors|en effet|par contre|de plus|aussi|pour cela|celui|celle|ceux|leur|là|enfin|puis|ensuite|toutefois|néanmoins|or)(?!\p{L})/iu;
+  // Mots grammaticaux : jamais mot à trouver, jamais leurre (« puisque » ne remplace pas un nom)
+  const FUNC = /^(puisque|lorsque|quand|parce|pourtant|cependant|toutefois|ainsi|alors|aussi|encore|toujours|souvent|jamais|plusieurs|chaque|certaine?s?|autres?|entre|depuis|pendant|après|avant|selon|contre|comme|leurs?|notre|votre|celui|celle|ceux|celles|quelques?|lequel|laquelle|lesquel(?:le)?s|desquel(?:le)?s|auxquel(?:le)?s|dessus|dessous|ensuite|enfin|surtout|seulement|également|beaucoup|moins|bien|peuvent|doivent|étaient|avoir|faire|ceci|cela|celles-ci|ceux-ci|notamment|lorsqu|puisqu|quoique|tandis|parmi|durant|malgré|chacun|chacune|aucun|aucune|personne|rien|dont|elles|nous|vous|ils)$/i;
+  const ANAPHOR = /^(ces?|cet|cette|cela|ça|il|elle|ils|elles|on|déjà|cependant|mais|donc|ainsi|alors|en effet|par contre|de plus|aussi|pour cela|celui|celle|ceux|leur|là|enfin|puis|ensuite|toutefois|néanmoins|or|ceci|dans ce cas|pour sa part|en fait|par exemple|par ailleurs|en revanche|de même|d['’]une part|d['’]autre part|à part cela|notamment|comme on (?:l['’]a vu|a pu le voir))(?!\p{L})/iu;
   const stem = (w) => w.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').slice(0, 6);
   function scorer(title) {
     const keys = title.split(/[^\p{L}]+/u).filter((w) => w.length >= 4 && !STOP.has(w.toLowerCase()) && !/^(comprendre|installer|configurer|découvrir|maîtriser|connaître|utiliser|savoir|gérer|mettre|prendre|main)$/i.test(w)).map(stem);
@@ -65,11 +67,11 @@
   function qGap(d, others) {
     const title = new Set(d.title.toLowerCase().split(/[^a-zà-ÿ]+/));
     for (const s of [d.idea, ...d.points]) {
-      const words = s.split(/\s+/).map((w) => w.split(/['’]/).pop().replace(/[^\p{L}-]/gu, '')).filter((w) => w.length >= 5 && !STOP.has(w.toLowerCase()) && !title.has(w.toLowerCase()));
+      const words = s.split(/\s+/).map((w) => w.split(/['’]/).pop().replace(/[^\p{L}-]/gu, '')).filter((w) => w.length >= 5 && !STOP.has(w.toLowerCase()) && !FUNC.test(w) && !title.has(w.toLowerCase()));
       if (!words.length) continue;
       const word = words.sort((a, b) => b.length - a.length)[0];
       const decoys = shuffle([...new Set(others.flatMap((o) => o.all.join(' ').split(/\s+/)).map((w) => w.split(/['’]/).pop().replace(/[^\p{L}-]/gu, '')))]
-        .filter((w) => w.length >= 5 && w.toLowerCase() !== word.toLowerCase() && !STOP.has(w.toLowerCase()) && !s.includes(w))).slice(0, 2);
+        .filter((w) => w.length >= 5 && w.toLowerCase() !== word.toLowerCase() && !STOP.has(w.toLowerCase()) && !FUNC.test(w) && !s.includes(w))).slice(0, 2);
       if (decoys.length < 2) continue;
       const text = short(s, 150);
       if (!text.includes(word)) continue;
