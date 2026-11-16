@@ -124,7 +124,9 @@ const WEB = [
   { id: 'web-bio-td', name: 'TD de biologie cellulaire : la mitose (Université de Béjaïa)', url: 'https://elearning.univ-bejaia.dz/pluginfile.php/115252/mod_folder/content/0/TD_N1_LE_CYCLE_CELLULAIRE.pdf',
     keep: ['Le cycle cellulaire comprend la mitose'], noKinds: ['evaluation', 'recommandation', 'commentaire'], minNotes: 9000 },
   { id: 'web-cyto', name: 'Cours de cytogénétique : divisions cellulaires (Université de Constantine)', url: 'https://fac.umc.edu.dz/vet/Cours_Ligne/cours_22_23/Cytogenetique_A1/Chap_4.pdf',
-    noKinds: ['evaluation', 'recommandation', 'commentaire'], minNotes: 15000 },
+    // 14 000 : le seuil de 15 000 comptait les fausses espaces au milieu des mots (« c ycle »), supprimées depuis l'audit Student ;
+    // le texte utile a augmenté (574 mots du PDF sur 578 retrouvés, contre 535).
+    noKinds: ['evaluation', 'recommandation', 'commentaire'], minNotes: 14000 },
   { id: 'web-snes', name: 'Recommandations institutionnelles sur l’évaluation (texte sur le sujet, pas sur un élève)', url: 'https://www.dijon.snes.edu/spip/IMG/pdf/2._recommandations_mise_en_oeuvre_evaluations.pdf',
     noKinds: ['evaluation', 'recommandation', 'commentaire'], minNotes: 20000 },
   { id: 'web-feedback-en', name: 'Guide anglais sur le feedback (s’adresse à « you » sans juger personne)', url: 'https://sites.reading.ac.uk/wp-content/uploads/sites/38/2019/01/2._deft_feedback_guide.pdf',
