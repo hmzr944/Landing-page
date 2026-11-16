@@ -4079,3 +4079,6 @@ html.cmdk-open { overflow: hidden; }
 .lg-sub { font-size: .72em; font-weight: 500; color: var(--text-3); margin-left: 6px; }
 .dc-miss li > i { color: var(--text-3); }
 @media (max-width: 480px) { .b-hero .row-btns { flex-wrap: wrap; } .b-hero .row-btns .btn.big { flex: 1 1 100%; justify-content: center; white-space: normal; text-wrap: balance; height: auto; padding-block: 10px; } }
+
+/* Audit Student : une introduction fermée ne doit plus intercepter les clics (display:flex écrasait [hidden]) */
+.onb[hidden] { display: none !important; }

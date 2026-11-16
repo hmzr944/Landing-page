@@ -48,7 +48,7 @@
       segs.forEach((g) => { g.kind = g.x0 >= mid - W * 0.04 ? 'right' : g.x1 <= mid + W * 0.04 ? 'left' : 'full'; });
       segs.sort((a, b) => b.y - a.y);
       const ordered = [];
-      const segText = (g) => g.parts.map((x) => x.str).join(' ').trim();
+      const segText = (g) => joinParts(g.parts.slice().sort((a, b) => a.x - b.x)).trim();
       const isBullet = (g) => /^\s*[•●▪◦‣\-–*✓➢►○□☐]/.test(segText(g));
       const median = (a) => { const b = [...a].sort((x, y) => x - y); return b.length ? b[Math.floor(b.length / 2)] : 0; };
       for (let i = 0; i < segs.length;) {
@@ -88,7 +88,7 @@
       let prev = null;
       for (const g of ordered) {
         const parts = g.row ? g.parts : g.parts.sort((a, b) => a.x - b.x);
-        const text = fixAccents((g.row ? parts.filter((x) => !x.cell).map((x) => x.str).join(' ') + ' : ' + parts.filter((x) => x.cell).map((x) => x.str).join(' ') : parts.map((x) => x.str).join(' ')).replace(/\s+/g, ' ').replace(/ ([,.;:)])/g, '$1').trim());
+        const text = fixAccents((g.row ? joinParts(parts.filter((x) => !x.cell)) + ' : ' + joinParts(parts.filter((x) => x.cell)) : joinParts(parts)).replace(/\s+/g, ' ').replace(/ ([,.;:)])/g, '$1').trim());
         if (!text) continue;
         const monoChars = parts.filter((x) => x.mono).reduce((a, x) => a + x.str.length, 0);
         const chars = parts.reduce((a, x) => a + x.str.length, 0) || 1;
@@ -115,7 +115,25 @@
 
   /* Accents séparés de leur lettre (PDF produits par LaTeX avec des polices Type 1 : « r´ eseaux », « re¸ cu ») */
   const ACC = { '´': '\u0301', '`': '\u0300', 'ˆ': '\u0302', '¨': '\u0308', '¸': '\u0327', '˜': '\u0303', '˚': '\u030A' };
+  // Jointure des morceaux d'une ligne : une espace seulement si un blanc les sépare vraiment
+  function joinParts(parts) {
+    let out = '';
+    parts.forEach((x, i) => {
+      if (i) {
+        const a = parts[i - 1];
+        const gap = x.x - (a.x + a.w);
+        const sep = /\s$/.test(a.str) || /^\s/.test(x.str) || gap > Math.min(a.size, x.size) * 0.16 || gap < -Math.min(a.size, x.size) * 0.5;
+        out += sep ? ' ' : '';
+      }
+      out += x.str;
+    });
+    return out;
+  }
+  // Seulement les symboles vérifiés sur de vrais documents (puces et flèches Wingdings). Un même code vaut autre chose dans
+  // la police Symbol (lettres grecques, ≤, ≥, ≠) : les autres caractères de cette zone sont laissés tels quels, jamais supprimés.
+  const PUA = { '\uf0b7': '•', '\uf0fc': '✓', '\uf0e0': '→' };
   function fixAccents(t) {
+    t = t.replace(/[\uf0b7\uf0fc\uf0e0]/g, (c) => PUA[c]).replace(/✭✭\s?/g, '« ').replace(/\s?✮✮/g, ' »');
     if (!/[´`ˆ¨¸˜˚ı]/.test(t)) return t;
     return t.replace(/([´`ˆ¨])\s+(?=[´`ˆ¨])/g, '').replace(/([´`ˆ¨¸˜˚])\s?(\p{L})/gu, (m, a, l) => (l === 'ı' ? 'i' : l) + ACC[a])
       .replace(/ı(?=[\u0300-\u036f])/g, 'i').normalize('NFC');
@@ -231,7 +249,7 @@
       .map((b) => (typeof b === 'string' ? splitSentences(b).map((s) => (keySet.has(s) ? `==${s}==` : s)).join(' ')
         : b.list ? (b.intro ? b.intro + '\n' : '') + b.list.map((x) => `- ${x}`).join('\n') : b.md))
       .join('\n\n');
-    if (notes.length > 6000) notes = notes.slice(0, 6000) + '…';
+    if (notes.length > 60000) notes = notes.slice(0, 60000) + '…'; // garde-fou mémoire seulement : un cours n'y arrive pas
 
     const skills = node._skills || [];
     node.notes = notes;
