@@ -23,13 +23,15 @@
   const saveStep = async (o, step, extra = {}) => { await rpc('update_organization', { p_org: o.id, p_setup: { step, express: true, ...extra } }).catch(() => {}); if (o.name) await Org.refresh().catch(() => {}); };
 
   /* ---------- 1. Identité ---------- */
+  const dctx = () => (window.OrgDiscover ? OrgDiscover.context() : null) || {};
   function identity(app) {
-    let sector = '';
+    const ctx = dctx();
+    let sector = ctx.sector && SECTORS.some(([l]) => l === ctx.sector) ? ctx.sector : '';
     app.innerHTML = frame('identite', `<span class="obz-badge">${(window.Mascot && Mascot.mini({ size: 56, mood: 'happy' })) || d.ic('buildings', true)}</span>
-      <h1>Créons votre espace</h1><p class="obz-lede">Deux informations suffisent. Tout le reste se règle plus tard, au moment utile.</p>
+      <h1>Créons votre espace</h1><p class="obz-lede">${ctx.situation ? 'Encore une information : le nom de votre organisation. Votre secteur est repris de la simulation.' : 'Deux informations suffisent. Tout le reste se règle plus tard, au moment utile.'}</p>
       <form class="obz-form" id="sxForm" novalidate>
         <div class="field"><label for="sxName">Nom de l’organisation</label><input id="sxName" maxlength="120" autocomplete="organization" placeholder="Boulangerie Martin" /><p class="wel-err" id="sxNameErr" role="alert"></p></div>
-        <fieldset class="field"><legend>Secteur</legend><div class="sx-sectors" role="radiogroup">${SECTORS.map(([l, icn]) => `<label><input type="radio" name="sxSector" value="${l}" /><span>${d.ic(icn, true)}${l}</span></label>`).join('')}</div></fieldset>
+        <fieldset class="field"><legend>Secteur</legend><div class="sx-sectors" role="radiogroup">${SECTORS.map(([l, icn]) => `<label><input type="radio" name="sxSector" value="${l}" ${sector === l ? 'checked' : ''} /><span>${d.ic(icn, true)}${l}</span></label>`).join('')}</div></fieldset>
         <p class="wel-form-err" id="sxErr" role="alert" hidden></p></form>`,
       `<span></span><button class="btn big" id="sxNext">Créer mon espace${d.ic('arrow-right')}</button>`);
     app.querySelectorAll('input[name="sxSector"]').forEach((r) => { r.onchange = () => { sector = r.value; }; });
@@ -47,6 +49,8 @@
         Org.setSpace(id);
         if (window.Journey) Journey.set({ workspace: 'business', businessIntent: 'create' });
         busy = false;
+        // « Continuer sans document » (découverte) : directement à la première expérience
+        if (ctx.choice === 'skip') { await saveStep({ id }, 'experience'); d.go(`#/org/${id}/demarrer/experience`); return; }
         d.go(`#/org/${id}/demarrer/savoir`);
       } catch (e) { busy = false; b.disabled = false; const er = app.querySelector('#sxErr'); er.hidden = false; er.textContent = /connexion/i.test(e.message) ? 'Pas de connexion : rien n’a été créé. Réessayez.' : e.message; }
     };
@@ -64,9 +68,13 @@
         <div class="field"><label for="sxRule">Votre règle</label><textarea id="sxRule" rows="5" maxlength="4000" placeholder="Lorsqu’un client demande un remboursement, nous devons vérifier le ticket de caisse et l’état du produit avant de proposer une solution."></textarea>
         <p class="fb-help">Elle devient un document signé de votre nom, conservé dans votre Base de savoir.</p></div>
         <div class="row-btns"><button class="btn">${d.ic('sparkle', true)}Analyser ma règle</button></div></form>
+      ${(() => { const c = dctx(); return c.situation ? `<div class="dc-recall"><p><b>Situation testée :</b> ${d.esc(c.situation)}</p>${(c.assumptions || []).length ? `<p class="hint">Règles supposées pendant la simulation, à confirmer avec votre document ou votre règle :</p><ul class="dc-hyp">${c.assumptions.map((x) => `<li><span class="tb-tag warn">Suggérée par l’IA</span>${d.esc(String(x).replace(/^Hypothèse\s*:\s*/i, ''))}</li>`).join('')}</ul>` : ''}</div>` : ''; })()}
       <div id="sxWork" aria-live="polite"></div>`,
       `<a class="btn ghost" href="#/org/${o.id}">Passer</a><span></span>`);
     app.querySelector('#sxWrite').onclick = () => { const f = app.querySelector('#sxRuleForm'); f.hidden = false; app.querySelector('#sxRule').focus(); };
+    const choice = dctx().choice;
+    if (choice === 'rule') app.querySelector('#sxWrite').click();
+    if (choice === 'file') { const opt = app.querySelector('label[for="sxFile"]'); opt.classList.add('sx-suggest'); app.querySelector('#sxFile').focus(); }
     app.querySelector('#sxFile').onchange = (e) => { const f = e.target.files && e.target.files[0]; if (f) process(app, o, f, f.name.replace(/\.pdf$/i, '')); };
     app.querySelector('#sxRuleForm').onsubmit = (e) => {
       e.preventDefault();
@@ -105,12 +113,12 @@
     const render = () => {
       const body = app.querySelector('.obz-body');
       body.innerHTML = `<h1>${shown.length ? 'Voici ce qu’Arbor a compris' : 'Rien à proposer pour l’instant'}</h1>
-        <p class="obz-lede">${shown.length ? 'Relisez, corrigez si besoin, excluez ce qui ne convient pas. Rien n’est utilisé avant votre validation.' : 'Ce document ne contient pas de règle exploitable, ou ses extraits n’ont pas pu être vérifiés. Essayez avec une autre source.'}</p>
+        <p class="obz-lede">${shown.length ? 'Ces connaissances sont extraites de votre document. Elles ne servent qu’une fois confirmées : relisez, corrigez, excluez ce qui ne convient pas. Vous pouvez aussi confirmer plus tard depuis la Base de savoir.' : 'Ce document ne contient pas de règle exploitable, ou ses extraits n’ont pas pu être vérifiés. Essayez avec une autre source.'}</p>
         <ul class="sx-cards">${shown.map((k) => { const st = state.get(k.id);
           // provenance inconnue (base sans la migration 009) : on n'affirme rien, on cite seulement la page
           const pv2 = k.provenance === undefined ? null : (PROV[k.provenance] || PROV.non_verifiee);
           return `<li class="sx-card ${st.excluded ? 'off' : ''} ${st.status}" data-k="${k.id}">
-            <div class="sx-card-h"><span class="sx-st">${st.status === 'valide' ? `${d.ic('check-circle', true)}Validée` : st.excluded ? 'Exclue' : 'À valider'}</span>${k.kind === 'sensible' ? `<span class="wd-tag s">${d.ic('shield-warning', true)}Sensible</span>` : ''}</div>
+            <div class="sx-card-h"><span class="sx-st">${st.status === 'valide' ? `${d.ic('check-circle', true)}Confirmée` : st.excluded ? 'Exclue' : 'Extraite · à confirmer'}</span>${k.kind === 'sensible' ? `<span class="wd-tag s">${d.ic('shield-warning', true)}Sensible</span>` : ''}</div>
             <b class="sx-t">${d.esc(k.title)}</b><p class="sx-b">${d.esc(k.body)}</p>
             <p class="kn-prov prov-${pv2 ? k.provenance : 'sans'}">${pv2 ? `${d.ic(pv2[0])}${pv2[1]} · ` : ''}p. ${k.page} de « ${d.esc(title)} »</p>
             ${st.err ? `<p class="wel-form-err">${d.esc(st.err)}</p>` : ''}
@@ -118,7 +126,7 @@
         ${all.length > shown.length ? `<p class="hint">${all.length - shown.length} autre${all.length - shown.length > 1 ? 's' : ''} proposition${all.length - shown.length > 1 ? 's' : ''} à revoir dans la Base de savoir.</p>` : ''}`;
       const kept = shown.filter((k) => !state.get(k.id).excluded && state.get(k.id).status !== 'valide');
       app.querySelector('.obz-foot').innerHTML = `<a class="btn ghost" href="#/org/${o.id}/demarrer/experience">Plus tard</a>
-        ${kept.length ? `<button class="btn big" id="sxAll">${d.ic('checks', true)}Tout valider (${kept.length})</button>` : `<button class="btn big" id="sxOn">Continuer${d.ic('arrow-right')}</button>`}`;
+        ${kept.length ? `<button class="btn big" id="sxAll">${d.ic('checks', true)}Tout confirmer (${kept.length})</button>` : `<button class="btn big" id="sxOn">Continuer${d.ic('arrow-right')}</button>`}`;
       body.querySelectorAll('[data-excl]').forEach((b) => { b.onclick = () => { const st = state.get(b.dataset.excl); st.excluded = !st.excluded; render(); }; });
       body.querySelectorAll('[data-edit]').forEach((b) => { b.onclick = () => edit(b.dataset.edit); });
       const all2 = app.querySelector('#sxAll'); if (all2) all2.onclick = validateAll;
@@ -145,7 +153,7 @@
           await rpc('set_knowledge_status', { p_id: k.id, p_status: st.excluded ? 'rejete' : 'valide' });
           if (!st.excluded) st.status = 'valide';
           st.err = '';
-        } catch (x) { st.err = /provenance/.test(x.message) ? 'Extrait non vérifié dans le document : non validée.' : x.message; }
+        } catch (x) { st.err = /provenance/.test(x.message) ? 'Extrait non retrouvé dans le document : elle ne peut pas être confirmée.' : x.message; }
       }
       busy = false;
       render();
@@ -187,6 +195,7 @@
       <div id="sxInvite" hidden></div>`,
       `<span></span><a class="btn big ghost" href="#/org/${o.id}" id="sxSolo">Continuer seul${d.ic('arrow-right')}</a>`);
     rpc('mark_onboarded', { p_org: o.id }).catch(() => {}).then(() => saveStep(o, 'fin', { done: true }));
+    if (window.OrgDiscover) OrgDiscover.clear(); // la découverte a rempli son rôle
     app.querySelector('#sxInv').onclick = () => { const b = app.querySelector('#sxInvite'); b.hidden = false; OrgOnboarding.inviteBox(b, o); b.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
   }
 

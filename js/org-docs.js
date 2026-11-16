@@ -6,7 +6,9 @@
    Ce module ne lit jamais l'espace personnel. */
 (function () {
   const KIND = { sensible: ['Sensible', 'warning-octagon'], regle: ['Règle', 'scales'], procedure: ['Procédure', 'list-numbers'], produit: ['Produit', 'package'], concept: ['Notion', 'lightbulb'] };
-  const STATUS = { propose: 'À valider', valide: 'Validée', rejete: 'Rejetée', a_revalider: 'À revalider', remplace: 'Remplacée' };
+  // Trois niveaux de connaissance (docs/ux-v51.md) : confirmée (validée par une personne habilitée), extraite (retrouvée
+  // dans un document, pas encore confirmée) ; « suggérée par l'IA » n'existe que dans la découverte et n'est jamais enregistrée.
+  const STATUS = { propose: 'Extraite · à confirmer', valide: 'Confirmée', rejete: 'Rejetée', a_revalider: 'À revalider', remplace: 'Remplacée' };
   const q = (s) => encodeURIComponent(s);
   const plain = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[«»"“”’'`]/g, "'").replace(/\s+/g, ' ').trim();
 
@@ -136,7 +138,7 @@
         ${srcs.length ? `<div class="tb-wrap"><table class="tb doc-tb"><thead><tr><th scope="col">Document</th><th scope="col">Version</th><th scope="col">Connaissances</th><th scope="col" class="tb-hide-s">Ajouté le</th><th scope="col"><span class="sr-only">Ouvrir</span></th></tr></thead>
           <tbody>${srcs.map((x) => { const c = counts.get(x.id); return `<tr><td><a class="tb-person" href="#/org/${o.id}/documents/${x.id}">${d.ic('file-pdf')}<b>${d.esc(x.title)}</b></a></td>
             <td><span class="tb-dim">v${x.current_version}</span></td>
-            <td>${c ? `${c.v ? `<span class="tb-tag pos">${d.ic('seal-check')}${c.v} validée${c.v > 1 ? 's' : ''}</span> ` : ''}${c.p ? `<span class="tb-tag warn">${c.p} à valider</span>` : ''}${!c.v && !c.p ? '<span class="tb-dim">aucune</span>' : ''}` : '<span class="tb-dim">-</span>'}</td>
+            <td>${c ? `${c.v ? `<span class="tb-tag pos">${d.ic('seal-check')}${c.v} confirmée${c.v > 1 ? 's' : ''}</span> ` : ''}${c.p ? `<span class="tb-tag warn">${c.p} extraite${c.p > 1 ? 's' : ''} à confirmer</span>` : ''}${!c.v && !c.p ? '<span class="tb-dim">aucune</span>' : ''}` : '<span class="tb-dim">-</span>'}</td>
             <td class="tb-hide-s tb-dim">${fmtD(x.created_at)}</td>
             <td class="tb-go"><a href="#/org/${o.id}/documents/${x.id}" aria-label="Ouvrir ${d.esc(x.title)}">${d.ic('caret-right')}</a></td></tr>`; }).join('')}</tbody></table></div>` : '<p class="hint">Aucun document pour l’instant. Ajoutez une procédure ou une fiche produit ci-dessous.</p>'}
       </section>
@@ -206,7 +208,7 @@
     const card = (k) => {
       const [kl, ki] = KIND[k.kind] || KIND.concept;
       const lockSens = k.kind === 'sensible' && !canSensitive(o);
-      const valBtn = canValidate(k) ? `<button class="btn sm" data-k="${k.id}" data-s="valide">${d.ic('check')}Valider</button>` : '';
+      const valBtn = canValidate(k) ? `<button class="btn sm" data-k="${k.id}" data-s="valide">${d.ic('check')}Confirmer</button>` : '';
       const act = canEdit(o) && ['propose', 'a_revalider'].includes(k.status)
         ? (lockSens ? `<p class="hint">${d.ic('lock-simple')}Validation par un manager ou un administrateur.</p>` : `<div class="row-btns">${valBtn}<button class="btn ghost sm" data-k="${k.id}" data-s="rejete">${d.ic('x')}Rejeter</button></div>`)
         : '';
@@ -226,7 +228,7 @@
         <p class="hint">${todo.length} à traiter · ${ks.filter((k) => k.status === 'valide').length} validée${ks.filter((k) => k.status === 'valide').length > 1 ? 's' : ''} · ${ks.length} au total</p>
         ${canEdit(o) && unchecked.length ? `<div class="row-btns"><button class="btn ghost sm" id="kProv">${d.ic('fingerprint')}Vérifier la provenance de ${unchecked.length} connaissance${unchecked.length > 1 ? 's' : ''}</button></div><p class="hint" id="kProvMsg" role="status"></p>` : ''}
         <div id="wdBox"></div>
-        ${canEdit(o) && easy.length ? `<div class="row-btns"><button class="btn ghost sm" id="kAll">${d.ic('checks')}Valider les ${easy.length} propositions non sensibles</button></div>` : ''}
+        ${canEdit(o) && easy.length ? `<div class="row-btns"><button class="btn ghost sm" id="kAll">${d.ic('checks')}Confirmer les ${easy.length} connaissances extraites non sensibles</button></div>` : ''}
         <ul class="kn-list">${ks.map(card).join('') || '<li class="hint">Aucune connaissance extraite.</li>'}</ul>
       </section>
       ${canEdit(o) ? `<section class="sec"><h2>Nouvelle version</h2><p class="hint">Les connaissances dont l’extrait figure toujours dans la nouvelle version restent valables ; les autres passent « à revalider ».</p>

@@ -277,26 +277,45 @@
   function renderHome() {
     document.documentElement.style.removeProperty('--accent');
     if (!state.subjects.length) { app.innerHTML = emptyHome(); return; }
-    app.innerHTML = `<section class="home">${todayPanel()}${missionsPanel()}${doorsPanel()}</section>`;
+    const f = homeFocus();
+    app.innerHTML = `<section class="home" data-focus="${f.kind}">${todayPanel(f)}${missionsPanel(f)}${doorsPanel(f.kind === 'explore')}</section>`;
+  }
+
+  /* Accueil adaptatif (docs/ux-v51.md, P0) : l'action principale suit l'état réel de l'apprentissage.
+     Ordre : révisions dues (FSRS, inchangé) > difficulté durable > reprise > nouvelles cartes > exploration.
+     Une seule erreur ne fait pas une difficulté : il faut une confusion ouverte, deux oublis ou une fausse certitude récente. */
+  function homeFocus() {
+    const ov = overview({ type: 'all' });
+    const plan = Mastery.plan(state, ov, canLesson);
+    const lv = state.lastVisit && subjectById(state.lastVisit.sid);
+    const lvn = lv && find(lv.root, state.lastVisit.nid);
+    const resume = lvn && Date.now() - state.lastVisit.at < 14 * SRS.DAY ? { s: lv, n: lvn.node } : null;
+    if (ov.due) return { kind: 'review', ov, plan };
+    const hard = plan.fragile.find((x) => Mastery.struggling && Mastery.struggling(x.n));
+    if (hard) return { kind: 'struggle', ov, plan, s: hard.s, n: hard.n };
+    if (resume) return { kind: 'resume', ov, plan, s: resume.s, n: resume.n };
+    if (plan.lesson) return { kind: 'lesson', ov, plan, s: plan.lesson.s, n: plan.lesson.n };
+    if (ov.newToday || plan.fragile.length) return { kind: 'continue', ov, plan };
+    return { kind: 'explore', ov, plan };
   }
   // Les cinq portes d'entrée restent accessibles après le premier lancement (même moteur : notions, révisions, observations)
-  function doorsPanel() {
+  function doorsPanel(open) {
     if (!window.Onboarding || !Onboarding.ENTRIES) return '';
-    return `<section class="sec st-doors" aria-labelledby="stDoorsT"><h2 id="stDoorsT">Apprendre autrement</h2>
-      <p class="hint">Cinq points de départ, à choisir selon le moment. Tout reste sur ton appareil.</p>
+    return `<section class="sec st-doors ${open ? 'is-open' : 'is-compact'}" aria-labelledby="stDoorsT"><h2 id="stDoorsT" tabindex="-1">${open ? 'Explorer et créer' : 'Apprendre autrement'}</h2>
+      <p class="hint">${open ? 'Tout est à jour : c’est le bon moment pour ajouter un cours ou apprendre d’une autre façon.' : 'Cinq autres façons d’apprendre, quand tu veux. Tout reste sur ton appareil.'}</p>
       <div class="doors">${Onboarding.ENTRIES.map(([k, icn, t, sub]) => `<button type="button" class="door" data-act="door" data-entry="${k}">${ic(icn, true)}<span><b>${t}</b><small>${sub}</small></span></button>`).join('')}</div></section>`;
   }
 
   // Missions : jamais plus de trois, chacune liée à un objectif précis
-  function missionsPanel() {
-    const ov = overview({ type: 'all' });
-    const p = Mastery.plan(state, ov, canLesson);
+  function missionsPanel(f = {}) {
+    const ov = f.ov || overview({ type: 'all' });
+    const p = f.plan || Mastery.plan(state, ov, canLesson);
     const items = [];
     const lv = state.lastVisit && subjectById(state.lastVisit.sid);
     const lvn = lv && find(lv.root, state.lastVisit.nid);
-    if (lvn && Date.now() - state.lastVisit.at < 14 * SRS.DAY) items.push(`<a class="mission glass" href="${link(lv.id, lvn.node.id)}" style="--c:${lv.color}">${ic('arrow-u-up-left', true)}<span><small>Reprendre</small><b>${esc(lvn.node.title)}</b></span></a>`);
-    if (p.lesson) items.push(`<button class="mission glass" data-act="lesson-next" style="--c:${p.lesson.s.color}">${ic('play-circle', true)}<span><small>${p.lesson.late ? 'Leçon en retard' : 'Prochaine leçon'}</small><b>${esc(p.lesson.n.title)}</b></span></button>`);
-    if (p.fragile[0]) { const f = p.fragile[0]; items.push(`<a class="mission glass" href="${link(f.s.id, f.n.id)}" style="--c:var(--st-fragile)">${ic('warning-circle', true)}<span><small>À consolider</small><b>${esc(f.n.title)}</b></span></a>`); }
+    if (lvn && Date.now() - state.lastVisit.at < 14 * SRS.DAY && f.kind !== 'resume') items.push(`<a class="mission glass" href="${link(lv.id, lvn.node.id)}" style="--c:${lv.color}">${ic('arrow-u-up-left', true)}<span><small>Reprendre</small><b>${esc(lvn.node.title)}</b></span></a>`);
+    if (p.lesson && f.kind !== 'lesson') items.push(`<button class="mission glass" data-act="lesson-next" style="--c:${p.lesson.s.color}">${ic('play-circle', true)}<span><small>${p.lesson.late ? 'Leçon en retard' : 'Prochaine leçon'}</small><b>${esc(p.lesson.n.title)}</b></span></button>`);
+    if (p.fragile[0] && !(f.kind === 'struggle' && f.n === p.fragile[0].n)) { const f = p.fragile[0]; items.push(`<a class="mission glass" href="${link(f.s.id, f.n.id)}" style="--c:var(--st-fragile)">${ic('warning-circle', true)}<span><small>À consolider</small><b>${esc(f.n.title)}</b></span></a>`); }
     const exam = state.subjects.filter((x) => x.examDate && x.examDate >= SRS.dayKey()).sort((a, b) => a.examDate.localeCompare(b.examDate))[0];
     if (exam && items.length < 3) {
       const d = Math.round((new Date(exam.examDate + 'T00:00') - new Date(SRS.dayKey() + 'T00:00')) / SRS.DAY);
@@ -304,7 +323,7 @@
       items.push(`<a class="mission glass" href="#/progression" style="--c:${exam.color}">${ic('flag-checkered', true)}<span><small>Examen dans ${plural(d, 'jour', 'jours')}</small><b>${esc(exam.title)} · ${c.pct} % maîtrisé</b></span></a>`);
     }
     if (!items.length) return '';
-    return `<section class="missions" aria-label="Pour toi aujourd’hui">${items.slice(0, 3).join('')}</section>`;
+    return `<section class="missions" aria-label="Aussi pour toi">${items.slice(0, f.kind && f.kind !== 'explore' ? 2 : 3).join('')}</section>`;
   }
 
   // Une barre empilée : la part de chaque état
@@ -1770,7 +1789,7 @@
     if (node.children.length || !window.Dialogue || !Dialogue.canTalk(node)) return '';
     return `<section class="practice-card glass">
       <span class="pc-pousse">${(window.Mascot && Mascot.mini({ size: 64, mood: 'happy' })) || ic('plant', true)}</span>
-      <div class="lc-txt"><b>Pratiquer avec Pousse</b><small>Questions sur ton cours, sources citées</small></div>
+      <div class="lc-txt"><b>Pratiquer avec Pousse</b><small>Ton assistant d’apprentissage : il te questionne sur ton cours et cite ses sources</small></div>
       <div class="row-btns"><button class="btn sm" data-act="talk" data-mode="socratique" data-id="${node.id}">${ic('chat-circle-text', true)}Dialogue</button>
       <button class="btn ghost sm" data-act="talk" data-mode="enseigne" data-id="${node.id}">${ic('chalkboard-teacher')}Enseigne-moi</button>
       <button class="btn ghost sm" data-act="talk" data-mode="situation" data-id="${node.id}">${ic('storefront')}Mise en situation</button></div>
@@ -1964,8 +1983,39 @@
     return h < 5 ? 'Bonsoir' : h < 12 ? 'Bonjour' : h < 18 ? 'Bon après-midi' : 'Bonsoir';
   }
 
-  function todayPanel() {
-    const ov = overview({ type: 'all' });
+  function heroFocus(f, steps, mins, n, nextDue) {
+    const other = `<button type="button" class="link-btn hero-other" data-act="show-doors">${ic('compass')}Choisir autre chose</button>`;
+    const second = n > 5 ? `<button class="btn ghost" data-act="quick-start">${ic('lightning', true)}2 min</button>` : `<button class="btn ghost" data-act="focus-open">${ic('timer', true)}Focus</button>`;
+    const title = (eyebrow, t) => `<p class="hero-eyebrow">${eyebrow}</p><h1 id="todayTitle"><span class="big-label solo">${t}</span></h1>`;
+    const stepsList = steps.length ? `<ol class="plan-steps">${steps.map((x) => `<li class="ps-${x.kind}">${ic({ review: 'clock-counter-clockwise', fragile: 'warning-circle', lesson: 'play-circle', new: 'sparkle' }[x.kind], true)}<span>${esc(x.label)}</span></li>`).join('')}</ol>` : '';
+    if (f.kind === 'review') {
+      return `${title('Ton défi du jour', `${plural(f.ov.due, 'révision t’attend', 'révisions t’attendent')}`)}
+        ${stepsList}
+        <div class="row-btns"><button class="btn big" data-act="session-start">${ic('play', true)}Lancer mon défi du jour<span class="btn-sub num">${mins} min</span></button>${second}</div>${other}`;
+    }
+    if (f.kind === 'struggle') {
+      return `${title('Un point te résiste', 'On reprend ce point ensemble ?')}
+        <p class="hero-sub"><b>${esc(f.n.title)}</b> · ${esc(f.s.title)}. Tu l’as manqué plusieurs fois : Pousse te propose une autre explication, un exemple et un exercice ciblé.</p>
+        <div class="row-btns"><a class="btn big" href="${link(f.s.id, f.n.id)}">${ic('plant', true)}Reprendre ce point avec Pousse</a><button class="btn ghost" data-act="session-start">${ic('play', true)}Ma session du jour</button></div>${other}`;
+    }
+    if (f.kind === 'resume' || f.kind === 'lesson') {
+      const act = f.kind === 'resume' ? `<a class="btn big" href="${link(f.s.id, f.n.id)}">${ic('arrow-u-up-left', true)}Reprendre mon apprentissage</a>` : `<button class="btn big" data-act="lesson-next">${ic('play-circle', true)}Reprendre mon apprentissage</button>`;
+      return `${title(f.kind === 'resume' ? 'Là où tu t’étais arrêté' : 'Ta prochaine leçon', esc(f.n.title))}
+        <p class="hero-sub">${esc(f.s.title)}${steps.length ? ` · ensuite : ${esc(steps.map((x) => x.label).join(', '))}` : ''}</p>
+        <div class="row-btns">${act}${second}</div>${other}`;
+    }
+    if (f.kind === 'continue') {
+      return `${title('Ta session', 'On continue ?')}${stepsList}
+        <div class="row-btns"><button class="btn big" data-act="session-start">${ic('play', true)}Reprendre mon apprentissage<span class="btn-sub num">${mins} min</span></button>${second}</div>${other}`;
+    }
+    const one = state.subjects.length === 1 ? state.subjects[0] : null;
+    return `${title('Tout est à jour', 'Envie d’aller plus loin ?')}
+      <p class="hero-sub">${nextDue ? `Prochaine révision ${new Intl.RelativeTimeFormat('fr-FR', { numeric: 'auto' }).format(Math.max(1, Math.round((nextDue - Date.now()) / SRS.DAY)), 'day')}. ` : ''}Explore la carte de tes cours, ou ajoute-en un nouveau.</p>
+      <div class="row-btns"><a class="btn big" href="${one ? link(one.id, one.root.id, 'carte') : '#/cours'}">${ic('graph', true)}Explorer mes cours</a><button class="btn ghost" data-act="import-pdf">${ic('file-arrow-up')}Importer un cours</button></div>`;
+  }
+
+  function todayPanel(f = homeFocus()) {
+    const ov = f.ov;
     const td = SRS.today(state.stats);
     const goal = state.settings.dailyGoal;
     const goalPct = Math.min(100, Math.round((td.reviews / goal) * 100));
@@ -1978,7 +2028,7 @@
       state.subjects.forEach((s) => walk(s.root, (x) => { if (x.srs && x.srs.due > Date.now()) t = Math.min(t, x.srs.due); }));
       return t === Infinity ? null : t;
     })();
-    const plan = Mastery.plan(state, ov, canLesson);
+    const plan = f.plan;
     const steps = plan.steps;
     const mins = Math.max(2, Math.round((ov.due + Math.min(8, plan.fragile.length) + ov.newToday) * 0.4 + (plan.lesson ? Lesson.minutes(plan.lesson.n) : 0)));
     const wk = week.reduce((a, d) => a + d.reviews, 0);
@@ -1988,13 +2038,7 @@
           <div class="orb" aria-hidden="true"><i></i><i></i><i></i><b></b></div>
           <div class="hero-copy">
             <p class="hello">${greeting()}</p>
-            <h1 id="todayTitle">${steps.length ? `<span class="big-label solo">Ta session</span>` : `<span class="big-label solo">${ov.total ? 'Tout est à jour' : 'Prêt ?'}</span>`}</h1>
-            ${steps.length ? `<ol class="plan-steps">${steps.map((x) => `<li class="ps-${x.kind}">${ic({ review: 'clock-counter-clockwise', fragile: 'warning-circle', lesson: 'play-circle', new: 'sparkle' }[x.kind], true)}<span>${esc(x.label)}</span></li>`).join('')}</ol>`
-              : `<p class="muted">${ov.total && nextDue ? `Prochaine révision ${new Intl.RelativeTimeFormat('fr-FR', { numeric: 'auto' }).format(Math.max(1, Math.round((nextDue - Date.now()) / SRS.DAY)), 'day')}.` : 'Importe un cours pour commencer.'}</p>`}
-            <div class="row-btns">
-              ${steps.length ? `<button class="btn big" data-act="session-start">${ic('play', true)}Commencer<span class="btn-sub num">${mins} min</span></button>` : `<button class="btn big" data-act="import-pdf">${ic('file-arrow-up')}Importer un cours</button>`}
-              ${n > 5 ? `<button class="btn ghost big" data-act="quick-start">${ic('lightning', true)}2 min</button>` : `<button class="btn ghost big" data-act="focus-open">${ic('timer', true)}Focus</button>`}
-            </div>
+            ${heroFocus(f, steps, mins, n, nextDue)}
             <div class="hero-links">${planLine()}${n > 5 ? `<button type="button" class="pill-btn show-mobile" data-act="focus-open" style="--c:var(--accent)">${ic('timer', true)}<span class="focus-nav-label">Focus</span></button>` : ''}</div>
           </div>
           <a class="corner-link" href="#/methode" aria-label="Pourquoi cette méthode marche">${ic('lightbulb', true)}</a>
@@ -3037,6 +3081,7 @@
       }
       case 'export-subject': exportJSON(s, s.title); break;
       case 'study-start': startStudy(t.dataset.cram === '1'); break;
+      case 'show-doors': { const h = document.getElementById('stDoorsT'); if (h) { h.closest('section').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); h.focus({ preventScroll: true }); } break; }
       case 'quick-start': count('quick'); buildSession({ type: 'all' }); study.queue = study.queue.slice(0, 5); study.quick = true; preparePrompt(); go('#/reviser'); break;
       case 'plan-edit': planModal(); break;
       case 'reveal': reveal(); break;

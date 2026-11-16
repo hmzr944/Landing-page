@@ -146,5 +146,14 @@
     return out;
   }
 
-  window.Mastery = { STATES, ORDER, stateOf, reasonOf, proven, notions, counts, summary, nextLesson, plan, forecast, lessonOf };
+  /* Difficulté durable (accueil adaptatif) : lue sur les données existantes, sans toucher à FSRS. Une seule erreur ne
+     suffit pas : confusion encore ouverte, au moins deux oublis récents, ou fausse certitude (« je savais ») récente. */
+  function struggling(n, now = Date.now()) {
+    const c = n && n.srs;
+    if (!c || c.last == null) return false;
+    const recentIllusion = c.illusions && c.illusionAt && now - c.illusionAt < 30 * DAY;
+    return !!(openMisconception(n) || ((c.lapses || 0) >= 2 && c.s < 21) || recentIllusion);
+  }
+
+  window.Mastery = { STATES, ORDER, stateOf, reasonOf, proven, notions, counts, summary, nextLesson, plan, forecast, lessonOf, struggling };
 })();

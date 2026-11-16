@@ -69,6 +69,8 @@
   }
   // Rubrique active : les anciennes adresses restent valides et allument la rubrique qui les contient
   const SECTION = { documents: 'savoir', competences: 'savoir', suivi: 'equipe', apercu: 'equipe', intelligence: 'developper', scenarios: 'developper', diagnostic: 'apprendre', mystere: 'apprendre' };
+  // Dico-miroir (docs/ux-v51.md) : le nom Arbor reste, l'infobulle dit ce qu'on y fait
+  const NAV_HELP = { equipe: 'personnes, invitations, cordées', savoir: 'documents et connaissances confirmées', developper: 'diagnostiquer, entraîner, mesurer', apprendre: 'votre propre progression', canopee: 'ton rang, tes trophées et ta cordée (Arbor League)', resultats: 'tes compétences et tes preuves' };
   function head(o, tab) {
     const origTab = tab;
     const groups = navOf(o);
@@ -83,7 +85,7 @@
         ${desk ? `${OrgDesk.brand()}${OrgDesk.spaceBtn(o)}` : ''}
         <div class="org-id"><span class="org-badge" aria-hidden="true">${d.ic('buildings', true)}</span><div><h1>${d.esc(o.name)}</h1><p>${d.esc(o.sector || 'Espace professionnel')} · <b>${ROLES[o.role] || o.role}</b></p></div>
           ${window.OrgHub && o.role === 'admin' && window.OrgShell ? `<a class="icon-btn org-set" href="#/org/${o.id}/parametres" aria-label="Paramètres de l’organisation" ${tab === 'parametres' ? 'aria-current="page"' : ''}>${d.ic('gear-six')}</a>` : ''}</div>
-        <nav class="org-tabs" aria-label="Espace ${d.esc(o.name)}">${groups.map(([gl, items]) => `${gl ? `<span class="org-nav-g" aria-hidden="true">${gl}</span>` : ''}${items.map(([k, icn, l]) => `<a href="#/org/${o.id}${k === 'accueil' ? '' : '/' + k}" title="${l}" ${tab === k ? 'aria-current="page"' : ''}>${d.ic(icn, tab === k)}<span>${l}</span></a>`).join('')}`).join('')}</nav>
+        <nav class="org-tabs" aria-label="Espace ${d.esc(o.name)}">${groups.map(([gl, items]) => `${gl ? `<span class="org-nav-g" aria-hidden="true">${gl}</span>` : ''}${items.map(([k, icn, l]) => `<a href="#/org/${o.id}${k === 'accueil' ? '' : '/' + k}" title="${(() => { const h = k === 'apprendre' && l === 'Explorer' ? 'cinq façons d’apprendre' : NAV_HELP[k]; return h ? `${l} : ${h}` : l; })()}" ${tab === k ? 'aria-current="page"' : ''}>${d.ic(icn, tab === k)}<span>${l}</span></a>`).join('')}`).join('')}</nav>
         <div class="org-side-foot">${desk ? OrgDesk.foot(o) : `${window.Feedback ? `<button type="button" class="link-btn fb-link" data-org-feedback>${d.ic('chat-teardrop-text')}Donner mon avis</button>` : ''}<button type="button" class="link-btn" data-org-space>${d.ic('swap')}Changer d’espace</button>`}</div>
       </header>${desk ? OrgDesk.top(o, sectionOf, origTab, (location.hash.split('/')[4] || ''), groups) : ''}`;
   }
@@ -211,6 +213,8 @@
     if (window.OrgOnboarding) OrgOnboarding.use(d);
     if (view.name === 'join') return joinView(app, view.token);
     // Création : Setup Express en trois étapes (l'assistant détaillé reste dans Paramètres)
+    // Créer : d'abord la découverte (une simulation jouable, sans rien configurer), puis l'espace en 3 étapes
+    if (view.id === 'nouvelle' && window.OrgDiscover && (!view.tab || view.tab === 'accueil')) return OrgDiscover.render(app, d);
     if (view.id === 'nouvelle' && window.OrgSetup && view.tab !== 'detaillee') return OrgSetup.render(app, null, 'identite', d);
     if (view.id === 'nouvelle' && window.OrgOnboarding) return OrgOnboarding.wizard(app, null, 'infos', d);
     let o = orgOf(view.id);

@@ -107,7 +107,7 @@
       <section class="sec lg-canopy">
         <div class="lg-hero">
           <div class="lg-hero-tree">${treeSvg(lg, 240)}</div>
-          <div class="lg-hero-tx"><p class="hint">Arbor League · Faire grandir les talents</p><h2>${rankChip(lg.rank)}</h2>
+          <div class="lg-hero-tx"><p class="hint">Arbor League · ton classement et ta progression</p><h2>${rankChip(lg.rank)}</h2>
             <p>${RANKS[lg.rank].why}</p>
             <div class="lg-stats"><span><b class="num">${lg.applied}</b>appliquées</span><span><b class="num">${lg.durable}</b>durables</span><span><b class="num">${lg.transfer}</b>transférées</span></div>
             ${next ? `<p class="lg-next">${d.ic('arrow-up-right')}Vers <b>${next.label}</b> : ${need.map(([one, many, n]) => `${n} ${n > 1 ? many : one}`).join(', ')} de plus.</p>` : '<p class="lg-next">Tu as atteint le plus haut rang.</p>'}
@@ -122,7 +122,7 @@
             ${got && got[0].evidence ? `<details><summary>Voir la preuve</summary><p>Preuve ${ACT[got[0].evidence.activity] || got[0].evidence.activity}${got[0].evidence.context ? ` (${d.esc(got[0].evidence.context)})` : ''}, le ${fmt(got[0].evidence.at)}.</p></details>` : ''}</li>`; }).join('')}</ul>
       </section>
       <div class="hub-cols">
-        <section class="sec"><h3>${d.ic('users-four', true)}Ma cordée</h3>
+        <section class="sec"><h3>${d.ic('users-four', true)}Ma cordée <small class="lg-sub">mon groupe de progression</small></h3>
           ${myCordees.length ? myCordees.map((c) => `<div class="lg-cordee"><b>${d.esc(c.name)}</b><small>${plural(c.members, 'membre')} · ${plural(c.applied, 'application réussie', 'applications réussies')} ensemble · ${plural(c.trophies, 'trophée')}</small></div>`).join('') : '<p class="hint">Tu ne fais pas encore partie d’une cordée. Ton responsable en crée une lors d’un défi collectif.</p>'}</section>
         <section class="sec"><h3>${d.ic('mountains', true)}Défis de la saison</h3>
           ${bd.season ? `<p class="hint">${d.esc(bd.season.name)}, jusqu’au ${fmt(bd.season.ends_at)}</p>${(bd.challenges || []).length ? `<ul class="lg-mini">${bd.challenges.map((c) => `<li>${d.ic(c.achieved_at ? 'check-circle' : 'circle-dashed', true)}<span><b>${d.esc(c.title)}</b><small>${c.achieved_at ? `Relevé le ${fmt(c.achieved_at)}` : `${(c.knowledge || []).map((x) => d.esc(x)).join(', ')} · ${Math.round(c.target_ratio * 100)} % du groupe`}</small></span></li>`).join('')}</ul>` : '<p class="hint">Pas encore de défi cette saison.</p>'}` : '<p class="hint">Pas de saison en cours.</p>'}</section>
@@ -143,7 +143,7 @@
     const kT = (id) => (ks.find((k) => k.id === id) || {}).title || 'connaissance';
     const KIND = { equipe: 'Équipe', etablissement: 'Établissement', groupe: 'Groupe', binome: 'Binôme' };
     const opts = (ms || []).map((m) => `<option value="${m.user_id}">${d.esc((m.email || 'membre').split('@')[0])}</option>`).join('');
-    box.innerHTML = `<section class="sec"><header class="hub-h"><h2>${d.ic('users-four', true)}Cordées</h2><button type="button" class="btn ghost sm" id="lgCordNew">${d.ic('plus')}Nouvelle cordée</button></header>
+    box.innerHTML = `<section class="sec"><header class="hub-h"><h2>${d.ic('users-four', true)}Cordées <small class="lg-sub">groupes de progression</small></h2><button type="button" class="btn ghost sm" id="lgCordNew">${d.ic('plus')}Nouvelle cordée</button></header>
         <p class="hint">Des petits groupes qui progressent ensemble. La réussite de chacun nourrit le groupe ; personne n’est pénalisé par le rythme d’un autre.</p>
         ${(bd.cordees || []).length ? `<ul class="lg-cords">${bd.cordees.map((c) => `<li><b>${d.esc(c.name)}</b><small>${KIND[c.kind]} · ${plural(c.members, 'membre')} · ${plural(c.applied, 'application réussie', 'applications réussies')} · ${plural(c.trophies, 'trophée')}</small></li>`).join('')}</ul>` : '<p class="hint">Aucune cordée pour l’instant.</p>'}
         <form class="obz-form lg-form" id="lgCordForm" hidden><div class="obz-two"><div class="field"><label for="lgCName">Nom</label><input id="lgCName" maxlength="80" required placeholder="Équipe du matin" /></div>

@@ -10,6 +10,7 @@
 
 import { cleanGen, GEN_TASKS, type GenTask, genPrompt, validateGen } from "./generate.ts";
 import { needsModel, ORG_TASKS, type OrgDb, OrgError, type OrgTask, orgTask } from "./org.ts";
+import { DECOUVERTE_TASKS, DecouverteError, type DecouverteTask, decouverteTask } from "./decouverte.ts";
 import { integrityOf, type StoredDoc, verifyPassages } from "./pdftext.ts";
 
 export type Mode = "socratique" | "enseigne" | "situation";
@@ -187,6 +188,7 @@ export async function handle(request: Request, deps: Deps): Promise<Response> {
   const m = month((deps.now || (() => new Date()))());
   if (GEN_TASKS.includes((body as { task?: GenTask })?.task as GenTask)) return generate(body, user.id, m, deps, json);
   if (ORG_TASKS.includes((body as { task?: OrgTask })?.task as OrgTask)) return org(body as Record<string, unknown>, user.id, m, deps, json);
+  if (DECOUVERTE_TASKS.includes((body as { task?: DecouverteTask })?.task as DecouverteTask)) return decouverte(body as Record<string, unknown>, user.id, m, deps, json);
   const v = validate(body);
   if (!v.ok) return json(400, { error: v.error });
   const req = v.req;
@@ -276,6 +278,29 @@ async function generate(body: unknown, userId: string, m: string, deps: Deps, js
   let out: Record<string, unknown>;
   try { out = JSON.parse(res.text); } catch { return json(502, { error: "réponse illisible", usage }); }
   return json(200, { ...cleanGen(req, out), usage, ...(req.task === "extraire" ? { unverified } : {}) });
+}
+
+/* Découverte Business : simulation de démonstration avant toute organisation. Connexion et quota du Client Mystère,
+   aucune écriture en base hormis le journal des appels (mode « mystere »). */
+async function decouverte(b: Record<string, unknown>, userId: string, m: string, deps: Deps, json: (s: number, d: unknown) => Response): Promise<Response> {
+  const limit = deps.orgLimit ?? 400;
+  let used = await deps.usedThisMonth(userId, m, "org");
+  if (used >= limit) return json(429, { error: "quota", used, limit });
+  const price = deps.price || PRICE;
+  try {
+    const out = await decouverteTask(b.task as DecouverteTask, b, {
+      callModel: deps.callModel,
+      onModel: async (r) => {
+        used++;
+        const cost = Math.round(((r.inputTokens * price.input + r.outputTokens * price.output) / 1e6) * 1e5) / 1e5;
+        await deps.record({ userId, month: m, mode: "mystere", model: r.model, inputTokens: r.inputTokens, outputTokens: r.outputTokens, costUsd: cost, refused: r.stop === "refusal" });
+      },
+    });
+    return json(200, { ...(out as Record<string, unknown>), usage: { used, limit } });
+  } catch (e) {
+    if (e instanceof DecouverteError) return json(e.status, { error: e.status === 503 ? "occupe" : e.message });
+    return json(500, { error: "erreur interne", detail: String((e as Error)?.message || e).slice(0, 200) });
+  }
 }
 
 /* Espace professionnel : rôle vérifié dans la base, preuves écrites ici, quota propre */
