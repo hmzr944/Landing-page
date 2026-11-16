@@ -1,8 +1,9 @@
 # Arbor Business sur ordinateur (décision D14)
 
 Refonte de l'interface Business pour ordinateur : design system « Hybride Arbor », barre latérale ancrée, barre
-supérieure contextuelle, recherche globale, Cockpit et pages métier. Version v49, branche `desktop-experience`
-(non déployée : à valider avant fusion dans `main`).
+supérieure contextuelle, recherche globale, Cockpit et pages métier. Version v49, validée puis fusionnée dans `main`
+et publiée le 13 novembre 2026 (test de production passé sur le site publié). v50 : numéro de version affiché aligné
+sur le cache de l'application (il était resté à 48).
 
 ## G1. Audit (état v48, avant refonte)
 
@@ -126,5 +127,6 @@ sans données, chaque bloc le dit en une phrase.
 ## Limites et suites
 - La palette sombre ne s'applique pas sur téléphone ni dans Student (choix délibéré, voir G2).
 - Recherche sur les titres seulement ; pas de notifications (aucun système).
-- Captures et tests réalisés avec des **données simulées** (`tests/fixtures/org-mock.js`) ; rien n'a été vérifié en
-  production : la branche n'est pas déployée.
+- Captures et tests réalisés avec des **données simulées** (`tests/fixtures/org-mock.js`). En production, le test
+  `tests/production.js` vérifie le site publié (mise en page, application installable, hors connexion), pas encore
+  avec un vrai compte et de vraies données.
