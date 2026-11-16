@@ -25,7 +25,7 @@ un plan), un chapitre de cytogénétique (12 pages, deux colonnes). Les PDF pers
 | 3 | Import : toute partie de plus de 6 000 caractères coupée sans prévenir (5 parties sur 15 du cours TCP-IP ; 73 400 caractères gardés sur ~96 000) | **P0 perte de contenu** | Corrigé : 91 700 gardés ; test A5 |
 | 4 | Mots coupés par des espaces dans les PDF dont le texte est en morceaux (« P rophase », « c ycle », titre « Divisions cellulaire s ») | **P0 lisibilité** | Corrigé (espace seulement s'il y a un vrai blanc) ; test A6 |
 | 5 | « Commencer » ouvre la création de compte ; « Essayer sans compte » était sous la ligne de flottaison (872 px pour un écran de 844) | P1 | Corrigé : lien remonté sous les boutons ; test A1 |
-| 6 | Guillemets LaTeX affichés « ✭✭ géré ✮✮ » ; symboles Wingdings bruts (``, ``, ``) | P1 | Corrigé (« », •, ✓, →) ; test A7 |
+| 6 | Guillemets LaTeX affichés « ✭✭ géré ✮✮ » ; symboles Wingdings bruts (``, ``, ``) | P1 | Corrigé (« », et les seuls codes vérifiés •, ✓, →) ; les autres codes de cette zone, dont ceux de la police Symbol (≥, α…), restent intacts pour ne jamais effacer de sens ; tests A7, C1-C3 |
 | 7 | L'accueil annonçait « Ta prochaine leçon » mais lançait une session de révision ; titre de leçon répété dans « ensuite » | P1 | Corrigé ; test B1-B2 |
 | 8 | Une notion difficile restait l'action principale chaque jour, même rouverte, et bloquait la progression | P1 | Corrigé (rouverte depuis moins de 12 h : on passe à la suite) ; test B4 |
 | 9 | Leçon « Découvre » : phrases qui dépendent du contexte (« Dans ce cas, le processus… est le suivant ») | P1 | Amélioré (4 sur 5 correctes sur le cours TCP-IP) |

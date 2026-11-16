@@ -107,6 +107,17 @@ const COURSE = `<html><head><meta charset="utf-8"><style>body{font-family:Arial;
     check('B4 rouverte il y a 30 minutes : l’accueil passe à la suite au lieu de la reproposer', (await b.page.getAttribute('.home', 'data-focus')) !== 'struggle', await b.page.getAttribute('.home', 'data-focus'));
     await b.ctx.close();
   }
+  /* C. Symboles des polices : seuls les codes vérifiés sont convertis ; ceux de la police Symbol (≥, α…) ne sont jamais supprimés */
+  {
+    const ctx = await browser.newContext({ serviceWorkers: 'block' });
+    const page = await ctx.newPage(); page.on('pageerror', (e) => errors.push(e.message));
+    await page.goto(URL0); await page.waitForTimeout(800);
+    const r = await page.evaluate(() => ({ bullet: PdfImport.fixAccents('\uf0b7 point'), arrow: PdfImport.fixAccents('G1 \uf0e0 croissance'), sym: PdfImport.fixAccents('x \uf0b3 5 et \uf061 = 2'), quotes: PdfImport.fixAccents('✭✭ géré ✮✮') }));
+    check('C1 puces et flèches Wingdings converties (•, →)', r.bullet === '• point' && r.arrow === 'G1 → croissance', JSON.stringify(r));
+    check('C2 les codes de la police Symbol (≥, α…) sont gardés, jamais effacés (pas de « x 5 »)', r.sym === 'x \uf0b3 5 et \uf061 = 2', JSON.stringify(r.sym));
+    check('C3 guillemets « ✭✭ … ✮✮ » réparés', r.quotes === '« géré »', r.quotes);
+    await ctx.close();
+  }
   check('Z aucune erreur JavaScript', !errors.length, errors.join(' | '));
   await browser.close(); server.close();
   console.log(failed ? `\n${failed} test(s) en échec` : '\nTous les tests passent');

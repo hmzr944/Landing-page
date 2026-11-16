@@ -129,9 +129,11 @@
     });
     return out;
   }
-  const PUA = { '\uf0b7': '•', '\uf0a7': '▪', '\uf0a8': '□', '\uf0fc': '✓', '\uf0e0': '→', '\uf0e8': '⇒', '\uf0d8': '➢', '\uf076': '❖', '\uf0d7': '×', '\uf02d': '-', '\uf0ae': '→', '\uf0de': '⇒' };
+  // Seulement les symboles vérifiés sur de vrais documents (puces et flèches Wingdings). Un même code vaut autre chose dans
+  // la police Symbol (lettres grecques, ≤, ≥, ≠) : les autres caractères de cette zone sont laissés tels quels, jamais supprimés.
+  const PUA = { '\uf0b7': '•', '\uf0fc': '✓', '\uf0e0': '→' };
   function fixAccents(t) {
-    t = t.replace(/[\uf000-\uf0ff]/g, (c) => PUA[c] || '').replace(/✭✭\s?/g, '« ').replace(/\s?✮✮/g, ' »');
+    t = t.replace(/[\uf0b7\uf0fc\uf0e0]/g, (c) => PUA[c]).replace(/✭✭\s?/g, '« ').replace(/\s?✮✮/g, ' »');
     if (!/[´`ˆ¨¸˜˚ı]/.test(t)) return t;
     return t.replace(/([´`ˆ¨])\s+(?=[´`ˆ¨])/g, '').replace(/([´`ˆ¨¸˜˚])\s?(\p{L})/gu, (m, a, l) => (l === 'ı' ? 'i' : l) + ACC[a])
       .replace(/ı(?=[\u0300-\u036f])/g, 'i').normalize('NFC');

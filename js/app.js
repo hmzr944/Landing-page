@@ -295,7 +295,7 @@
     const seenToday = (n) => state.lastVisit && state.lastVisit.nid === n.id && Date.now() - state.lastVisit.at < 12 * 3600e3;
     const hard = plan.fragile.find((x) => Mastery.struggling && Mastery.struggling(x.n) && !seenToday(x.n));
     if (hard) return { kind: 'struggle', ov, plan, s: hard.s, n: hard.n };
-    // travail du jour (leçon suivante, nouvelles cartes) : la session existante, qui les enchaîne
+    // travail du jour : la leçon suivante d'abord, puis la session des nouvelles cartes (FSRS inchangé)
     if (plan.lesson) return { kind: 'lesson', ov, plan, s: plan.lesson.s, n: plan.lesson.n };
     if (ov.newToday || plan.fragile.length) return { kind: 'continue', ov, plan };
     if (resume) return { kind: 'resume', ov, plan, s: resume.s, n: resume.n };
