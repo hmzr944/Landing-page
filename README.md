@@ -174,6 +174,7 @@ node tests/org-setup.js
 node tests/league.js
 node tests/org-shell.js
 node tests/org-desktop.js
+node tests/home-adaptive.js        # accueil Student : une action principale selon l'état
 ARBOR_SHOTS=/tmp/captures node tests/desktop-shots.js   # captures 1366, 1440, 1920 et téléphone
 ```
 

@@ -28,7 +28,7 @@ const TOKEN = jwt(ME.id);
 const RULE = 'Lorsqu’un client demande un remboursement, vérifier le ticket de caisse et l’état du produit. Le client dispose de 30 jours pour un retour. Un avoir est proposé sous 48 heures. Ne jamais rembourser en espèces au-delà de 150 euros.';
 
 /* ---------- Faux Supabase ---------- */
-const db = { orgs: [], sources: [], versions: [], knowledge: [], uploads: [], calls: [], skills: [], links: [], invites: [] };
+const db = { orgs: [], sources: [], versions: [], knowledge: [], uploads: [], calls: [], skills: [], links: [], invites: [], noDecouverte: false };
 function handle(r) {
   const u = new URL(r.url()); const p = u.pathname; const raw = r.postData() || '';
   const ok = (data, status = 200) => ({ status, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: data === undefined ? '' : JSON.stringify(data) });
@@ -64,6 +64,13 @@ function handle(r) {
     // proposées à partir des seules connaissances validées
     const valid = db.knowledge.filter((k) => k.status === 'valide');
     return ok({ skills: valid.length ? [{ name: 'Traiter une demande de retour', description: 'Vérifier le ticket et proposer la bonne solution.', knowledge: valid.map((k) => k.id) }, { name: 'Appliquer les délais', description: 'Respecter le délai de retour.', knowledge: valid.slice(0, 1).map((k) => k.id) }] : [] });
+  }
+  if (p === '/functions/v1/tutor' && /^decouverte_/.test(body.task)) {
+    if (db.noDecouverte) return ok({ error: 'mode invalide' }, 400); // fonction pas encore redéployée
+    if (body.task === 'decouverte_start') return ok({ spec: { sector: body.sector, situation: body.situation, name: 'Nadia', profile: 'cliente pressée', need: 'être reconnue', objections: ['Je l’ai payé cher'], assumptions: ['Hypothèse : les articles soldés ne sont ni repris ni échangés', 'Hypothèse : délai de retour de 30 jours'], skills: ['écoute', 'désescalade'] }, opening: 'Je veux être remboursée, tout de suite !', max_turns: 6 });
+    if (body.task === 'decouverte_tour') return ok({ reply: body.transcript.length > 2 ? 'Bon, d’accord, merci.' : 'Et vous proposez quoi, concrètement ?', satisfied: body.transcript.length > 2, leaves: false, done: body.transcript.length > 2, turns_left: 4 });
+    const said = body.transcript.filter((t) => t.role === 'vous').map((t) => t.text);
+    return ok({ debrief: { decisions: ['Propose un avoir'], strengths: [{ text: 'Reformule la demande', quote: said[0] }], misses: ['N’a pas demandé le ticket'], skills: ['écoute'], improvements: ['Demander le ticket de caisse'], assumptions: body.spec.assumptions, measured: false } });
   }
   if (p === '/functions/v1/tutor') return ok({ message: `tâche inconnue ${body.task}` }, 400);
   if (p === '/rest/v1/rpc/set_knowledge_status') {
@@ -111,9 +118,33 @@ function handle(r) {
   await page.route(`${SB}/**`, (route) => route.fulfill(handle(route.request())));
   const wait = (ms = 700) => page.waitForTimeout(ms);
   const text = () => page.textContent('#app');
+  const shot = async (name) => { if (process.env.ARBOR_SHOTS) await page.screenshot({ path: path.join(process.env.ARBOR_SHOTS, `discover-${name}.png`), fullPage: true }); };
+
+  /* 0. Découverte : la valeur avant la configuration */
+  await page.goto(`${URL0}#/org/nouvelle`); await wait(900);
+  await shot('intro');
+  check('O1 « Créer une organisation » commence par une situation de terrain, pas par un formulaire d’organisation', !!(await page.$('#dcSit')) && !(await page.$('#sxName')) && /Voyez Arbor en action/.test(await text()));
+  await page.click('#dcGo'); await wait(300);
+  check('O2 situation vide : on explique quoi écrire, aucun appel', /une phrase complète/.test(await page.textContent('#dcErr')) && !db.calls.some((c) => /^decouverte/.test((c.body || {}).task || '')));
+  await page.click('.sx-sectors label:has-text("Commerce")'); await page.click('#dcEx'); await wait(150);
+  check('O3 « Utiliser un exemple » remplit une situation du secteur', /remboursement/.test(await page.inputValue('#dcSit')));
+  await page.click('#dcGo'); await wait(900);
+  await shot('chat');
+  check('O4 la simulation démarre sans organisation ni document ; le client parle', /Je veux être remboursée/.test(await text()) && db.orgs.length === 0 && /Démonstration/.test(await text()));
+  check('O5 « Terminer » attend au moins une réponse', await page.isDisabled('#dcEnd'));
+  await page.fill('#dcText', 'Je comprends votre colère, regardons ensemble votre achat.'); await page.click('#dcSend'); await wait(700);
+  check('O6 un tour de dialogue : la réponse du client s’affiche, il reste des réponses', /proposez quoi/.test(await text()) && /restante/.test(await page.textContent('#dcLeft')));
+  await page.fill('#dcText', 'Je peux vous proposer un avoir valable six mois.'); await page.click('#dcSend'); await wait(2200);
+  const t0 = await text();
+  check('O7 le client apaisé met fin à la scène et le débrief s’affiche (décisions, points forts cités, oublis, pistes, compétences)', /Votre débrief/.test(t0) && /Propose un avoir/.test(t0) && /« Je comprends votre colère/.test(t0) && /N’a pas demandé le ticket/.test(t0) && /Demander le ticket/.test(t0) && /Compétences mobilisées/.test(t0));
+  await shot('debrief');
+  check('O8 les règles supposées sont marquées « Suggérée par l’IA », jamais comme des règles de l’entreprise', (await page.$$('.dc-hyp .tb-tag')).length === 2 && /Suggérée par l’IA/.test(await page.textContent('.dc-hyp')) && /n’est jamais utilisée comme règle de l’entreprise/.test(t0));
+  check('O9 trois suites simples : importer, écrire une règle, continuer sans document', (await page.$$('[data-dc]')).length === 3);
+  check('O10 rien n’a été enregistré pendant la découverte (ni organisation, ni connaissance)', db.orgs.length === 0 && db.knowledge.length === 0 && db.sources.length === 0);
+  await page.click('[data-dc="rule"]'); await wait(900);
 
   /* A. Étape 1 : identité (nom et secteur seulement) */
-  await page.goto(`${URL0}#/org/nouvelle`); await wait(900);
+  check('A0 le secteur choisi pendant la découverte est déjà coché : seul le nom est demandé', /\/nouvelle\/espace$/.test(page.url()) && (await page.isChecked('input[name="sxSector"][value="Commerce et distribution"]')) && /secteur est repris/.test(await text()), page.url());
   check('A1 étape 1 sur 3 : seulement le nom et le secteur', !!(await page.$('#sxName')) && (await page.$$('.obz-body input:not([type="radio"]), .obz-body select, .obz-body textarea')).length === 1 && (await page.$$('.sx-steps span')).length === 3);
   await page.click('#sxNext'); await wait(300);
   check('A2 nom manquant : message clair, rien n’est créé', /Indiquez le nom/.test(await page.textContent('#sxNameErr')) && db.orgs.length === 0);
@@ -124,6 +155,8 @@ function handle(r) {
   check('A4 on passe au premier savoir ; l’étape est mémorisée pour reprendre plus tard', /\/demarrer\/savoir$/.test(page.url()) && org.setup && org.setup.step === 'savoir' && org.setup.express === true, page.url());
 
   /* B. Étape 2 : une règle écrite devient un PDF, lu et vérifié comme un document importé */
+  await shot('savoir');
+  check('B0 étape savoir : la situation testée et les règles suggérées sont rappelées ; « Écrire une règle » est déjà ouvert', /Situation testée/.test(await text()) && /Suggérée par l’IA/.test(await page.textContent('.dc-recall')) && await page.isVisible('#sxRule'));
   await page.click('#sxWrite'); await wait(200);
   await page.fill('#sxRule', 'Trop court.'); await page.click('#sxRuleForm .btn'); await wait(400);
   check('B1 règle trop courte : refusée sans appel au serveur', !db.calls.some((c) => c.p === '/rest/v1/rpc/add_source'));
@@ -148,13 +181,13 @@ function handle(r) {
   // exclure une carte
   const kx = db.knowledge.find((k) => /30 jours/.test(k.quote));
   await page.click(`[data-excl="${kx.id}"]`); await wait(200);
-  check('B10 exclure : la carte est marquée « Exclue » et sort du compte de « Tout valider »', /Exclue/.test(await page.textContent(`[data-k="${kx.id}"]`)) && new RegExp(`Tout valider \\(${cards.length - 1}\\)`).test(await page.textContent('#sxAll')));
+  check('B10 exclure : la carte est marquée « Exclue » et sort du compte de « Tout valider »', /Exclue/.test(await page.textContent(`[data-k="${kx.id}"]`)) && new RegExp(`Tout confirmer \\(${cards.length - 1}\\)`).test(await page.textContent('#sxAll')));
 
   // tout valider : la base refuse la carte dont l'extrait est introuvable
   await page.click('#sxAll'); await wait(1200);
   const kbad = db.knowledge.find((k) => /48 heures/.test(k.quote));
   check('B11 « Tout valider » valide les cartes gardées et vérifiées', db.knowledge.filter((k) => k.provenance === 'verifiee' && k.id !== kx.id).every((k) => k.status === 'valide'));
-  check('B12 la carte sans provenance n’est pas validée ; la raison est dite sur la carte', kbad.status === 'propose' && /non vérifié dans le document/.test(await page.textContent(`[data-k="${kbad.id}"]`)));
+  check('B12 la carte sans provenance n’est pas validée ; la raison est dite sur la carte', kbad.status === 'propose' && /non retrouvé dans le document/.test(await page.textContent(`[data-k="${kbad.id}"]`)));
   check('B13 la carte exclue est écartée (décision explicite), jamais validée', kx.status === 'rejete');
   check('B14 « Tout valider » n’a touché que les cartes présentées', db.calls.filter((c) => c.p === '/rest/v1/rpc/set_knowledge_status').every((c) => cards.length && db.knowledge.slice(0, 5).some((k) => k.id === c.body.p_id)));
   check('B15 on ne passe pas aux compétences tant qu’une carte gardée reste à valider', !(await page.$('.sx-skills')) && !!(await page.$('#sxAll')));
@@ -196,6 +229,27 @@ function handle(r) {
   check('F1 « Passer » revient au Cockpit sans rien créer', db.sources.length === nSources && /Cockpit/.test(await text()));
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1);
   check('F2 téléphone : aucun débordement horizontal', !overflow);
+  /* G. Découverte : « Continuer sans document » va droit à la première expérience ; serveur pas à jour ; sans compte */
+  await page.evaluate(() => sessionStorage.removeItem('arbor:discover'));
+  await page.evaluate((h) => { location.hash = h; }, '#/org/nouvelle'); await wait(800);
+  await page.click('.sx-sectors label:has-text("Services")'); await page.click('#dcEx'); await page.click('#dcGo'); await wait(800);
+  await page.fill('#dcText', 'Je comprends, voyons la facture ensemble.'); await page.click('#dcSend'); await wait(600);
+  await page.click('#dcEnd'); await wait(900);
+  await page.click('[data-dc="skip"]'); await wait(900);
+  await page.fill('#sxName', 'Cabinet Durand'); await page.click('#sxNext'); await wait(1400);
+  const o2 = db.orgs.find((x) => x.name === 'Cabinet Durand') || {};
+  check('G1 « Continuer sans document » : espace créé avec le secteur de la simulation, puis directement la première expérience', o2.sector === 'Services' && /\/demarrer\/experience$/.test(page.url()), page.url());
+  db.noDecouverte = true;
+  await page.evaluate((h) => { location.hash = h; }, '#/org/nouvelle'); await wait(800);
+  await page.click('#dcEx'); await page.click('#dcGo'); await wait(900);
+  check('G2 fonction serveur pas encore à jour : on le dit simplement et on propose de créer l’espace directement', /pas encore disponible/.test(await page.textContent('#dcErr')) && await page.isVisible('#dcDirect') && !(await page.isDisabled('#dcGo')));
+  await page.click('#dcDirect'); await wait(700);
+  check('G3 « Créer directement mon espace » ouvre la mise en route', !!(await page.$('#sxName')));
+  const anon = await browser.newContext({ viewport: { width: 1366, height: 768 }, serviceWorkers: 'block' });
+  const ap = await anon.newPage();
+  await ap.goto(`${URL0}#/org/nouvelle`); await ap.waitForTimeout(900);
+  check('G4 sans compte : la promesse est dite d’abord, puis la connexion est proposée', /simulation que vous jouez tout de suite/.test(await ap.textContent('#app')) && !!(await ap.$('#dcLogin')));
+  await anon.close();
   check('F3 aucune erreur JavaScript', !errors.length, errors.join(' | '));
 
   await browser.close(); server.close();

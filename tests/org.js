@@ -98,6 +98,8 @@ const personal = () => ({ subjects: [{ id: 'persosubj01', title: SECRET_TITLE, c
     await page.goto(URL0); await settle(page, 900);
     await page.click('#settingsBtn'); await settle(page, 300);
     await page.click('#orgCreate'); await settle(page, 600);
+    check('B0a « Créer une organisation » montre d’abord la découverte (une situation à simuler), avec un accès direct à la création', !!(await page.$('#dcSit')) && !!(await page.$('#dcDirect')));
+    await page.click('#dcDirect'); await settle(page, 700);
     check('B0 « Créer une organisation » ouvre la mise en route express (nom et secteur seulement)', /#\/org\/nouvelle/.test(page.url()) && !!(await page.$('#sxName')) && (await page.$$('.obz-body input:not([type="radio"]), .obz-body select')).length === 1);
     await page.fill('#sxName', 'Magasin de Lyon'); await page.click('.sx-sectors label:has-text("Commerce")');
     await page.click('#sxNext'); await settle(page, 1200);
