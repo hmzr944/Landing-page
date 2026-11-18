@@ -143,6 +143,8 @@ const fiche = (autonomy) => `<html><head><meta charset="utf-8"></head><body styl
     const order = await page.$$eval('.kn', (els) => els.map((e) => e.className));
     check('A6 les informations sensibles à valider sont en tête de liste', /kn-sensible/.test(order[0]), order[0]);
     check('A7 chaque connaissance montre son extrait, sa page et sa version', /«[^»]*Ne jamais recharger[^»]*»\s*p\. 2 · version 1/.test(await page.textContent('.kn-list')));
+    const knText = await page.textContent('.kn-list');
+    check('A7b aucune « confiance X % » déclarée par l’IA ; à la place, qui a extrait et quand (informations vérifiables)', !/confiance\s*\d+\s*%/i.test(knText) && /extraite par l’IA le \d{1,2} \S+ \d{4}/.test(knText), knText.slice(0, 160));
     if (process.env.ARBOR_SHOTS) await page.screenshot({ path: path.join(process.env.ARBOR_SHOTS, 'org-docs.png') });
     const report = await page.textContent('#docReport').catch(() => '');
     check('A8 le compte rendu dit ce qui a été écarté et ce qui n’a pas été envoyé', /écartée/.test(report) && /hors cours non envoy/.test(report), report);

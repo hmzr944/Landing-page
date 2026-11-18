@@ -1,8 +1,8 @@
 /* Régénère le corpus métier n° 1 à partir de contenu.js : pages HTML (sources/), PDF et manifeste corpus.json.
    Lancer depuis la racine du dépôt :  node docs/corpus-metier/generer.js   (Playwright requis, voir README).
    Les PDF sont imprimés par Chromium ; leur date de création change à chaque génération, pas leur texte.
-   Ligatures désactivées : avec « fi », « ff », « fl » liés, le lecteur Business actuel (OrgDocs.readPages) coupe les mots
-   (« identi fi ant ») ; défaut constaté le 2026-11-16, voir README. */
+   Deux séries : *.pdf sans ligatures typographiques, et ligatures/*.pdf avec (« fi », « ff », « fl » liés, comme beaucoup
+   de PDF issus d'un traitement de texte). La seconde sert de test de non-régression du lecteur (défaut du 2026-11-16). */
 const fs = require('fs'), path = require('path');
 const { chromium } = require('playwright');
 const { DOCS, SOURCES, BANDEAU } = require('./contenu.js');
@@ -12,7 +12,7 @@ const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replac
 const txt = (x) => (typeof x === 'string' ? x : x.t);
 const SECTEUR = { retail: 'Commerce de détail', hcr: 'Hôtellerie-restauration' };
 
-function html(d) {
+function html(d, ligatures = false) {
   const block = (s) => {
     const items = s.ol || s.ul || s.p;
     const tag = s.ol ? 'ol' : s.ul ? 'ul' : null;
@@ -21,7 +21,7 @@ function html(d) {
   };
   return `<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>${esc(d.titre)} (v${d.version})</title>
 <style>
-  body { font: 11pt/1.5 "DejaVu Sans", Arial, sans-serif; color: #1d1d1b; margin: 0; font-variant-ligatures: none; }
+  body { font: 11pt/1.5 "DejaVu Sans", Arial, sans-serif; color: #1d1d1b; margin: 0; font-variant-ligatures: ${ligatures ? 'common-ligatures' : 'none'}; }
   .fictif { border: 1.5pt solid #b3261e; color: #b3261e; padding: 6pt 10pt; font-weight: bold; margin-bottom: 14pt; }
   .entete { font-size: 9.5pt; color: #555; margin-bottom: 4pt; }
   h1 { font-size: 18pt; margin: 2pt 0 12pt; }
@@ -55,6 +55,7 @@ function manifest() {
 
 (async () => {
   fs.mkdirSync(path.join(DIR, 'sources'), { recursive: true });
+  fs.mkdirSync(path.join(DIR, 'ligatures'), { recursive: true });
   const browser = await chromium.launch();
   const page = await browser.newPage();
   for (const d of DOCS) {
@@ -63,6 +64,8 @@ function manifest() {
     await page.setContent(h);
     await page.pdf({ path: path.join(DIR, `${d.id}.pdf`), format: 'A4', margin: { top: '18mm', bottom: '18mm', left: '18mm', right: '18mm' } });
     console.log('écrit', `${d.id}.pdf`);
+    await page.setContent(html(d, true));
+    await page.pdf({ path: path.join(DIR, 'ligatures', `${d.id}.pdf`), format: 'A4', margin: { top: '18mm', bottom: '18mm', left: '18mm', right: '18mm' } });
   }
   await browser.close();
   fs.writeFileSync(path.join(DIR, 'corpus.json'), JSON.stringify(manifest(), null, 2) + '\n');
