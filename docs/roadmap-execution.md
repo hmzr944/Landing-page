@@ -73,13 +73,14 @@ Fichier `.github/workflows/ci.yml`, déclenché à chaque envoi, sur chaque dema
 | Mission | Objectif | Critère de sortie | État |
 |---|---|---|---|
 | 0. Sécurisation | branches cartographiées, PULS sauvegardé et plan de séparation, CI sans déploiement, état de `main` identifié, ce document | dépôt sécurisé, tests exécutables, aucune modification non autorisée de la production | validée et fusionnée dans `main` (`e6bb6c1`) |
-| 1. Premier corpus métier | 5 à 8 documents (retail : ouverture et fermeture, retour client, caisse ; hôtellerie-restauration : réception de livraison, réclamation, chaîne du froid), sources publiques ou jeux de test fabriqués clairement distingués, au moins 2 procédures en v1 et v2 | corpus fabriqué et signalé comme tel ; règles réglementaires vérifiées à une source publique ; corrigé des changements v1 → v2 ; lecture réelle par l'espace Business vérifiée par un test | livrée sur la branche `mission-1`, en attente de validation |
+| 1. Premier corpus métier | 5 à 8 documents (retail : ouverture et fermeture, retour client, caisse ; hôtellerie-restauration : réception de livraison, réclamation, chaîne du froid), sources publiques ou jeux de test fabriqués clairement distingués, au moins 2 procédures en v1 et v2 | corpus fabriqué et signalé comme tel ; règles réglementaires vérifiées à une source publique ; corrigé des changements v1 → v2 ; lecture réelle par l'espace Business vérifiée par un test | validée et fusionnée dans `main` (`60aa465`) |
+| 2. Fiabilité de l'extraction | lecture des ligatures (navigateur et serveur), « confiance % » remplacée par des informations vérifiables, banc d'essai reproductible, rapport | 4 seuils sur chacun de 3 passages ; CI sans « NON VÉRIFIÉ » | livrée sur la branche `mission-2` : lecture corrigée ; **seuils non atteints** (voir `docs/benchmark-extraction.md`) ; en attente de validation |
 
 Suite envisagée, à découper en missions au moment voulu : stabiliser v52, extraction des documents métier, qualité
 de l'évaluation, prototype du moteur d'impact des connaissances, essai sur un vrai changement de procédure.
 
 ## Points ouverts
-- Le lecteur PDF de l'espace Business coupe les mots aux ligatures (« identi fi ant ») : voir `docs/corpus-metier/README.md`.
+- Défauts mesurés par le banc d'essai, hors périmètre de la mission 2 : voir `docs/benchmark-extraction.md` (modèle de secours disparu, pas d'attente sur la limite de débit, rappel plafonné, classement « sensible » rare, ajouts mal détectés).
 - Défauts connus de v52 non corrigés : voir `docs/audit-student.md` (points 13 à 18).
 - Lecture des PDF métier (`OrgDocs.readPages`) sans analyse de la mise en page.
 - Fournisseur d'IA pour le Business (contrat de traitement des données, hébergement européen) : décision à prendre.

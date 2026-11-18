@@ -52,7 +52,7 @@ jobs:
           - groupe: student
             suites: welcome onboarding student-path home-adaptive learning-flow foundations explore motion responsive
           - groupe: import
-            suites: pdf-structure pdf-mixed data-safety engines corpus-metier
+            suites: pdf-structure pdf-mixed data-safety engines corpus-metier benchmark
           - groupe: business
             suites: org org-setup org-learn org-engines org-docs org-onboarding org-shell org-desktop org-insight
           - groupe: serveur-simule
