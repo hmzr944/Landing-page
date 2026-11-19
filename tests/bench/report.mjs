@@ -70,6 +70,8 @@ export function block(runs) {
   row('Changements avec le bon type', 'changements_type_exact', 'changements_total');
   row('Fausses alertes sur les pièges (4)', 'fausses_alertes_pieges', 'pieges_total');
   row('Autres fausses alertes (règles inchangées signalées)', 'autres_fausses_alertes');
+  row('Nouveautés signalées par la comparaison', 'nouveautes');
+  row('dont non fondées (texte déjà présent en v1)', 'nouveautes_non_fondees', 'nouveautes');
   L.push('', '### Détail par document (règles retrouvées, par passage)', '');
   L.push(`| Document | ${S.map((x) => `P${x.r.passage}`).join(' | ')} | Règles le plus souvent manquées |`, `|---|${S.map(() => '---').join('|')}|---|`);
   runs[0].extraction.forEach((d0, i) => {
@@ -99,6 +101,7 @@ export function compareBlock(before, after) {
   row('Règles retrouvées (sur 74)', 'regles_trouvees');
   row('Sensibles classées « sensible »', 'sensibles_bien_classees');
   row('Inventions après le filtre du serveur', 'inventions_apres_filtre', 'max');
+  row('Nouveautés non fondées (texte déjà présent en v1)', 'nouveautes_non_fondees', 'max');
   L.push(`| Passages où les quatre seuils sont atteints | ${B.filter((x) => x.seuils_atteints).length} sur ${B.length} | ${A.filter((x) => x.seuils_atteints).length} sur ${A.length} |`);
   return [START_CMP, ...L, END_CMP].join('\n');
 }

@@ -29,3 +29,12 @@ Deno.test("sensible : sécurité, santé, hygiène, argent, juridique et donnée
 Deno.test("sensible : les consignes ordinaires ne sont pas classées sensibles (« loin » n'est pas « loi »)", () => {
   assertEquals(NON.filter((t) => isSensitive(t)), []);
 });
+
+// Connaissance dont le texte se réduit à une valeur (« + 2 °C ») : gardée avec la citation exacte comme texte
+import { cleanGen } from "./generate.ts";
+Deno.test("extraire : un texte réduit à une valeur reprend la citation exacte, au lieu d'être écarté", () => {
+  const passages = [{ page: 1, text: "Températures maximales. Poissons frais : + 2 °C. Glaces : – 18 °C." }];
+  const out = cleanGen({ task: "extraire", title: "Fiche", text: passages[0].text, sourceTitle: "", passages, org: "o", version: "v" } as never,
+    { items: [{ kind: "produit", title: "Poissons", body: "+ 2 °C", quote: "Poissons frais : + 2 °C.", passage: 1, confidence: 1 }] }) as { items: { body: string }[] };
+  assertEquals(out.items.map((x) => x.body), ["Poissons frais : + 2 °C."]);
+});

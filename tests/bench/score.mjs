@@ -89,7 +89,10 @@ export function scoreComparison(knowledge, changes, gold, v2rules) {
   const targeted = new Set(gold.changements.map((g) => g.regle && kOfRule(g.regle)?.id).filter(Boolean));
   const trapK = new Set(gold.non_changements.flatMap((n) => knowledge.filter((k) => { const t = n.type === 'reformulation' ? n.avant : n.texte; return covers(t, k.texte) >= MATCH || flat(k.texte).includes(flat(t)); }).map((k) => k.id)));
   const autres = knowledge.filter((k) => !targeted.has(k.id) && !trapK.has(k.id) && alert(byK.get(k.id))).map((k) => k.regle || k.id);
-  return { detections, traps, autres_fausses_alertes: autres };
+  // Nouveauté non fondée : signalée « nouvelle » alors que son texte figurait déjà dans la v1 (fausse alerte pour le
+  // responsable, qui doit la relire pour rien). Mesure ajoutée en mission 2b, recalculée aussi pour la mission 2.
+  const nonFondees = news.filter((c) => knowledge.some((k) => covers(c.new_quote, k.texte) >= 0.8 || covers(k.texte, c.new_quote) >= 0.8)).length;
+  return { detections, traps, autres_fausses_alertes: autres, nouveautes_non_fondees: nonFondees, nouveautes: news.length };
 }
 
 // Seuils fixés le 2026-11-18 : sur CHACUN des passages
@@ -115,6 +118,8 @@ export function summarize(run) {
     changements_type_exact: det.filter((x) => x.type_exact).length,
     fausses_alertes_pieges: traps.filter((t) => t.fausse_alerte).length, pieges_total: traps.length,
     autres_fausses_alertes: run.comparaison.reduce((a, c) => a + c.score.autres_fausses_alertes.length, 0),
+    nouveautes_non_fondees: run.comparaison.reduce((a, c) => a + (c.score.nouveautes_non_fondees || 0), 0),
+    nouveautes: run.comparaison.reduce((a, c) => a + (c.score.nouveautes || 0), 0),
   };
   s.seuils = {
     valeurs_exactes: s.valeurs_exactes === s.valeurs_total,

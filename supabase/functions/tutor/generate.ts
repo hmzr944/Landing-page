@@ -192,7 +192,8 @@ function cleanExtract(r: GenRequest, out: Record<string, unknown>) {
     const want = Number(x.passage) - 1;
     const order = passages[want] ? [want, ...passages.map((_, i) => i).filter((i) => i !== want)] : passages.map((_, i) => i);
     const hit = quote.length >= 20 ? order.find((i) => qnorm(passages[i].text).includes(qnorm(quote))) : undefined;
-    const body = gclip(x.body, 600).trim();
+    // texte réduit à une valeur (« + 2 °C ») : on garde la citation exacte du document, vérifiée et fidèle (mission 2b)
+    const body0 = gclip(x.body, 600).trim(), body = body0.length >= 10 ? body0 : quote;
     const ok = hit !== undefined && body.length >= 10 && !aboutLearner(body) && support(body, passages[hit].text) >= NOTES_MIN && !seen.has(qnorm(quote));
     if (!ok) { dropped++; return false; }
     seen.add(qnorm(quote));
@@ -200,7 +201,7 @@ function cleanExtract(r: GenRequest, out: Record<string, unknown>) {
     return true;
   }).map((x) => {
     const kind0 = KINDS.includes(String(x.kind)) ? String(x.kind) : "concept";
-    const quote = gclip(x.quote, 400).trim(), body = gclip(x.body, 600).trim();
+    const quote = gclip(x.quote, 400).trim(), body0 = gclip(x.body, 600).trim(), body = body0.length >= 10 ? body0 : quote;
     return {
       kind: kind0 !== "sensible" && isSensitive(`${quote} ${body}`) ? "sensible" : kind0,
       title: gclip(x.title, 160).trim() || body.slice(0, 60),
