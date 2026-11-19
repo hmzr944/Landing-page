@@ -41,13 +41,19 @@ const check = (name, ok, extra = '') => { console.log(`${ok ? '✓' : '✗'} ${n
 
   /* ---------- C. Rapport ---------- */
   const R = await import(path.join(ROOT, 'tests/bench/report.mjs'));
-  const runs = R.loadRuns();
-  check('C1 au moins trois passages enregistrés', runs.length >= 3, String(runs.length));
+  const runs = R.loadRuns('mission-2');
+  check('C1 au moins trois passages enregistrés (mission 2)', runs.length >= 3, String(runs.length));
   const doc = fs.readFileSync(path.join(ROOT, 'docs/benchmark-extraction.md'), 'utf8');
-  check('C2 le rapport contient exactement les résultats recalculés à partir des réponses brutes', doc.includes(R.block(runs)));
+  check('C2 le rapport de la mission 2 contient exactement les résultats recalculés à partir des réponses brutes', doc.includes(R.block(runs)));
+  const runs2b = R.loadRuns('mission-2b');
+  if (runs2b.length) {
+    check('C3 au moins trois passages indépendants enregistrés (mission 2b)', runs2b.length >= 3, String(runs2b.length));
+    const doc2b = fs.readFileSync(path.join(ROOT, 'docs/benchmark-extraction-2b.md'), 'utf8');
+    check('C4 le rapport de la mission 2b contient exactement ses résultats recalculés et la comparaison avant / après', doc2b.includes(R.block(runs2b)) && doc2b.includes(R.compareBlock(runs, runs2b)));
+  }
 
   /* ---------- D. Aucun secret ---------- */
-  const files = fs.readdirSync(path.join(ROOT, 'docs/benchmark/runs')).map((f) => fs.readFileSync(path.join(ROOT, 'docs/benchmark/runs', f), 'utf8')).join('\n');
+  const files = ['runs', 'runs-2b'].filter((d) => fs.existsSync(path.join(ROOT, 'docs/benchmark', d))).flatMap((d) => fs.readdirSync(path.join(ROOT, 'docs/benchmark', d)).map((f) => fs.readFileSync(path.join(ROOT, 'docs/benchmark', d, f), 'utf8'))).join('\n');
   check('D1 aucune clé ni en-tête d’authentification dans les résultats enregistrés', !/gsk_[A-Za-z0-9]{8,}|sk-[A-Za-z0-9]{16,}|authorization|Bearer\s+[A-Za-z0-9._-]{12,}|service_role/i.test(files));
 
   console.log(failed ? `\n${failed} échec(s)` : '\nTous les tests passent');

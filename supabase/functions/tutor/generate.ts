@@ -101,13 +101,13 @@ const SYSTEMS: Record<GenTask, string> = {
 N'invente aucune notion absente du texte. Ne juge jamais la personne ni son niveau : une explication n'est pas une preuve de maîtrise, tu repères seulement ce qui est à vérifier. Écris en français.`,
   extraire: `Tu extrais les connaissances d'un document professionnel (fiche produit, procédure, règlement interne) pour former une équipe.
 On te donne des passages numérotés [P1], [P2]… Pour chaque connaissance utile au travail :
-- "kind" : "concept" (définition), "regle" (règle, condition, obligation, interdiction), "procedure" (étapes à suivre), "produit" (caractéristique, chiffre, prix, compatibilité d'un produit ou service), "sensible" (sécurité, santé, risque, données personnelles, juridique, argent : remboursement, garantie, réclamation).
+- "kind" : "concept" (définition), "regle" (règle, condition, obligation, interdiction), "procedure" (une étape à suivre), "produit" (caractéristique, chiffre, prix, compatibilité d'un produit ou service), "sensible" (sécurité des personnes ou des biens : alarme, incendie, secours, accès, codes ; santé et hygiène : températures, dates limites, allergènes, chaîne du froid ; argent : caisse, espèces, remboursement, garantie ; juridique ; données personnelles). En cas de doute entre "sensible" et un autre type, choisis "sensible" : une connaissance sensible est validée par un responsable.
 - "title" : 3 à 8 mots qui nomment la connaissance.
-- "body" : la connaissance en une ou deux phrases fidèles, sans rien ajouter.
-- "quote" : un extrait COPIÉ MOT POUR MOT du passage (40 à 200 caractères), qui prouve la connaissance.
+- "body" : la connaissance en une ou deux phrases fidèles, sans rien ajouter ; garde chaque nombre, unité et signe exactement comme dans le passage, en chiffres.
+- "quote" : un extrait COPIÉ MOT POUR MOT du passage (20 à 300 caractères) : une seule phrase ou une seule ligne de liste, sans « … », sans titre de section ni numéro de liste ajouté.
 - "passage" : le numéro du passage d'où vient l'extrait.
 - "confidence" : de 0 à 1, ta certitude que c'est bien ce que dit le document.
-N'invente rien. Ignore les évaluations de personnes, les conseils personnels et les commentaires. 3 à 10 connaissances, les plus utiles pour le travail. Écris dans la langue du document.`,
+N'invente rien. Ignore les évaluations de personnes, les conseils personnels et les commentaires. Relève TOUTES les connaissances utiles au travail, sans en omettre aucune : une connaissance par règle, par étape, par valeur chiffrée, par condition ou interdiction. Ne regroupe jamais plusieurs étapes, plusieurs lignes d'une liste ou plusieurs valeurs dans une même connaissance. Écris dans la langue du document.`,
   enrichir: `Tu aides un étudiant à réviser un extrait de SON cours. N'utilise que ce qui est dans l'extrait, n'ajoute aucun fait.
 - "keyPoints" : 2 à 4 phrases courtes, l'essentiel à retenir (définitions, règles, formules), reformulées simplement avec les mots du cours.
 - "exercises" : 1 ou 2 questions de compréhension ou d'application, avec la réponse tirée de l'extrait dans "a".
@@ -127,7 +127,8 @@ On te donne une notion, le module dont elle fait partie et des extraits de sourc
 ${NO_MNEMO}
 ${ONLY_SUBJECT} Écris en français.`,
 };
-const MAX_TOKENS: Record<GenTask, number> = { enrichir: 800, rediger_cours: 2200, rediger_notion: 1500, extraire: 2200, structurer: 1400 };
+// extraire : exhaustif (plus de limite de 3 à 10 connaissances), et le raisonnement de gpt-oss compte dans ces jetons
+const MAX_TOKENS: Record<GenTask, number> = { enrichir: 800, rediger_cours: 2200, rediger_notion: 1500, extraire: 6000, structurer: 1400 };
 
 export function genPrompt(r: GenRequest): { system: string; user: string; schema: Record<string, unknown>; maxTokens: number } {
   const ctx = r.context ? `\n${r.task === "rediger_notion" ? "Module" : "Cours"} : « ${r.context} »` : "";
@@ -169,15 +170,23 @@ const cleanKP = (x: unknown, src: string) => (Array.isArray(x) ? x : []).map((k)
 /* Nettoie et vérifie la sortie du modèle. Renvoie aussi ce qui a été écarté, pour le dire honnêtement à l'étudiant. */
 /* Extraits : comparés sans tenir compte des accents, de la casse, des guillemets ni des espaces */
 const qnorm = (s: string) => gnorm(s).replace(/[«»"“”’'`]/g, "'").replace(/\s+/g, " ").trim();
-// Sécurité, santé, juridique, argent : toujours « sensible », quel que soit l'avis du modèle (validation par un manager)
-const SENSITIVE = /\b(securite|danger|dangereu|risque|interdit|ne jamais|obligatoire|toxique|allerg|brulure|electri|incendie|blessure|accident|sante|medic|urgence|juridique|legal|loi|reglementaire|donnees personnelles|rgpd|remboursement|rembourser|garantie|reclamation|litige|rappel produit|age minimum|mineur|alcool)\b/;
+// Sécurité, santé, juridique, argent : toujours « sensible », quel que soit l'avis du modèle (validation par un manager).
+// Catégories générales, pas les mots d'un document précis. En cas de doute, mieux vaut sensible (validation par un responsable).
+// Racines (début de mot : « allerg » couvre allergie, allergène) et mots entiers (« loi » ne couvre pas « loin »).
+const SENSITIVE_STEMS = ["securi", "danger", "risque", "interdi", "toxi", "brul", "electri", "bless", "accident", "urgen", "incendi", "extincteur",
+  "evacu", "alarme", "defibrillat", "secouris", "sante", "medic", "allerg", "intoxi", "hygien", "contamin", "temperature", "refrigere", "congel",
+  "surgel", "decongel", "perime", "rembours", "garanti", "reclam", "litig", "juridi", "legal", "reglementa", "alcool", "mineur"];
+const SENSITIVE_WORDS = ["ne jamais", "obligatoire", "issues? de secours", "premiers secours", "samu", "appeler (immediatement )?le 1[58]",
+  "code (personnel|d'acces|secret)", "mot de passe", "chaine du froid", "chambre froide", "date limite", "dlc", "especes", "fond de caisse",
+  "ecart de caisse", "coffre", "faux billet", "billet presume faux", "paiement", "loi", "donnees personnelles", "rgpd", "rappel produit", "age minimum"];
+const SENSITIVE = new RegExp(`\\b(${SENSITIVE_STEMS.join("|")})|\\b(${SENSITIVE_WORDS.join("|")})\\b|\\d\\s?°\\s?c\\b`);
 export function isSensitive(t: string) { return SENSITIVE.test(gnorm(String(t))); }
 
 function cleanExtract(r: GenRequest, out: Record<string, unknown>) {
   const passages = r.passages || [];
   let dropped = 0;
   const seen = new Set<string>();
-  const items = (Array.isArray(out.items) ? out.items : []).slice(0, 14).map((x) => x as Record<string, unknown>).filter((x) => {
+  const items = (Array.isArray(out.items) ? out.items : []).slice(0, 40).map((x) => x as Record<string, unknown>).filter((x) => {
     const quote = gclip(x.quote, 400).trim();
     // l'extrait doit se trouver mot pour mot dans un passage : d'abord celui indiqué, sinon n'importe lequel
     const want = Number(x.passage) - 1;

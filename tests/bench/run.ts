@@ -6,7 +6,8 @@
      consigne de la v1 (texte exact du corrigé), pour mesurer la comparaison seule, indépendamment de l'extraction.
    Seuls la base et le stockage sont simulés en mémoire. Aucune clé n'est lue ni écrite : la clé Groq est ajoutée par le
    proxy de l'environnement (variable AI_API_KEY = « proxy-injected »). Les en-têtes de limite de débit sont relevés.
-   Lancer depuis la racine :  AI_API_KEY=proxy-injected deno run -A tests/bench/run.ts 1   (1, 2 ou 3 : numéro du passage) */
+   Lancer depuis la racine :  AI_API_KEY=proxy-injected deno run -A tests/bench/run.ts 1   (1, 2 ou 3 : numéro du passage)
+   BENCH_CAMPAGNE=mission-2b : écrit dans docs/benchmark/runs-2b (la campagne de la mission 2 reste la référence « avant »). */
 import { handle, type Deps } from "../../supabase/functions/tutor/handler.ts";
 import { makeCallModel } from "../../supabase/functions/tutor/model.ts";
 import { compareVersions, type EnginesDb } from "../../supabase/functions/tutor/engines.ts";
@@ -24,7 +25,7 @@ new Function("module", contenuSrc)(mod);
 const DOCS = mod.exports.DOCS as any[];
 
 // Configuration identique à la production (index.ts) : modèle principal, puis modèle de secours
-const MODELS = [Deno.env.get("AI_MODEL") || "openai/gpt-oss-120b", Deno.env.get("AI_FALLBACK_MODEL") || "llama-3.3-70b-versatile"];
+const MODELS = [Deno.env.get("AI_MODEL") || "openai/gpt-oss-120b", Deno.env.get("AI_FALLBACK_MODEL") || "openai/gpt-oss-20b"];
 const rate: Record<string, unknown>[] = [];
 const raws: { mode: string; model: string; text: string }[] = [];
 let rateWaits = 0;
@@ -137,5 +138,8 @@ for (const v2 of corpus.documents.filter((d: { changements?: unknown }) => d.cha
 const run = { passage: n, date: new Date().toISOString(), modeles_configures: MODELS, modeles_utilises: [...new Set(raws.map((r) => r.model))],
   attentes_limite_debit: rateWaits, attentes_saturation: busyWaits, limites_debit: rate, extraction, comparaison };
 const synthese = summarize(run);
-await Deno.writeTextFile(new URL(`docs/benchmark/runs/passage-${n}.json`, ROOT), JSON.stringify({ ...run, synthese }, null, 2) + "\n");
+// Campagne : BENCH_CAMPAGNE=mission-2 (docs/benchmark/runs) ou mission-2b (docs/benchmark/runs-2b), pour comparer avant et après
+const OUT = (Deno.env.get("BENCH_CAMPAGNE") || "mission-2") === "mission-2b" ? "docs/benchmark/runs-2b" : "docs/benchmark/runs";
+await Deno.mkdir(new URL(OUT + "/", ROOT), { recursive: true });
+await Deno.writeTextFile(new URL(`${OUT}/passage-${n}.json`, ROOT), JSON.stringify({ ...run, synthese }, null, 2) + "\n");
 console.log(JSON.stringify(synthese, null, 1));

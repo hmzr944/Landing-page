@@ -10,9 +10,13 @@ import { scoreComparison, scoreExtraction, summarize, THRESHOLDS } from './score
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const corpus = JSON.parse(fs.readFileSync(path.join(ROOT, 'docs/corpus-metier/corpus.json'), 'utf8'));
 const passages = JSON.parse(fs.readFileSync(path.join(ROOT, 'docs/benchmark/passages.json'), 'utf8'));
-const RUNS = path.join(ROOT, 'docs/benchmark/runs');
-const REPORT = path.join(ROOT, 'docs/benchmark-extraction.md');
+// Deux campagnes : mission 2 (référence « avant ») et mission 2b (« après »), chacune avec son rapport
+export const CAMPAGNES = {
+  'mission-2': { runs: path.join(ROOT, 'docs/benchmark/runs'), report: path.join(ROOT, 'docs/benchmark-extraction.md') },
+  'mission-2b': { runs: path.join(ROOT, 'docs/benchmark/runs-2b'), report: path.join(ROOT, 'docs/benchmark-extraction-2b.md') },
+};
 const START = '<!-- RESULTATS:DEBUT (généré par tests/bench/report.mjs, ne pas modifier à la main) -->', END = '<!-- RESULTATS:FIN -->';
+const START_CMP = '<!-- COMPARAISON:DEBUT (généré par tests/bench/report.mjs, ne pas modifier à la main) -->', END_CMP = '<!-- COMPARAISON:FIN -->';
 
 export function rescore(run) {
   const extraction = run.extraction.map((d) => {
@@ -29,7 +33,9 @@ export function rescore(run) {
   return { passage: run.passage, date: run.date, modeles: run.modeles_utilises, attentes: run.attentes_limite_debit || 0, extraction, comparaison };
 }
 
-export function loadRuns() {
+export function loadRuns(campagne = 'mission-2') {
+  const RUNS = CAMPAGNES[campagne].runs;
+  if (!fs.existsSync(RUNS)) return [];
   return fs.readdirSync(RUNS).filter((f) => /^passage-\d+\.json$/.test(f)).sort().map((f) => rescore(JSON.parse(fs.readFileSync(path.join(RUNS, f), 'utf8'))));
 }
 
@@ -79,13 +85,43 @@ export function block(runs) {
   return [START, ...L, END].join('\n');
 }
 
+// Avant (mission 2) et après (mission 2b) côte à côte : moyennes et pires passages, mêmes seuils
+export function compareBlock(before, after) {
+  const B = before.map(summarize), A = after.map(summarize);
+  const avg = (xs, k) => (xs.reduce((a, x) => a + x[k], 0) / xs.length).toFixed(1);
+  const min = (xs, k) => Math.min(...xs.map((x) => x[k])), max = (xs, k) => Math.max(...xs.map((x) => x[k]));
+  const L = ['| Mesure | Avant : moyenne (pire passage) | Après : moyenne (pire passage) |', '|---|---|---|'];
+  const row = (label, k, worst = 'min') => L.push(`| ${label} | ${avg(B, k)} (${worst === 'min' ? min(B, k) : max(B, k)}) | ${avg(A, k)} (${worst === 'min' ? min(A, k) : max(A, k)}) |`);
+  row('Valeurs chiffrées exactes (sur 49)', 'valeurs_exactes');
+  row('Règles sensibles retrouvées (sur 47)', 'sensibles_trouvees');
+  row('Changements détectés (sur 9)', 'changements_detectes');
+  row('Fausses alertes sur les pièges (sur 4)', 'fausses_alertes_pieges', 'max');
+  row('Règles retrouvées (sur 74)', 'regles_trouvees');
+  row('Sensibles classées « sensible »', 'sensibles_bien_classees');
+  row('Inventions après le filtre du serveur', 'inventions_apres_filtre', 'max');
+  L.push(`| Passages où les quatre seuils sont atteints | ${B.filter((x) => x.seuils_atteints).length} sur ${B.length} | ${A.filter((x) => x.seuils_atteints).length} sur ${A.length} |`);
+  return [START_CMP, ...L, END_CMP].join('\n');
+}
+
+function writeBetween(file, start, end, text, check) {
+  const doc = fs.readFileSync(file, 'utf8');
+  const i = doc.indexOf(start), j = doc.indexOf(end);
+  if (i < 0 || j < 0) throw new Error(`marqueurs absents de ${path.basename(file)}`);
+  const current = doc.slice(i, j + end.length);
+  if (check) return current === text;
+  fs.writeFileSync(file, doc.slice(0, i) + text + doc.slice(j + end.length));
+  return true;
+}
+
 if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
-  const b = block(loadRuns());
-  const doc = fs.readFileSync(REPORT, 'utf8');
-  const i = doc.indexOf(START), j = doc.indexOf(END);
-  if (i < 0 || j < 0) { console.error('marqueurs absents du rapport'); process.exit(1); }
-  const current = doc.slice(i, j + END.length);
-  if (process.argv.includes('--check')) { const ok = current === b; console.log(ok ? 'rapport à jour' : 'rapport PAS à jour : relancer node tests/bench/report.mjs'); process.exit(ok ? 0 : 1); }
-  fs.writeFileSync(REPORT, doc.slice(0, i) + b + doc.slice(j + END.length));
-  console.log(b);
+  const check = process.argv.includes('--check');
+  let ok = true;
+  for (const [name, c] of Object.entries(CAMPAGNES)) {
+    const runs = loadRuns(name);
+    if (!runs.length || !fs.existsSync(c.report)) { console.log(`${name} : aucune campagne enregistrée`); continue; }
+    ok = writeBetween(c.report, START, END, block(runs), check) && ok;
+    if (name === 'mission-2b') ok = writeBetween(c.report, START_CMP, END_CMP, compareBlock(loadRuns('mission-2'), runs), check) && ok;
+    console.log(`${name} : ${check ? (ok ? 'rapport à jour' : 'rapport PAS à jour : relancer node tests/bench/report.mjs') : 'rapport écrit'}`);
+  }
+  process.exit(ok ? 0 : 1);
 }

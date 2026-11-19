@@ -149,6 +149,62 @@ Deno.test("schéma refusé (400) : même modèle, en mode JSON simple ; filtre d
   });
 });
 
+/* ---------- Nouveaux essais (mission 2b) : aucune attente réelle, sleep remplacé ---------- */
+const noSleep = (log: number[]) => (ms: number) => { log.push(ms); return Promise.resolve(); };
+const retry429 = (s: number) => new Response("{}", { status: 429, headers: { "retry-after": String(s) } });
+
+Deno.test("429 avec délai : attend puis réessaie LE MÊME modèle (pas de bascule)", async () => {
+  const waits: number[] = [];
+  await fakeApi((b, n) => n === 1 ? retry429(3) : completion(b.model, JSON.stringify(ok)), async (base, seen) => {
+    const out = await makeCallModel({ baseUrl: base, apiKey: "k", models: ["openai/gpt-oss-120b", "openai/gpt-oss-20b"], sleep: noSleep(waits) })({ system: "s", user: "u", schema: { type: "object" }, effort: "low" });
+    assertEquals(seen.map((x) => x.model), ["openai/gpt-oss-120b", "openai/gpt-oss-120b"]);
+    assertEquals(waits, [3250]);
+    assertEquals(out.model, "openai/gpt-oss-120b");
+  });
+});
+
+Deno.test("429 au-delà de l'attente permise : modèle suivant ; tous saturés : Busy", async () => {
+  const waits: number[] = [];
+  await fakeApi(() => retry429(60), async (base, seen) => {
+    const e = await makeCallModel({ baseUrl: base, apiKey: "k", models: ["a", "b"], sleep: noSleep(waits) })({ system: "s", user: "u", schema: {}, effort: "low" }).catch((x) => x);
+    assertEquals(seen.map((x) => x.model), ["a", "b"]);
+    assertEquals(waits, []);
+    assertEquals(e.name, "Busy");
+  });
+});
+
+Deno.test("modèle de secours introuvable (404) : passé, sans faire échouer si un autre répond", async () => {
+  await fakeApi((b) => b.model === "retire" ? Response.json({ error: { message: "does not exist" } }, { status: 404 }) : completion(b.model, JSON.stringify(ok)), async (base, seen) => {
+    const out = await makeCallModel({ baseUrl: base, apiKey: "k", models: ["retire", "openai/gpt-oss-20b"] })({ system: "s", user: "u", schema: {}, effort: "low" });
+    assertEquals(seen.map((x) => x.model), ["retire", "openai/gpt-oss-20b"]);
+    assertEquals(out.model, "openai/gpt-oss-20b");
+  });
+  await fakeApi(() => Response.json({ error: { message: "does not exist" } }, { status: 404 }), async (base) => {
+    const e = await makeCallModel({ baseUrl: base, apiKey: "k", models: ["x"] })({ system: "s", user: "u", schema: {}, effort: "low" }).catch((x) => x);
+    assertEquals(e.name, "Error", "un modèle introuvable n'est pas une saturation : pas de « réessayez plus tard »");
+  });
+});
+
+Deno.test("réponse coupée (length) : nouvel essai avec deux fois plus de jetons", async () => {
+  await fakeApi((b, n) => n === 1 ? completion(b.model, '{"reply":"coup', "length") : completion(b.model, JSON.stringify(ok)), async (base, seen) => {
+    const out = await makeCallModel({ baseUrl: base, apiKey: "k", models: ["openai/gpt-oss-120b"] })({ system: "s", user: "u", schema: {}, effort: "low", maxTokens: 2000 });
+    assertEquals(seen.map((x) => x.max_tokens), [2000, 4000]);
+    assertEquals(JSON.parse(out.text).verdict, "juste");
+  });
+});
+
+Deno.test("réponse hors format : JSON invalide ou 400 en JSON simple réessayés une fois, puis modèle suivant", async () => {
+  await fakeApi((b, n) => n === 1 ? completion(b.model, "pas du json") : completion(b.model, JSON.stringify(ok)), async (base, seen) => {
+    await makeCallModel({ baseUrl: base, apiKey: "k", models: ["llama"] })({ system: "s", user: "u", schema: {}, effort: "low" });
+    assertEquals(seen.length, 2);
+  });
+  await fakeApi((b) => b.model === "m1" ? Response.json({ error: { message: "json_validate_failed" } }, { status: 400 }) : completion(b.model, JSON.stringify(ok)), async (base, seen) => {
+    const out = await makeCallModel({ baseUrl: base, apiKey: "k", models: ["m1", "m2"] })({ system: "s", user: "u", schema: {}, effort: "low" });
+    assertEquals(seen.map((x) => x.model), ["m1", "m1", "m2"]);
+    assertEquals(out.model, "m2");
+  });
+});
+
 Deno.test("coût nul par défaut, prix réglable", async () => {
   const a = fakeDeps(); await handle(req(body), a.deps);
   assertEquals((a.recorded[0] as { costUsd: number }).costUsd, 0);

@@ -191,7 +191,7 @@ export async function compareVersions(ctx: OrgCtx, db: EnginesDb, org: string, r
 Pour chaque [k…] : "reformule" (même sens, autres mots), "modifie" (le fond a changé : chiffre, règle, étape…), ou "supprime" (plus mentionné). "quote" = l'extrait de la nouvelle version COPIÉ MOT POUR MOT qui correspond ("" si supprimé), "body" = la connaissance à jour, "why" = ce qui a changé, en une phrase.
 "added" : les nouvelles règles ou informations importantes absentes de l'ancienne version (extrait mot pour mot). N'invente rien.`,
         user: `Anciennes connaissances :\n${kRefs(rest) || "(aucune)"}\n\nNouvelle version :\n"""${text.slice(0, 9000)}"""`,
-        schema: CHANGE_SCHEMA, maxTokens: 2000,
+        schema: CHANGE_SCHEMA, maxTokens: 5000, // le raisonnement de gpt-oss compte dans ces jetons : 2000 coupait la réponse
       });
       const seen = new Set<string>();
       (Array.isArray(out.items) ? out.items : []).map((x) => x as Record<string, string>).forEach((x) => {
