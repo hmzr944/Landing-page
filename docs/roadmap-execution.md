@@ -66,8 +66,12 @@ Fichier `.github/workflows/ci.yml`, déclenché à chaque envoi, sur chaque dema
   serveur simulé).
 - Exclus : `tests/production.js` (vise le site en ligne) et `tests/desktop-shots.js` (captures, pas un test).
 - Ne déploie rien : permissions en lecture seule, aucun secret utilisé. La publication GitHub Pages ne change pas.
-- Les contrôles qui dépendent du réseau (PDF publics, Wikimedia) sont marqués « NON VÉRIFIÉ » s'ils ne sont pas
-  joignables, sans faire échouer la suite. Les PDF personnels (`ARBOR_PRIVATE_DIR`) ne sont jamais testés en CI.
+- Statut honnête de chaque suite, aussi dans le résumé GitHub : « réussi » ; « réussi pour ce qui a été exécuté ; N
+  SKIPPED » (contrôles ignorés volontairement, avec leur raison : les PDF personnels, exécutés seulement en local avec
+  `ARBOR_PRIVATE_DIR`) ; « PARTIEL » si un contrôle « NON VÉRIFIÉ » n'a pas pu s'exécuter (réseau…) ; « ÉCHEC ».
+  PARTIEL et ÉCHEC font échouer la CI : un contrôle non exécuté n'est jamais compté comme réussi.
+- Une CI verte ne prouve pas la qualité fonctionnelle : celle de l'extraction se mesure par le banc d'essai
+  (`docs/benchmark-extraction.md`).
 
 ## Missions
 | Mission | Objectif | Critère de sortie | État |

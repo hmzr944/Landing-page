@@ -3,6 +3,16 @@
 Mesure de la capacité réelle d'Arbor à comprendre des procédures et à détecter leurs évolutions, sur le corpus métier
 n° 1 (8 documents fabriqués, voir `docs/corpus-metier/README.md`). Mesures du 2026-11-18.
 
+## Bilan de la mission 2 : deux réussites à ne pas confondre
+
+| Volet | Résultat | Preuve |
+|---|---|---|
+| Corrections techniques | **réussies** : lecture des ligatures (navigateur), lecteur serveur vérifié, « confiance X % » remplacée par des informations vérifiables, banc d'essai reproductible et contrôlé en CI | `tests/corpus-metier.js` (74/74 avec et sans ligatures, échoue sur l'ancien code), `corpus.test.ts`, `tests/org-docs.js` A7b (échoue sur l'ancien affichage), `tests/benchmark.js` |
+| Qualité fonctionnelle de l'extraction | **non atteinte** : 0 seuil sur 4 tenu sur l'ensemble des trois passages | tableau ci-dessous, recalculé à partir des réponses brutes |
+
+Une CI verte prouve que le code fait ce que les tests décrivent, pas que l'extraction est fiable. Les corrections de la
+qualité fonctionnelle font l'objet de la mission 2b, avec les mêmes seuils.
+
 **Conclusion : aucun des quatre seuils n'est atteint, sur aucun des trois passages.** Le moteur n'invente rien
 (le filtre du serveur écarte toutes les citations inventées), mais il **oublie** trop de règles, en particulier des
 règles sensibles, et ses résultats varient fortement d'un passage à l'autre.

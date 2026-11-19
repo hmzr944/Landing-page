@@ -10,7 +10,7 @@ const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..');
 const BIN = ['/usr/lib/postgresql/16/bin', '/usr/lib/postgresql/17/bin', '/usr/lib/postgresql/15/bin'].find((d) => fs.existsSync(path.join(d, 'initdb')));
-if (!BIN) { console.log('– PostgreSQL introuvable : tests de base de données NON VÉRIFIÉS'); process.exit(0); }
+if (!BIN) { console.log('– PostgreSQL introuvable : tests de base de données NON VÉRIFIÉS (non exécutés)'); process.exit(process.env.CI ? 1 : 0); } // en CI, PostgreSQL doit être là : son absence est un échec
 
 let failed = 0;
 const check = (name, ok, extra = '') => { console.log(`${ok ? '✓' : '✗'} ${name}${extra ? ' : ' + extra : ''}`); if (!ok) failed++; };
