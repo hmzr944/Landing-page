@@ -23,7 +23,7 @@ const load = async (f: string) => { const m = { exports: {} as Record<string, an
 const DOCS = await load("docs/corpus-metier/contenu.js");
 // Contrôle hors corpus (mission 2c) : mesuré à part, jamais compté dans les seuils
 const HORS = JSON.parse(await Deno.readTextFile(new URL("docs/corpus-metier/hors-corpus/corpus.json", ROOT)));
-const HORS_DOCS = await load("docs/corpus-metier/hors-corpus/contenu.js");
+const HORS_DOCS = [...await load("docs/corpus-metier/hors-corpus/contenu.js"), ...await load("docs/corpus-metier/hors-corpus/contenu-p2.js")];
 
 // Configuration identique à la production (index.ts) : modèle principal, puis modèle de secours
 const MODELS = [Deno.env.get("AI_MODEL") || "openai/gpt-oss-120b", Deno.env.get("AI_FALLBACK_MODEL") || "openai/gpt-oss-20b"];

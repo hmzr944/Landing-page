@@ -1,5 +1,5 @@
 {
-  "nom": "Contrôle hors corpus (mission 2c, figé le 2026-11-22)",
+  "nom": "Contrôles hors corpus : P1 (mission 2c) et P2 (mission 2d), figés le 2026-11-22",
   "avertissement": "Tous les documents sont fabriqués (jeu de test). Les organisations sont fictives. Seules les règles de base « reglementaire » reprennent un texte public, vérifié à la source indiquée ; les règles « interne » sont inventées pour l’exercice.",
   "genere_par": "docs/corpus-metier/generer.js",
   "documents": [
@@ -219,6 +219,213 @@
           "avant": "Encaisser le montant restant avant la remise.",
           "apres": "Faire payer le solde avant de remettre la commande.",
           "note": "Même consigne, autres mots."
+        }
+      ]
+    },
+    {
+      "id": "P2-v1",
+      "fichier": "P2-v1.pdf",
+      "source_html": "sources/P2-v1.html",
+      "procedure": "P2",
+      "version": 1,
+      "date": "2026-03-09",
+      "secteur": "hcr",
+      "organisation": "Brasserie du Quai (restaurant fictif, 60 couverts)",
+      "titre": "Fermeture de la cuisine",
+      "nature": "synthetique",
+      "regles_attendues": [
+        {
+          "id": "P2.trancheuse",
+          "texte": "Débrancher la trancheuse avant de la nettoyer.",
+          "base": "interne",
+          "sensible": true
+        },
+        {
+          "id": "P2.plans",
+          "texte": "Laver les plans de travail avec le produit désinfectant.",
+          "base": "interne",
+          "sensible": true
+        },
+        {
+          "id": "P2.frigos",
+          "texte": "Ranger les denrées et nettoyer les réfrigérateurs.",
+          "base": "interne",
+          "sensible": false
+        },
+        {
+          "id": "P2.gants-nettoyage",
+          "texte": "Porter des gants.",
+          "base": "interne",
+          "sensible": true
+        },
+        {
+          "id": "P2.filmer",
+          "texte": "Filmer et étiqueter les préparations entamées.",
+          "base": "interne",
+          "sensible": true
+        },
+        {
+          "id": "P2.jeter",
+          "texte": "Jeter les préparations de plus de 3 jours.",
+          "base": "interne",
+          "sensible": true
+        },
+        {
+          "id": "P2.degivrer",
+          "texte": "Dégivrer le congélateur.",
+          "base": "interne",
+          "sensible": false
+        },
+        {
+          "id": "P2.gaz",
+          "texte": "Fermer le gaz avant de quitter la cuisine.",
+          "base": "interne",
+          "sensible": true
+        },
+        {
+          "id": "P2.chef-portes",
+          "texte": "Le chef vérifie la fermeture de toutes les portes.",
+          "base": "interne",
+          "sensible": true
+        }
+      ]
+    },
+    {
+      "id": "P2-v2",
+      "fichier": "P2-v2.pdf",
+      "source_html": "sources/P2-v2.html",
+      "procedure": "P2",
+      "version": 2,
+      "date": "2026-10-20",
+      "secteur": "hcr",
+      "organisation": "Brasserie du Quai (restaurant fictif, 60 couverts)",
+      "titre": "Fermeture de la cuisine",
+      "nature": "synthetique",
+      "regles_attendues": [
+        {
+          "id": "P2.dechets",
+          "texte": "Retirer les déchets alimentaires des bacs.",
+          "base": "interne",
+          "sensible": true
+        },
+        {
+          "id": "P2.trancheuse",
+          "texte": "Nettoyer la trancheuse seulement après l’avoir débranchée.",
+          "base": "interne",
+          "sensible": true
+        },
+        {
+          "id": "P2.plans",
+          "texte": "Laver les plans de travail avec le produit désinfectant.",
+          "base": "interne",
+          "sensible": true
+        },
+        {
+          "id": "P2.frigos",
+          "texte": "Nettoyer les réfrigérateurs, ensuite ranger les denrées.",
+          "base": "interne",
+          "sensible": false
+        },
+        {
+          "id": "P2.gants-nettoyage",
+          "texte": "Porter des gants.",
+          "base": "interne",
+          "sensible": true
+        },
+        {
+          "id": "P2.filmer",
+          "texte": "Filmer et étiqueter les préparations entamées.",
+          "base": "interne",
+          "sensible": true
+        },
+        {
+          "id": "P2.jeter",
+          "texte": "Jeter les préparations de plus de 2 jours.",
+          "base": "interne",
+          "sensible": true
+        },
+        {
+          "id": "P2.gants-stockage",
+          "texte": "Porter des gants.",
+          "base": "interne",
+          "sensible": true
+        },
+        {
+          "id": "P2.degivrer",
+          "texte": "Dégivrer le congélateur.",
+          "base": "interne",
+          "sensible": false
+        },
+        {
+          "id": "P2.gaz",
+          "texte": "Fermer le gaz avant de quitter la cuisine.",
+          "base": "interne",
+          "sensible": true
+        }
+      ],
+      "remplace": "P2-v1",
+      "changements": [
+        {
+          "id": "P2.c1",
+          "type": "ajoute",
+          "regle": "P2.dechets",
+          "apres": "Retirer les déchets alimentaires des bacs.",
+          "note": "Vraie nouveauté, en tête de liste : décale la numérotation des étapes suivantes."
+        },
+        {
+          "id": "P2.c2",
+          "type": "modifie",
+          "regle": "P2.frigos",
+          "avant": "Ranger les denrées et nettoyer les réfrigérateurs.",
+          "apres": "Nettoyer les réfrigérateurs, ensuite ranger les denrées.",
+          "note": "Ordre imposé par « ensuite » (règle du 2026-11-22)."
+        },
+        {
+          "id": "P2.c3",
+          "type": "modifie",
+          "regle": "P2.jeter",
+          "avant": "de plus de 3 jours",
+          "apres": "de plus de 2 jours"
+        },
+        {
+          "id": "P2.c4",
+          "type": "modifie",
+          "regle": "P2.degivrer",
+          "avant": "Dégivrer le congélateur.",
+          "apres": "Dégivrer le congélateur.",
+          "note": "Mêmes mots, portée différente : du week-end à chaque soir (changement de section)."
+        },
+        {
+          "id": "P2.c5",
+          "type": "ajoute",
+          "regle": "P2.gants-stockage",
+          "apres": "Porter des gants.",
+          "section": "Stockage",
+          "note": "Même phrase qu’en v1 (Nettoyage), nouvelle obligation dans une autre section."
+        },
+        {
+          "id": "P2.c6",
+          "type": "supprime",
+          "regle": "P2.chef-portes",
+          "avant": "Le chef vérifie la fermeture de toutes les portes."
+        }
+      ],
+      "non_changements": [
+        {
+          "type": "reformulation",
+          "avant": "Débrancher la trancheuse avant de la nettoyer.",
+          "apres": "Nettoyer la trancheuse seulement après l’avoir débranchée.",
+          "note": "Même ordre (débrancher, puis nettoyer), dit autrement : un marqueur d’ordre ne suffit pas à faire un changement."
+        },
+        {
+          "type": "identique",
+          "texte": "Laver les plans de travail avec le produit désinfectant.",
+          "note": "Texte identique ; son numéro passe de 2 à 3 à cause de l’ajout en tête."
+        },
+        {
+          "type": "identique",
+          "texte": "Fermer le gaz avant de quitter la cuisine.",
+          "note": "Texte identique contenant « avant »."
         }
       ]
     }

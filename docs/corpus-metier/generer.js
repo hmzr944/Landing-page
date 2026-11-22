@@ -6,7 +6,8 @@
 const fs = require('fs'), path = require('path');
 const { chromium } = require('playwright');
 const { DOCS: MAIN, SOURCES, BANDEAU } = require('./contenu.js');
-const HORS = require('./hors-corpus/contenu.js').DOCS; // contrôle hors corpus (mission 2c) : généré à part, dans hors-corpus/
+// contrôles hors corpus, générés à part dans hors-corpus/ : P1 (mission 2c), P2 (mission 2d, figée le 2026-11-22)
+const HORS = [...require('./hors-corpus/contenu.js').DOCS, ...require('./hors-corpus/contenu-p2.js').DOCS];
 
 const DIR = __dirname;
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -79,6 +80,6 @@ function manifest(DOCS = MAIN, nom = 'Corpus métier n° 1') {
   }
   await browser.close();
   fs.writeFileSync(path.join(DIR, 'corpus.json'), JSON.stringify(manifest(), null, 2) + '\n');
-  fs.writeFileSync(path.join(DIR, 'hors-corpus', 'corpus.json'), JSON.stringify(manifest(HORS, 'Contrôle hors corpus (mission 2c, figé le 2026-11-22)'), null, 2) + '\n');
+  fs.writeFileSync(path.join(DIR, 'hors-corpus', 'corpus.json'), JSON.stringify(manifest(HORS, 'Contrôles hors corpus : P1 (mission 2c) et P2 (mission 2d), figés le 2026-11-22'), null, 2) + '\n');
   console.log('écrit corpus.json et hors-corpus/corpus.json');
 })().catch((e) => { console.error(e); process.exit(1); });

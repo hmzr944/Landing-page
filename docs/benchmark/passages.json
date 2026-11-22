@@ -130,6 +130,32 @@
           }
         ]
       ]
+    },
+    {
+      "id": "P2-v1",
+      "fichier": "hors-corpus/P2-v1.pdf",
+      "titre": "Fermeture de la cuisine",
+      "batches": [
+        [
+          {
+            "page": 1,
+            "text": "Document fictif fabriqué pour tester Arbor. Ce n’est pas une procédure réelle. Brasserie du Quai (restaurant fictif, 60 couverts) · Hôtellerie-restauration Procédure P2 · version 1 du 2026-03-09 Fermeture de la cuisine Objet Cette procédure décrit la fermeture de la cuisine après le service du soir. Nettoyage 1. Débrancher la trancheuse avant de la nettoyer. 2. Laver les plans de travail avec le produit désinfectant. 3. Ranger les denrées et nettoyer les réfrigérateurs. 4. Porter des gants. Stockage 1. Filmer et étiqueter les préparations entamées. 2. Jeter les préparations de plus de 3 jours. Le week-end 1. Dégivrer le congélateur. Sécurité 1. Fermer le gaz avant de quitter la cuisine. 2. Le chef vérifie la fermeture de toutes les portes."
+          }
+        ]
+      ]
+    },
+    {
+      "id": "P2-v2",
+      "fichier": "hors-corpus/P2-v2.pdf",
+      "titre": "Fermeture de la cuisine",
+      "batches": [
+        [
+          {
+            "page": 1,
+            "text": "Document fictif fabriqué pour tester Arbor. Ce n’est pas une procédure réelle. Brasserie du Quai (restaurant fictif, 60 couverts) · Hôtellerie-restauration Procédure P2 · version 2 du 2026-10-20 Fermeture de la cuisine Objet Cette procédure décrit la fermeture de la cuisine après le service du soir. Nettoyage 1. Retirer les déchets alimentaires des bacs. 2. Nettoyer la trancheuse seulement après l’avoir débranchée. 3. Laver les plans de travail avec le produit désinfectant. 4. Nettoyer les réfrigérateurs, ensuite ranger les denrées. 5. Porter des gants. Stockage 1. Filmer et étiqueter les préparations entamées. 2. Jeter les préparations de plus de 2 jours. 3. Porter des gants. Chaque soir 1. Dégivrer le congélateur. Sécurité 1. Fermer le gaz avant de quitter la cuisine."
+          }
+        ]
+      ]
     }
   ]
 }
