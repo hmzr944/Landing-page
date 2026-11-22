@@ -841,5 +841,5 @@
       .sort((a, b) => b.score - a.score).slice(0, n).sort((a, b) => a.i - b.i).map((o) => o.x);
   }
 
-  window.PdfImport = { analyze, keySentences, splitSentences, fixAccents };
+  window.PdfImport = { analyze, keySentences, splitSentences, fixAccents, joinParts };
 })();

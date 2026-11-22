@@ -3,7 +3,8 @@
    A. Documents générés ici, dans plusieurs disciplines, avec leurs pièges (toujours exécutés).
    B. Documents réels publics téléchargés sur le web (cours universitaires, fiches d'évaluation, guides) : exécutés
       si le réseau le permet, sinon signalés « NON VÉRIFIÉ ». Ils ne sont jamais copiés dans le dépôt.
-   C. Documents personnels, seulement si ARBOR_PRIVATE_DIR pointe vers un dossier local (jamais publiés).
+   C. Documents personnels, seulement si ARBOR_PRIVATE_DIR pointe vers un dossier local (jamais publiés) ; sinon
+      « SKIPPED » avec sa raison : ces contrôles ne sont pas exécutés, donc jamais comptés comme réussis.
    Pour chaque document, on vérifie que les phrases mises de côté n'apparaissent ni dans le cours, ni dans les points
    clés, ni dans la leçon générée, ni dans les passages envoyés à Pousse, et que les sujets gardés citent leur page.
    Lancer depuis la racine du dépôt :  node tests/pdf-mixed.js   (Playwright requis). */
@@ -25,6 +26,9 @@ const server = http.createServer((req, res) => {
 let failed = 0, skipped = 0;
 const check = (name, ok, extra = '') => { console.log(`${ok ? '✓' : '✗'} ${name}${extra ? ' : ' + extra : ''}`); if (!ok) failed++; };
 const skip = (name, why) => { console.log(`– ${name} : NON VÉRIFIÉ (${why})`); skipped++; };
+// Ignoré volontairement (documents privés) : affiché SKIPPED avec sa raison, jamais compté comme réussi
+let skippedPriv = 0;
+const skipPrivate = (name, why) => { console.log(`– ${name} : SKIPPED (${why})`); skippedPriv++; };
 
 const doc = (title, body) => `<html><head><meta charset="utf-8"></head><body style="font-family:Arial;font-size:12.5px;line-height:1.45;margin:40px">
 <h1 style="font-size:24px">${title}</h1>${body}</body></html>`;
@@ -228,7 +232,7 @@ function download(url, file) {
 
   /* ---------- C. Documents personnels (locaux seulement) ---------- */
   const priv = process.env.ARBOR_PRIVATE_DIR;
-  if (!priv) skip('[documents personnels]', 'ARBOR_PRIVATE_DIR non défini');
+  if (!priv) skipPrivate('[documents personnels : bilan TSSR, cours TCP/IP]', 'documents privés de la personne, exécutés seulement en local avec ARBOR_PRIVATE_DIR ; jamais dans le dépôt ni en CI');
   else {
     const bilan = fs.readdirSync(priv).find((f) => /tssr|bilan/i.test(f) && f.endsWith('.pdf'));
     if (bilan) {
@@ -250,6 +254,7 @@ function download(url, file) {
 
   check('Z aucune erreur JavaScript', errors.length === 0, errors.join(' | '));
   await browser.close(); server.close();
-  console.log(failed ? `\n${failed} test(s) en échec${skipped ? `, ${skipped} non vérifié(s)` : ''}` : `\nTous les tests passent${skipped ? ` (${skipped} non vérifié(s))` : ''}`);
+  const notRun = `${skippedPriv ? ` ; ${skippedPriv} SKIPPED (documents privés, non exécutés)` : ''}${skipped ? ` ; ${skipped} NON VÉRIFIÉ (non exécutés)` : ''}`;
+  console.log(failed ? `\n${failed} test(s) en échec${notRun}` : `\nTous les tests exécutés passent${notRun}`);
   process.exit(failed ? 1 : 0);
 })();

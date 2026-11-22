@@ -1,0 +1,3113 @@
+{
+  "passage": 1,
+  "date": "2026-11-18T21:39:05.673Z",
+  "modeles_configures": [
+    "openai/gpt-oss-120b",
+    "llama-3.3-70b-versatile"
+  ],
+  "modeles_utilises": [
+    "openai/gpt-oss-120b"
+  ],
+  "attentes_limite_debit": 12,
+  "attentes_saturation": 0,
+  "limites_debit": [
+    {
+      "at": "2026-11-18T21:35:13.130Z",
+      "status": 200,
+      "model": "openai/gpt-oss-120b",
+      "remaining_requests": "995",
+      "limit_requests": "1000",
+      "remaining_tokens": "1267",
+      "limit_tokens": "8000",
+      "retry_after": null
+    },
+    {
+      "at": "2026-11-18T21:35:13.316Z",
+      "status": 429,
+      "model": "openai/gpt-oss-120b",
+      "retry_after": "8"
+    },
+    {
+      "at": "2026-11-18T21:35:22.460Z",
+      "status": 429,
+      "model": "openai/gpt-oss-120b",
+      "retry_after": "1"
+    },
+    {
+      "at": "2026-11-18T21:35:28.633Z",
+      "status": 200,
+      "model": "openai/gpt-oss-120b",
+      "remaining_requests": "994",
+      "limit_requests": "1000",
+      "remaining_tokens": "547",
+      "limit_tokens": "8000",
+      "retry_after": null
+    },
+    {
+      "at": "2026-11-18T21:35:28.779Z",
+      "status": 429,
+      "model": "openai/gpt-oss-120b",
+      "retry_after": "11"
+    },
+    {
+      "at": "2026-11-18T21:35:45.730Z",
+      "status": 200,
+      "model": "openai/gpt-oss-120b",
+      "remaining_requests": "993",
+      "limit_requests": "1000",
+      "remaining_tokens": "133",
+      "limit_tokens": "8000",
+      "retry_after": null
+    },
+    {
+      "at": "2026-11-18T21:35:45.906Z",
+      "status": 429,
+      "model": "openai/gpt-oss-120b",
+      "retry_after": "20"
+    },
+    {
+      "at": "2026-11-18T21:36:12.140Z",
+      "status": 200,
+      "model": "openai/gpt-oss-120b",
+      "remaining_requests": "992",
+      "limit_requests": "1000",
+      "remaining_tokens": "630",
+      "limit_tokens": "8000",
+      "retry_after": null
+    },
+    {
+      "at": "2026-11-18T21:36:12.257Z",
+      "status": 429,
+      "model": "openai/gpt-oss-120b",
+      "retry_after": "17"
+    },
+    {
+      "at": "2026-11-18T21:36:35.510Z",
+      "status": 400,
+      "model": "openai/gpt-oss-120b",
+      "remaining_requests": "991",
+      "limit_requests": "1000",
+      "remaining_tokens": "271",
+      "limit_tokens": "8000",
+      "retry_after": null
+    },
+    {
+      "at": "2026-11-18T21:36:35.635Z",
+      "status": 429,
+      "model": "openai/gpt-oss-120b",
+      "retry_after": "17"
+    },
+    {
+      "at": "2026-11-18T21:36:59.715Z",
+      "status": 200,
+      "model": "openai/gpt-oss-120b",
+      "remaining_requests": "990",
+      "limit_requests": "1000",
+      "remaining_tokens": "312",
+      "limit_tokens": "8000",
+      "retry_after": null
+    },
+    {
+      "at": "2026-11-18T21:36:59.836Z",
+      "status": 429,
+      "model": "openai/gpt-oss-120b",
+      "retry_after": "14"
+    },
+    {
+      "at": "2026-11-18T21:37:19.860Z",
+      "status": 200,
+      "model": "openai/gpt-oss-120b",
+      "remaining_requests": "989",
+      "limit_requests": "1000",
+      "remaining_tokens": "388",
+      "limit_tokens": "8000",
+      "retry_after": null
+    },
+    {
+      "at": "2026-11-18T21:37:19.979Z",
+      "status": 429,
+      "model": "openai/gpt-oss-120b",
+      "retry_after": "16"
+    },
+    {
+      "at": "2026-11-18T21:37:41.308Z",
+      "status": 200,
+      "model": "openai/gpt-oss-120b",
+      "remaining_requests": "988",
+      "limit_requests": "1000",
+      "remaining_tokens": "263",
+      "limit_tokens": "8000",
+      "retry_after": null
+    },
+    {
+      "at": "2026-11-18T21:37:41.427Z",
+      "status": 429,
+      "model": "openai/gpt-oss-120b",
+      "retry_after": "14"
+    },
+    {
+      "at": "2026-11-18T21:38:00.989Z",
+      "status": 200,
+      "model": "openai/gpt-oss-120b",
+      "remaining_requests": "987",
+      "limit_requests": "1000",
+      "remaining_tokens": "417",
+      "limit_tokens": "8000",
+      "retry_after": null
+    },
+    {
+      "at": "2026-11-18T21:38:01.122Z",
+      "status": 429,
+      "model": "openai/gpt-oss-120b",
+      "retry_after": "13"
+    },
+    {
+      "at": "2026-11-18T21:38:19.856Z",
+      "status": 200,
+      "model": "openai/gpt-oss-120b",
+      "remaining_requests": "986",
+      "limit_requests": "1000",
+      "remaining_tokens": "314",
+      "limit_tokens": "8000",
+      "retry_after": null
+    },
+    {
+      "at": "2026-11-18T21:38:19.990Z",
+      "status": 429,
+      "model": "openai/gpt-oss-120b",
+      "retry_after": "17"
+    },
+    {
+      "at": "2026-11-18T21:38:42.811Z",
+      "status": 400,
+      "model": "openai/gpt-oss-120b",
+      "remaining_requests": "985",
+      "limit_requests": "1000",
+      "remaining_tokens": "274",
+      "limit_tokens": "8000",
+      "retry_after": null
+    },
+    {
+      "at": "2026-11-18T21:38:42.917Z",
+      "status": 429,
+      "model": "openai/gpt-oss-120b",
+      "retry_after": "17"
+    },
+    {
+      "at": "2026-11-18T21:39:05.670Z",
+      "status": 200,
+      "model": "openai/gpt-oss-120b",
+      "remaining_requests": "984",
+      "limit_requests": "1000",
+      "remaining_tokens": "240",
+      "limit_tokens": "8000",
+      "retry_after": null
+    }
+  ],
+  "extraction": [
+    {
+      "id": "R1-v1",
+      "appels": [
+        {
+          "status": 200,
+          "reponse": {
+            "items": [
+              {
+                "kind": "regle",
+                "title": "Minimum staff for opening",
+                "body": "Le magasin doit être ouvert par au moins deux personnes présentes dès 9 h 00.",
+                "quote": "Le magasin est ouvert par deux personnes au minimum, présentes dès 9 h 00.",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "regle",
+                "title": "Désactivation de l’alarme",
+                "body": "L’alarme doit être désactivée dans les 45 secondes avec le code personnel, qui ne doit jamais être communiqué.",
+                "quote": "Désactiver l’alarme dans les 45 secondes avec son code personnel. Le code ne se communique jamais.",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "sensible",
+                "title": "Tour de sécurité avant ouverture",
+                "body": "Avant l’ouverture, vérifier que les issues de secours sont dégagées et déverrouillées et que les extincteurs sont à leur place.",
+                "quote": "Faire le tour de sécurité : issues de secours dégagées et déverrouillées, extincteurs à leur place.",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "regle",
+                "title": "Comptage du fond de caisse",
+                "body": "Le fond de caisse de 150 € doit être compté en présence du responsable et tout écart doit être signalé.",
+                "quote": "Compter le fond de caisse de 150 € en présence du responsable et signaler tout écart.",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "regle",
+                "title": "Heure d’ouverture au public",
+                "body": "Les portes du magasin s’ouvrent au public à 9 h 30.",
+                "quote": "Ouvrir les portes au public à 9 h 30.",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "regle",
+                "title": "Annonce de fermeture aux clients",
+                "body": "La fermeture doit être annoncée aux clients 15 minutes avant la fermeture officielle.",
+                "quote": "Annoncer la fermeture aux clients 15 minutes avant.",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "procedure",
+                "title": "Comptage des caisses à la fermeture",
+                "body": "À la fermeture, les caisses sont comptées à deux personnes et l’enveloppe scellée est placée dans le coffre.",
+                "quote": "Compter les caisses à deux personnes et placer l’enveloppe scellée dans le coffre.",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "procedure",
+                "title": "Vérification des issues de secours",
+                "body": "Avant de quitter, s’assurer qu’aucune personne n’est dans les cabines ou réserves, puis fermer les issues de secours.",
+                "quote": "Vérifier qu’il ne reste personne dans les cabines et les réserves, puis fermer les issues de secours.",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "regle",
+                "title": "Fermeture du dimanche",
+                "body": "Le dimanche, le responsable est autorisé à fermer le magasin seul.",
+                "quote": "Le dimanche, le responsable peut fermer seul le magasin.",
+                "page": 1,
+                "confidence": 1
+              }
+            ],
+            "dropped": 0,
+            "usage": {
+              "used": 1,
+              "limit": 1000
+            },
+            "unverified": 0
+          },
+          "brut": [
+            {
+              "mode": "extraire",
+              "model": "openai/gpt-oss-120b",
+              "text": "{\"items\":[{\"kind\":\"regle\",\"title\":\"Minimum staff for opening\",\"body\":\"Le magasin doit être ouvert par au moins deux personnes présentes dès 9 h 00.\",\"quote\":\"Le magasin est ouvert par deux personnes au minimum, présentes dès 9 h 00.\",\"passage\":1,\"confidence\":1},{\"kind\":\"regle\",\"title\":\"Désactivation de l’alarme\",\"body\":\"L’alarme doit être désactivée dans les 45 secondes avec le code personnel, qui ne doit jamais être communiqué.\",\"quote\":\"Désactiver l’alarme dans les 45 secondes avec son code personnel. Le code ne se communique jamais.\",\"passage\":1,\"confidence\":1},{\"kind\":\"procedure\",\"title\":\"Tour de sécurité avant ouverture\",\"body\":\"Avant l’ouverture, vérifier que les issues de secours sont dégagées et déverrouillées et que les extincteurs sont à leur place.\",\"quote\":\"Faire le tour de sécurité : issues de secours dégagées et déverrouillées, extincteurs à leur place.\",\"passage\":1,\"confidence\":1},{\"kind\":\"regle\",\"title\":\"Comptage du fond de caisse\",\"body\":\"Le fond de caisse de 150 € doit être compté en présence du responsable et tout écart doit être signalé.\",\"quote\":\"Compter le fond de caisse de 150 € en présence du responsable et signaler tout écart.\",\"passage\":1,\"confidence\":1},{\"kind\":\"regle\",\"title\":\"Heure d’ouverture au public\",\"body\":\"Les portes du magasin s’ouvrent au public à 9 h 30.\",\"quote\":\"Ouvrir les portes au public à 9 h 30.\",\"passage\":1,\"confidence\":1},{\"kind\":\"regle\",\"title\":\"Annonce de fermeture aux clients\",\"body\":\"La fermeture doit être annoncée aux clients 15 minutes avant la fermeture officielle.\",\"quote\":\"Annoncer la fermeture aux clients 15 minutes avant.\",\"passage\":1,\"confidence\":1},{\"kind\":\"procedure\",\"title\":\"Comptage des caisses à la fermeture\",\"body\":\"À la fermeture, les caisses sont comptées à deux personnes et l’enveloppe scellée est placée dans le coffre.\",\"quote\":\"Compter les caisses à deux personnes et placer l’enveloppe scellée dans le coffre.\",\"passage\":1,\"confidence\":1},{\"kind\":\"procedure\",\"title\":\"Vérification des issues de secours\",\"body\":\"Avant de quitter, s’assurer qu’aucune personne n’est dans les cabines ou réserves, puis fermer les issues de secours.\",\"quote\":\"Vérifier qu’il ne reste personne dans les cabines et les réserves, puis fermer les issues de secours.\",\"passage\":1,\"confidence\":1},{\"kind\":\"regle\",\"title\":\"Fermeture du dimanche\",\"body\":\"Le dimanche, le responsable est autorisé à fermer le magasin seul.\",\"quote\":\"Le dimanche, le responsable peut fermer seul le magasin.\",\"passage\":1,\"confidence\":1}]}"
+            }
+          ],
+          "proposees": [
+            {
+              "kind": "regle",
+              "title": "Minimum staff for opening",
+              "body": "Le magasin doit être ouvert par au moins deux personnes présentes dès 9 h 00.",
+              "quote": "Le magasin est ouvert par deux personnes au minimum, présentes dès 9 h 00.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "regle",
+              "title": "Désactivation de l’alarme",
+              "body": "L’alarme doit être désactivée dans les 45 secondes avec le code personnel, qui ne doit jamais être communiqué.",
+              "quote": "Désactiver l’alarme dans les 45 secondes avec son code personnel. Le code ne se communique jamais.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "procedure",
+              "title": "Tour de sécurité avant ouverture",
+              "body": "Avant l’ouverture, vérifier que les issues de secours sont dégagées et déverrouillées et que les extincteurs sont à leur place.",
+              "quote": "Faire le tour de sécurité : issues de secours dégagées et déverrouillées, extincteurs à leur place.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "regle",
+              "title": "Comptage du fond de caisse",
+              "body": "Le fond de caisse de 150 € doit être compté en présence du responsable et tout écart doit être signalé.",
+              "quote": "Compter le fond de caisse de 150 € en présence du responsable et signaler tout écart.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "regle",
+              "title": "Heure d’ouverture au public",
+              "body": "Les portes du magasin s’ouvrent au public à 9 h 30.",
+              "quote": "Ouvrir les portes au public à 9 h 30.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "regle",
+              "title": "Annonce de fermeture aux clients",
+              "body": "La fermeture doit être annoncée aux clients 15 minutes avant la fermeture officielle.",
+              "quote": "Annoncer la fermeture aux clients 15 minutes avant.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "procedure",
+              "title": "Comptage des caisses à la fermeture",
+              "body": "À la fermeture, les caisses sont comptées à deux personnes et l’enveloppe scellée est placée dans le coffre.",
+              "quote": "Compter les caisses à deux personnes et placer l’enveloppe scellée dans le coffre.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "procedure",
+              "title": "Vérification des issues de secours",
+              "body": "Avant de quitter, s’assurer qu’aucune personne n’est dans les cabines ou réserves, puis fermer les issues de secours.",
+              "quote": "Vérifier qu’il ne reste personne dans les cabines et les réserves, puis fermer les issues de secours.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "regle",
+              "title": "Fermeture du dimanche",
+              "body": "Le dimanche, le responsable est autorisé à fermer le magasin seul.",
+              "quote": "Le dimanche, le responsable peut fermer seul le magasin.",
+              "passage": 1,
+              "confidence": 1
+            }
+          ]
+        }
+      ],
+      "score": {
+        "per": [
+          {
+            "id": "R1.deux-personnes",
+            "sensible": true,
+            "base": "interne",
+            "found": true,
+            "cover": 1,
+            "chiffree": true,
+            "valeur_exacte": true,
+            "classee_sensible": false
+          },
+          {
+            "id": "R1.alarme-delai",
+            "sensible": true,
+            "base": "interne",
+            "found": true,
+            "cover": 1,
+            "chiffree": true,
+            "valeur_exacte": true,
+            "classee_sensible": false
+          },
+          {
+            "id": "R1.tour-securite",
+            "sensible": true,
+            "base": "interne",
+            "found": true,
+            "cover": 1,
+            "chiffree": false,
+            "valeur_exacte": null,
+            "classee_sensible": true
+          },
+          {
+            "id": "R1.fond-caisse",
+            "sensible": false,
+            "base": "interne",
+            "found": true,
+            "cover": 1,
+            "chiffree": true,
+            "valeur_exacte": true,
+            "classee_sensible": null
+          },
+          {
+            "id": "R1.annonce",
+            "sensible": false,
+            "base": "interne",
+            "found": true,
+            "cover": 1,
+            "chiffree": true,
+            "valeur_exacte": true,
+            "classee_sensible": null
+          },
+          {
+            "id": "R1.comptage-deux",
+            "sensible": true,
+            "base": "interne",
+            "found": true,
+            "cover": 1,
+            "chiffree": false,
+            "valeur_exacte": null,
+            "classee_sensible": false
+          },
+          {
+            "id": "R1.dimanche-seul",
+            "sensible": true,
+            "base": "interne",
+            "found": true,
+            "cover": 1,
+            "chiffree": false,
+            "valeur_exacte": null,
+            "classee_sensible": false
+          }
+        ],
+        "items": 9,
+        "raw": 9,
+        "inventions_avant_filtre": 0,
+        "inventions_apres_filtre": 0,
+        "hors_corrige": 2
+      }
+    },
+    {
+      "id": "R1-v2",
+      "appels": [
+        {
+          "status": 200,
+          "reponse": {
+            "items": [
+              {
+                "kind": "concept",
+                "title": "Heure d'ouverture du magasin",
+                "body": "Le magasin ouvre au public à 9 h 30.",
+                "quote": "Cette procédure décrit l’ouverture du magasin au public à 9 h 30",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "concept",
+                "title": "Heure de fermeture du magasin",
+                "body": "Le magasin ferme au public à 19 h 00.",
+                "quote": "sa fermeture à 19 h 00",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "regle",
+                "title": "Nombre minimum de personnes pour ouvrir",
+                "body": "Au moins deux personnes doivent être présentes dès 9 h 00 pour ouvrir le magasin.",
+                "quote": "Le magasin est ouvert par deux personnes au minimum, présentes dès 9 h 00.",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "regle",
+                "title": "Code d'alarme confidentiel",
+                "body": "Le code personnel de l'alarme ne doit jamais être communiqué.",
+                "quote": "Le code ne se communique jamais.",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "produit",
+                "title": "Fond de caisse initial",
+                "body": "Le fond de caisse à compter est de 200 € en présence du responsable.",
+                "quote": "6. Compter le fond de caisse de 200 € en présence du responsable",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "sensible",
+                "title": "Gestion d'incident d'alarme fausse",
+                "body": "En cas de déclenchement de l’alarme par erreur, appeler la télésurveillance et fournir le mot de passe du site.",
+                "quote": "Incident En cas de déclenchement de l’alarme par erreur, appeler la télésurveillance au numéro affiché dans le bureau et donner le mot de passe du site.",
+                "page": 1,
+                "confidence": 1
+              }
+            ],
+            "dropped": 2,
+            "usage": {
+              "used": 1,
+              "limit": 1000
+            },
+            "unverified": 0
+          },
+          "brut": [
+            {
+              "mode": "extraire",
+              "model": "openai/gpt-oss-120b",
+              "text": "{\n  \"items\": [\n    {\n      \"kind\": \"concept\",\n      \"title\": \"Heure d'ouverture du magasin\",\n      \"body\": \"Le magasin ouvre au public à 9 h 30.\",\n      \"quote\": \"Cette procédure décrit l’ouverture du magasin au public à 9 h 30\",\n      \"passage\": 1,\n      \"confidence\": 1.0\n    },\n    {\n      \"kind\": \"concept\",\n      \"title\": \"Heure de fermeture du magasin\",\n      \"body\": \"Le magasin ferme au public à 19 h 00.\",\n      \"quote\": \"sa fermeture à 19 h 00\",\n      \"passage\": 1,\n      \"confidence\": 1.0\n    },\n    {\n      \"kind\": \"regle\",\n      \"title\": \"Nombre minimum de personnes pour ouvrir\",\n      \"body\": \"Au moins deux personnes doivent être présentes dès 9 h 00 pour ouvrir le magasin.\",\n      \"quote\": \"Le magasin est ouvert par deux personnes au minimum, présentes dès 9 h 00.\",\n      \"passage\": 1,\n      \"confidence\": 1.0\n    },\n    {\n      \"kind\": \"regle\",\n      \"title\": \"Code d'alarme confidentiel\",\n      \"body\": \"Le code personnel de l'alarme ne doit jamais être communiqué.\",\n      \"quote\": \"Le code ne se communique jamais.\",\n      \"passage\": 1,\n      \"confidence\": 1.0\n    },\n    {\n      \"kind\": \"procedure\",\n      \"title\": \"Étapes d'ouverture du magasin\",\n      \"body\": \"Désactiver l'alarme, faire le tour de sécurité, vérifier le défibrillateur, démarrer les caisses, allumer l'éclairage, compter le fond de caisse de 200 €, puis ouvrir les portes à 9 h 30.\",\n      \"quote\": \"2. Désactiver l’alarme... 3. Faire le tour de sécurité... 4. Vérifier que le voyant du défibrillateur est vert... 5. Démarrer les caisses, puis allumer l’éclairage. 6. Compter le fond de caisse de 200 €... 7. Ouvrir les portes au public à 9 h 30.\",\n      \"passage\": 1,\n      \"confidence\": 0.99\n    },\n    {\n      \"kind\": \"produit\",\n      \"title\": \"Fond de caisse initial\",\n      \"body\": \"Le fond de caisse à compter est de 200 € en présence du responsable.\",\n      \"quote\": \"6. Compter le fond de caisse de 200 € en présence du responsable\",\n      \"passage\": 1,\n      \"confidence\": 1.0\n    },\n    {\n      \"kind\": \"procedure\",\n      \"title\": \"Étapes de fermeture du magasin\",\n      \"body\": \"Annoncer la fermeture 15 min avant, fermer les portes à 19 h, compter les caisses à deux, placer l’enveloppe scellée dans le coffre, vérifier les cabines et réserves, fermer les issues de secours, activer l’alarme et sortir à deux.\",\n      \"quote\": \"Fermeture 1. Annoncer la fermeture aux clients 15 minutes avant... 3. Compter les caisses à deux personnes et placer l’enveloppe scellée dans le coffre... 4. Vérifier qu’il ne reste personne... 5. Activer l’alarme et sortir à deux.\",\n      \"passage\": 1,\n      \"confidence\": 0.99\n    },\n    {\n      \"kind\": \"sensible\",\n      \"title\": \"Gestion d'incident d'alarme fausse\",\n      \"body\": \"En cas de déclenchement de l’alarme par erreur, appeler la télésurveillance et fournir le mot de passe du site.\",\n      \"quote\": \"Incident En cas de déclenchement de l’alarme par erreur, appeler la télésurveillance au numéro affiché dans le bureau et donner le mot de passe du site.\",\n      \"passage\": 1,\n      \"confidence\": 1.0\n    }\n  ]\n}"
+            }
+          ],
+          "proposees": [
+            {
+              "kind": "concept",
+              "title": "Heure d'ouverture du magasin",
+              "body": "Le magasin ouvre au public à 9 h 30.",
+              "quote": "Cette procédure décrit l’ouverture du magasin au public à 9 h 30",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "concept",
+              "title": "Heure de fermeture du magasin",
+              "body": "Le magasin ferme au public à 19 h 00.",
+              "quote": "sa fermeture à 19 h 00",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "regle",
+              "title": "Nombre minimum de personnes pour ouvrir",
+              "body": "Au moins deux personnes doivent être présentes dès 9 h 00 pour ouvrir le magasin.",
+              "quote": "Le magasin est ouvert par deux personnes au minimum, présentes dès 9 h 00.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "regle",
+              "title": "Code d'alarme confidentiel",
+              "body": "Le code personnel de l'alarme ne doit jamais être communiqué.",
+              "quote": "Le code ne se communique jamais.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "procedure",
+              "title": "Étapes d'ouverture du magasin",
+              "body": "Désactiver l'alarme, faire le tour de sécurité, vérifier le défibrillateur, démarrer les caisses, allumer l'éclairage, compter le fond de caisse de 200 €, puis ouvrir les portes à 9 h 30.",
+              "quote": "2. Désactiver l’alarme... 3. Faire le tour de sécurité... 4. Vérifier que le voyant du défibrillateur est vert... 5. Démarrer les caisses, puis allumer l’éclairage. 6. Compter le fond de caisse de 200 €... 7. Ouvrir les portes au public à 9 h 30.",
+              "passage": 1,
+              "confidence": 0.99
+            },
+            {
+              "kind": "produit",
+              "title": "Fond de caisse initial",
+              "body": "Le fond de caisse à compter est de 200 € en présence du responsable.",
+              "quote": "6. Compter le fond de caisse de 200 € en présence du responsable",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "procedure",
+              "title": "Étapes de fermeture du magasin",
+              "body": "Annoncer la fermeture 15 min avant, fermer les portes à 19 h, compter les caisses à deux, placer l’enveloppe scellée dans le coffre, vérifier les cabines et réserves, fermer les issues de secours, activer l’alarme et sortir à deux.",
+              "quote": "Fermeture 1. Annoncer la fermeture aux clients 15 minutes avant... 3. Compter les caisses à deux personnes et placer l’enveloppe scellée dans le coffre... 4. Vérifier qu’il ne reste personne... 5. Activer l’alarme et sortir à deux.",
+              "passage": 1,
+              "confidence": 0.99
+            },
+            {
+              "kind": "sensible",
+              "title": "Gestion d'incident d'alarme fausse",
+              "body": "En cas de déclenchement de l’alarme par erreur, appeler la télésurveillance et fournir le mot de passe du site.",
+              "quote": "Incident En cas de déclenchement de l’alarme par erreur, appeler la télésurveillance au numéro affiché dans le bureau et donner le mot de passe du site.",
+              "passage": 1,
+              "confidence": 1
+            }
+          ]
+        }
+      ],
+      "score": {
+        "per": [
+          {
+            "id": "R1.deux-personnes",
+            "sensible": true,
+            "base": "interne",
+            "found": true,
+            "cover": 1,
+            "chiffree": true,
+            "valeur_exacte": true,
+            "classee_sensible": false
+          },
+          {
+            "id": "R1.alarme-delai",
+            "sensible": true,
+            "base": "interne",
+            "found": false,
+            "cover": 0.21,
+            "chiffree": true,
+            "valeur_exacte": false,
+            "classee_sensible": null
+          },
+          {
+            "id": "R1.tour-securite",
+            "sensible": true,
+            "base": "interne",
+            "found": false,
+            "cover": 0,
+            "chiffree": false,
+            "valeur_exacte": null,
+            "classee_sensible": null
+          },
+          {
+            "id": "R1.defibrillateur",
+            "sensible": true,
+            "base": "interne",
+            "found": false,
+            "cover": 0,
+            "chiffree": false,
+            "valeur_exacte": null,
+            "classee_sensible": null
+          },
+          {
+            "id": "R1.fond-caisse",
+            "sensible": false,
+            "base": "interne",
+            "found": true,
+            "cover": 0.67,
+            "chiffree": true,
+            "valeur_exacte": true,
+            "classee_sensible": null
+          },
+          {
+            "id": "R1.annonce",
+            "sensible": false,
+            "base": "interne",
+            "found": false,
+            "cover": 0,
+            "chiffree": true,
+            "valeur_exacte": false,
+            "classee_sensible": null
+          },
+          {
+            "id": "R1.comptage-deux",
+            "sensible": true,
+            "base": "interne",
+            "found": false,
+            "cover": 0,
+            "chiffree": false,
+            "valeur_exacte": null,
+            "classee_sensible": null
+          }
+        ],
+        "items": 6,
+        "raw": 8,
+        "inventions_avant_filtre": 2,
+        "inventions_apres_filtre": 0,
+        "hors_corrige": 4
+      }
+    },
+    {
+      "id": "R2-v1",
+      "appels": [
+        {
+          "status": 200,
+          "reponse": {
+            "items": [
+              {
+                "kind": "sensible",
+                "title": "Pas d’obligation de reprise sans défaut",
+                "body": "La loi ne contraint pas le magasin à reprendre ou rembourser un article qui n’a pas de défaut et ne prévoit pas de droit de changer d’avis.",
+                "quote": "Un magasin n’est pas obligé de reprendre ou de rembourser un article qui n’a pas de défaut : la loi ne prévoit pas de droit de changer d’avis pour un achat en magasin.",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "sensible",
+                "title": "Garantie légale 2 ans",
+                "body": "Un article neuf présentant un défaut bénéficie d’une garantie légale de conformité pendant deux ans à compter de l’achat.",
+                "quote": "Un article neuf qui présente un défaut est couvert par la garantie légale de conformité pendant 2 ans à partir de l’achat.",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "sensible",
+                "title": "Affiche n’annule pas garantie",
+                "body": "Une mention « ni repris ni échangé » ne supprime jamais la garantie légale de conformité.",
+                "quote": "Une affiche « ni repris ni échangé » ne supprime jamais la garantie légale de conformité.",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "regle",
+                "title": "Retour sous 30 jours",
+                "body": "Le retour d’un article sans défaut est accepté pendant trente jours après l’achat, sur présentation du ticket de caisse.",
+                "quote": "Le retour est accepté pendant 30 jours après l’achat, sur présentation du ticket de caisse.",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "regle",
+                "title": "Article neuf, emballage d’origine",
+                "body": "L’article doit être neuf, non utilisé et dans son emballage d’origine pour être accepté.",
+                "quote": "L’article doit être neuf, non utilisé, dans son emballage d’origine.",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "sensible",
+                "title": "Choix entre avoir et remboursement",
+                "body": "Le client peut choisir entre un avoir ou un remboursement sur le moyen de paiement utilisé à l’achat.",
+                "quote": "Le client choisit entre un avoir et un remboursement sur le moyen de paiement utilisé à l’achat.",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "regle",
+                "title": "Articles soldés non repris",
+                "body": "Les articles soldés ne sont ni repris ni échangés, sauf s’ils présentent un défaut.",
+                "quote": "Les articles soldés ne sont ni repris ni échangés, sauf défaut.",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "sensible",
+                "title": "Remboursement >150 € validé",
+                "body": "Tout remboursement supérieur à 150 € doit être validé par le responsable avant d’être effectué.",
+                "quote": "Tout remboursement de plus de 150 € est validé par le responsable avant d’être effectué.",
+                "page": 1,
+                "confidence": 1
+              }
+            ],
+            "dropped": 1,
+            "usage": {
+              "used": 1,
+              "limit": 1000
+            },
+            "unverified": 0
+          },
+          "brut": [
+            {
+              "mode": "extraire",
+              "model": "openai/gpt-oss-120b",
+              "text": "{\n  \"items\": [\n    {\n      \"kind\": \"regle\",\n      \"title\": \"Pas d’obligation de reprise sans défaut\",\n      \"body\": \"La loi ne contraint pas le magasin à reprendre ou rembourser un article qui n’a pas de défaut et ne prévoit pas de droit de changer d’avis.\",\n      \"quote\": \"Un magasin n’est pas obligé de reprendre ou de rembourser un article qui n’a pas de défaut : la loi ne prévoit pas de droit de changer d’avis pour un achat en magasin.\",\n      \"passage\": 1,\n      \"confidence\": 1\n    },\n    {\n      \"kind\": \"regle\",\n      \"title\": \"Garantie légale 2 ans\",\n      \"body\": \"Un article neuf présentant un défaut bénéficie d’une garantie légale de conformité pendant deux ans à compter de l’achat.\",\n      \"quote\": \"Un article neuf qui présente un défaut est couvert par la garantie légale de conformité pendant 2 ans à partir de l’achat.\",\n      \"passage\": 1,\n      \"confidence\": 1\n    },\n    {\n      \"kind\": \"regle\",\n      \"title\": \"Affiche n’annule pas garantie\",\n      \"body\": \"Une mention « ni repris ni échangé » ne supprime jamais la garantie légale de conformité.\",\n      \"quote\": \"Une affiche « ni repris ni échangé » ne supprime jamais la garantie légale de conformité.\",\n      \"passage\": 1,\n      \"confidence\": 1\n    },\n    {\n      \"kind\": \"regle\",\n      \"title\": \"Retour sous 30 jours\",\n      \"body\": \"Le retour d’un article sans défaut est accepté pendant trente jours après l’achat, sur présentation du ticket de caisse.\",\n      \"quote\": \"Le retour est accepté pendant 30 jours après l’achat, sur présentation du ticket de caisse.\",\n      \"passage\": 1,\n      \"confidence\": 1\n    },\n    {\n      \"kind\": \"regle\",\n      \"title\": \"Article neuf, emballage d’origine\",\n      \"body\": \"L’article doit être neuf, non utilisé et dans son emballage d’origine pour être accepté.\",\n      \"quote\": \"L’article doit être neuf, non utilisé, dans son emballage d’origine.\",\n      \"passage\": 1,\n      \"confidence\": 1\n    },\n    {\n      \"kind\": \"regle\",\n      \"title\": \"Choix entre avoir et remboursement\",\n      \"body\": \"Le client peut choisir entre un avoir ou un remboursement sur le moyen de paiement utilisé à l’achat.\",\n      \"quote\": \"Le client choisit entre un avoir et un remboursement sur le moyen de paiement utilisé à l’achat.\",\n      \"passage\": 1,\n      \"confidence\": 1\n    },\n    {\n      \"kind\": \"regle\",\n      \"title\": \"Articles soldés non repris\",\n      \"body\": \"Les articles soldés ne sont ni repris ni échangés, sauf s’ils présentent un défaut.\",\n      \"quote\": \"Les articles soldés ne sont ni repris ni échangés, sauf défaut.\",\n      \"passage\": 1,\n      \"confidence\": 1\n    },\n    {\n      \"kind\": \"procedure\",\n      \"title\": \"Procédure pour article défectueux\",\n      \"body\": \"En cas d’article défectueux, ne jamais refuser la demande même après 30 jours, proposer réparation ou remplacement, sinon rembourser, et consigner le défaut sur la fiche de retour signée par le client.\",\n      \"quote\": \"Ne jamais refuser la demande au motif que le délai de 30 jours est dépassé. Proposer d’abord la réparation ou le remplacement de l’article. Si ni la réparation ni le remplacement ne sont possibles, rembourser le client. Noter le défaut constaté sur la fiche de retour et la faire signer par le client.\",\n      \"passage\": 1,\n      \"confidence\": 1\n    },\n    {\n      \"kind\": \"regle\",\n      \"title\": \"Remboursement >150 € validé\",\n      \"body\": \"Tout remboursement supérieur à 150 € doit être validé par le responsable avant d’être effectué.\",\n      \"quote\": \"Tout remboursement de plus de 150 € est validé par le responsable avant d’être effectué.\",\n      \"passage\": 1,\n      \"confidence\": 1\n    }]}"
+            }
+          ],
+          "proposees": [
+            {
+              "kind": "regle",
+              "title": "Pas d’obligation de reprise sans défaut",
+              "body": "La loi ne contraint pas le magasin à reprendre ou rembourser un article qui n’a pas de défaut et ne prévoit pas de droit de changer d’avis.",
+              "quote": "Un magasin n’est pas obligé de reprendre ou de rembourser un article qui n’a pas de défaut : la loi ne prévoit pas de droit de changer d’avis pour un achat en magasin.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "regle",
+              "title": "Garantie légale 2 ans",
+              "body": "Un article neuf présentant un défaut bénéficie d’une garantie légale de conformité pendant deux ans à compter de l’achat.",
+              "quote": "Un article neuf qui présente un défaut est couvert par la garantie légale de conformité pendant 2 ans à partir de l’achat.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "regle",
+              "title": "Affiche n’annule pas garantie",
+              "body": "Une mention « ni repris ni échangé » ne supprime jamais la garantie légale de conformité.",
+              "quote": "Une affiche « ni repris ni échangé » ne supprime jamais la garantie légale de conformité.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "regle",
+              "title": "Retour sous 30 jours",
+              "body": "Le retour d’un article sans défaut est accepté pendant trente jours après l’achat, sur présentation du ticket de caisse.",
+              "quote": "Le retour est accepté pendant 30 jours après l’achat, sur présentation du ticket de caisse.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "regle",
+              "title": "Article neuf, emballage d’origine",
+              "body": "L’article doit être neuf, non utilisé et dans son emballage d’origine pour être accepté.",
+              "quote": "L’article doit être neuf, non utilisé, dans son emballage d’origine.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "regle",
+              "title": "Choix entre avoir et remboursement",
+              "body": "Le client peut choisir entre un avoir ou un remboursement sur le moyen de paiement utilisé à l’achat.",
+              "quote": "Le client choisit entre un avoir et un remboursement sur le moyen de paiement utilisé à l’achat.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "regle",
+              "title": "Articles soldés non repris",
+              "body": "Les articles soldés ne sont ni repris ni échangés, sauf s’ils présentent un défaut.",
+              "quote": "Les articles soldés ne sont ni repris ni échangés, sauf défaut.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "procedure",
+              "title": "Procédure pour article défectueux",
+              "body": "En cas d’article défectueux, ne jamais refuser la demande même après 30 jours, proposer réparation ou remplacement, sinon rembourser, et consigner le défaut sur la fiche de retour signée par le client.",
+              "quote": "Ne jamais refuser la demande au motif que le délai de 30 jours est dépassé. Proposer d’abord la réparation ou le remplacement de l’article. Si ni la réparation ni le remplacement ne sont possibles, rembourser le client. Noter le défaut constaté sur la fiche de retour et la faire signer par le client.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "regle",
+              "title": "Remboursement >150 € validé",
+              "body": "Tout remboursement supérieur à 150 € doit être validé par le responsable avant d’être effectué.",
+              "quote": "Tout remboursement de plus de 150 € est validé par le responsable avant d’être effectué.",
+              "passage": 1,
+              "confidence": 1
+            }
+          ]
+        }
+      ],
+      "score": {
+        "per": [
+          {
+            "id": "R2.pas-obligation",
+            "sensible": false,
+            "base": "reglementaire",
+            "found": true,
+            "cover": 1,
+            "chiffree": false,
+            "valeur_exacte": null,
+            "classee_sensible": null
+          },
+          {
+            "id": "R2.garantie-2-ans",
+            "sensible": false,
+            "base": "reglementaire",
+            "found": true,
+            "cover": 1,
+            "chiffree": true,
+            "valeur_exacte": true,
+            "classee_sensible": null
+          },
+          {
+            "id": "R2.affiche",
+            "sensible": false,
+            "base": "reglementaire",
+            "found": true,
+            "cover": 1,
+            "chiffree": false,
+            "valeur_exacte": null,
+            "classee_sensible": null
+          },
+          {
+            "id": "R2.delai-30",
+            "sensible": false,
+            "base": "interne",
+            "found": true,
+            "cover": 1,
+            "chiffree": true,
+            "valeur_exacte": true,
+            "classee_sensible": null
+          },
+          {
+            "id": "R2.choix",
+            "sensible": false,
+            "base": "interne",
+            "found": true,
+            "cover": 1,
+            "chiffree": false,
+            "valeur_exacte": null,
+            "classee_sensible": null
+          },
+          {
+            "id": "R2.jamais-refuser",
+            "sensible": true,
+            "base": "reglementaire",
+            "found": false,
+            "cover": 0,
+            "chiffree": true,
+            "valeur_exacte": false,
+            "classee_sensible": null
+          },
+          {
+            "id": "R2.reparer-remplacer",
+            "sensible": false,
+            "base": "reglementaire",
+            "found": false,
+            "cover": 0,
+            "chiffree": false,
+            "valeur_exacte": null,
+            "classee_sensible": null
+          },
+          {
+            "id": "R2.validation-150",
+            "sensible": true,
+            "base": "interne",
+            "found": true,
+            "cover": 1,
+            "chiffree": true,
+            "valeur_exacte": true,
+            "classee_sensible": true
+          },
+          {
+            "id": "R2.especes-150",
+            "sensible": true,
+            "base": "interne",
+            "found": false,
+            "cover": 0,
+            "chiffree": true,
+            "valeur_exacte": false,
+            "classee_sensible": null
+          }
+        ],
+        "items": 8,
+        "raw": 9,
+        "inventions_avant_filtre": 1,
+        "inventions_apres_filtre": 0,
+        "hors_corrige": 2
+      }
+    },
+    {
+      "id": "R3-v1",
+      "appels": [
+        {
+          "status": 200,
+          "reponse": {
+            "items": [
+              {
+                "kind": "regle",
+                "title": "Connexion vendeur à la caisse",
+                "body": "Chaque vendeur se connecte à la caisse avec son identifiant personnel et ne laisse jamais sa session ouverte.",
+                "quote": "Chaque vendeur se connecte à la caisse avec son identifiant personnel et ne laisse jamais sa session ouverte.",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "produit",
+                "title": "Montant du fond de caisse",
+                "body": "Le fond de caisse est de 200 €.",
+                "quote": "Prise de poste 1. Chaque vendeur se connecte à la caisse avec son identifiant personnel et ne laisse jamais sa session ouverte. 2. Le fond de caisse est de 200 €.",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "regle",
+                "title": "Plafond paiement espèces France",
+                "body": "Un client dont le domicile fiscal est en France ne peut pas payer en espèces un achat de plus de 1 000 €.",
+                "quote": "Un client dont le domicile fiscal est en France ne peut pas payer en espèces un achat de plus de 1 000 €.",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "regle",
+                "title": "Plafond paiement espèces étranger",
+                "body": "Pour un client dont le domicile fiscal est à l’étranger, le plafond est plus élevé : appeler le responsable.",
+                "quote": "Pour un client dont le domicile fiscal est à l’étranger, le plafond est plus élevé : appeler le responsable.",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "regle",
+                "title": "Limite pièces acceptées",
+                "body": "Le vendeur n’est pas tenu d’accepter plus de 50 pièces pour un même paiement.",
+                "quote": "Le vendeur n’est pas tenu d’accepter plus de 50 pièces pour un même paiement.",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "regle",
+                "title": "Vérification billets ≥50 €",
+                "body": "Vérifier chaque billet de 50 € et plus au détecteur.",
+                "quote": "Vérifier chaque billet de 50 € et plus au détecteur.",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "sensible",
+                "title": "Billet présumé faux non remis en circulation",
+                "body": "Un billet présumé faux ne doit jamais être remis en circulation : il n’est pas rendu en monnaie.",
+                "quote": "Un billet présumé faux ne doit jamais être remis en circulation : il n’est pas rendu en monnaie.",
+                "page": 1,
+                "confidence": 1
+              }
+            ],
+            "dropped": 0,
+            "usage": {
+              "used": 1,
+              "limit": 1000
+            },
+            "unverified": 0
+          },
+          "brut": [
+            {
+              "mode": "extraire",
+              "model": "openai/gpt-oss-120b",
+              "text": "{\n  \"items\": [\n    {\n      \"kind\": \"regle\",\n      \"title\": \"Connexion vendeur à la caisse\",\n      \"body\": \"Chaque vendeur se connecte à la caisse avec son identifiant personnel et ne laisse jamais sa session ouverte.\",\n      \"quote\": \"Chaque vendeur se connecte à la caisse avec son identifiant personnel et ne laisse jamais sa session ouverte.\",\n      \"passage\": 1,\n      \"confidence\": 1.0\n    },\n    {\n      \"kind\": \"produit\",\n      \"title\": \"Montant du fond de caisse\",\n      \"body\": \"Le fond de caisse est de 200 €.\",\n      \"quote\": \"Prise de poste 1. Chaque vendeur se connecte à la caisse avec son identifiant personnel et ne laisse jamais sa session ouverte. 2. Le fond de caisse est de 200 €.\",\n      \"passage\": 1,\n      \"confidence\": 1.0\n    },\n    {\n      \"kind\": \"regle\",\n      \"title\": \"Plafond paiement espèces France\",\n      \"body\": \"Un client dont le domicile fiscal est en France ne peut pas payer en espèces un achat de plus de 1 000 €.\",\n      \"quote\": \"Un client dont le domicile fiscal est en France ne peut pas payer en espèces un achat de plus de 1 000 €.\",\n      \"passage\": 1,\n      \"confidence\": 1.0\n    },\n    {\n      \"kind\": \"regle\",\n      \"title\": \"Plafond paiement espèces étranger\",\n      \"body\": \"Pour un client dont le domicile fiscal est à l’étranger, le plafond est plus élevé : appeler le responsable.\",\n      \"quote\": \"Pour un client dont le domicile fiscal est à l’étranger, le plafond est plus élevé : appeler le responsable.\",\n      \"passage\": 1,\n      \"confidence\": 1.0\n    },\n    {\n      \"kind\": \"regle\",\n      \"title\": \"Limite pièces acceptées\",\n      \"body\": \"Le vendeur n’est pas tenu d’accepter plus de 50 pièces pour un même paiement.\",\n      \"quote\": \"Le vendeur n’est pas tenu d’accepter plus de 50 pièces pour un même paiement.\",\n      \"passage\": 1,\n      \"confidence\": 1.0\n    },\n    {\n      \"kind\": \"regle\",\n      \"title\": \"Vérification billets ≥50 €\",\n      \"body\": \"Vérifier chaque billet de 50 € et plus au détecteur.\",\n      \"quote\": \"Vérifier chaque billet de 50 € et plus au détecteur.\",\n      \"passage\": 1,\n      \"confidence\": 1.0\n    },\n    {\n      \"kind\": \"sensible\",\n      \"title\": \"Billet présumé faux non remis en circulation\",\n      \"body\": \"Un billet présumé faux ne doit jamais être remis en circulation : il n’est pas rendu en monnaie.\",\n      \"quote\": \"Un billet présumé faux ne doit jamais être remis en circulation : il n’est pas rendu en monnaie.\",\n      \"passage\": 1,\n      \"confidence\": 1.0\n    }]}"
+            }
+          ],
+          "proposees": [
+            {
+              "kind": "regle",
+              "title": "Connexion vendeur à la caisse",
+              "body": "Chaque vendeur se connecte à la caisse avec son identifiant personnel et ne laisse jamais sa session ouverte.",
+              "quote": "Chaque vendeur se connecte à la caisse avec son identifiant personnel et ne laisse jamais sa session ouverte.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "produit",
+              "title": "Montant du fond de caisse",
+              "body": "Le fond de caisse est de 200 €.",
+              "quote": "Prise de poste 1. Chaque vendeur se connecte à la caisse avec son identifiant personnel et ne laisse jamais sa session ouverte. 2. Le fond de caisse est de 200 €.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "regle",
+              "title": "Plafond paiement espèces France",
+              "body": "Un client dont le domicile fiscal est en France ne peut pas payer en espèces un achat de plus de 1 000 €.",
+              "quote": "Un client dont le domicile fiscal est en France ne peut pas payer en espèces un achat de plus de 1 000 €.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "regle",
+              "title": "Plafond paiement espèces étranger",
+              "body": "Pour un client dont le domicile fiscal est à l’étranger, le plafond est plus élevé : appeler le responsable.",
+              "quote": "Pour un client dont le domicile fiscal est à l’étranger, le plafond est plus élevé : appeler le responsable.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "regle",
+              "title": "Limite pièces acceptées",
+              "body": "Le vendeur n’est pas tenu d’accepter plus de 50 pièces pour un même paiement.",
+              "quote": "Le vendeur n’est pas tenu d’accepter plus de 50 pièces pour un même paiement.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "regle",
+              "title": "Vérification billets ≥50 €",
+              "body": "Vérifier chaque billet de 50 € et plus au détecteur.",
+              "quote": "Vérifier chaque billet de 50 € et plus au détecteur.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "sensible",
+              "title": "Billet présumé faux non remis en circulation",
+              "body": "Un billet présumé faux ne doit jamais être remis en circulation : il n’est pas rendu en monnaie.",
+              "quote": "Un billet présumé faux ne doit jamais être remis en circulation : il n’est pas rendu en monnaie.",
+              "passage": 1,
+              "confidence": 1
+            }
+          ]
+        }
+      ],
+      "score": {
+        "per": [
+          {
+            "id": "R3.session",
+            "sensible": true,
+            "base": "interne",
+            "found": true,
+            "cover": 1,
+            "chiffree": false,
+            "valeur_exacte": null,
+            "classee_sensible": false
+          },
+          {
+            "id": "R3.fond-caisse",
+            "sensible": false,
+            "base": "interne",
+            "found": true,
+            "cover": 1,
+            "chiffree": true,
+            "valeur_exacte": true,
+            "classee_sensible": null
+          },
+          {
+            "id": "R3.plafond-1000",
+            "sensible": true,
+            "base": "reglementaire",
+            "found": true,
+            "cover": 1,
+            "chiffree": true,
+            "valeur_exacte": true,
+            "classee_sensible": false
+          },
+          {
+            "id": "R3.50-pieces",
+            "sensible": false,
+            "base": "reglementaire",
+            "found": true,
+            "cover": 1,
+            "chiffree": true,
+            "valeur_exacte": true,
+            "classee_sensible": null
+          },
+          {
+            "id": "R3.detecteur",
+            "sensible": false,
+            "base": "interne",
+            "found": true,
+            "cover": 1,
+            "chiffree": true,
+            "valeur_exacte": true,
+            "classee_sensible": null
+          },
+          {
+            "id": "R3.faux-billet",
+            "sensible": true,
+            "base": "reglementaire",
+            "found": true,
+            "cover": 1,
+            "chiffree": false,
+            "valeur_exacte": null,
+            "classee_sensible": true
+          },
+          {
+            "id": "R3.faux-remise",
+            "sensible": false,
+            "base": "reglementaire",
+            "found": false,
+            "cover": 0,
+            "chiffree": false,
+            "valeur_exacte": null,
+            "classee_sensible": null
+          },
+          {
+            "id": "R3.prelevement",
+            "sensible": true,
+            "base": "interne",
+            "found": false,
+            "cover": 0,
+            "chiffree": true,
+            "valeur_exacte": false,
+            "classee_sensible": null
+          },
+          {
+            "id": "R3.ecart",
+            "sensible": true,
+            "base": "interne",
+            "found": false,
+            "cover": 0,
+            "chiffree": true,
+            "valeur_exacte": false,
+            "classee_sensible": null
+          }
+        ],
+        "items": 7,
+        "raw": 7,
+        "inventions_avant_filtre": 0,
+        "inventions_apres_filtre": 0,
+        "hors_corrige": 1
+      }
+    },
+    {
+      "id": "H1-v1",
+      "appels": [
+        {
+          "status": 200,
+          "reponse": {
+            "items": [
+              {
+                "kind": "regle",
+                "title": "Heures et personnel de réception",
+                "body": "Les livraisons sont reçues entre 7 h et 10 h par le chef ou son second ; les boissons et épicerie sèche peuvent être reçues par un commis.",
+                "quote": "Les livraisons sont reçues entre 7 h et 10 h par le chef ou son second. Exception : les livraisons de boissons et d’épicerie sèche peuvent être reçues par un commis.",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "procedure",
+                "title": "Contrôles à la réception",
+                "body": "Vérifier l’état des emballages, contrôler la date limite de consommation (au moins 3 jours pour viandes et poissons), mesurer la température avec un thermomètre sonde placé entre deux emballages sans percer, rapprocher les quantités du bon de livraison.",
+                "quote": "Contrôles à réception 1. Vérifier que les emballages ne sont pas abîmés. 2. Contrôler la date limite de consommation : il doit rester au moins 3 jours pour les viandes et les poissons. 3. Mesurer la température avec le thermomètre sonde, placé entre deux emballages, sans les percer. 4. Rapprocher les quantités du bon de livraison.",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "regle",
+                "title": "Date limite de consommation minimale",
+                "body": "Il doit rester au moins 3 jours avant la date limite de consommation pour les viandes et les poissons.",
+                "quote": "Contrôler la date limite de consommation : il doit rester au moins 3 jours pour les viandes et les poissons.",
+                "page": 1,
+                "confidence": 1
+              }
+            ],
+            "dropped": 4,
+            "usage": {
+              "used": 1,
+              "limit": 1000
+            },
+            "unverified": 0
+          },
+          "brut": [
+            {
+              "mode": "extraire",
+              "model": "openai/gpt-oss-120b",
+              "text": "{\n  \"items\": [\n    {\n      \"kind\": \"regle\",\n      \"title\": \"Heures et personnel de réception\",\n      \"body\": \"Les livraisons sont reçues entre 7 h et 10 h par le chef ou son second ; les boissons et épicerie sèche peuvent être reçues par un commis.\",\n      \"quote\": \"Les livraisons sont reçues entre 7 h et 10 h par le chef ou son second. Exception : les livraisons de boissons et d’épicerie sèche peuvent être reçues par un commis.\",\n      \"passage\": 1,\n      \"confidence\": 1\n    },\n    {\n      \"kind\": \"procedure\",\n      \"title\": \"Contrôles à la réception\",\n      \"body\": \"Vérifier l’état des emballages, contrôler la date limite de consommation (au moins 3 jours pour viandes et poissons), mesurer la température avec un thermomètre sonde placé entre deux emballages sans percer, rapprocher les quantités du bon de livraison.\",\n      \"quote\": \"Contrôles à réception 1. Vérifier que les emballages ne sont pas abîmés. 2. Contrôler la date limite de consommation : il doit rester au moins 3 jours pour les viandes et les poissons. 3. Mesurer la température avec le thermomètre sonde, placé entre deux emballages, sans les percer. 4. Rapprocher les quantités du bon de livraison.\",\n      \"passage\": 1,\n      \"confidence\": 1\n    },\n    {\n      \"kind\": \"regle\",\n      \"title\": \"Date limite de consommation minimale\",\n      \"body\": \"Il doit rester au moins 3 jours avant la date limite de consommation pour les viandes et les poissons.\",\n      \"quote\": \"Contrôler la date limite de consommation : il doit rester au moins 3 jours pour les viandes et les poissons.\",\n      \"passage\": 1,\n      \"confidence\": 1\n    },\n    {\n      \"kind\": \"produit\",\n      \"title\": \"Température maximale à réception – Produits de la pêche frais\",\n      \"body\": \"La température maximale autorisée à réception pour les produits de la pêche frais est + 2 °C.\",\n      \"quote\": \"Températures maximales à réception Produits de la pêche frais : + 2 °C.\",\n      \"passage\": 1,\n      \"confidence\": 1\n    },\n    {\n      \"kind\": \"produit\",\n      \"title\": \"Température maximale à réception – Viandes de volaille et préparations\",\n      \"body\": \"La température maximale autorisée à réception pour les viandes de volaille et leurs préparations est + 4 °C.\",\n      \"quote\": \"Températures maximales à réception Viandes de volaille et préparations de viandes : + 4 °C.\",\n      \"passage\": 1,\n      \"confidence\": 1\n    },\n    {\n      \"kind\": \"produit\",\n      \"title\": \"Température maximale à réception – Préparations culinaires élaborées\",\n      \"body\": \"La température maximale autorisée à réception pour les préparations culinaires élaborées à l’avance est + 3 °C.\",\n      \"quote\": \"Températures maximales à réception Préparations culinaires élaborées à l’avance : + 3 °C.\",\n      \"passage\": 1,\n      \"confidence\": 1\n    },\n    {\n      \"kind\": \"produit\",\n      \"title\": \"Température maximale à réception – Glaces et crèmes glacées\",\n      \"body\": \"La température maximale autorisée à réception pour les glaces et crèmes glacées est – 18 °C.\",\n      \"quote\": \"Températures maximales à réception Glaces et crèmes glacées : – 18 °C.\",\n      \"passage\": 1,\n      \"confidence\": 1\n    }]}"
+            }
+          ],
+          "proposees": [
+            {
+              "kind": "regle",
+              "title": "Heures et personnel de réception",
+              "body": "Les livraisons sont reçues entre 7 h et 10 h par le chef ou son second ; les boissons et épicerie sèche peuvent être reçues par un commis.",
+              "quote": "Les livraisons sont reçues entre 7 h et 10 h par le chef ou son second. Exception : les livraisons de boissons et d’épicerie sèche peuvent être reçues par un commis.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "procedure",
+              "title": "Contrôles à la réception",
+              "body": "Vérifier l’état des emballages, contrôler la date limite de consommation (au moins 3 jours pour viandes et poissons), mesurer la température avec un thermomètre sonde placé entre deux emballages sans percer, rapprocher les quantités du bon de livraison.",
+              "quote": "Contrôles à réception 1. Vérifier que les emballages ne sont pas abîmés. 2. Contrôler la date limite de consommation : il doit rester au moins 3 jours pour les viandes et les poissons. 3. Mesurer la température avec le thermomètre sonde, placé entre deux emballages, sans les percer. 4. Rapprocher les quantités du bon de livraison.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "regle",
+              "title": "Date limite de consommation minimale",
+              "body": "Il doit rester au moins 3 jours avant la date limite de consommation pour les viandes et les poissons.",
+              "quote": "Contrôler la date limite de consommation : il doit rester au moins 3 jours pour les viandes et les poissons.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "produit",
+              "title": "Température maximale à réception – Produits de la pêche frais",
+              "body": "La température maximale autorisée à réception pour les produits de la pêche frais est + 2 °C.",
+              "quote": "Températures maximales à réception Produits de la pêche frais : + 2 °C.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "produit",
+              "title": "Température maximale à réception – Viandes de volaille et préparations",
+              "body": "La température maximale autorisée à réception pour les viandes de volaille et leurs préparations est + 4 °C.",
+              "quote": "Températures maximales à réception Viandes de volaille et préparations de viandes : + 4 °C.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "produit",
+              "title": "Température maximale à réception – Préparations culinaires élaborées",
+              "body": "La température maximale autorisée à réception pour les préparations culinaires élaborées à l’avance est + 3 °C.",
+              "quote": "Températures maximales à réception Préparations culinaires élaborées à l’avance : + 3 °C.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "produit",
+              "title": "Température maximale à réception – Glaces et crèmes glacées",
+              "body": "La température maximale autorisée à réception pour les glaces et crèmes glacées est – 18 °C.",
+              "quote": "Températures maximales à réception Glaces et crèmes glacées : – 18 °C.",
+              "passage": 1,
+              "confidence": 1
+            }
+          ]
+        }
+      ],
+      "score": {
+        "per": [
+          {
+            "id": "H1.qui",
+            "sensible": true,
+            "base": "interne",
+            "found": true,
+            "cover": 1,
+            "chiffree": true,
+            "valeur_exacte": true,
+            "classee_sensible": false
+          },
+          {
+            "id": "H1.exception-commis",
+            "sensible": false,
+            "base": "interne",
+            "found": true,
+            "cover": 1,
+            "chiffree": false,
+            "valeur_exacte": null,
+            "classee_sensible": null
+          },
+          {
+            "id": "H1.dlc",
+            "sensible": true,
+            "base": "interne",
+            "found": true,
+            "cover": 1,
+            "chiffree": true,
+            "valeur_exacte": true,
+            "classee_sensible": false
+          },
+          {
+            "id": "H1.sonde",
+            "sensible": false,
+            "base": "interne",
+            "found": true,
+            "cover": 1,
+            "chiffree": false,
+            "valeur_exacte": null,
+            "classee_sensible": null
+          },
+          {
+            "id": "H1.t-hachees",
+            "sensible": true,
+            "base": "reglementaire",
+            "found": false,
+            "cover": 0,
+            "chiffree": true,
+            "valeur_exacte": false,
+            "classee_sensible": null
+          },
+          {
+            "id": "H1.t-peche",
+            "sensible": true,
+            "base": "reglementaire",
+            "found": false,
+            "cover": 0,
+            "chiffree": true,
+            "valeur_exacte": false,
+            "classee_sensible": null
+          },
+          {
+            "id": "H1.t-volaille",
+            "sensible": true,
+            "base": "reglementaire",
+            "found": false,
+            "cover": 0,
+            "chiffree": true,
+            "valeur_exacte": false,
+            "classee_sensible": null
+          },
+          {
+            "id": "H1.t-preparations",
+            "sensible": true,
+            "base": "reglementaire",
+            "found": false,
+            "cover": 0,
+            "chiffree": true,
+            "valeur_exacte": false,
+            "classee_sensible": null
+          },
+          {
+            "id": "H1.t-glaces",
+            "sensible": true,
+            "base": "reglementaire",
+            "found": false,
+            "cover": 0,
+            "chiffree": true,
+            "valeur_exacte": false,
+            "classee_sensible": null
+          },
+          {
+            "id": "H1.refus",
+            "sensible": true,
+            "base": "interne",
+            "found": false,
+            "cover": 0,
+            "chiffree": false,
+            "valeur_exacte": null,
+            "classee_sensible": null
+          },
+          {
+            "id": "H1.rangement",
+            "sensible": true,
+            "base": "interne",
+            "found": false,
+            "cover": 0,
+            "chiffree": true,
+            "valeur_exacte": false,
+            "classee_sensible": null
+          },
+          {
+            "id": "H1.tracabilite",
+            "sensible": false,
+            "base": "interne",
+            "found": false,
+            "cover": 0,
+            "chiffree": false,
+            "valeur_exacte": null,
+            "classee_sensible": null
+          }
+        ],
+        "items": 3,
+        "raw": 7,
+        "inventions_avant_filtre": 4,
+        "inventions_apres_filtre": 0,
+        "hors_corrige": 0
+      }
+    },
+    {
+      "id": "H1-v2",
+      "appels": [
+        {
+          "status": 200,
+          "reponse": {
+            "items": [
+              {
+                "kind": "regle",
+                "title": "Heures de réception des livraisons",
+                "body": "Les livraisons sont reçues entre 7 h et 10 h par le chef ou son second, pour toutes les livraisons, boissons et épicerie sèche comprises.",
+                "quote": "Les livraisons sont reçues entre 7 h et 10 h par le chef ou son second. Cette règle vaut pour toutes les livraisons, boissons et épicerie sèche comprises.",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "procedure",
+                "title": "Contrôles obligatoires à la réception",
+                "body": "À la réception, il faut contrôler l’intégrité des emballages, la date limite de consommation (au moins 4 jours pour viandes et poissons), mesurer la température et rapprocher les quantités du bon de livraison.",
+                "quote": "1. Contrôler l’intégrité des emballages. 2. Contrôler la date limite de consommation : il doit rester au moins 4 jours pour les viandes et les poissons. 3. Mesurer la température avec le thermomètre sonde, placé entre deux emballages, sans les percer. 4. Rapprocher les quantités du bon de livraison.",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "regle",
+                "title": "Date limite de consommation minimale",
+                "body": "La date limite de consommation doit laisser au moins quatre jours de marge pour les viandes et les poissons au moment de la réception.",
+                "quote": "Contrôler la date limite de consommation : il doit rester au moins 4 jours pour les viandes et les poissons.",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "produit",
+                "title": "Températures maximales à la réception",
+                "body": "Les températures maximales autorisées à la réception sont : viandes hachées +2 °C, produits de la pêche frais +2 °C, viandes de volaille et préparations +4 °C, préparations culinaires +3 °C, glaces et crèmes glacées –18 °C.",
+                "quote": "Températures maximales à réception Viandes hachées : + 2 °C. Produits de la pêche frais : + 2 °C. Viandes de volaille et préparations de viandes : + 4 °C. Préparations culinaires élaborées à l’avance : + 3 °C. Glaces et crèmes glacées : – 18 °C.",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "procedure",
+                "title": "Procédure de refus pour température excessive",
+                "body": "Si la température mesurée dépasse le maximum autorisé, le produit doit être refusé, noté sur le bon de livraison et le chef prévenu.",
+                "quote": "Si une température dépasse le maximum, refuser le produit, l’écrire sur le bon de livraison et prévenir le chef.",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "procedure",
+                "title": "Photographies des produits refusés",
+                "body": "Pour chaque produit refusé, il faut photographier le thermomètre et le bon de livraison, puis joindre les photos au registre.",
+                "quote": "Photographier le thermomètre et le bon de livraison pour chaque produit refusé, et joindre les photos au registre.",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "procedure",
+                "title": "Rangement des produits acceptés",
+                "body": "Les produits acceptés doivent être rangés en chambre froide dans les quinze minutes suivant leur réception.",
+                "quote": "Ranger les produits acceptés en chambre froide dans les 15 minutes.",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "procedure",
+                "title": "Conservation des étiquettes de traçabilité",
+                "body": "Les étiquettes de traçabilité des viandes doivent être conservées avec le bon de livraison.",
+                "quote": "Conserver les étiquettes de traçabilité des viandes avec le bon de livraison.",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "procedure",
+                "title": "Mesure de température sans percer les emballages",
+                "body": "La température se mesure avec le thermomètre sonde placé entre deux emballages, sans percer les emballages.",
+                "quote": "Mesurer la température avec le thermomètre sonde, placé entre deux emballages, sans les percer.",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "regle",
+                "title": "Tolérance d'écart de température pour produits congelés",
+                "body": "Pour les glaces et produits congelés, un écart de température de surface ne doit pas dépasser 3 °C pendant le déchargement, sur une courte durée.",
+                "quote": "Pour les glaces et les produits congelés, un écart de 3 °C au plus en surface est admis pendant le déchargement, sur une courte durée.",
+                "page": 1,
+                "confidence": 1
+              }
+            ],
+            "dropped": 0,
+            "usage": {
+              "used": 1,
+              "limit": 1000
+            },
+            "unverified": 0
+          },
+          "brut": [
+            {
+              "mode": "extraire",
+              "model": "openai/gpt-oss-120b",
+              "text": "{\n  \"items\": [\n    {\n      \"kind\": \"regle\",\n      \"title\": \"Heures de réception des livraisons\",\n      \"body\": \"Les livraisons sont reçues entre 7 h et 10 h par le chef ou son second, pour toutes les livraisons, boissons et épicerie sèche comprises.\",\n      \"quote\": \"Les livraisons sont reçues entre 7 h et 10 h par le chef ou son second. Cette règle vaut pour toutes les livraisons, boissons et épicerie sèche comprises.\",\n      \"passage\": 1,\n      \"confidence\": 1.0\n    },\n    {\n      \"kind\": \"procedure\",\n      \"title\": \"Contrôles obligatoires à la réception\",\n      \"body\": \"À la réception, il faut contrôler l’intégrité des emballages, la date limite de consommation (au moins 4 jours pour viandes et poissons), mesurer la température et rapprocher les quantités du bon de livraison.\",\n      \"quote\": \"1. Contrôler l’intégrité des emballages. 2. Contrôler la date limite de consommation : il doit rester au moins 4 jours pour les viandes et les poissons. 3. Mesurer la température avec le thermomètre sonde, placé entre deux emballages, sans les percer. 4. Rapprocher les quantités du bon de livraison.\",\n      \"passage\": 1,\n      \"confidence\": 1.0\n    },\n    {\n      \"kind\": \"regle\",\n      \"title\": \"Date limite de consommation minimale\",\n      \"body\": \"La date limite de consommation doit laisser au moins quatre jours de marge pour les viandes et les poissons au moment de la réception.\",\n      \"quote\": \"Contrôler la date limite de consommation : il doit rester au moins 4 jours pour les viandes et les poissons.\",\n      \"passage\": 1,\n      \"confidence\": 1.0\n    },\n    {\n      \"kind\": \"produit\",\n      \"title\": \"Températures maximales à la réception\",\n      \"body\": \"Les températures maximales autorisées à la réception sont : viandes hachées +2 °C, produits de la pêche frais +2 °C, viandes de volaille et préparations +4 °C, préparations culinaires +3 °C, glaces et crèmes glacées –18 °C.\",\n      \"quote\": \"Températures maximales à réception Viandes hachées : + 2 °C. Produits de la pêche frais : + 2 °C. Viandes de volaille et préparations de viandes : + 4 °C. Préparations culinaires élaborées à l’avance : + 3 °C. Glaces et crèmes glacées : – 18 °C.\",\n      \"passage\": 1,\n      \"confidence\": 1.0\n    },\n    {\n      \"kind\": \"procedure\",\n      \"title\": \"Procédure de refus pour température excessive\",\n      \"body\": \"Si la température mesurée dépasse le maximum autorisé, le produit doit être refusé, noté sur le bon de livraison et le chef prévenu.\",\n      \"quote\": \"Si une température dépasse le maximum, refuser le produit, l’écrire sur le bon de livraison et prévenir le chef.\",\n      \"passage\": 1,\n      \"confidence\": 1.0\n    },\n    {\n      \"kind\": \"procedure\",\n      \"title\": \"Photographies des produits refusés\",\n      \"body\": \"Pour chaque produit refusé, il faut photographier le thermomètre et le bon de livraison, puis joindre les photos au registre.\",\n      \"quote\": \"Photographier le thermomètre et le bon de livraison pour chaque produit refusé, et joindre les photos au registre.\",\n      \"passage\": 1,\n      \"confidence\": 1.0\n    },\n    {\n      \"kind\": \"procedure\",\n      \"title\": \"Rangement des produits acceptés\",\n      \"body\": \"Les produits acceptés doivent être rangés en chambre froide dans les quinze minutes suivant leur réception.\",\n      \"quote\": \"Ranger les produits acceptés en chambre froide dans les 15 minutes.\",\n      \"passage\": 1,\n      \"confidence\": 1.0\n    },\n    {\n      \"kind\": \"procedure\",\n      \"title\": \"Conservation des étiquettes de traçabilité\",\n      \"body\": \"Les étiquettes de traçabilité des viandes doivent être conservées avec le bon de livraison.\",\n      \"quote\": \"Conserver les étiquettes de traçabilité des viandes avec le bon de livraison.\",\n      \"passage\": 1,\n      \"confidence\": 1.0\n    },\n    {\n      \"kind\": \"procedure\",\n      \"title\": \"Mesure de température sans percer les emballages\",\n      \"body\": \"La température se mesure avec le thermomètre sonde placé entre deux emballages, sans percer les emballages.\",\n      \"quote\": \"Mesurer la température avec le thermomètre sonde, placé entre deux emballages, sans les percer.\",\n      \"passage\": 1,\n      \"confidence\": 1.0\n    },\n    {\n      \"kind\": \"regle\",\n      \"title\": \"Tolérance d'écart de température pour produits congelés\",\n      \"body\": \"Pour les glaces et produits congelés, un écart de température de surface ne doit pas dépasser 3 °C pendant le déchargement, sur une courte durée.\",\n      \"quote\": \"Pour les glaces et les produits congelés, un écart de 3 °C au plus en surface est admis pendant le déchargement, sur une courte durée.\",\n      \"passage\": 1,\n      \"confidence\": 1.0\n    }\n  ]\n}"
+            }
+          ],
+          "proposees": [
+            {
+              "kind": "regle",
+              "title": "Heures de réception des livraisons",
+              "body": "Les livraisons sont reçues entre 7 h et 10 h par le chef ou son second, pour toutes les livraisons, boissons et épicerie sèche comprises.",
+              "quote": "Les livraisons sont reçues entre 7 h et 10 h par le chef ou son second. Cette règle vaut pour toutes les livraisons, boissons et épicerie sèche comprises.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "procedure",
+              "title": "Contrôles obligatoires à la réception",
+              "body": "À la réception, il faut contrôler l’intégrité des emballages, la date limite de consommation (au moins 4 jours pour viandes et poissons), mesurer la température et rapprocher les quantités du bon de livraison.",
+              "quote": "1. Contrôler l’intégrité des emballages. 2. Contrôler la date limite de consommation : il doit rester au moins 4 jours pour les viandes et les poissons. 3. Mesurer la température avec le thermomètre sonde, placé entre deux emballages, sans les percer. 4. Rapprocher les quantités du bon de livraison.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "regle",
+              "title": "Date limite de consommation minimale",
+              "body": "La date limite de consommation doit laisser au moins quatre jours de marge pour les viandes et les poissons au moment de la réception.",
+              "quote": "Contrôler la date limite de consommation : il doit rester au moins 4 jours pour les viandes et les poissons.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "produit",
+              "title": "Températures maximales à la réception",
+              "body": "Les températures maximales autorisées à la réception sont : viandes hachées +2 °C, produits de la pêche frais +2 °C, viandes de volaille et préparations +4 °C, préparations culinaires +3 °C, glaces et crèmes glacées –18 °C.",
+              "quote": "Températures maximales à réception Viandes hachées : + 2 °C. Produits de la pêche frais : + 2 °C. Viandes de volaille et préparations de viandes : + 4 °C. Préparations culinaires élaborées à l’avance : + 3 °C. Glaces et crèmes glacées : – 18 °C.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "procedure",
+              "title": "Procédure de refus pour température excessive",
+              "body": "Si la température mesurée dépasse le maximum autorisé, le produit doit être refusé, noté sur le bon de livraison et le chef prévenu.",
+              "quote": "Si une température dépasse le maximum, refuser le produit, l’écrire sur le bon de livraison et prévenir le chef.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "procedure",
+              "title": "Photographies des produits refusés",
+              "body": "Pour chaque produit refusé, il faut photographier le thermomètre et le bon de livraison, puis joindre les photos au registre.",
+              "quote": "Photographier le thermomètre et le bon de livraison pour chaque produit refusé, et joindre les photos au registre.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "procedure",
+              "title": "Rangement des produits acceptés",
+              "body": "Les produits acceptés doivent être rangés en chambre froide dans les quinze minutes suivant leur réception.",
+              "quote": "Ranger les produits acceptés en chambre froide dans les 15 minutes.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "procedure",
+              "title": "Conservation des étiquettes de traçabilité",
+              "body": "Les étiquettes de traçabilité des viandes doivent être conservées avec le bon de livraison.",
+              "quote": "Conserver les étiquettes de traçabilité des viandes avec le bon de livraison.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "procedure",
+              "title": "Mesure de température sans percer les emballages",
+              "body": "La température se mesure avec le thermomètre sonde placé entre deux emballages, sans percer les emballages.",
+              "quote": "Mesurer la température avec le thermomètre sonde, placé entre deux emballages, sans les percer.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "regle",
+              "title": "Tolérance d'écart de température pour produits congelés",
+              "body": "Pour les glaces et produits congelés, un écart de température de surface ne doit pas dépasser 3 °C pendant le déchargement, sur une courte durée.",
+              "quote": "Pour les glaces et les produits congelés, un écart de 3 °C au plus en surface est admis pendant le déchargement, sur une courte durée.",
+              "passage": 1,
+              "confidence": 1
+            }
+          ]
+        }
+      ],
+      "score": {
+        "per": [
+          {
+            "id": "H1.qui",
+            "sensible": true,
+            "base": "interne",
+            "found": true,
+            "cover": 1,
+            "chiffree": true,
+            "valeur_exacte": true,
+            "classee_sensible": false
+          },
+          {
+            "id": "H1.dlc",
+            "sensible": true,
+            "base": "interne",
+            "found": true,
+            "cover": 1,
+            "chiffree": true,
+            "valeur_exacte": true,
+            "classee_sensible": false
+          },
+          {
+            "id": "H1.sonde",
+            "sensible": false,
+            "base": "interne",
+            "found": true,
+            "cover": 1,
+            "chiffree": false,
+            "valeur_exacte": null,
+            "classee_sensible": null
+          },
+          {
+            "id": "H1.t-hachees",
+            "sensible": true,
+            "base": "reglementaire",
+            "found": true,
+            "cover": 1,
+            "chiffree": true,
+            "valeur_exacte": true,
+            "classee_sensible": false
+          },
+          {
+            "id": "H1.t-peche",
+            "sensible": true,
+            "base": "reglementaire",
+            "found": true,
+            "cover": 1,
+            "chiffree": true,
+            "valeur_exacte": true,
+            "classee_sensible": false
+          },
+          {
+            "id": "H1.t-volaille",
+            "sensible": true,
+            "base": "reglementaire",
+            "found": true,
+            "cover": 1,
+            "chiffree": true,
+            "valeur_exacte": true,
+            "classee_sensible": false
+          },
+          {
+            "id": "H1.t-preparations",
+            "sensible": true,
+            "base": "reglementaire",
+            "found": true,
+            "cover": 1,
+            "chiffree": true,
+            "valeur_exacte": true,
+            "classee_sensible": false
+          },
+          {
+            "id": "H1.t-glaces",
+            "sensible": true,
+            "base": "reglementaire",
+            "found": true,
+            "cover": 1,
+            "chiffree": true,
+            "valeur_exacte": true,
+            "classee_sensible": false
+          },
+          {
+            "id": "H1.tolerance",
+            "sensible": true,
+            "base": "reglementaire",
+            "found": true,
+            "cover": 1,
+            "chiffree": true,
+            "valeur_exacte": true,
+            "classee_sensible": false
+          },
+          {
+            "id": "H1.refus",
+            "sensible": true,
+            "base": "interne",
+            "found": true,
+            "cover": 1,
+            "chiffree": false,
+            "valeur_exacte": null,
+            "classee_sensible": false
+          },
+          {
+            "id": "H1.photo",
+            "sensible": false,
+            "base": "interne",
+            "found": true,
+            "cover": 1,
+            "chiffree": false,
+            "valeur_exacte": null,
+            "classee_sensible": null
+          },
+          {
+            "id": "H1.rangement",
+            "sensible": true,
+            "base": "interne",
+            "found": true,
+            "cover": 1,
+            "chiffree": true,
+            "valeur_exacte": false,
+            "classee_sensible": false
+          },
+          {
+            "id": "H1.tracabilite",
+            "sensible": false,
+            "base": "interne",
+            "found": true,
+            "cover": 1,
+            "chiffree": false,
+            "valeur_exacte": null,
+            "classee_sensible": null
+          }
+        ],
+        "items": 10,
+        "raw": 10,
+        "inventions_avant_filtre": 0,
+        "inventions_apres_filtre": 0,
+        "hors_corrige": 0
+      }
+    },
+    {
+      "id": "H2-v1",
+      "appels": [
+        {
+          "status": 200,
+          "reponse": {
+            "items": [
+              {
+                "kind": "regle",
+                "title": "Température maximale de stockage",
+                "body": "Les préparations culinaires élaborées à l’avance sont conservées à +3 °C au plus.",
+                "quote": "Les préparations culinaires élaborées à l’avance sont conservées à + 3 °C au plus.",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "regle",
+                "title": "Enregistrement des températures",
+                "body": "Relever la température de chaque réfrigérateur et de la chambre froide à l’ouverture et à la fermeture, et la noter dans le registre.",
+                "quote": "Relever la température de chaque réfrigérateur et de la chambre froide à l’ouverture et à la fermeture, et la noter dans le registre.",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "regle",
+                "title": "Interdiction de recongélation",
+                "body": "Un produit décongelé n’est jamais recongelé.",
+                "quote": "Un produit décongelé n’est jamais recongelé.",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "regle",
+                "title": "Étiquetage des préparations entamées",
+                "body": "Toute préparation entamée porte une étiquette avec la date de fabrication.",
+                "quote": "Toute préparation entamée porte une étiquette avec la date de fabrication.",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "regle",
+                "title": "Délai de refroidissement rapide",
+                "body": "Une préparation cuite destinée à être servie froide passe de +63 °C à moins de +10 °C à cœur en moins de 2 heures, en cellule de refroidissement.",
+                "quote": "Une préparation cuite destinée à être servie froide passe de + 63 °C à moins de + 10 °C à cœur en moins de 2 heures, en cellule de refroidissement.",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "regle",
+                "title": "Élimination si délai dépassé",
+                "body": "Si ce délai est dépassé, la préparation est jetée.",
+                "quote": "Si ce délai est dépassé, la préparation est jetée.",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "regle",
+                "title": "Température minimale des plats chauds",
+                "body": "Les plats servis chauds sont maintenus à +63 °C au moins.",
+                "quote": "Les plats servis chauds sont maintenus à + 63 °C au moins.",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "regle",
+                "title": "Temps de remontée en température",
+                "body": "Une préparation remise en température atteint +63 °C à cœur en moins d’une heure.",
+                "quote": "Une préparation remise en température atteint + 63 °C à cœur en moins d’une heure.",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "procedure",
+                "title": "Gestion d’une panne de froid",
+                "body": "Si un réfrigérateur dépasse +8 °C, prévenir le chef, transférer les produits dans un autre équipement et noter l’heure dans le registre.",
+                "quote": "Si un réfrigérateur dépasse + 8 °C, prévenir le chef, transférer les produits dans un autre équipement et noter l’heure dans le registre.",
+                "page": 1,
+                "confidence": 1
+              },
+              {
+                "kind": "regle",
+                "title": "Autorisation du chef pour les produits",
+                "body": "Le chef décide du sort des produits : rien n’est servi sans son accord.",
+                "quote": "Le chef décide du sort des produits : rien n’est servi sans son accord.",
+                "page": 1,
+                "confidence": 1
+              }
+            ],
+            "dropped": 0,
+            "usage": {
+              "used": 1,
+              "limit": 1000
+            },
+            "unverified": 0
+          },
+          "brut": [
+            {
+              "mode": "extraire",
+              "model": "openai/gpt-oss-120b",
+              "text": "{\n  \"items\": [\n    {\n      \"kind\": \"regle\",\n      \"title\": \"Température maximale de stockage\",\n      \"body\": \"Les préparations culinaires élaborées à l’avance sont conservées à +3 °C au plus.\",\n      \"quote\": \"Les préparations culinaires élaborées à l’avance sont conservées à + 3 °C au plus.\",\n      \"passage\": 1,\n      \"confidence\": 1\n    },\n    {\n      \"kind\": \"regle\",\n      \"title\": \"Enregistrement des températures\",\n      \"body\": \"Relever la température de chaque réfrigérateur et de la chambre froide à l’ouverture et à la fermeture, et la noter dans le registre.\",\n      \"quote\": \"Relever la température de chaque réfrigérateur et de la chambre froide à l’ouverture et à la fermeture, et la noter dans le registre.\",\n      \"passage\": 1,\n      \"confidence\": 1\n    },\n    {\n      \"kind\": \"regle\",\n      \"title\": \"Interdiction de recongélation\",\n      \"body\": \"Un produit décongelé n’est jamais recongelé.\",\n      \"quote\": \"Un produit décongelé n’est jamais recongelé.\",\n      \"passage\": 1,\n      \"confidence\": 1\n    },\n    {\n      \"kind\": \"regle\",\n      \"title\": \"Étiquetage des préparations entamées\",\n      \"body\": \"Toute préparation entamée porte une étiquette avec la date de fabrication.\",\n      \"quote\": \"Toute préparation entamée porte une étiquette avec la date de fabrication.\",\n      \"passage\": 1,\n      \"confidence\": 1\n    },\n    {\n      \"kind\": \"regle\",\n      \"title\": \"Délai de refroidissement rapide\",\n      \"body\": \"Une préparation cuite destinée à être servie froide passe de +63 °C à moins de +10 °C à cœur en moins de 2 heures, en cellule de refroidissement.\",\n      \"quote\": \"Une préparation cuite destinée à être servie froide passe de + 63 °C à moins de + 10 °C à cœur en moins de 2 heures, en cellule de refroidissement.\",\n      \"passage\": 1,\n      \"confidence\": 1\n    },\n    {\n      \"kind\": \"regle\",\n      \"title\": \"Élimination si délai dépassé\",\n      \"body\": \"Si ce délai est dépassé, la préparation est jetée.\",\n      \"quote\": \"Si ce délai est dépassé, la préparation est jetée.\",\n      \"passage\": 1,\n      \"confidence\": 1\n    },\n    {\n      \"kind\": \"regle\",\n      \"title\": \"Température minimale des plats chauds\",\n      \"body\": \"Les plats servis chauds sont maintenus à +63 °C au moins.\",\n      \"quote\": \"Les plats servis chauds sont maintenus à + 63 °C au moins.\",\n      \"passage\": 1,\n      \"confidence\": 1\n    },\n    {\n      \"kind\": \"regle\",\n      \"title\": \"Temps de remontée en température\",\n      \"body\": \"Une préparation remise en température atteint +63 °C à cœur en moins d’une heure.\",\n      \"quote\": \"Une préparation remise en température atteint + 63 °C à cœur en moins d’une heure.\",\n      \"passage\": 1,\n      \"confidence\": 1\n    },\n    {\n      \"kind\": \"procedure\",\n      \"title\": \"Gestion d’une panne de froid\",\n      \"body\": \"Si un réfrigérateur dépasse +8 °C, prévenir le chef, transférer les produits dans un autre équipement et noter l’heure dans le registre.\",\n      \"quote\": \"Si un réfrigérateur dépasse + 8 °C, prévenir le chef, transférer les produits dans un autre équipement et noter l’heure dans le registre.\",\n      \"passage\": 1,\n      \"confidence\": 1\n    },\n    {\n      \"kind\": \"regle\",\n      \"title\": \"Autorisation du chef pour les produits\",\n      \"body\": \"Le chef décide du sort des produits : rien n’est servi sans son accord.\",\n      \"quote\": \"Le chef décide du sort des produits : rien n’est servi sans son accord.\",\n      \"passage\": 1,\n      \"confidence\": 1\n    }\n  ]\n}"
+            }
+          ],
+          "proposees": [
+            {
+              "kind": "regle",
+              "title": "Température maximale de stockage",
+              "body": "Les préparations culinaires élaborées à l’avance sont conservées à +3 °C au plus.",
+              "quote": "Les préparations culinaires élaborées à l’avance sont conservées à + 3 °C au plus.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "regle",
+              "title": "Enregistrement des températures",
+              "body": "Relever la température de chaque réfrigérateur et de la chambre froide à l’ouverture et à la fermeture, et la noter dans le registre.",
+              "quote": "Relever la température de chaque réfrigérateur et de la chambre froide à l’ouverture et à la fermeture, et la noter dans le registre.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "regle",
+              "title": "Interdiction de recongélation",
+              "body": "Un produit décongelé n’est jamais recongelé.",
+              "quote": "Un produit décongelé n’est jamais recongelé.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "regle",
+              "title": "Étiquetage des préparations entamées",
+              "body": "Toute préparation entamée porte une étiquette avec la date de fabrication.",
+              "quote": "Toute préparation entamée porte une étiquette avec la date de fabrication.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "regle",
+              "title": "Délai de refroidissement rapide",
+              "body": "Une préparation cuite destinée à être servie froide passe de +63 °C à moins de +10 °C à cœur en moins de 2 heures, en cellule de refroidissement.",
+              "quote": "Une préparation cuite destinée à être servie froide passe de + 63 °C à moins de + 10 °C à cœur en moins de 2 heures, en cellule de refroidissement.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "regle",
+              "title": "Élimination si délai dépassé",
+              "body": "Si ce délai est dépassé, la préparation est jetée.",
+              "quote": "Si ce délai est dépassé, la préparation est jetée.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "regle",
+              "title": "Température minimale des plats chauds",
+              "body": "Les plats servis chauds sont maintenus à +63 °C au moins.",
+              "quote": "Les plats servis chauds sont maintenus à + 63 °C au moins.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "regle",
+              "title": "Temps de remontée en température",
+              "body": "Une préparation remise en température atteint +63 °C à cœur en moins d’une heure.",
+              "quote": "Une préparation remise en température atteint + 63 °C à cœur en moins d’une heure.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "procedure",
+              "title": "Gestion d’une panne de froid",
+              "body": "Si un réfrigérateur dépasse +8 °C, prévenir le chef, transférer les produits dans un autre équipement et noter l’heure dans le registre.",
+              "quote": "Si un réfrigérateur dépasse + 8 °C, prévenir le chef, transférer les produits dans un autre équipement et noter l’heure dans le registre.",
+              "passage": 1,
+              "confidence": 1
+            },
+            {
+              "kind": "regle",
+              "title": "Autorisation du chef pour les produits",
+              "body": "Le chef décide du sort des produits : rien n’est servi sans son accord.",
+              "quote": "Le chef décide du sort des produits : rien n’est servi sans son accord.",
+              "passage": 1,
+              "confidence": 1
+            }
+          ]
+        }
+      ],
+      "score": {
+        "per": [
+          {
+            "id": "H2.preparations",
+            "sensible": true,
+            "base": "reglementaire",
+            "found": true,
+            "cover": 1,
+            "chiffree": true,
+            "valeur_exacte": true,
+            "classee_sensible": false
+          },
+          {
+            "id": "H2.releves",
+            "sensible": false,
+            "base": "interne",
+            "found": true,
+            "cover": 1,
+            "chiffree": false,
+            "valeur_exacte": null,
+            "classee_sensible": null
+          },
+          {
+            "id": "H2.recongeler",
+            "sensible": true,
+            "base": "interne",
+            "found": true,
+            "cover": 1,
+            "chiffree": false,
+            "valeur_exacte": null,
+            "classee_sensible": false
+          },
+          {
+            "id": "H2.refroidissement",
+            "sensible": true,
+            "base": "reglementaire",
+            "found": true,
+            "cover": 1,
+            "chiffree": true,
+            "valeur_exacte": true,
+            "classee_sensible": false
+          },
+          {
+            "id": "H2.jeter",
+            "sensible": true,
+            "base": "reglementaire",
+            "found": true,
+            "cover": 1,
+            "chiffree": false,
+            "valeur_exacte": null,
+            "classee_sensible": false
+          },
+          {
+            "id": "H2.maintien",
+            "sensible": true,
+            "base": "reglementaire",
+            "found": true,
+            "cover": 1,
+            "chiffree": true,
+            "valeur_exacte": true,
+            "classee_sensible": false
+          },
+          {
+            "id": "H2.remise",
+            "sensible": true,
+            "base": "interne",
+            "found": true,
+            "cover": 1,
+            "chiffree": true,
+            "valeur_exacte": true,
+            "classee_sensible": false
+          },
+          {
+            "id": "H2.panne",
+            "sensible": true,
+            "base": "interne",
+            "found": true,
+            "cover": 1,
+            "chiffree": true,
+            "valeur_exacte": true,
+            "classee_sensible": false
+          }
+        ],
+        "items": 10,
+        "raw": 10,
+        "inventions_avant_filtre": 0,
+        "inventions_apres_filtre": 0,
+        "hors_corrige": 2
+      }
+    },
+    {
+      "id": "H3-v1",
+      "appels": [
+        {
+          "status": 200,
+          "reponse": {
+            "items": [
+              {
+                "kind": "procedure",
+                "title": "Écoute du client sans interruption",
+                "body": "Écouter le client jusqu’au bout, sans l’interrompre ni contester.",
+                "quote": "Écouter le client jusqu’au bout, sans l’interrompre ni contester.",
+                "page": 1,
+                "confidence": 0.99
+              },
+              {
+                "kind": "procedure",
+                "title": "Remplacement ou retrait d’un plat non conforme",
+                "body": "Pour un plat non conforme, proposer de le remplacer ou de le retirer de l’addition.",
+                "quote": "Pour un plat non conforme (froid, mal cuit, erreur de commande), proposer de le remplacer ou de le retirer de l’addition.",
+                "page": 1,
+                "confidence": 0.99
+              },
+              {
+                "kind": "regle",
+                "title": "Décision du geste commercial >30€",
+                "body": "Un geste commercial de plus de 30 € est décidé par le responsable de salle.",
+                "quote": "Un geste commercial de plus de 30 € est décidé par le responsable de salle.",
+                "page": 1,
+                "confidence": 0.99
+              },
+              {
+                "kind": "concept",
+                "title": "Carte des allergènes et 14 allergènes majeurs",
+                "body": "La carte des allergènes indique, pour chaque plat, la présence des 14 allergènes majeurs fixés par le règlement européen INCO.",
+                "quote": "La carte des allergènes indique, pour chaque plat, la présence des 14 allergènes majeurs fixés par le règlement européen INCO.",
+                "page": 1,
+                "confidence": 0.99
+              },
+              {
+                "kind": "sensible",
+                "title": "Vérification allergie et consultation du chef",
+                "body": "Si un client signale une allergie, vérifier sur la carte des allergènes et demander au chef ; ne jamais répondre de mémoire.",
+                "quote": "Si un client signale une allergie, vérifier sur la carte des allergènes et demander au chef ; ne jamais répondre de mémoire.",
+                "page": 1,
+                "confidence": 0.99
+              },
+              {
+                "kind": "procedure",
+                "title": "Appel d’urgence en réaction allergique",
+                "body": "En cas de réaction allergique, appeler immédiatement le 15.",
+                "quote": "En cas de réaction allergique (gêne respiratoire, gonflement), appeler immédiatement le 15.",
+                "page": 1,
+                "confidence": 0.99
+              },
+              {
+                "kind": "procedure",
+                "title": "Conservation du plat allergique au froid",
+                "body": "Conserver le reste du plat au froid, étiqueté, et prévenir le chef.",
+                "quote": "Conserver le reste du plat au froid, étiqueté, et prévenir le chef.",
+                "page": 1,
+                "confidence": 0.99
+              },
+              {
+                "kind": "sensible",
+                "title": "Enregistrement de chaque réclamation",
+                "body": "Noter chaque réclamation dans le registre : date, table, motif, réponse apportée.",
+                "quote": "Noter chaque réclamation dans le registre : date, table, motif, réponse apportée.",
+                "page": 1,
+                "confidence": 0.99
+              },
+              {
+                "kind": "sensible",
+                "title": "Délai de réponse à réclamation écrite",
+                "body": "Une réclamation écrite reçoit une réponse sous 7 jours.",
+                "quote": "Une réclamation écrite reçoit une réponse sous 7 jours.",
+                "page": 1,
+                "confidence": 0.99
+              }
+            ],
+            "dropped": 0,
+            "usage": {
+              "used": 1,
+              "limit": 1000
+            },
+            "unverified": 0
+          },
+          "brut": [
+            {
+              "mode": "extraire",
+              "model": "openai/gpt-oss-120b",
+              "text": "{\n  \"items\": [\n    {\n      \"kind\": \"procedure\",\n      \"title\": \"Écoute du client sans interruption\",\n      \"body\": \"Écouter le client jusqu’au bout, sans l’interrompre ni contester.\",\n      \"quote\": \"Écouter le client jusqu’au bout, sans l’interrompre ni contester.\",\n      \"passage\": 1,\n      \"confidence\": 0.99\n    },\n    {\n      \"kind\": \"procedure\",\n      \"title\": \"Remplacement ou retrait d’un plat non conforme\",\n      \"body\": \"Pour un plat non conforme, proposer de le remplacer ou de le retirer de l’addition.\",\n      \"quote\": \"Pour un plat non conforme (froid, mal cuit, erreur de commande), proposer de le remplacer ou de le retirer de l’addition.\",\n      \"passage\": 1,\n      \"confidence\": 0.99\n    },\n    {\n      \"kind\": \"regle\",\n      \"title\": \"Décision du geste commercial >30€\",\n      \"body\": \"Un geste commercial de plus de 30 € est décidé par le responsable de salle.\",\n      \"quote\": \"Un geste commercial de plus de 30 € est décidé par le responsable de salle.\",\n      \"passage\": 1,\n      \"confidence\": 0.99\n    },\n    {\n      \"kind\": \"concept\",\n      \"title\": \"Carte des allergènes et 14 allergènes majeurs\",\n      \"body\": \"La carte des allergènes indique, pour chaque plat, la présence des 14 allergènes majeurs fixés par le règlement européen INCO.\",\n      \"quote\": \"La carte des allergènes indique, pour chaque plat, la présence des 14 allergènes majeurs fixés par le règlement européen INCO.\",\n      \"passage\": 1,\n      \"confidence\": 0.99\n    },\n    {\n      \"kind\": \"procedure\",\n      \"title\": \"Vérification allergie et consultation du chef\",\n      \"body\": \"Si un client signale une allergie, vérifier sur la carte des allergènes et demander au chef ; ne jamais répondre de mémoire.\",\n      \"quote\": \"Si un client signale une allergie, vérifier sur la carte des allergènes et demander au chef ; ne jamais répondre de mémoire.\",\n      \"passage\": 1,\n      \"confidence\": 0.99\n    },\n    {\n      \"kind\": \"procedure\",\n      \"title\": \"Appel d’urgence en réaction allergique\",\n      \"body\": \"En cas de réaction allergique, appeler immédiatement le 15.\",\n      \"quote\": \"En cas de réaction allergique (gêne respiratoire, gonflement), appeler immédiatement le 15.\",\n      \"passage\": 1,\n      \"confidence\": 0.99\n    },\n    {\n      \"kind\": \"procedure\",\n      \"title\": \"Conservation du plat allergique au froid\",\n      \"body\": \"Conserver le reste du plat au froid, étiqueté, et prévenir le chef.\",\n      \"quote\": \"Conserver le reste du plat au froid, étiqueté, et prévenir le chef.\",\n      \"passage\": 1,\n      \"confidence\": 0.99\n    },\n    {\n      \"kind\": \"procedure\",\n      \"title\": \"Enregistrement de chaque réclamation\",\n      \"body\": \"Noter chaque réclamation dans le registre : date, table, motif, réponse apportée.\",\n      \"quote\": \"Noter chaque réclamation dans le registre : date, table, motif, réponse apportée.\",\n      \"passage\": 1,\n      \"confidence\": 0.99\n    },\n    {\n      \"kind\": \"regle\",\n      \"title\": \"Délai de réponse à réclamation écrite\",\n      \"body\": \"Une réclamation écrite reçoit une réponse sous 7 jours.\",\n      \"quote\": \"Une réclamation écrite reçoit une réponse sous 7 jours.\",\n      \"passage\": 1,\n      \"confidence\": 0.99\n    }\n  ]\n}"
+            }
+          ],
+          "proposees": [
+            {
+              "kind": "procedure",
+              "title": "Écoute du client sans interruption",
+              "body": "Écouter le client jusqu’au bout, sans l’interrompre ni contester.",
+              "quote": "Écouter le client jusqu’au bout, sans l’interrompre ni contester.",
+              "passage": 1,
+              "confidence": 0.99
+            },
+            {
+              "kind": "procedure",
+              "title": "Remplacement ou retrait d’un plat non conforme",
+              "body": "Pour un plat non conforme, proposer de le remplacer ou de le retirer de l’addition.",
+              "quote": "Pour un plat non conforme (froid, mal cuit, erreur de commande), proposer de le remplacer ou de le retirer de l’addition.",
+              "passage": 1,
+              "confidence": 0.99
+            },
+            {
+              "kind": "regle",
+              "title": "Décision du geste commercial >30€",
+              "body": "Un geste commercial de plus de 30 € est décidé par le responsable de salle.",
+              "quote": "Un geste commercial de plus de 30 € est décidé par le responsable de salle.",
+              "passage": 1,
+              "confidence": 0.99
+            },
+            {
+              "kind": "concept",
+              "title": "Carte des allergènes et 14 allergènes majeurs",
+              "body": "La carte des allergènes indique, pour chaque plat, la présence des 14 allergènes majeurs fixés par le règlement européen INCO.",
+              "quote": "La carte des allergènes indique, pour chaque plat, la présence des 14 allergènes majeurs fixés par le règlement européen INCO.",
+              "passage": 1,
+              "confidence": 0.99
+            },
+            {
+              "kind": "procedure",
+              "title": "Vérification allergie et consultation du chef",
+              "body": "Si un client signale une allergie, vérifier sur la carte des allergènes et demander au chef ; ne jamais répondre de mémoire.",
+              "quote": "Si un client signale une allergie, vérifier sur la carte des allergènes et demander au chef ; ne jamais répondre de mémoire.",
+              "passage": 1,
+              "confidence": 0.99
+            },
+            {
+              "kind": "procedure",
+              "title": "Appel d’urgence en réaction allergique",
+              "body": "En cas de réaction allergique, appeler immédiatement le 15.",
+              "quote": "En cas de réaction allergique (gêne respiratoire, gonflement), appeler immédiatement le 15.",
+              "passage": 1,
+              "confidence": 0.99
+            },
+            {
+              "kind": "procedure",
+              "title": "Conservation du plat allergique au froid",
+              "body": "Conserver le reste du plat au froid, étiqueté, et prévenir le chef.",
+              "quote": "Conserver le reste du plat au froid, étiqueté, et prévenir le chef.",
+              "passage": 1,
+              "confidence": 0.99
+            },
+            {
+              "kind": "procedure",
+              "title": "Enregistrement de chaque réclamation",
+              "body": "Noter chaque réclamation dans le registre : date, table, motif, réponse apportée.",
+              "quote": "Noter chaque réclamation dans le registre : date, table, motif, réponse apportée.",
+              "passage": 1,
+              "confidence": 0.99
+            },
+            {
+              "kind": "regle",
+              "title": "Délai de réponse à réclamation écrite",
+              "body": "Une réclamation écrite reçoit une réponse sous 7 jours.",
+              "quote": "Une réclamation écrite reçoit une réponse sous 7 jours.",
+              "passage": 1,
+              "confidence": 0.99
+            }
+          ]
+        }
+      ],
+      "score": {
+        "per": [
+          {
+            "id": "H3.ecouter",
+            "sensible": false,
+            "base": "interne",
+            "found": true,
+            "cover": 1,
+            "chiffree": false,
+            "valeur_exacte": null,
+            "classee_sensible": null
+          },
+          {
+            "id": "H3.remplacer",
+            "sensible": false,
+            "base": "interne",
+            "found": true,
+            "cover": 1,
+            "chiffree": false,
+            "valeur_exacte": null,
+            "classee_sensible": null
+          },
+          {
+            "id": "H3.geste-30",
+            "sensible": false,
+            "base": "interne",
+            "found": true,
+            "cover": 1,
+            "chiffree": true,
+            "valeur_exacte": true,
+            "classee_sensible": null
+          },
+          {
+            "id": "H3.14-allergenes",
+            "sensible": false,
+            "base": "reglementaire",
+            "found": true,
+            "cover": 1,
+            "chiffree": true,
+            "valeur_exacte": true,
+            "classee_sensible": null
+          },
+          {
+            "id": "H3.jamais-memoire",
+            "sensible": true,
+            "base": "interne",
+            "found": true,
+            "cover": 1,
+            "chiffree": false,
+            "valeur_exacte": null,
+            "classee_sensible": true
+          },
+          {
+            "id": "H3.appel-15",
+            "sensible": true,
+            "base": "interne",
+            "found": true,
+            "cover": 1,
+            "chiffree": true,
+            "valeur_exacte": true,
+            "classee_sensible": false
+          },
+          {
+            "id": "H3.conserver",
+            "sensible": true,
+            "base": "interne",
+            "found": true,
+            "cover": 1,
+            "chiffree": false,
+            "valeur_exacte": null,
+            "classee_sensible": false
+          },
+          {
+            "id": "H3.registre",
+            "sensible": false,
+            "base": "interne",
+            "found": true,
+            "cover": 1,
+            "chiffree": false,
+            "valeur_exacte": null,
+            "classee_sensible": null
+          },
+          {
+            "id": "H3.reponse-7",
+            "sensible": false,
+            "base": "interne",
+            "found": true,
+            "cover": 1,
+            "chiffree": true,
+            "valeur_exacte": true,
+            "classee_sensible": null
+          }
+        ],
+        "items": 9,
+        "raw": 9,
+        "inventions_avant_filtre": 0,
+        "inventions_apres_filtre": 0,
+        "hors_corrige": 0
+      }
+    }
+  ],
+  "comparaison": [
+    {
+      "id": "R1-v2",
+      "resultat": {
+        "change": "chg-R1",
+        "summary": {
+          "inchange": 10,
+          "reformule": 1,
+          "modifie": 2,
+          "supprime": 1,
+          "nouveau": 10,
+          "sensibles": 3,
+          "analysed": true
+        }
+      },
+      "erreur": null,
+      "brut": [
+        {
+          "mode": "comparer",
+          "model": "openai/gpt-oss-120b",
+          "text": "{\"items\":[{\"k\":\"k1\",\"change\":\"modifie\",\"quote\":\"Désactiver l’alarme dans les 30 secondes avec son code personnel. Le code ne se communique jamais.\",\"body\":\"Désactiver l’alarme dans les 30 secondes avec son code personnel. Le code ne se communique jamais.\",\"why\":\"Le délai a été réduit de 45 à 30 secondes.\"},{\"k\":\"k2\",\"change\":\"reformule\",\"quote\":\"Démarrer les caisses, puis allumer l’éclairage.\",\"body\":\"Démarrer les caisses, puis allumer l’éclairage.\",\"why\":\"L’ordre des actions a été inversé.\"},{\"k\":\"k3\",\"change\":\"modifie\",\"quote\":\"Compter le fond de caisse de 200 € en présence du responsable et signaler tout écart.\",\"body\":\"Compter le fond de caisse de 200 € en présence du responsable et signaler tout écart.\",\"why\":\"Le montant du fond de caisse est passé de 150 € à 200 €.\"},{\"k\":\"k4\",\"change\":\"supprime\",\"quote\":\"\",\"body\":\"\",\"why\":\"La règle du dimanche n’est plus mentionnée dans la nouvelle version.\"}],\"added\":[{\"title\":\"Ouverture du magasin - personnel minimum\",\"body\":\"Le magasin est ouvert par deux personnes au minimum, présentes dès 9 h 00.\",\"quote\":\"Le magasin est ouvert par deux personnes au minimum, présentes dès 9 h 00.\"},{\"title\":\"Tour de sécurité\",\"body\":\"Faire le tour de sécurité : issues de secours dégagées et déverrouillées, extincteurs à leur place.\",\"quote\":\"Faire le tour de sécurité : issues de secours dégagées et déverrouillées, extincteurs à leur place.\"},{\"title\":\"Vérification du défibrillateur\",\"body\":\"Vérifier que le voyant du défibrillateur est vert ; sinon prévenir le responsable avant l’ouverture.\",\"quote\":\"Vérifier que le voyant du défibrillateur est vert ; sinon prévenir le responsable avant l’ouverture.\"},{\"title\":\"Ouverture des portes au public\",\"body\":\"Ouvrir les portes au public à 9 h 30.\",\"quote\":\"Ouvrir les portes au public à 9 h 30.\"},{\"title\":\"Incident alarme\",\"body\":\"En cas de déclenchement de l’alarme par erreur, appeler la télésurveillance au numéro affiché dans le bureau et donner le mot de passe du site.\",\"quote\":\"En cas de déclenchement de l’alarme par erreur, appeler la télésurveillance au numéro affiché dans le bureau et donner le mot de passe du site.\"},{\"title\":\"Annonce de fermeture\",\"body\":\"Annoncer la fermeture aux clients 15 minutes avant.\",\"quote\":\"Annoncer la fermeture aux clients 15 minutes avant.\"},{\"title\":\"Fermeture des portes\",\"body\":\"Fermer les portes à 19 h 00 et accompagner les derniers clients vers la sortie.\",\"quote\":\"Fermer les portes à 19 h 00 et accompagner les derniers clients vers la sortie.\"},{\"title\":\"Comptage des caisses\",\"body\":\"Compter les caisses à deux personnes et placer l’enveloppe scellée dans le coffre.\",\"quote\":\"Compter les caisses à deux personnes et placer l’enveloppe scellée dans le coffre.\"},{\"title\":\"Vérification des cabines et issues\",\"body\":\"Vérifier qu’il ne reste personne dans les cabines et les réserves, puis fermer les issues de secours.\",\"quote\":\"Vérifier qu’il ne reste personne dans les cabines et les réserves, puis fermer les issues de secours.\"},{\"title\":\"Activation de l’alarme\",\"body\":\"Activer l’alarme et sortir à deux.\",\"quote\":\"Activer l’alarme et sortir à deux.\"}]}"
+        }
+      ],
+      "connaissances_v1": [
+        {
+          "id": "e43f1504-cb98-4107-aa2d-62e43e59b38a",
+          "texte": "Cette procédure décrit l’ouverture du magasin au public à 9 h 30 et sa fermeture à 19 h 00. Elle s’applique à tous les responsables et vendeurs.",
+          "regle": null
+        },
+        {
+          "id": "94f62220-9683-4305-9bb0-ce043b0589e2",
+          "texte": "Le magasin est ouvert par deux personnes au minimum, présentes dès 9 h 00.",
+          "regle": "R1.deux-personnes"
+        },
+        {
+          "id": "4edecba2-9671-478a-89b6-fc276aa82de8",
+          "texte": "Désactiver l’alarme dans les 45 secondes avec son code personnel. Le code ne se communique jamais.",
+          "regle": "R1.alarme-delai"
+        },
+        {
+          "id": "346d0f20-5ef0-494d-ba9b-ed075b41123c",
+          "texte": "Faire le tour de sécurité : issues de secours dégagées et déverrouillées, extincteurs à leur place.",
+          "regle": "R1.tour-securite"
+        },
+        {
+          "id": "018a416d-445b-407f-acba-19120dad34d6",
+          "texte": "Allumer l’éclairage et démarrer les caisses.",
+          "regle": null
+        },
+        {
+          "id": "dfdd6150-5756-4715-aeb6-9ac013eed15f",
+          "texte": "Compter le fond de caisse de 150 € en présence du responsable et signaler tout écart.",
+          "regle": "R1.fond-caisse"
+        },
+        {
+          "id": "f69c7f2c-143e-4b1b-8fe9-8e432241add2",
+          "texte": "Ouvrir les portes au public à 9 h 30.",
+          "regle": null
+        },
+        {
+          "id": "888ea6e9-8ee1-44f2-a0b5-0dc54ce1c99d",
+          "texte": "Annoncer la fermeture aux clients 15 minutes avant.",
+          "regle": "R1.annonce"
+        },
+        {
+          "id": "218a76be-14d6-46ee-a985-fb95b384a267",
+          "texte": "Fermer les portes à 19 h 00 et accompagner les derniers clients vers la sortie.",
+          "regle": null
+        },
+        {
+          "id": "7c69d5f8-cf05-47da-88e5-f839fdbba8e7",
+          "texte": "Compter les caisses à deux personnes et placer l’enveloppe scellée dans le coffre.",
+          "regle": "R1.comptage-deux"
+        },
+        {
+          "id": "7c6e7087-9ebe-4825-98af-9aa2c91eaf89",
+          "texte": "Vérifier qu’il ne reste personne dans les cabines et les réserves, puis fermer les issues de secours.",
+          "regle": null
+        },
+        {
+          "id": "9f5032b7-348d-4696-b6fe-bb85964b8169",
+          "texte": "Activer l’alarme et sortir à deux.",
+          "regle": null
+        },
+        {
+          "id": "dc5a5bd1-aa3d-4c92-b6c5-2e4bec27d2a0",
+          "texte": "Le dimanche, le responsable peut fermer seul le magasin.",
+          "regle": "R1.dimanche-seul"
+        },
+        {
+          "id": "b7346cc4-2482-498a-9e2d-d83a238a8588",
+          "texte": "En cas de déclenchement de l’alarme par erreur, appeler la télésurveillance au numéro affiché dans le bureau et donner le mot de passe du site.",
+          "regle": null
+        }
+      ],
+      "elements": [
+        {
+          "knowledge_id": "e43f1504-cb98-4107-aa2d-62e43e59b38a",
+          "change": "inchange",
+          "sensitive": false,
+          "new_quote": "Cette procédure décrit l’ouverture du magasin au public à 9 h 30 et sa fermeture à 19 h 00. Elle s’applique à tous les responsables et vendeurs.",
+          "new_page": 1,
+          "explanation": "Extrait retrouvé mot pour mot dans la nouvelle version.",
+          "org_id": "d5095098-20d1-4394-8a61-5e94c118d515",
+          "change_id": "chg-R1",
+          "decision": "a_valider"
+        },
+        {
+          "knowledge_id": "94f62220-9683-4305-9bb0-ce043b0589e2",
+          "change": "inchange",
+          "sensitive": true,
+          "new_quote": "Le magasin est ouvert par deux personnes au minimum, présentes dès 9 h 00.",
+          "new_page": 1,
+          "explanation": "Extrait retrouvé mot pour mot dans la nouvelle version.",
+          "org_id": "d5095098-20d1-4394-8a61-5e94c118d515",
+          "change_id": "chg-R1",
+          "decision": "a_valider"
+        },
+        {
+          "knowledge_id": "346d0f20-5ef0-494d-ba9b-ed075b41123c",
+          "change": "inchange",
+          "sensitive": true,
+          "new_quote": "Faire le tour de sécurité : issues de secours dégagées et déverrouillées, extincteurs à leur place.",
+          "new_page": 1,
+          "explanation": "Extrait retrouvé mot pour mot dans la nouvelle version.",
+          "org_id": "d5095098-20d1-4394-8a61-5e94c118d515",
+          "change_id": "chg-R1",
+          "decision": "a_valider"
+        },
+        {
+          "knowledge_id": "f69c7f2c-143e-4b1b-8fe9-8e432241add2",
+          "change": "inchange",
+          "sensitive": false,
+          "new_quote": "Ouvrir les portes au public à 9 h 30.",
+          "new_page": 1,
+          "explanation": "Extrait retrouvé mot pour mot dans la nouvelle version.",
+          "org_id": "d5095098-20d1-4394-8a61-5e94c118d515",
+          "change_id": "chg-R1",
+          "decision": "a_valider"
+        },
+        {
+          "knowledge_id": "888ea6e9-8ee1-44f2-a0b5-0dc54ce1c99d",
+          "change": "inchange",
+          "sensitive": false,
+          "new_quote": "Annoncer la fermeture aux clients 15 minutes avant.",
+          "new_page": 1,
+          "explanation": "Extrait retrouvé mot pour mot dans la nouvelle version.",
+          "org_id": "d5095098-20d1-4394-8a61-5e94c118d515",
+          "change_id": "chg-R1",
+          "decision": "a_valider"
+        },
+        {
+          "knowledge_id": "218a76be-14d6-46ee-a985-fb95b384a267",
+          "change": "inchange",
+          "sensitive": false,
+          "new_quote": "Fermer les portes à 19 h 00 et accompagner les derniers clients vers la sortie.",
+          "new_page": 1,
+          "explanation": "Extrait retrouvé mot pour mot dans la nouvelle version.",
+          "org_id": "d5095098-20d1-4394-8a61-5e94c118d515",
+          "change_id": "chg-R1",
+          "decision": "a_valider"
+        },
+        {
+          "knowledge_id": "7c69d5f8-cf05-47da-88e5-f839fdbba8e7",
+          "change": "inchange",
+          "sensitive": true,
+          "new_quote": "Compter les caisses à deux personnes et placer l’enveloppe scellée dans le coffre.",
+          "new_page": 1,
+          "explanation": "Extrait retrouvé mot pour mot dans la nouvelle version.",
+          "org_id": "d5095098-20d1-4394-8a61-5e94c118d515",
+          "change_id": "chg-R1",
+          "decision": "a_valider"
+        },
+        {
+          "knowledge_id": "7c6e7087-9ebe-4825-98af-9aa2c91eaf89",
+          "change": "inchange",
+          "sensitive": false,
+          "new_quote": "Vérifier qu’il ne reste personne dans les cabines et les réserves, puis fermer les issues de secours.",
+          "new_page": 1,
+          "explanation": "Extrait retrouvé mot pour mot dans la nouvelle version.",
+          "org_id": "d5095098-20d1-4394-8a61-5e94c118d515",
+          "change_id": "chg-R1",
+          "decision": "a_valider"
+        },
+        {
+          "knowledge_id": "9f5032b7-348d-4696-b6fe-bb85964b8169",
+          "change": "inchange",
+          "sensitive": false,
+          "new_quote": "Activer l’alarme et sortir à deux.",
+          "new_page": 1,
+          "explanation": "Extrait retrouvé mot pour mot dans la nouvelle version.",
+          "org_id": "d5095098-20d1-4394-8a61-5e94c118d515",
+          "change_id": "chg-R1",
+          "decision": "a_valider"
+        },
+        {
+          "knowledge_id": "b7346cc4-2482-498a-9e2d-d83a238a8588",
+          "change": "inchange",
+          "sensitive": false,
+          "new_quote": "En cas de déclenchement de l’alarme par erreur, appeler la télésurveillance au numéro affiché dans le bureau et donner le mot de passe du site.",
+          "new_page": 1,
+          "explanation": "Extrait retrouvé mot pour mot dans la nouvelle version.",
+          "org_id": "d5095098-20d1-4394-8a61-5e94c118d515",
+          "change_id": "chg-R1",
+          "decision": "a_valider"
+        },
+        {
+          "knowledge_id": "4edecba2-9671-478a-89b6-fc276aa82de8",
+          "change": "modifie",
+          "sensitive": true,
+          "new_body": "Désactiver l’alarme dans les 30 secondes avec son code personnel. Le code ne se communique jamais.",
+          "new_quote": "Désactiver l’alarme dans les 30 secondes avec son code personnel. Le code ne se communique jamais.",
+          "new_page": 1,
+          "explanation": "Le délai a été réduit de 45 à 30 secondes.",
+          "org_id": "d5095098-20d1-4394-8a61-5e94c118d515",
+          "change_id": "chg-R1",
+          "decision": "a_valider"
+        },
+        {
+          "knowledge_id": "018a416d-445b-407f-acba-19120dad34d6",
+          "change": "reformule",
+          "sensitive": false,
+          "new_body": "Démarrer les caisses, puis allumer l’éclairage.",
+          "new_quote": "Démarrer les caisses, puis allumer l’éclairage.",
+          "new_page": 1,
+          "explanation": "L’ordre des actions a été inversé.",
+          "org_id": "d5095098-20d1-4394-8a61-5e94c118d515",
+          "change_id": "chg-R1",
+          "decision": "a_valider"
+        },
+        {
+          "knowledge_id": "dfdd6150-5756-4715-aeb6-9ac013eed15f",
+          "change": "modifie",
+          "sensitive": false,
+          "new_body": "Compter le fond de caisse de 200 € en présence du responsable et signaler tout écart.",
+          "new_quote": "Compter le fond de caisse de 200 € en présence du responsable et signaler tout écart.",
+          "new_page": 1,
+          "explanation": "Le montant du fond de caisse est passé de 150 € à 200 €.",
+          "org_id": "d5095098-20d1-4394-8a61-5e94c118d515",
+          "change_id": "chg-R1",
+          "decision": "a_valider"
+        },
+        {
+          "knowledge_id": "dc5a5bd1-aa3d-4c92-b6c5-2e4bec27d2a0",
+          "change": "supprime",
+          "sensitive": true,
+          "new_body": null,
+          "new_quote": null,
+          "new_page": null,
+          "explanation": "La règle du dimanche n’est plus mentionnée dans la nouvelle version.",
+          "org_id": "d5095098-20d1-4394-8a61-5e94c118d515",
+          "change_id": "chg-R1",
+          "decision": "a_valider"
+        },
+        {
+          "knowledge_id": null,
+          "change": "nouveau",
+          "sensitive": false,
+          "new_title": "Ouverture du magasin - personnel minimum",
+          "new_body": "Le magasin est ouvert par deux personnes au minimum, présentes dès 9 h 00.",
+          "new_quote": "Le magasin est ouvert par deux personnes au minimum, présentes dès 9 h 00.",
+          "new_page": 1,
+          "explanation": "Nouvelle information de cette version.",
+          "org_id": "d5095098-20d1-4394-8a61-5e94c118d515",
+          "change_id": "chg-R1",
+          "decision": "a_valider"
+        },
+        {
+          "knowledge_id": null,
+          "change": "nouveau",
+          "sensitive": true,
+          "new_title": "Tour de sécurité",
+          "new_body": "Faire le tour de sécurité : issues de secours dégagées et déverrouillées, extincteurs à leur place.",
+          "new_quote": "Faire le tour de sécurité : issues de secours dégagées et déverrouillées, extincteurs à leur place.",
+          "new_page": 1,
+          "explanation": "Nouvelle information de cette version.",
+          "org_id": "d5095098-20d1-4394-8a61-5e94c118d515",
+          "change_id": "chg-R1",
+          "decision": "a_valider"
+        },
+        {
+          "knowledge_id": null,
+          "change": "nouveau",
+          "sensitive": false,
+          "new_title": "Vérification du défibrillateur",
+          "new_body": "Vérifier que le voyant du défibrillateur est vert ; sinon prévenir le responsable avant l’ouverture.",
+          "new_quote": "Vérifier que le voyant du défibrillateur est vert ; sinon prévenir le responsable avant l’ouverture.",
+          "new_page": 1,
+          "explanation": "Nouvelle information de cette version.",
+          "org_id": "d5095098-20d1-4394-8a61-5e94c118d515",
+          "change_id": "chg-R1",
+          "decision": "a_valider"
+        },
+        {
+          "knowledge_id": null,
+          "change": "nouveau",
+          "sensitive": false,
+          "new_title": "Ouverture des portes au public",
+          "new_body": "Ouvrir les portes au public à 9 h 30.",
+          "new_quote": "Ouvrir les portes au public à 9 h 30.",
+          "new_page": 1,
+          "explanation": "Nouvelle information de cette version.",
+          "org_id": "d5095098-20d1-4394-8a61-5e94c118d515",
+          "change_id": "chg-R1",
+          "decision": "a_valider"
+        },
+        {
+          "knowledge_id": null,
+          "change": "nouveau",
+          "sensitive": false,
+          "new_title": "Incident alarme",
+          "new_body": "En cas de déclenchement de l’alarme par erreur, appeler la télésurveillance au numéro affiché dans le bureau et donner le mot de passe du site.",
+          "new_quote": "En cas de déclenchement de l’alarme par erreur, appeler la télésurveillance au numéro affiché dans le bureau et donner le mot de passe du site.",
+          "new_page": 1,
+          "explanation": "Nouvelle information de cette version.",
+          "org_id": "d5095098-20d1-4394-8a61-5e94c118d515",
+          "change_id": "chg-R1",
+          "decision": "a_valider"
+        },
+        {
+          "knowledge_id": null,
+          "change": "nouveau",
+          "sensitive": false,
+          "new_title": "Annonce de fermeture",
+          "new_body": "Annoncer la fermeture aux clients 15 minutes avant.",
+          "new_quote": "Annoncer la fermeture aux clients 15 minutes avant.",
+          "new_page": 1,
+          "explanation": "Nouvelle information de cette version.",
+          "org_id": "d5095098-20d1-4394-8a61-5e94c118d515",
+          "change_id": "chg-R1",
+          "decision": "a_valider"
+        },
+        {
+          "knowledge_id": null,
+          "change": "nouveau",
+          "sensitive": false,
+          "new_title": "Fermeture des portes",
+          "new_body": "Fermer les portes à 19 h 00 et accompagner les derniers clients vers la sortie.",
+          "new_quote": "Fermer les portes à 19 h 00 et accompagner les derniers clients vers la sortie.",
+          "new_page": 1,
+          "explanation": "Nouvelle information de cette version.",
+          "org_id": "d5095098-20d1-4394-8a61-5e94c118d515",
+          "change_id": "chg-R1",
+          "decision": "a_valider"
+        },
+        {
+          "knowledge_id": null,
+          "change": "nouveau",
+          "sensitive": false,
+          "new_title": "Comptage des caisses",
+          "new_body": "Compter les caisses à deux personnes et placer l’enveloppe scellée dans le coffre.",
+          "new_quote": "Compter les caisses à deux personnes et placer l’enveloppe scellée dans le coffre.",
+          "new_page": 1,
+          "explanation": "Nouvelle information de cette version.",
+          "org_id": "d5095098-20d1-4394-8a61-5e94c118d515",
+          "change_id": "chg-R1",
+          "decision": "a_valider"
+        },
+        {
+          "knowledge_id": null,
+          "change": "nouveau",
+          "sensitive": false,
+          "new_title": "Vérification des cabines et issues",
+          "new_body": "Vérifier qu’il ne reste personne dans les cabines et les réserves, puis fermer les issues de secours.",
+          "new_quote": "Vérifier qu’il ne reste personne dans les cabines et les réserves, puis fermer les issues de secours.",
+          "new_page": 1,
+          "explanation": "Nouvelle information de cette version.",
+          "org_id": "d5095098-20d1-4394-8a61-5e94c118d515",
+          "change_id": "chg-R1",
+          "decision": "a_valider"
+        },
+        {
+          "knowledge_id": null,
+          "change": "nouveau",
+          "sensitive": false,
+          "new_title": "Activation de l’alarme",
+          "new_body": "Activer l’alarme et sortir à deux.",
+          "new_quote": "Activer l’alarme et sortir à deux.",
+          "new_page": 1,
+          "explanation": "Nouvelle information de cette version.",
+          "org_id": "d5095098-20d1-4394-8a61-5e94c118d515",
+          "change_id": "chg-R1",
+          "decision": "a_valider"
+        }
+      ],
+      "score": {
+        "detections": [
+          {
+            "id": "R1.c1",
+            "type": "modifie",
+            "detecte": true,
+            "type_exact": true,
+            "obtenu": "modifie"
+          },
+          {
+            "id": "R1.c2",
+            "type": "modifie",
+            "detecte": true,
+            "type_exact": true,
+            "obtenu": "modifie"
+          },
+          {
+            "id": "R1.c3",
+            "type": "ajoute",
+            "detecte": true,
+            "type_exact": true
+          },
+          {
+            "id": "R1.c4",
+            "type": "supprime",
+            "detecte": true,
+            "type_exact": true,
+            "obtenu": "supprime"
+          }
+        ],
+        "traps": [
+          {
+            "piege": "reformulation 1",
+            "connaissances": 1,
+            "fausse_alerte": false
+          },
+          {
+            "piege": "deplacement 2",
+            "connaissances": 1,
+            "fausse_alerte": false
+          }
+        ],
+        "autres_fausses_alertes": []
+      }
+    },
+    {
+      "id": "H1-v2",
+      "resultat": {
+        "change": "chg-H1",
+        "summary": {
+          "inchange": 10,
+          "reformule": 1,
+          "modifie": 2,
+          "supprime": 1,
+          "nouveau": 5,
+          "sensibles": 2,
+          "analysed": true
+        }
+      },
+      "erreur": null,
+      "brut": [
+        {
+          "mode": "comparer",
+          "model": "openai/gpt-oss-120b",
+          "text": "{\"items\":[{\"k\":\"k1\",\"change\":\"supprime\",\"quote\":\"\",\"body\":\"\",\"why\":\"La règle a été remplacée par une nouvelle procédure où seul le chef ou son second réceptionne les livraisons, y compris boissons et épicerie sèche.\"},{\"k\":\"k2\",\"change\":\"reformule\",\"quote\":\"Contrôler l’intégrité des emballages.\",\"body\":\"Contrôler l’intégrité des emballages.\",\"why\":\"Formulation modifiée mais même exigence de vérifier l’état des emballages.\"},{\"k\":\"k3\",\"change\":\"modifie\",\"quote\":\"Contrôler la date limite de consommation : il doit rester au moins 4 jours pour les viandes et les poissons.\",\"body\":\"Contrôler la date limite de consommation : il doit rester au moins 4 jours pour les viandes et les poissons.\",\"why\":\"Le délai minimum a été porté de 3 à 4 jours.\"},{\"k\":\"k4\",\"change\":\"modifie\",\"quote\":\"Ranger les produits acceptés en chambre froide dans les 15 minutes.\",\"body\":\"Ranger les produits acceptés en chambre froide dans les 15 minutes.\",\"why\":\"Le délai de rangement a été réduit à 15 minutes.\"}],\"added\":[{\"title\":\"Qui réceptionne les livraisons\",\"body\":\"Les livraisons sont reçues entre 7 h et 10 h par le chef ou son second. Cette règle vaut pour toutes les livraisons, boissons et épicerie sèche comprises.\",\"quote\":\"Les livraisons sont reçues entre 7 h et 10 h par le chef ou son second. Cette règle vaut pour toutes les livraisons, boissons et épicerie sèche comprises.\"},{\"title\":\"Mesure de la température à la réception\",\"body\":\"Mesurer la température avec le thermomètre sonde, placé entre deux emballages, sans les percer.\",\"quote\":\"Mesurer la température avec le thermomètre sonde, placé entre deux emballages, sans les percer.\"},{\"title\":\"Vérification des quantités\",\"body\":\"Rapprocher les quantités du bon de livraison.\",\"quote\":\"Rapprocher les quantités du bon de livraison.\"},{\"title\":\"Températures maximales à réception\",\"body\":\"Viandes hachées : + 2 °C.\\nProduits de la pêche frais : + 2 °C.\\nViandes de volaille et préparations de viandes : + 4 °C.\\nPréparations culinaires élaborées à l’avance : + 3 °C.\\nGlaces et crèmes glacées : – 18 °C.\\nPour les glaces et les produits congelés, un écart de 3 °C au plus en surface est admis pendant le déchargement, sur une courte durée.\",\"quote\":\"Viandes hachées : + 2 °C.\\nProduits de la pêche frais : + 2 °C.\\nViandes de volaille et préparations de viandes : + 4 °C.\\nPréparations culinaires élaborées à l’avance : + 3 °C.\\nGlaces et crèmes glacées : – 18 °C.\\nPour les glaces et les produits congelés, un écart de 3 °C au plus en surface est admis pendant le déchargement, sur une courte durée.\"},{\"title\":\"Refus de produit en cas de dépassement de température\",\"body\":\"Si une température dépasse le maximum, refuser le produit, l’écrire sur le bon de livraison et prévenir le chef.\",\"quote\":\"Si une température dépasse le maximum, refuser le produit, l’écrire sur le bon de livraison et prévenir le chef.\"}]}"
+        }
+      ],
+      "connaissances_v1": [
+        {
+          "id": "a621279e-f223-413d-8e8a-1aca4f6bb132",
+          "texte": "Les livraisons sont reçues entre 7 h et 10 h par le chef ou son second.",
+          "regle": "H1.qui"
+        },
+        {
+          "id": "37f3eed2-ffff-4f9f-bd50-a773eddef46a",
+          "texte": "Exception : les livraisons de boissons et d’épicerie sèche peuvent être reçues par un commis.",
+          "regle": "H1.exception-commis"
+        },
+        {
+          "id": "5a1e1cc2-ac80-4d33-b73e-f3366d488e1f",
+          "texte": "Vérifier que les emballages ne sont pas abîmés.",
+          "regle": null
+        },
+        {
+          "id": "0c0275aa-65d4-474d-9a3a-a4c217f2bac4",
+          "texte": "Contrôler la date limite de consommation : il doit rester au moins 3 jours pour les viandes et les poissons.",
+          "regle": "H1.dlc"
+        },
+        {
+          "id": "cca76bd3-d2bf-4532-9f36-6f8a0f3c2b6c",
+          "texte": "Mesurer la température avec le thermomètre sonde, placé entre deux emballages, sans les percer.",
+          "regle": "H1.sonde"
+        },
+        {
+          "id": "327ec5c1-a1f6-4ffa-a290-c3772864139a",
+          "texte": "Rapprocher les quantités du bon de livraison.",
+          "regle": null
+        },
+        {
+          "id": "a1116f2b-afd1-4a5d-94d9-7d91a177dac1",
+          "texte": "Viandes hachées : + 2 °C.",
+          "regle": "H1.t-hachees"
+        },
+        {
+          "id": "ce7402b7-905b-4368-83b4-1b46a8796198",
+          "texte": "Produits de la pêche frais : + 2 °C.",
+          "regle": "H1.t-peche"
+        },
+        {
+          "id": "8b740de3-b984-42d8-9772-14f2d5425e21",
+          "texte": "Viandes de volaille et préparations de viandes : + 4 °C.",
+          "regle": "H1.t-volaille"
+        },
+        {
+          "id": "a90a9032-0740-445f-8ffa-077cd779f946",
+          "texte": "Préparations culinaires élaborées à l’avance : + 3 °C.",
+          "regle": "H1.t-preparations"
+        },
+        {
+          "id": "01055581-9556-4ac0-a7c1-7e90243f0b27",
+          "texte": "Glaces et crèmes glacées : – 18 °C.",
+          "regle": "H1.t-glaces"
+        },
+        {
+          "id": "6b2b8505-2256-4124-91c3-398afc04e08c",
+          "texte": "Si une température dépasse le maximum, refuser le produit, l’écrire sur le bon de livraison et prévenir le chef.",
+          "regle": "H1.refus"
+        },
+        {
+          "id": "6a7a5794-3360-41c0-9ab7-11a4e8523c11",
+          "texte": "Ranger les produits acceptés en chambre froide dans les 30 minutes.",
+          "regle": "H1.rangement"
+        },
+        {
+          "id": "835ab0ca-c9b4-42cd-a70e-931cba95175f",
+          "texte": "Conserver les étiquettes de traçabilité des viandes avec le bon de livraison.",
+          "regle": "H1.tracabilite"
+        }
+      ],
+      "elements": [
+        {
+          "knowledge_id": "a621279e-f223-413d-8e8a-1aca4f6bb132",
+          "change": "inchange",
+          "sensitive": true,
+          "new_quote": "Les livraisons sont reçues entre 7 h et 10 h par le chef ou son second.",
+          "new_page": 1,
+          "explanation": "Extrait retrouvé mot pour mot dans la nouvelle version.",
+          "org_id": "d5095098-20d1-4394-8a61-5e94c118d515",
+          "change_id": "chg-H1",
+          "decision": "a_valider"
+        },
+        {
+          "knowledge_id": "cca76bd3-d2bf-4532-9f36-6f8a0f3c2b6c",
+          "change": "inchange",
+          "sensitive": false,
+          "new_quote": "Mesurer la température avec le thermomètre sonde, placé entre deux emballages, sans les percer.",
+          "new_page": 1,
+          "explanation": "Extrait retrouvé mot pour mot dans la nouvelle version.",
+          "org_id": "d5095098-20d1-4394-8a61-5e94c118d515",
+          "change_id": "chg-H1",
+          "decision": "a_valider"
+        },
+        {
+          "knowledge_id": "327ec5c1-a1f6-4ffa-a290-c3772864139a",
+          "change": "inchange",
+          "sensitive": false,
+          "new_quote": "Rapprocher les quantités du bon de livraison.",
+          "new_page": 1,
+          "explanation": "Extrait retrouvé mot pour mot dans la nouvelle version.",
+          "org_id": "d5095098-20d1-4394-8a61-5e94c118d515",
+          "change_id": "chg-H1",
+          "decision": "a_valider"
+        },
+        {
+          "knowledge_id": "a1116f2b-afd1-4a5d-94d9-7d91a177dac1",
+          "change": "inchange",
+          "sensitive": true,
+          "new_quote": "Viandes hachées : + 2 °C.",
+          "new_page": 1,
+          "explanation": "Extrait retrouvé mot pour mot dans la nouvelle version.",
+          "org_id": "d5095098-20d1-4394-8a61-5e94c118d515",
+          "change_id": "chg-H1",
+          "decision": "a_valider"
+        },
+        {
+          "knowledge_id": "ce7402b7-905b-4368-83b4-1b46a8796198",
+          "change": "inchange",
+          "sensitive": true,
+          "new_quote": "Produits de la pêche frais : + 2 °C.",
+          "new_page": 1,
+          "explanation": "Extrait retrouvé mot pour mot dans la nouvelle version.",
+          "org_id": "d5095098-20d1-4394-8a61-5e94c118d515",
+          "change_id": "chg-H1",
+          "decision": "a_valider"
+        },
+        {
+          "knowledge_id": "8b740de3-b984-42d8-9772-14f2d5425e21",
+          "change": "inchange",
+          "sensitive": true,
+          "new_quote": "Viandes de volaille et préparations de viandes : + 4 °C.",
+          "new_page": 1,
+          "explanation": "Extrait retrouvé mot pour mot dans la nouvelle version.",
+          "org_id": "d5095098-20d1-4394-8a61-5e94c118d515",
+          "change_id": "chg-H1",
+          "decision": "a_valider"
+        },
+        {
+          "knowledge_id": "a90a9032-0740-445f-8ffa-077cd779f946",
+          "change": "inchange",
+          "sensitive": true,
+          "new_quote": "Préparations culinaires élaborées à l’avance : + 3 °C.",
+          "new_page": 1,
+          "explanation": "Extrait retrouvé mot pour mot dans la nouvelle version.",
+          "org_id": "d5095098-20d1-4394-8a61-5e94c118d515",
+          "change_id": "chg-H1",
+          "decision": "a_valider"
+        },
+        {
+          "knowledge_id": "01055581-9556-4ac0-a7c1-7e90243f0b27",
+          "change": "inchange",
+          "sensitive": true,
+          "new_quote": "Glaces et crèmes glacées : – 18 °C.",
+          "new_page": 1,
+          "explanation": "Extrait retrouvé mot pour mot dans la nouvelle version.",
+          "org_id": "d5095098-20d1-4394-8a61-5e94c118d515",
+          "change_id": "chg-H1",
+          "decision": "a_valider"
+        },
+        {
+          "knowledge_id": "6b2b8505-2256-4124-91c3-398afc04e08c",
+          "change": "inchange",
+          "sensitive": true,
+          "new_quote": "Si une température dépasse le maximum, refuser le produit, l’écrire sur le bon de livraison et prévenir le chef.",
+          "new_page": 1,
+          "explanation": "Extrait retrouvé mot pour mot dans la nouvelle version.",
+          "org_id": "d5095098-20d1-4394-8a61-5e94c118d515",
+          "change_id": "chg-H1",
+          "decision": "a_valider"
+        },
+        {
+          "knowledge_id": "835ab0ca-c9b4-42cd-a70e-931cba95175f",
+          "change": "inchange",
+          "sensitive": false,
+          "new_quote": "Conserver les étiquettes de traçabilité des viandes avec le bon de livraison.",
+          "new_page": 1,
+          "explanation": "Extrait retrouvé mot pour mot dans la nouvelle version.",
+          "org_id": "d5095098-20d1-4394-8a61-5e94c118d515",
+          "change_id": "chg-H1",
+          "decision": "a_valider"
+        },
+        {
+          "knowledge_id": "37f3eed2-ffff-4f9f-bd50-a773eddef46a",
+          "change": "supprime",
+          "sensitive": false,
+          "new_body": null,
+          "new_quote": null,
+          "new_page": null,
+          "explanation": "La règle a été remplacée par une nouvelle procédure où seul le chef ou son second réceptionne les livraisons, y compris boissons et épicerie sèche.",
+          "org_id": "d5095098-20d1-4394-8a61-5e94c118d515",
+          "change_id": "chg-H1",
+          "decision": "a_valider"
+        },
+        {
+          "knowledge_id": "5a1e1cc2-ac80-4d33-b73e-f3366d488e1f",
+          "change": "reformule",
+          "sensitive": false,
+          "new_body": "Contrôler l’intégrité des emballages.",
+          "new_quote": "Contrôler l’intégrité des emballages.",
+          "new_page": 1,
+          "explanation": "Formulation modifiée mais même exigence de vérifier l’état des emballages.",
+          "org_id": "d5095098-20d1-4394-8a61-5e94c118d515",
+          "change_id": "chg-H1",
+          "decision": "a_valider"
+        },
+        {
+          "knowledge_id": "0c0275aa-65d4-474d-9a3a-a4c217f2bac4",
+          "change": "modifie",
+          "sensitive": true,
+          "new_body": "Contrôler la date limite de consommation : il doit rester au moins 4 jours pour les viandes et les poissons.",
+          "new_quote": "Contrôler la date limite de consommation : il doit rester au moins 4 jours pour les viandes et les poissons.",
+          "new_page": 1,
+          "explanation": "Le délai minimum a été porté de 3 à 4 jours.",
+          "org_id": "d5095098-20d1-4394-8a61-5e94c118d515",
+          "change_id": "chg-H1",
+          "decision": "a_valider"
+        },
+        {
+          "knowledge_id": "6a7a5794-3360-41c0-9ab7-11a4e8523c11",
+          "change": "modifie",
+          "sensitive": true,
+          "new_body": "Ranger les produits acceptés en chambre froide dans les 15 minutes.",
+          "new_quote": "Ranger les produits acceptés en chambre froide dans les 15 minutes.",
+          "new_page": 1,
+          "explanation": "Le délai de rangement a été réduit à 15 minutes.",
+          "org_id": "d5095098-20d1-4394-8a61-5e94c118d515",
+          "change_id": "chg-H1",
+          "decision": "a_valider"
+        },
+        {
+          "knowledge_id": null,
+          "change": "nouveau",
+          "sensitive": false,
+          "new_title": "Qui réceptionne les livraisons",
+          "new_body": "Les livraisons sont reçues entre 7 h et 10 h par le chef ou son second. Cette règle vaut pour toutes les livraisons, boissons et épicerie sèche comprises.",
+          "new_quote": "Les livraisons sont reçues entre 7 h et 10 h par le chef ou son second. Cette règle vaut pour toutes les livraisons, boissons et épicerie sèche comprises.",
+          "new_page": 1,
+          "explanation": "Nouvelle information de cette version.",
+          "org_id": "d5095098-20d1-4394-8a61-5e94c118d515",
+          "change_id": "chg-H1",
+          "decision": "a_valider"
+        },
+        {
+          "knowledge_id": null,
+          "change": "nouveau",
+          "sensitive": false,
+          "new_title": "Mesure de la température à la réception",
+          "new_body": "Mesurer la température avec le thermomètre sonde, placé entre deux emballages, sans les percer.",
+          "new_quote": "Mesurer la température avec le thermomètre sonde, placé entre deux emballages, sans les percer.",
+          "new_page": 1,
+          "explanation": "Nouvelle information de cette version.",
+          "org_id": "d5095098-20d1-4394-8a61-5e94c118d515",
+          "change_id": "chg-H1",
+          "decision": "a_valider"
+        },
+        {
+          "knowledge_id": null,
+          "change": "nouveau",
+          "sensitive": false,
+          "new_title": "Vérification des quantités",
+          "new_body": "Rapprocher les quantités du bon de livraison.",
+          "new_quote": "Rapprocher les quantités du bon de livraison.",
+          "new_page": 1,
+          "explanation": "Nouvelle information de cette version.",
+          "org_id": "d5095098-20d1-4394-8a61-5e94c118d515",
+          "change_id": "chg-H1",
+          "decision": "a_valider"
+        },
+        {
+          "knowledge_id": null,
+          "change": "nouveau",
+          "sensitive": false,
+          "new_title": "Températures maximales à réception",
+          "new_body": "Viandes hachées : + 2 °C.\nProduits de la pêche frais : + 2 °C.\nViandes de volaille et préparations de viandes : + 4 °C.\nPréparations culinaires élaborées à l’avance : + 3 °C.\nGlaces et crèmes glacées : – 18 °C.\nPour les glaces et les produits congelés, un écart de 3 °C au plus en surface est admis pendant le déchargement, sur une courte durée.",
+          "new_quote": "Viandes hachées : + 2 °C.\nProduits de la pêche frais : + 2 °C.\nViandes de volaille et préparations de viandes : + 4 °C.\nPréparations culinaires élaborées à l’avance : + 3 °C.\nGlaces et crèmes glacées : – 18 °C.\nPour les glaces et les produits congelés, un écart de 3 °C au plus en surface est admis pendant le déchargement, sur une courte durée.",
+          "new_page": 1,
+          "explanation": "Nouvelle information de cette version.",
+          "org_id": "d5095098-20d1-4394-8a61-5e94c118d515",
+          "change_id": "chg-H1",
+          "decision": "a_valider"
+        },
+        {
+          "knowledge_id": null,
+          "change": "nouveau",
+          "sensitive": false,
+          "new_title": "Refus de produit en cas de dépassement de température",
+          "new_body": "Si une température dépasse le maximum, refuser le produit, l’écrire sur le bon de livraison et prévenir le chef.",
+          "new_quote": "Si une température dépasse le maximum, refuser le produit, l’écrire sur le bon de livraison et prévenir le chef.",
+          "new_page": 1,
+          "explanation": "Nouvelle information de cette version.",
+          "org_id": "d5095098-20d1-4394-8a61-5e94c118d515",
+          "change_id": "chg-H1",
+          "decision": "a_valider"
+        }
+      ],
+      "score": {
+        "detections": [
+          {
+            "id": "H1.c1",
+            "type": "supprime",
+            "detecte": true,
+            "type_exact": true,
+            "obtenu": "supprime"
+          },
+          {
+            "id": "H1.c2",
+            "type": "modifie",
+            "detecte": true,
+            "type_exact": true,
+            "obtenu": "modifie"
+          },
+          {
+            "id": "H1.c3",
+            "type": "ajoute",
+            "detecte": true,
+            "type_exact": true
+          },
+          {
+            "id": "H1.c4",
+            "type": "ajoute",
+            "detecte": false,
+            "type_exact": false
+          },
+          {
+            "id": "H1.c5",
+            "type": "modifie",
+            "detecte": true,
+            "type_exact": true,
+            "obtenu": "modifie"
+          }
+        ],
+        "traps": [
+          {
+            "piege": "reformulation 1",
+            "connaissances": 1,
+            "fausse_alerte": false
+          },
+          {
+            "piege": "identique 2",
+            "connaissances": 1,
+            "fausse_alerte": false
+          }
+        ],
+        "autres_fausses_alertes": []
+      }
+    }
+  ],
+  "synthese": {
+    "regles_trouvees": 55,
+    "regles_total": 74,
+    "valeurs_exactes": 32,
+    "valeurs_total": 45,
+    "sensibles_trouvees": 32,
+    "sensibles_total": 47,
+    "sensibles_bien_classees": 4,
+    "inventions_avant_filtre": 7,
+    "inventions_apres_filtre": 0,
+    "proposees_avant_filtre": 69,
+    "gardees": 62,
+    "hors_corrige": 11,
+    "changements_detectes": 8,
+    "changements_total": 9,
+    "changements_type_exact": 8,
+    "fausses_alertes_pieges": 0,
+    "pieges_total": 4,
+    "autres_fausses_alertes": 0,
+    "seuils": {
+      "valeurs_exactes": false,
+      "sensibles": false,
+      "changements": false,
+      "pieges": true
+    },
+    "seuils_atteints": false
+  }
+}

@@ -2,7 +2,8 @@
    A. Manifeste : 5 à 8 documents, les deux secteurs et les six sujets demandés, deux procédures au moins en v1 et v2,
       nature « synthetique » partout, source pour chaque règle réglementaire, changements v1 → v2 cohérents avec le texte.
    B. Lecture : chaque PDF est lu par la vraie fonction de l'espace Business (OrgDocs.readPages, pdf.js) ; toutes les
-      règles attendues doivent se retrouver mot pour mot dans le texte gardé (rien de mis de côté ni de perdu).
+      règles attendues doivent se retrouver mot pour mot dans le texte gardé (rien de mis de côté ni de perdu), y compris
+      dans la série ligatures/ (« fi », « ff », « fl » liés), qui cassait la lecture avant le 2026-11-18.
    Lancer depuis la racine du dépôt :  node tests/corpus-metier.js   (Playwright requis, voir README). */
 const http = require('http');
 const fs = require('fs');
@@ -74,17 +75,26 @@ const srcText = (d) => norm(d.sections.flatMap((s) => [s.h, ...(s.ol || s.ul || 
   if (!ready) {
     console.log('– B lecture des PDF : NON VÉRIFIÉ (pdf.js n’a pas pu être chargé, connexion au CDN ?)');
   } else {
-    for (const d of docs) {
-      const b64 = fs.readFileSync(path.join(DIR, d.fichier)).toString('base64');
-      const r = await page.evaluate(async ({ b64, name }) => {
-        const bin = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
-        try { const x = await OrgDocs.readPages(new File([bin], name, { type: 'application/pdf' })); return { text: x.pages.map((p) => p.text).join(' '), count: x.count, aside: x.aside, unreadable: x.unreadable }; } catch (e) { return { error: e.message }; }
-      }, { b64, name: d.fichier });
-      if (r.error) { check(`B ${d.id} lu par l’espace Business`, false, r.error); continue; }
-      const t = norm(r.text);
-      const missing = d.regles_attendues.filter((x) => !t.includes(norm(x.texte)));
-      check(`B ${d.id} lu (${r.count} p., ${t.length} car.) : ${d.regles_attendues.length - missing.length}/${d.regles_attendues.length} règles retrouvées mot pour mot`, !r.unreadable.length && !missing.length, missing.map((x) => x.id).join(', '));
-      if (r.aside) console.log(`   ${d.id} : ${r.aside} passage(s) mis de côté par le classifieur`);
+    const read = (file) => page.evaluate(async ({ b64, name }) => {
+      const bin = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+      // Lecture naïve (morceaux joints par un espace, comme avant le 2026-11-18) : sert à prouver que la série « ligatures » en contient
+      const pdf = await pdfjsLib.getDocument({ data: bin.slice() }).promise;
+      const naive = [];
+      for (let i = 1; i <= pdf.numPages; i++) naive.push((await (await pdf.getPage(i)).getTextContent()).items.map((x) => x.str).join(' '));
+      try { const x = await OrgDocs.readPages(new File([bin], name, { type: 'application/pdf' })); return { text: x.pages.map((p) => p.text).join(' '), naive: naive.join(' '), count: x.count, aside: x.aside, unreadable: x.unreadable }; } catch (e) { return { error: e.message }; }
+    }, { b64: fs.readFileSync(file).toString('base64'), name: path.basename(file) });
+    for (const [serie, dir] of [['sans ligatures', DIR], ['avec ligatures', path.join(DIR, 'ligatures')]]) {
+      let naiveMissing = 0;
+      for (const d of docs) {
+        const r = await read(path.join(dir, d.fichier));
+        if (r.error) { check(`B ${serie} ${d.id} lu par l’espace Business`, false, r.error); continue; }
+        const t = norm(r.text), nv = norm(r.naive);
+        const missing = d.regles_attendues.filter((x) => !t.includes(norm(x.texte)));
+        naiveMissing += d.regles_attendues.filter((x) => !nv.includes(norm(x.texte))).length;
+        check(`B ${serie} ${d.id} lu (${r.count} p., ${t.length} car.) : ${d.regles_attendues.length - missing.length}/${d.regles_attendues.length} règles retrouvées mot pour mot`, !r.unreadable.length && !missing.length, missing.map((x) => x.id).join(', '));
+        if (r.aside) console.log(`   ${d.id} : ${r.aside} passage(s) mis de côté par le classifieur`);
+      }
+      if (serie === 'avec ligatures') check('B condition préalable : la série « avec ligatures » casse bien la lecture naïve (sinon ce test ne prouverait rien)', naiveMissing > 0, `${naiveMissing} règle(s) perdue(s) par la lecture naïve`);
     }
   }
   check('B aucune erreur JavaScript', !errors.length, errors.join(' | '));

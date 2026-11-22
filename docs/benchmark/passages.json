@@ -1,0 +1,109 @@
+{
+  "genere_par": "tests/bench/passages.js",
+  "documents": [
+    {
+      "id": "R1-v1",
+      "fichier": "R1-v1.pdf",
+      "titre": "Ouverture et fermeture du magasin",
+      "batches": [
+        [
+          {
+            "page": 1,
+            "text": "Document fictif fabriqué pour tester Arbor. Ce n’est pas une procédure réelle. Maison Ardoise (enseigne fictive, équipement de la maison) · Commerce de détail Procédure R1 · version 1 du 2026-03-03 Ouverture et fermeture du magasin Objet Cette procédure décrit l’ouverture du magasin au public à 9 h 30 et sa fermeture à 19 h 00. Elle s’applique à tous les responsables et vendeurs. Ouverture 1. Le magasin est ouvert par deux personnes au minimum, présentes dès 9 h 00. 2. Désactiver l’alarme dans les 45 secondes avec son code personnel. Le code ne se communique jamais. 3. Faire le tour de sécurité : issues de secours dégagées et déverrouillées, extincteurs à leur place. 4. Allumer l’éclairage et démarrer les caisses. 5. Compter le fond de caisse de 150 € en présence du responsable et signaler tout écart. 6. Ouvrir les portes au public à 9 h 30. Fermeture 1. Annoncer la fermeture aux clients 15 minutes avant. 2. Fermer les portes à 19 h 00 et accompagner les derniers clients vers la sortie. 3. Compter les caisses à deux personnes et placer l’enveloppe scellée dans le coffre. 4. Vérifier qu’il ne reste personne dans les cabines et les réserves, puis fermer les issues de secours. 5. Activer l’alarme et sortir à deux. 6. Le dimanche, le responsable peut fermer seul le magasin. Incident En cas de déclenchement de l’alarme par erreur, appeler la télésurveillance au numéro affiché dans le bureau et donner le mot de passe du site."
+          }
+        ]
+      ]
+    },
+    {
+      "id": "R1-v2",
+      "fichier": "R1-v2.pdf",
+      "titre": "Ouverture et fermeture du magasin",
+      "batches": [
+        [
+          {
+            "page": 1,
+            "text": "Document fictif fabriqué pour tester Arbor. Ce n’est pas une procédure réelle. Maison Ardoise (enseigne fictive, équipement de la maison) · Commerce de détail Procédure R1 · version 2 du 2026-09-02 Ouverture et fermeture du magasin Objet Cette procédure décrit l’ouverture du magasin au public à 9 h 30 et sa fermeture à 19 h 00. Elle s’applique à tous les responsables et vendeurs. Incident En cas de déclenchement de l’alarme par erreur, appeler la télésurveillance au numéro affiché dans le bureau et donner le mot de passe du site. Ouverture 1. Le magasin est ouvert par deux personnes au minimum, présentes dès 9 h 00. 2. Désactiver l’alarme dans les 30 secondes avec son code personnel. Le code ne se communique jamais. 3. Faire le tour de sécurité : issues de secours dégagées et déverrouillées, extincteurs à leur place. 4. Vérifier que le voyant du défibrillateur est vert ; sinon prévenir le responsable avant l’ouverture. 5. Démarrer les caisses, puis allumer l’éclairage. 6. Compter le fond de caisse de 200 € en présence du responsable et signaler tout écart. 7. Ouvrir les portes au public à 9 h 30. Fermeture 1. Annoncer la fermeture aux clients 15 minutes avant. 2. Fermer les portes à 19 h 00 et accompagner les derniers clients vers la sortie. 3. Compter les caisses à deux personnes et placer l’enveloppe scellée dans le coffre. 4. Vérifier qu’il ne reste personne dans les cabines et les réserves, puis fermer les issues de secours. 5. Activer l’alarme et sortir à deux."
+          }
+        ]
+      ]
+    },
+    {
+      "id": "R2-v1",
+      "fichier": "R2-v1.pdf",
+      "titre": "Retour d’un article par un client",
+      "batches": [
+        [
+          {
+            "page": 1,
+            "text": "Document fictif fabriqué pour tester Arbor. Ce n’est pas une procédure réelle. Maison Ardoise (enseigne fictive, équipement de la maison) · Commerce de détail Procédure R2 · version 1 du 2026-04-14 Retour d’un article par un client Ce que dit la loi Un magasin n’est pas obligé de reprendre ou de rembourser un article qui n’a pas de défaut : la loi ne prévoit pas de droit de changer d’avis pour un achat en magasin. Un article neuf qui présente un défaut est couvert par la garantie légale de conformité pendant 2 ans à partir de l’achat. Une affiche « ni repris ni échangé » ne supprime jamais la garantie légale de conformité. Article sans défaut (geste commercial de Maison Ardoise) 1. Le retour est accepté pendant 30 jours après l’achat, sur présentation du ticket de caisse. 2. L’article doit être neuf, non utilisé, dans son emballage d’origine. 3. Le client choisit entre un avoir et un remboursement sur le moyen de paiement utilisé à l’achat. 4. Les articles soldés ne sont ni repris ni échangés, sauf défaut. Article défectueux (garantie légale) 1. Ne jamais refuser la demande au motif que le délai de 30 jours est dépassé. 2. Proposer d’abord la réparation ou le remplacement de l’article. 3. Si ni la réparation ni le remplacement ne sont possibles, rembourser le client. 4. Noter le défaut constaté sur la fiche de retour et la faire signer par le client. Validation et paiement 1. Tout remboursement de plus de 150 € est validé par le responsable avant d’être effectué. 2. Un remboursement en espèces ne dépasse jamais 150 €."
+          }
+        ]
+      ]
+    },
+    {
+      "id": "R3-v1",
+      "fichier": "R3-v1.pdf",
+      "titre": "Tenue de la caisse",
+      "batches": [
+        [
+          {
+            "page": 1,
+            "text": "Document fictif fabriqué pour tester Arbor. Ce n’est pas une procédure réelle. Maison Ardoise (enseigne fictive, équipement de la maison) · Commerce de détail Procédure R3 · version 1 du 2026-09-02 Tenue de la caisse Prise de poste 1. Chaque vendeur se connecte à la caisse avec son identifiant personnel et ne laisse jamais sa session ouverte. 2. Le fond de caisse est de 200 €. Paiement en espèces 1. Un client dont le domicile fiscal est en France ne peut pas payer en espèces un achat de plus de 1 000 €. 2. Pour un client dont le domicile fiscal est à l’étranger, le plafond est plus élevé : appeler le responsable. 3. Le vendeur n’est pas tenu d’accepter plus de 50 pièces pour un même paiement. 4. Vérifier chaque billet de 50 € et plus au détecteur. Billet présumé faux 1. Un billet présumé faux ne doit jamais être remis en circulation : il n’est pas rendu en monnaie. 2. Rester courtois, ne pas accuser le client, appeler le responsable. 3. Le responsable remet le billet à la Banque de France, à un commissariat ou à une gendarmerie. Écarts et prélèvements 1. Quand le tiroir contient plus de 800 € en espèces, le responsable fait un prélèvement vers le coffre. 2. Tout écart de plus de 10 € en fin de journée fait l’objet d’une fiche d’écart signée par le vendeur et le responsable."
+          }
+        ]
+      ]
+    },
+    {
+      "id": "H1-v1",
+      "fichier": "H1-v1.pdf",
+      "titre": "Réception des livraisons",
+      "batches": [
+        [
+          {
+            "page": 1,
+            "text": "Document fictif fabriqué pour tester Arbor. Ce n’est pas une procédure réelle. Brasserie du Quai (restaurant fictif, 60 couverts) · Hôtellerie-restauration Procédure H1 · version 1 du 2026-02-10 Réception des livraisons Qui réceptionne Les livraisons sont reçues entre 7 h et 10 h par le chef ou son second. Exception : les livraisons de boissons et d’épicerie sèche peuvent être reçues par un commis. Contrôles à réception 1. Vérifier que les emballages ne sont pas abîmés. 2. Contrôler la date limite de consommation : il doit rester au moins 3 jours pour les viandes et les poissons. 3. Mesurer la température avec le thermomètre sonde, placé entre deux emballages, sans les percer. 4. Rapprocher les quantités du bon de livraison. Températures maximales à réception Viandes hachées : + 2 °C. Produits de la pêche frais : + 2 °C. Viandes de volaille et préparations de viandes : + 4 °C. Préparations culinaires élaborées à l’avance : + 3 °C. Glaces et crèmes glacées : – 18 °C. Refus et rangement 1. Si une température dépasse le maximum, refuser le produit, l’écrire sur le bon de livraison et prévenir le chef. 2. Ranger les produits acceptés en chambre froide dans les 30 minutes. 3. Conserver les étiquettes de traçabilité des viandes avec le bon de livraison."
+          }
+        ]
+      ]
+    },
+    {
+      "id": "H1-v2",
+      "fichier": "H1-v2.pdf",
+      "titre": "Réception des livraisons",
+      "batches": [
+        [
+          {
+            "page": 1,
+            "text": "Document fictif fabriqué pour tester Arbor. Ce n’est pas une procédure réelle. Brasserie du Quai (restaurant fictif, 60 couverts) · Hôtellerie-restauration Procédure H1 · version 2 du 2026-07-15 Réception des livraisons Qui réceptionne Les livraisons sont reçues entre 7 h et 10 h par le chef ou son second. Cette règle vaut pour toutes les livraisons, boissons et épicerie sèche comprises. Contrôles à réception 1. Contrôler l’intégrité des emballages. 2. Contrôler la date limite de consommation : il doit rester au moins 4 jours pour les viandes et les poissons. 3. Mesurer la température avec le thermomètre sonde, placé entre deux emballages, sans les percer. 4. Rapprocher les quantités du bon de livraison. Températures maximales à réception Viandes hachées : + 2 °C. Produits de la pêche frais : + 2 °C. Viandes de volaille et préparations de viandes : + 4 °C. Préparations culinaires élaborées à l’avance : + 3 °C. Glaces et crèmes glacées : – 18 °C. Pour les glaces et les produits congelés, un écart de 3 °C au plus en surface est admis pendant le déchargement, sur une courte durée. Refus et rangement 1. Si une température dépasse le maximum, refuser le produit, l’écrire sur le bon de livraison et prévenir le chef. 2. Photographier le thermomètre et le bon de livraison pour chaque produit refusé, et joindre les photos au registre. 3. Ranger les produits acceptés en chambre froide dans les 15 minutes. 4. Conserver les étiquettes de traçabilité des viandes avec le bon de livraison."
+          }
+        ]
+      ]
+    },
+    {
+      "id": "H2-v1",
+      "fichier": "H2-v1.pdf",
+      "titre": "Chaîne du froid en cuisine",
+      "batches": [
+        [
+          {
+            "page": 1,
+            "text": "Document fictif fabriqué pour tester Arbor. Ce n’est pas une procédure réelle. Brasserie du Quai (restaurant fictif, 60 couverts) · Hôtellerie-restauration Procédure H2 · version 1 du 2026-02-10 Chaîne du froid en cuisine Stockage 1. Les préparations culinaires élaborées à l’avance sont conservées à + 3 °C au plus. 2. Relever la température de chaque réfrigérateur et de la chambre froide à l’ouverture et à la fermeture, et la noter dans le registre. 3. Un produit décongelé n’est jamais recongelé. 4. Toute préparation entamée porte une étiquette avec la date de fabrication. Refroidissement rapide 1. Une préparation cuite destinée à être servie froide passe de + 63 °C à moins de + 10 °C à cœur en moins de 2 heures, en cellule de refroidissement. 2. Si ce délai est dépassé, la préparation est jetée. Plats servis chauds 1. Les plats servis chauds sont maintenus à + 63 °C au moins. 2. Une préparation remise en température atteint + 63 °C à cœur en moins d’une heure. Panne de froid 1. Si un réfrigérateur dépasse + 8 °C, prévenir le chef, transférer les produits dans un autre équipement et noter l’heure dans le registre. 2. Le chef décide du sort des produits : rien n’est servi sans son accord."
+          }
+        ]
+      ]
+    },
+    {
+      "id": "H3-v1",
+      "fichier": "H3-v1.pdf",
+      "titre": "Réclamation d’un client",
+      "batches": [
+        [
+          {
+            "page": 1,
+            "text": "Document fictif fabriqué pour tester Arbor. Ce n’est pas une procédure réelle. Brasserie du Quai (restaurant fictif, 60 couverts) · Hôtellerie-restauration Procédure H3 · version 1 du 2026-05-20 Réclamation d’un client En salle 1. Écouter le client jusqu’au bout, sans l’interrompre ni contester. 2. Pour un plat non conforme (froid, mal cuit, erreur de commande), proposer de le remplacer ou de le retirer de l’addition. 3. Un geste commercial de plus de 30 € est décidé par le responsable de salle. Allergènes 1. La carte des allergènes indique, pour chaque plat, la présence des 14 allergènes majeurs fixés par le règlement européen INCO. 2. Si un client signale une allergie, vérifier sur la carte des allergènes et demander au chef ; ne jamais répondre de mémoire. 3. En cas de réaction allergique (gêne respiratoire, gonflement), appeler immédiatement le 15. 4. Conserver le reste du plat au froid, étiqueté, et prévenir le chef. Après la réclamation 1. Noter chaque réclamation dans le registre : date, table, motif, réponse apportée. 2. Une réclamation écrite reçoit une réponse sous 7 jours."
+          }
+        ]
+      ]
+    }
+  ]
+}
