@@ -16,29 +16,26 @@ function shuffleQ(q, key) {
   return { q: q.q, choix: idx.map((i) => q.choix[i]), reponse: idx.indexOf(q.reponse) };
 }
 
-/* Ce qu'une question évalue (repère pour la relecture, classement automatique à vérifier par un humain) :
-   - application : un calcul ou une décision dans un cas concret (« Que fais-tu », « Un client… », un montant) ;
-   - compréhension : expliquer une cause ou un mécanisme (« pourquoi », « comment ») ;
+/* Ce qu'une question évalue : classement EXPLICITE, écrit et relu dans les sources (champ « evalue »), jamais deviné par
+   une heuristique :
+   - application : décider ou calculer dans un cas concret nouveau, en utilisant ce qui a été expliqué ;
+   - compréhension : expliquer une cause ou un mécanisme (pourquoi, comment, que se passe-t-il si…) ;
    - restitution : redonner une définition, un nom ou un chiffre appris (mémorisation). */
-function niveau(t) {
-  if (/\b(que fais-tu|acceptes-tu|es-tu obligé)\b/i.test(t) || /^(un client|une livraison|ton tiroir|tu |une pizza|si |un objet|dans un triangle|triangle rectangle|tu places|avec \d|\d)/i.test(t) || /(combien (as-tu|coûte|mesure)|devient|deviennent)/i.test(t)) return 'application';
-  if (/\b(pourquoi|comment)\b/i.test(t)) return 'compréhension';
-  return 'restitution';
-}
 const NIV = { application: 'application', 'compréhension': 'compréhension', restitution: 'restitution (mémorisation)' };
+const BLOCS = [['comprehension', 'c'], ['rappel', 'r'], ['deblocage', 'd']];
 
 function build() {
   const items = [...read('sujets-1.json'), ...read('sujets-2.json'), ...read('procedures.json')];
   return {
     nom: 'Jeu de mesure pédagogique, mission 3a',
-    statut: 'proposition à relire et valider avant toute mesure',
+    statut: 'proposition corrigée, à relire et valider avant toute mesure',
     genere_par: 'docs/pedagogie/assembler.js',
-    note: 'Aucune question n\'est générée par Arbor. L\'ordre des choix est mélangé (graine fixe) ; « reponse » est l\'indice de la bonne réponse après mélange.',
-    elements: items.map((x) => ({
-      ...x,
-      comprehension: x.comprehension.map((q, i) => ({ ...shuffleQ(q, `${x.id}-c${i}`), evalue: niveau(q.q) })),
-      rappel: x.rappel.map((q, i) => ({ ...shuffleQ(q, `${x.id}-r${i}`), evalue: niveau(q.q) })),
-    })),
+    note: 'Aucune question n\'est générée par Arbor. L\'ordre des choix est mélangé (graine fixe) ; « reponse » est l\'indice de la bonne réponse après mélange ; « evalue » vient des sources (classement relu).',
+    elements: items.map((x) => {
+      const o = { ...x };
+      for (const [bloc, k] of BLOCS) o[bloc] = (x[bloc] || []).map((q, i) => ({ ...shuffleQ(q, `${x.id}-${k}${i}`), evalue: q.evalue }));
+      return o;
+    }),
   };
 }
 
@@ -46,21 +43,26 @@ function markdown(j) {
   const L = ['# Jeu de mesure pédagogique (mission 3a) : version de relecture', '',
     `Statut : **${j.statut}**. Généré par \`${j.genere_par}\` à partir des sources relues ; ne pas modifier ce fichier à la main.`, '',
     'La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants voient les questions sans cette marque.', '',
-    'Chaque question porte un repère « évalue » : **application** (calcul ou décision dans un cas concret), **compréhension** (expliquer une cause ou un mécanisme) ou **restitution** (redonner une définition ou un chiffre appris, donc de la mémorisation). Ce repère est un classement automatique, à vérifier à la relecture.', ''];
-  const all = j.elements.flatMap((x) => [...x.comprehension.map((q) => ['c', q.evalue]), ...x.rappel.map((q) => ['r', q.evalue])]);
+    'Chaque question porte un classement « évalue », **écrit et relu dans les sources** (pas deviné par un programme) : **application** (décider ou calculer dans un cas concret nouveau), **compréhension** (expliquer une cause ou un mécanisme) ou **restitution** (redonner une définition, un nom ou un chiffre appris, donc de la mémorisation).', '',
+    'Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhension immédiate, au moins 2 questions sur 3 en application ou compréhension ; rappel à J+2, 3 restitutions (mesure de mémorisation) et 1 application ; déblocage, 2 questions préparées à l\'avance (1 application, 1 compréhension), posées seulement après une seconde explication.', ''];
+  const all = j.elements.flatMap((x) => BLOCS.flatMap(([bloc, k]) => x[bloc].map((q) => [k, q.evalue])));
   const cnt = (part, n) => all.filter(([p, e]) => p === part && e === n).length;
+  const row = (nom, k) => `| ${nom} (${all.filter(([p]) => p === k).length} questions) | ${cnt(k, 'application')} | ${cnt(k, 'compréhension')} | ${cnt(k, 'restitution')} |`;
   L.push('## Bilan : ce que les questions évaluent', '', '| Bloc | Application | Compréhension | Restitution (mémorisation) |', '|---|---|---|---|',
-    `| Compréhension immédiate (${all.filter(([p]) => p === 'c').length} questions) | ${cnt('c', 'application')} | ${cnt('c', 'compréhension')} | ${cnt('c', 'restitution')} |`,
-    `| Rappel à J+2 (${all.filter(([p]) => p === 'r').length} questions) | ${cnt('r', 'application')} | ${cnt('r', 'compréhension')} | ${cnt('r', 'restitution')} |`, '',
-    '**Lecture critique :** une grande partie des questions de « compréhension » sont en réalité des questions de restitution (définitions). Elles vérifient que l\'on se souvient, pas que l\'on a compris. La compréhension est surtout mesurée par la situation de transfert et par la reformulation. Proposition de règle, à valider avant toute mesure : dans chaque sujet, au moins 2 des 3 questions de compréhension en application ou en compréhension ; au rappel à J+2, au plus 1 restitution sur 3.', '',
-    '| Élément | Compréhension immédiate : restitutions | Rappel J+2 : restitutions |', '|---|---|---|');
-  for (const x of j.elements) L.push(`| ${x.id} ${x.sujet} | ${x.comprehension.filter((q) => q.evalue === 'restitution').length} / 3 | ${x.rappel.filter((q) => q.evalue === 'restitution').length} / 3 |`);
+    row('Compréhension immédiate', 'c'), row('Rappel à J+2', 'r'), row('Déblocage', 'd'), '',
+    '| Élément | Compréhension immédiate (app. / comp. / rest.) | Rappel J+2 (app. / comp. / rest.) | Déblocage (app. / comp.) |', '|---|---|---|---|');
+  const n3 = (qs, e) => qs.filter((q) => q.evalue === e).length;
+  for (const x of j.elements) L.push(`| ${x.id} ${x.sujet} | ${n3(x.comprehension, 'application')} / ${n3(x.comprehension, 'compréhension')} / ${n3(x.comprehension, 'restitution')} | ${n3(x.rappel, 'application')} / ${n3(x.rappel, 'compréhension')} / ${n3(x.rappel, 'restitution')} | ${n3(x.deblocage, 'application')} / ${n3(x.deblocage, 'compréhension')} |`);
   L.push('');
+  const list = (qs) => qs.forEach((q, i) => { L.push(`${i + 1}. ${q.q} *(évalue : ${NIV[q.evalue]})*`); q.choix.forEach((c, k) => L.push(`   - ${k === q.reponse ? '✔ ' : ''}${c}`)); });
   for (const x of j.elements) {
     L.push(`## ${x.id} · ${x.sujet}`, '', `*Domaine : ${x.domaine}*`, '', `**Glossaire (termes à surveiller) :** ${x.glossaire.join(', ')}`, '', '**Compréhension immédiate**', '');
-    x.comprehension.forEach((q, i) => { L.push(`${i + 1}. ${q.q} *(évalue : ${NIV[q.evalue]})*`); q.choix.forEach((c, k) => L.push(`   - ${k === q.reponse ? '✔ ' : ''}${c}`)); });
-    L.push('', `**Situation de transfert :** ${x.transfert.situation}`, '', `> ${x.transfert.question}`, '', `*Réponse attendue :* ${x.transfert.attendu}`, '', '**Rappel à J+2**', '');
-    x.rappel.forEach((q, i) => { L.push(`${i + 1}. ${q.q} *(évalue : ${NIV[q.evalue]})*`); q.choix.forEach((c, k) => L.push(`   - ${k === q.reponse ? '✔ ' : ''}${c}`)); });
+    list(x.comprehension);
+    L.push('', `**Situation de transfert :** ${x.transfert.situation}`, '', `> ${x.transfert.question}`, '', `*Réponse attendue :* ${x.transfert.attendu}`, '',
+      '**Déblocage** *(seulement si l\'apprenant s\'est déclaré bloqué : posé après la seconde explication ; grille dans `grille-reformulation.md`)*', '');
+    list(x.deblocage);
+    L.push('', '**Rappel à J+2**', '');
+    list(x.rappel);
     L.push('', `**Reformulation, idée centrale :** ${x.reformulation.idee_centrale}`, '', `**Éléments clés :** ${x.reformulation.elements_cles.join(' ; ')}`, '');
   }
   return L.join('\n') + '\n';

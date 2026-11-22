@@ -1,8 +1,8 @@
 {
   "nom": "Jeu de mesure pédagogique, mission 3a",
-  "statut": "proposition à relire et valider avant toute mesure",
+  "statut": "proposition corrigée, à relire et valider avant toute mesure",
   "genere_par": "docs/pedagogie/assembler.js",
-  "note": "Aucune question n'est générée par Arbor. L'ordre des choix est mélangé (graine fixe) ; « reponse » est l'indice de la bonne réponse après mélange.",
+  "note": "Aucune question n'est générée par Arbor. L'ordre des choix est mélangé (graine fixe) ; « reponse » est l'indice de la bonne réponse après mélange ; « evalue » vient des sources (classement relu).",
   "elements": [
     {
       "id": "S01",
@@ -30,26 +30,26 @@
           "evalue": "compréhension"
         },
         {
-          "q": "À quoi sert l'adresse IP de destination écrite sur chaque paquet ?",
+          "q": "Un routeur reçoit un paquet adressé à un ordinateur situé dans un autre pays. Que fait-il ?",
           "choix": [
-            "À indiquer où le paquet doit arriver",
-            "À choisir la vitesse d'envoi",
-            "À vérifier que le paquet n'est pas abîmé",
-            "À donner le nom du fichier"
-          ],
-          "reponse": 0,
-          "evalue": "restitution"
-        },
-        {
-          "q": "Que fait un routeur quand il reçoit un paquet ?",
-          "choix": [
-            "Il l'ouvre et lit son contenu",
-            "Il le garde en mémoire",
-            "Il lit l'adresse de destination et le fait avancer vers elle",
+            "Il ouvre le paquet pour lire le message",
+            "Il le garde jusqu'à ce que le destinataire le réclame",
+            "Il lit l'adresse de destination et l'envoie vers le routeur suivant le plus adapté",
             "Il le renvoie à l'expéditeur"
           ],
           "reponse": 2,
-          "evalue": "restitution"
+          "evalue": "application"
+        },
+        {
+          "q": "Un câble est coupé sur le trajet habituel entre deux villes, mais la vidéo continue d'arriver. Pourquoi ?",
+          "choix": [
+            "Les routeurs font passer les paquets par un autre chemin",
+            "Les paquets n'ont pas besoin de chemin",
+            "Le câble coupé fonctionne encore à moitié",
+            "La vidéo était déjà entièrement chargée dans le câble"
+          ],
+          "reponse": 0,
+          "evalue": "compréhension"
         }
       ],
       "transfert": {
@@ -90,6 +90,41 @@
           ],
           "reponse": 3,
           "evalue": "restitution"
+        },
+        {
+          "q": "Un message est découpé en 10 paquets ; le 4e arrive après le 7e. Que faut-il pour reconstituer le message ?",
+          "choix": [
+            "Renvoyer tout le message",
+            "Jeter le 4e paquet",
+            "Rien, l'ordre n'a pas d'importance",
+            "Remettre les paquets dans le bon ordre à l'arrivée"
+          ],
+          "reponse": 3,
+          "evalue": "application"
+        }
+      ],
+      "deblocage": [
+        {
+          "q": "Tu envoies une photo à un ami. Combien d'adresses de destination différentes portent ses paquets ?",
+          "choix": [
+            "Une différente par paquet",
+            "Une par routeur traversé",
+            "Aucune",
+            "Une seule : celle de l'ami, sur chaque paquet"
+          ],
+          "reponse": 3,
+          "evalue": "application"
+        },
+        {
+          "q": "Pourquoi n'a-t-on pas besoin de réserver un chemin fixe avant d'envoyer des paquets ?",
+          "choix": [
+            "Parce qu'Internet n'a qu'un seul chemin",
+            "Parce qu'on envoie tout en un seul morceau",
+            "Parce que les paquets connaissent la carte du monde",
+            "Chaque paquet porte son adresse et chaque routeur décide du pas suivant"
+          ],
+          "reponse": 3,
+          "evalue": "compréhension"
         }
       ],
       "reformulation": {
@@ -126,26 +161,26 @@
           "evalue": "compréhension"
         },
         {
-          "q": "Quelle est la principale différence entre la mémoire vive et le disque ?",
-          "choix": [
-            "La mémoire vive est rapide mais temporaire, le disque est plus lent mais garde les fichiers",
-            "Il n'y a aucune différence",
-            "La mémoire vive garde tout pour toujours",
-            "Le disque est plus rapide"
-          ],
-          "reponse": 0,
-          "evalue": "restitution"
-        },
-        {
           "q": "Pourquoi un ordinateur ralentit-il quand on ouvre beaucoup de programmes ?",
           "choix": [
-            "Parce que la mémoire vive se remplit et l'ordinateur doit utiliser le disque, plus lent",
-            "Parce que le disque devient plus rapide",
-            "Parce que l'écran fatigue",
-            "Parce que la souris consomme trop"
+            "L'écran fatigue",
+            "La souris consomme trop",
+            "La mémoire vive se remplit et l'ordinateur doit utiliser le disque, plus lent",
+            "Le disque devient plus rapide"
           ],
-          "reponse": 0,
+          "reponse": 2,
           "evalue": "compréhension"
+        },
+        {
+          "q": "Tu dois garder des photos de vacances pendant des années. Où faut-il les enregistrer ?",
+          "choix": [
+            "Dans la mémoire vive",
+            "Dans le processeur",
+            "Sur le disque ou une clé, qui gardent les données sans courant",
+            "Dans l'écran"
+          ],
+          "reponse": 2,
+          "evalue": "application"
         }
       ],
       "transfert": {
@@ -186,6 +221,41 @@
           ],
           "reponse": 3,
           "evalue": "restitution"
+        },
+        {
+          "q": "Ton ordinateur est très lent avec 30 onglets ouverts, mais son disque est presque vide. Quelle est la cause la plus probable ?",
+          "choix": [
+            "Le clavier est usé",
+            "La mémoire vive est pleine",
+            "Le disque est trop vide",
+            "L'écran est trop petit"
+          ],
+          "reponse": 1,
+          "evalue": "application"
+        }
+      ],
+      "deblocage": [
+        {
+          "q": "Une coupure de courant survient pendant que tu écris. Qu'est-ce qui sera conservé ?",
+          "choix": [
+            "Ce qui avait déjà été enregistré sur le disque",
+            "Tout ce qui était à l'écran",
+            "Rien du tout, même enregistré",
+            "Seulement ce qui était dans la mémoire vive"
+          ],
+          "reponse": 0,
+          "evalue": "application"
+        },
+        {
+          "q": "Pourquoi un ordinateur utilise-t-il de la mémoire vive au lieu de tout faire directement sur le disque ?",
+          "choix": [
+            "Parce qu'elle garde les données plus longtemps",
+            "Parce que le disque ne peut rien lire",
+            "Parce qu'elle est gratuite",
+            "Parce qu'elle est beaucoup plus rapide pour travailler"
+          ],
+          "reponse": 3,
+          "evalue": "compréhension"
         }
       ],
       "reformulation": {
@@ -213,34 +283,34 @@
           "q": "Pourquoi un message chiffré intercepté est-il inutile pour un espion qui n'a pas la clé ?",
           "choix": [
             "Parce qu'il est en anglais",
-            "Parce qu'il est effacé",
+            "Parce qu'il est illisible sans la clé",
             "Parce qu'il est trop long",
-            "Parce qu'il est illisible sans la clé"
+            "Parce qu'il est effacé"
           ],
-          "reponse": 3,
+          "reponse": 1,
           "evalue": "compréhension"
         },
         {
-          "q": "Que faut-il pour retrouver le message d'origine ?",
+          "q": "Quelqu'un a volé la clé de ta messagerie chiffrée. Quel est le risque ?",
           "choix": [
-            "Une connexion plus rapide",
-            "Un écran plus grand",
-            "La bonne clé",
-            "Le nom de l'expéditeur"
+            "Les messages disparaissent",
+            "Il peut lire les messages chiffrés avec cette clé",
+            "Aucun, le chiffrement protège toujours",
+            "La clé change toute seule"
           ],
-          "reponse": 2,
-          "evalue": "restitution"
+          "reponse": 1,
+          "evalue": "application"
         },
         {
-          "q": "Si quelqu'un vole la clé, que se passe-t-il ?",
+          "q": "Deux personnes utilisent la même méthode de chiffrement connue de tous. Qu'est-ce qui garde leurs messages secrets ?",
           "choix": [
-            "La clé change toute seule",
-            "Rien, le chiffrement protège toujours",
-            "Il peut lire les messages chiffrés avec cette clé",
-            "Les messages disparaissent"
+            "La langue utilisée",
+            "La clé, qu'elles seules connaissent",
+            "Le fait que la méthode soit connue",
+            "La longueur des messages"
           ],
-          "reponse": 2,
-          "evalue": "application"
+          "reponse": 1,
+          "evalue": "compréhension"
         }
       ],
       "transfert": {
@@ -281,6 +351,41 @@
           ],
           "reponse": 2,
           "evalue": "restitution"
+        },
+        {
+          "q": "Avec un décalage de 1 dans l'alphabet, comment s'écrit le mot « OUI » chiffré ?",
+          "choix": [
+            "QWK",
+            "NTH",
+            "OUI",
+            "PVJ"
+          ],
+          "reponse": 3,
+          "evalue": "application"
+        }
+      ],
+      "deblocage": [
+        {
+          "q": "Tu reçois « EBUF », chiffré avec un décalage de 1. Quel était le mot ?",
+          "choix": [
+            "DATE",
+            "CATE",
+            "EBUF",
+            "FCVG"
+          ],
+          "reponse": 0,
+          "evalue": "application"
+        },
+        {
+          "q": "Pourquoi faut-il transmettre la clé autrement que par le même canal que le message ?",
+          "choix": [
+            "Parce que la clé est trop longue",
+            "Parce que la loi l'interdit",
+            "Si quelqu'un intercepte les deux, il peut tout lire",
+            "Ce n'est jamais nécessaire"
+          ],
+          "reponse": 2,
+          "evalue": "compréhension"
         }
       ],
       "reformulation": {
@@ -316,26 +421,26 @@
           "evalue": "application"
         },
         {
-          "q": "À quels triangles s'applique le théorème ?",
+          "q": "On ne peut pas utiliser le théorème pour calculer un côté d'un triangle sans angle droit. Pourquoi ?",
           "choix": [
-            "Aux triangles qui ont un angle droit",
-            "À tous les triangles",
-            "Aux triangles dont les trois côtés sont égaux",
-            "Aux carrés"
+            "Parce que ce triangle n'a pas de côtés",
+            "La relation entre les carrés des côtés n'est vraie qu'avec un angle droit",
+            "Parce que le calcul serait trop long",
+            "On peut l'utiliser pour tous les triangles"
           ],
-          "reponse": 0,
-          "evalue": "restitution"
+          "reponse": 1,
+          "evalue": "compréhension"
         },
         {
-          "q": "Le plus grand côté d'un triangle rectangle est toujours…",
+          "q": "Un triangle a des côtés 5, 12 et 13. Est-il rectangle ?",
           "choix": [
-            "le plus petit",
-            "collé à l'angle droit",
-            "égal aux deux autres réunis",
-            "en face de l'angle droit"
+            "Non, aucun triangle n'a ces côtés",
+            "Oui, car 5² + 12² = 13²",
+            "On ne peut pas savoir",
+            "Non, car 5 + 12 ≠ 13"
           ],
-          "reponse": 3,
-          "evalue": "restitution"
+          "reponse": 1,
+          "evalue": "application"
         }
       ],
       "transfert": {
@@ -356,26 +461,61 @@
           "evalue": "restitution"
         },
         {
-          "q": "Triangle rectangle de côtés 6 et 8 autour de l'angle droit : le grand côté mesure…",
+          "q": "Où se trouve l'hypoténuse ?",
           "choix": [
-            "10",
-            "12",
-            "9",
-            "14"
+            "En face de l'angle droit",
+            "Au centre",
+            "Il n'y en a pas",
+            "Entre les deux petits côtés"
           ],
           "reponse": 0,
+          "evalue": "restitution"
+        },
+        {
+          "q": "À quels triangles s'applique le théorème ?",
+          "choix": [
+            "Aux triangles dont les trois côtés sont égaux",
+            "Aux carrés",
+            "À tous les triangles",
+            "Aux triangles qui ont un angle droit"
+          ],
+          "reponse": 3,
+          "evalue": "restitution"
+        },
+        {
+          "q": "Triangle rectangle de côtés 6 et 8 autour de l'angle droit : le grand côté mesure…",
+          "choix": [
+            "14",
+            "12",
+            "10",
+            "9"
+          ],
+          "reponse": 2,
+          "evalue": "application"
+        }
+      ],
+      "deblocage": [
+        {
+          "q": "Un écran a 30 cm de large et 40 cm de haut. Combien mesure sa diagonale ?",
+          "choix": [
+            "70 cm",
+            "35 cm",
+            "50 cm",
+            "60 cm"
+          ],
+          "reponse": 2,
           "evalue": "application"
         },
         {
-          "q": "Où se trouve l'hypoténuse ?",
+          "q": "Pourquoi l'hypoténuse est-elle toujours le plus grand côté ?",
           "choix": [
-            "Au centre",
-            "Il n'y en a pas",
-            "En face de l'angle droit",
-            "Entre les deux petits côtés"
+            "Ce n'est pas toujours le cas",
+            "Parce qu'elle est toujours horizontale",
+            "Son carré est la somme des carrés des deux autres, donc plus grand que chacun",
+            "Par convention, sans raison"
           ],
           "reponse": 2,
-          "evalue": "restitution"
+          "evalue": "compréhension"
         }
       ],
       "reformulation": {
@@ -411,25 +551,25 @@
           "evalue": "application"
         },
         {
-          "q": "Laquelle est la plus grande : 1/2 ou 1/4 ?",
+          "q": "Pourquoi 1/4 est-il plus petit que 1/2, alors que 4 est plus grand que 2 ?",
           "choix": [
-            "1/4",
-            "1/2",
-            "Elles sont égales",
-            "On ne peut pas savoir"
+            "Plus on coupe le tout en parts nombreuses, plus chaque part est petite",
+            "Parce que 1/4 a moins de chiffres",
+            "Ils sont égaux",
+            "C'est une exception à apprendre par cœur"
           ],
-          "reponse": 1,
-          "evalue": "restitution"
+          "reponse": 0,
+          "evalue": "compréhension"
         },
         {
           "q": "Pourquoi 2/4 et 1/2 représentent-ils la même quantité ?",
           "choix": [
-            "Parce qu'ils ont le même numérateur",
+            "2 parts sur 4 couvrent autant que 1 part sur 2",
             "Parce que 4 est plus grand que 2",
             "Ce n'est pas la même quantité",
-            "Parce que 2 parts sur 4 couvrent autant que 1 part sur 2"
+            "Parce qu'ils ont le même numérateur"
           ],
-          "reponse": 3,
+          "reponse": 0,
           "evalue": "compréhension"
         }
       ],
@@ -459,7 +599,7 @@
             "1/4"
           ],
           "reponse": 1,
-          "evalue": "application"
+          "evalue": "restitution"
         },
         {
           "q": "Lequel est le plus petit : 1/3 ou 1/10 ?",
@@ -471,6 +611,41 @@
           ],
           "reponse": 0,
           "evalue": "restitution"
+        },
+        {
+          "q": "Tu as mangé 2/6 d'une tarte et ton ami 1/3. Qui en a mangé le plus ?",
+          "choix": [
+            "Ton ami",
+            "On ne peut pas comparer",
+            "Toi",
+            "Autant l'un que l'autre"
+          ],
+          "reponse": 3,
+          "evalue": "application"
+        }
+      ],
+      "deblocage": [
+        {
+          "q": "Une bouteille d'1 litre est remplie aux 3/4. Combien de quarts de litre manque-t-il pour la remplir ?",
+          "choix": [
+            "4",
+            "2",
+            "1",
+            "3"
+          ],
+          "reponse": 2,
+          "evalue": "application"
+        },
+        {
+          "q": "Pourquoi peut-on remplacer 6/9 par 2/3 ?",
+          "choix": [
+            "Parce que 2/3 est plus grand",
+            "On a regroupé les parts par 3 : la quantité reste la même",
+            "Parce que 6 et 9 sont trop grands",
+            "On ne peut pas"
+          ],
+          "reponse": 1,
+          "evalue": "compréhension"
         }
       ],
       "reformulation": {
@@ -506,25 +681,25 @@
           "evalue": "application"
         },
         {
-          "q": "Qu'est-ce qui distingue les intérêts composés ?",
+          "q": "Pourquoi obtient-on 121 € et non 120 € dans la question précédente ?",
           "choix": [
-            "Le taux baisse chaque année",
-            "Ils sont interdits",
-            "Les intérêts gagnés rapportent à leur tour des intérêts",
-            "On ne touche rien avant la fin"
+            "Parce que la banque ajoute 1 € de cadeau",
+            "C'est une erreur de calcul",
+            "La 2e année, les 10 € d'intérêts gagnés rapportent aussi",
+            "Parce que le taux monte à 11 %"
           ],
           "reponse": 2,
-          "evalue": "restitution"
+          "evalue": "compréhension"
         },
         {
           "q": "Pour un même taux, pourquoi placer tôt rapporte-t-il plus ?",
           "choix": [
-            "Parce que les intérêts ont plus d'années pour s'ajouter et rapporter à leur tour",
             "Parce que le taux augmente avec l'âge",
+            "Les intérêts ont plus d'années pour s'ajouter et rapporter à leur tour",
             "Ce n'est pas vrai",
             "Parce que la banque offre un cadeau"
           ],
-          "reponse": 0,
+          "reponse": 1,
           "evalue": "compréhension"
         }
       ],
@@ -546,26 +721,61 @@
           "evalue": "restitution"
         },
         {
-          "q": "100 € à 50 % par an pendant 2 ans, composés :",
-          "choix": [
-            "150 €",
-            "225 €",
-            "250 €",
-            "200 €"
-          ],
-          "reponse": 1,
-          "evalue": "application"
-        },
-        {
           "q": "Le capital, c'est…",
           "choix": [
+            "la banque",
             "la somme placée au départ",
             "la durée",
-            "le taux",
-            "la banque"
+            "le taux"
+          ],
+          "reponse": 1,
+          "evalue": "restitution"
+        },
+        {
+          "q": "Qu'est-ce qui distingue les intérêts composés ?",
+          "choix": [
+            "Les intérêts gagnés rapportent à leur tour des intérêts",
+            "Ils sont interdits",
+            "Le taux baisse chaque année",
+            "On ne touche rien avant la fin"
           ],
           "reponse": 0,
           "evalue": "restitution"
+        },
+        {
+          "q": "100 € à 50 % par an pendant 2 ans, intérêts composés :",
+          "choix": [
+            "150 €",
+            "200 €",
+            "225 €",
+            "250 €"
+          ],
+          "reponse": 2,
+          "evalue": "application"
+        }
+      ],
+      "deblocage": [
+        {
+          "q": "Tu places 200 € à 10 % par an, composés. Combien as-tu au bout d'un an, puis de deux ans ?",
+          "choix": [
+            "220 €, puis 242 €",
+            "200 €, puis 220 €",
+            "210 €, puis 220 €",
+            "220 €, puis 240 €"
+          ],
+          "reponse": 0,
+          "evalue": "application"
+        },
+        {
+          "q": "Si tu retires chaque année les intérêts gagnés, y a-t-il encore un effet « composé » ?",
+          "choix": [
+            "Oui, c'est pareil",
+            "Oui, il est même plus fort",
+            "Non, les intérêts ne restent pas pour rapporter à leur tour",
+            "Seulement si le taux est élevé"
+          ],
+          "reponse": 2,
+          "evalue": "compréhension"
         }
       ],
       "reformulation": {
@@ -591,36 +801,36 @@
       ],
       "comprehension": [
         {
-          "q": "De quoi une plante a-t-elle besoin pour fabriquer sa nourriture par photosynthèse ?",
-          "choix": [
-            "D'oxygène et de nuit",
-            "Lumière, eau et dioxyde de carbone",
-            "Seulement de terre",
-            "De sucre ajouté"
-          ],
-          "reponse": 1,
-          "evalue": "restitution"
-        },
-        {
-          "q": "Quel gaz la plante rejette-t-elle pendant la photosynthèse ?",
-          "choix": [
-            "Azote",
-            "Oxygène",
-            "Dioxyde de carbone",
-            "Hélium"
-          ],
-          "reponse": 1,
-          "evalue": "restitution"
-        },
-        {
           "q": "Pourquoi une plante laissée dans un placard sombre dépérit-elle ?",
           "choix": [
+            "Parce qu'elle a trop d'eau",
             "Sans lumière, elle ne peut plus fabriquer sa nourriture",
             "Parce qu'elle a trop froid",
-            "Parce que le placard est petit",
-            "Parce qu'elle a trop d'eau"
+            "Parce que le placard est petit"
           ],
-          "reponse": 0,
+          "reponse": 1,
+          "evalue": "compréhension"
+        },
+        {
+          "q": "Une plante d'intérieur bien arrosée, posée loin de toute fenêtre, pousse mal. Que changer en priorité ?",
+          "choix": [
+            "La mettre au réfrigérateur",
+            "L'arroser encore plus",
+            "La rapprocher de la lumière",
+            "Lui retirer ses feuilles"
+          ],
+          "reponse": 2,
+          "evalue": "application"
+        },
+        {
+          "q": "D'où vient l'essentiel de la matière qui fait grossir un arbre ?",
+          "choix": [
+            "Uniquement de la terre",
+            "Du dioxyde de carbone de l'air, transformé grâce à la lumière",
+            "Des insectes",
+            "Uniquement de l'eau de pluie"
+          ],
+          "reponse": 1,
           "evalue": "compréhension"
         }
       ],
@@ -662,6 +872,41 @@
           ],
           "reponse": 2,
           "evalue": "restitution"
+        },
+        {
+          "q": "Dans un aquarium éclairé, des bulles se forment sur les feuilles des plantes. Que contiennent-elles surtout ?",
+          "choix": [
+            "Du dioxyde de carbone",
+            "De l'oxygène",
+            "De l'azote",
+            "De la vapeur de sel"
+          ],
+          "reponse": 1,
+          "evalue": "application"
+        }
+      ],
+      "deblocage": [
+        {
+          "q": "Une salade pousse sous une lampe éclairant 4 heures par jour au lieu de 12. Que prévoir ?",
+          "choix": [
+            "Aucun effet",
+            "Elle produira moins de nourriture et poussera moins vite",
+            "Elle poussera plus vite",
+            "Elle produira plus d'oxygène"
+          ],
+          "reponse": 1,
+          "evalue": "application"
+        },
+        {
+          "q": "Pourquoi dit-on que les plantes « nourrissent » presque tous les êtres vivants ?",
+          "choix": [
+            "Parce qu'elles mangent les animaux",
+            "Parce qu'elles produisent de l'eau",
+            "Elles fabriquent du sucre avec la lumière, que les animaux mangent ensuite",
+            "Ce n'est pas vrai"
+          ],
+          "reponse": 2,
+          "evalue": "compréhension"
         }
       ],
       "reformulation": {
@@ -686,37 +931,37 @@
       ],
       "comprehension": [
         {
-          "q": "Quel est le rôle principal du système immunitaire ?",
-          "choix": [
-            "Digérer les aliments",
-            "Défendre le corps contre les microbes",
-            "Faire circuler le sang",
-            "Produire de l'énergie"
-          ],
-          "reponse": 1,
-          "evalue": "restitution"
-        },
-        {
           "q": "Pourquoi tombe-t-on rarement deux fois malade de la varicelle ?",
           "choix": [
-            "Parce qu'on grandit",
-            "Parce que le corps garde la mémoire de ce microbe et réagit vite",
-            "Par hasard",
-            "Parce que le microbe disparaît de la Terre"
+            "Le corps garde la mémoire de ce microbe et réagit vite",
+            "Le microbe disparaît de la Terre",
+            "On grandit",
+            "Par hasard"
+          ],
+          "reponse": 0,
+          "evalue": "compréhension"
+        },
+        {
+          "q": "Des anticorps contre la grippe protègent-ils contre la varicelle ?",
+          "choix": [
+            "Oui, mais seulement l'hiver",
+            "Non : un anticorps reconnaît un microbe précis",
+            "Seulement chez l'adulte",
+            "Oui, ils protègent contre tout"
           ],
           "reponse": 1,
           "evalue": "compréhension"
         },
         {
-          "q": "Les anticorps sont…",
+          "q": "Après une coupure, la peau autour devient rouge et chaude pendant un jour. Que se passe-t-il le plus probablement ?",
           "choix": [
-            "des microbes",
-            "des vitamines",
-            "des molécules qui repèrent un microbe précis",
-            "des médicaments"
+            "Le système immunitaire combat des microbes entrés par la plaie",
+            "C'est toujours le signe d'une maladie grave",
+            "Le sang se transforme en eau",
+            "La peau fabrique de la chlorophylle"
           ],
-          "reponse": 2,
-          "evalue": "restitution"
+          "reponse": 0,
+          "evalue": "application"
         }
       ],
       "transfert": {
@@ -757,6 +1002,41 @@
           ],
           "reponse": 2,
           "evalue": "restitution"
+        },
+        {
+          "q": "Deux enfants attrapent le même virus ; l'un l'a déjà eu l'an dernier. Lequel guérira probablement le plus vite ?",
+          "choix": [
+            "Aucun des deux",
+            "Les deux pareil, toujours",
+            "Celui qui l'a déjà eu",
+            "Celui qui ne l'a jamais eu"
+          ],
+          "reponse": 2,
+          "evalue": "application"
+        }
+      ],
+      "deblocage": [
+        {
+          "q": "Un microbe nouveau, jamais rencontré, entre dans le corps. Pourquoi la défense est-elle plus lente que pour un microbe déjà connu ?",
+          "choix": [
+            "La défense est toujours aussi rapide",
+            "Le corps doit d'abord apprendre à le reconnaître",
+            "Parce que les nouveaux microbes sont toujours plus gros",
+            "Le corps ne se défend jamais contre un nouveau microbe"
+          ],
+          "reponse": 1,
+          "evalue": "application"
+        },
+        {
+          "q": "Pourquoi le système immunitaire n'attaque-t-il pas, en temps normal, nos propres cellules ?",
+          "choix": [
+            "Il les attaque toujours",
+            "Il distingue ce qui appartient au corps de ce qui vient de l'extérieur",
+            "Parce que nos cellules sont trop petites",
+            "Parce qu'il ne fonctionne que la nuit"
+          ],
+          "reponse": 1,
+          "evalue": "compréhension"
         }
       ],
       "reformulation": {
@@ -781,37 +1061,37 @@
       ],
       "comprehension": [
         {
-          "q": "Où trouve-t-on l'ADN dans le corps ?",
+          "q": "Pourquoi un enfant ressemble-t-il à ses deux parents à la fois ?",
           "choix": [
-            "Dans presque toutes les cellules",
-            "Seulement dans les os",
-            "Dans l'air",
-            "Seulement dans le sang"
-          ],
-          "reponse": 0,
-          "evalue": "restitution"
-        },
-        {
-          "q": "Pourquoi un enfant ressemble-t-il à ses parents ?",
-          "choix": [
-            "Parce qu'il vit avec eux",
-            "Parce qu'il mange la même chose",
+            "Il mange la même chose qu'eux",
+            "Il vit avec eux",
             "Par hasard uniquement",
-            "Parce qu'il reçoit une partie de l'ADN de chacun"
+            "Il reçoit une partie de l'ADN de chacun"
           ],
           "reponse": 3,
           "evalue": "compréhension"
         },
         {
-          "q": "Un gène est…",
+          "q": "On peut trouver l'ADN d'une personne dans un cheveu ou une goutte de salive. Pourquoi ?",
           "choix": [
-            "un organe",
-            "une maladie",
-            "un vaccin",
-            "un morceau d'ADN qui porte une information"
+            "Parce que l'ADN flotte dans l'air",
+            "Parce que l'ADN est fabriqué par la bouche",
+            "C'est impossible",
+            "Ils contiennent des cellules, et presque toutes les cellules ont de l'ADN"
           ],
           "reponse": 3,
-          "evalue": "restitution"
+          "evalue": "application"
+        },
+        {
+          "q": "Pourquoi des vrais jumeaux ont-ils le même ADN, mais pas des frères et sœurs ordinaires ?",
+          "choix": [
+            "Parce qu'ils se ressemblent",
+            "Parce qu'ils sont nés le même jour",
+            "Tous les frères et sœurs ont le même ADN",
+            "Les vrais jumeaux viennent d'un seul œuf qui s'est séparé"
+          ],
+          "reponse": 3,
+          "evalue": "compréhension"
         }
       ],
       "transfert": {
@@ -843,15 +1123,50 @@
           "evalue": "restitution"
         },
         {
-          "q": "Deux personnes non jumelles ont-elles le même ADN ?",
+          "q": "Un gène est…",
           "choix": [
-            "Seulement les frères",
-            "Non",
-            "Oui",
-            "Seulement les voisins"
+            "un organe",
+            "une maladie",
+            "un morceau d'ADN qui porte une information",
+            "un vaccin"
           ],
-          "reponse": 1,
+          "reponse": 2,
           "evalue": "restitution"
+        },
+        {
+          "q": "Deux suspects ont laissé des traces ; un seul ADN correspond au cheveu trouvé. Que peut-on conclure ?",
+          "choix": [
+            "Les deux sont coupables",
+            "Le cheveu n'apprend rien",
+            "Le cheveu vient forcément d'un jumeau",
+            "Le cheveu vient probablement de ce suspect"
+          ],
+          "reponse": 3,
+          "evalue": "application"
+        }
+      ],
+      "deblocage": [
+        {
+          "q": "Une cellule de peau et une cellule du foie d'une même personne ont-elles le même ADN ?",
+          "choix": [
+            "Non, chaque organe a son ADN",
+            "Seulement le matin",
+            "Seulement si la personne est jeune",
+            "Oui, le même ADN dans presque toutes ses cellules"
+          ],
+          "reponse": 3,
+          "evalue": "application"
+        },
+        {
+          "q": "Pourquoi deux frères et sœurs, qui ne sont pas jumeaux, ne se ressemblent-ils pas exactement ?",
+          "choix": [
+            "Chacun reçoit une combinaison différente de l'ADN de ses parents",
+            "Parce que l'ADN change chaque année",
+            "Ils ont exactement le même ADN",
+            "Parce qu'ils ne mangent pas la même chose"
+          ],
+          "reponse": 0,
+          "evalue": "compréhension"
         }
       ],
       "reformulation": {
@@ -876,47 +1191,47 @@
       ],
       "comprehension": [
         {
-          "q": "Comment un vaccin protège-t-il ?",
+          "q": "Comment un vaccin aide-t-il le corps à se protéger ?",
           "choix": [
             "Il tue tous les microbes du corps",
-            "Il apprend au corps à reconnaître un microbe sans tomber vraiment malade",
-            "Il soigne une maladie déjà là",
+            "Il lui fait rencontrer, sans danger, un élément du microbe pour qu'il apprenne à le reconnaître",
+            "Il soigne une maladie déjà installée",
             "Il remplace le sang"
           ],
           "reponse": 1,
           "evalue": "compréhension"
         },
         {
-          "q": "Pourquoi fait-on parfois un rappel ?",
+          "q": "Pourquoi, pour certaines maladies, faut-il un rappel quelques années plus tard ?",
           "choix": [
             "Ce n'est jamais utile",
-            "Pour changer de microbe",
-            "Pour réveiller la mémoire du corps qui faiblit avec le temps",
-            "Parce que le premier était faux"
+            "Pour changer de maladie",
+            "La protection peut diminuer avec le temps ; le rappel la renforce",
+            "Parce que le premier vaccin était faux"
           ],
           "reponse": 2,
           "evalue": "compréhension"
         },
         {
-          "q": "Pourquoi vacciner beaucoup de monde protège aussi ceux qui ne le sont pas ?",
+          "q": "Dans une ville, beaucoup de gens sont vaccinés contre une maladie contagieuse. Pourquoi un bébé trop jeune pour être vacciné y est-il moins exposé ?",
           "choix": [
-            "Parce que le microbe circule moins",
-            "Ce n'est pas vrai",
-            "Parce que le vaccin se transmet",
-            "Parce que l'air est filtré"
+            "La maladie circule moins, donc il a moins de chances de la rencontrer",
+            "Il n'est pas moins exposé",
+            "Parce que le vaccin se transmet par l'air",
+            "Parce que les bébés ne tombent jamais malades"
           ],
           "reponse": 0,
-          "evalue": "compréhension"
+          "evalue": "application"
         }
       ],
       "transfert": {
-        "situation": "Dans une école, presque tous les élèves sont vaccinés contre la rougeole, sauf un bébé de la crèche voisine, trop jeune.",
-        "question": "Pourquoi ce bébé est-il moins exposé qu'ailleurs ?",
-        "attendu": "Le virus circule peu autour de lui car presque tout le monde est protégé : il a peu de chances d'être contaminé."
+        "situation": "Une personne vaccinée contre une maladie l'attrape quand même, mais de façon légère.",
+        "question": "Est-ce que cela veut dire que le vaccin n'a servi à rien ? Explique.",
+        "attendu": "Non : aucun vaccin ne protège à 100 %, mais le corps, déjà entraîné, réagit plus vite, ce qui rend souvent la maladie moins grave."
       },
       "rappel": [
         {
-          "q": "Un vaccin entraîne…",
+          "q": "Un vaccin entraîne surtout…",
           "choix": [
             "la mémoire scolaire",
             "les muscles",
@@ -940,20 +1255,55 @@
         {
           "q": "Un vaccin agit surtout…",
           "choix": [
-            "avant la maladie",
+            "avant que la maladie survienne",
             "seulement la nuit",
             "après la guérison",
             "sur les plantes"
           ],
           "reponse": 0,
           "evalue": "restitution"
+        },
+        {
+          "q": "Un adulte n'a pas fait le rappel conseillé depuis longtemps. Quel est le risque le plus probable ?",
+          "choix": [
+            "Sa protection a pu baisser",
+            "Son vaccin le rend malade",
+            "Il est malade en ce moment",
+            "Il est protégé à vie quoi qu'il arrive"
+          ],
+          "reponse": 0,
+          "evalue": "application"
+        }
+      ],
+      "deblocage": [
+        {
+          "q": "Pourquoi vaccine-t-on avant une épidémie plutôt que pendant qu'on est déjà malade ?",
+          "choix": [
+            "Parce que c'est moins cher",
+            "Il n'y a aucune différence",
+            "Le corps a besoin de temps pour apprendre à reconnaître le microbe",
+            "Parce que le vaccin soigne mieux une fois malade"
+          ],
+          "reponse": 2,
+          "evalue": "application"
+        },
+        {
+          "q": "Pourquoi une personne vaccinée réagit-elle plus vite si elle rencontre le vrai microbe ?",
+          "choix": [
+            "Parce que le vaccin reste dans le sang comme un médicament",
+            "Son système immunitaire le reconnaît déjà grâce au vaccin",
+            "Elle ne réagit pas plus vite",
+            "Parce que le microbe est plus faible chez elle"
+          ],
+          "reponse": 1,
+          "evalue": "compréhension"
         }
       ],
       "reformulation": {
-        "idee_centrale": "Un vaccin présente au corps un microbe rendu inoffensif ou une partie de celui-ci, pour qu'il apprenne à le reconnaître et se défende vite plus tard.",
+        "idee_centrale": "Un vaccin fait rencontrer au corps, sans danger, un élément du microbe (ou de quoi le fabriquer), pour qu'il apprenne à le reconnaître et se défende plus vite plus tard.",
         "elements_cles": [
-          "apprendre sans être malade",
-          "protection qui peut demander des rappels"
+          "apprendre sans faire la maladie",
+          "protection qui peut diminuer et demander des rappels"
         ]
       }
     },
@@ -972,37 +1322,37 @@
       ],
       "comprehension": [
         {
-          "q": "D'où vient l'eau qui forme les nuages ?",
-          "choix": [
-            "De la pollution",
-            "Des étoiles",
-            "De l'eau évaporée des mers, lacs et sols",
-            "Uniquement des rivières gelées"
-          ],
-          "reponse": 2,
-          "evalue": "restitution"
-        },
-        {
           "q": "Pourquoi se forme-t-il des gouttes sur un verre d'eau très froide en été ?",
           "choix": [
+            "Le soleil chauffe le verre",
             "Le verre fuit",
-            "L'eau traverse le verre",
             "La vapeur d'eau de l'air se condense au contact du froid",
-            "Le soleil chauffe le verre"
+            "L'eau traverse le verre"
           ],
           "reponse": 2,
           "evalue": "compréhension"
         },
         {
-          "q": "Que devient la pluie qui tombe sur le sol ?",
+          "q": "Du linge mouillé sèche plus vite dehors par une journée chaude et venteuse. Pourquoi ?",
           "choix": [
-            "Elle se transforme en sel",
-            "Elle disparaît",
-            "Elle remonte au ciel tout de suite",
-            "Elle ruisselle vers les rivières ou s'infiltre dans le sol"
+            "Le vent pousse l'eau dans le sol",
+            "Le soleil transforme l'eau en sel",
+            "La chaleur et le vent accélèrent l'évaporation de l'eau",
+            "Il ne sèche pas plus vite"
+          ],
+          "reponse": 2,
+          "evalue": "application"
+        },
+        {
+          "q": "L'eau d'une flaque disparaît sans couler nulle part. Où est-elle partie ?",
+          "choix": [
+            "Elle s'est transformée en nuage instantanément sur place",
+            "Elle a été détruite",
+            "Elle est devenue de la terre",
+            "Elle s'est évaporée dans l'air sous forme de vapeur"
           ],
           "reponse": 3,
-          "evalue": "application"
+          "evalue": "compréhension"
         }
       ],
       "transfert": {
@@ -1043,6 +1393,41 @@
           ],
           "reponse": 0,
           "evalue": "restitution"
+        },
+        {
+          "q": "Tu sors une bouteille du réfrigérateur un jour humide : elle se couvre de gouttes. Quelle étape du cycle est-ce ?",
+          "choix": [
+            "La condensation",
+            "L'infiltration",
+            "Le ruissellement",
+            "L'évaporation"
+          ],
+          "reponse": 0,
+          "evalue": "application"
+        }
+      ],
+      "deblocage": [
+        {
+          "q": "Une casserole d'eau bouillante a un couvercle ; des gouttes coulent sous le couvercle. Que s'est-il passé ?",
+          "choix": [
+            "L'eau a traversé le métal",
+            "La casserole fabrique de l'eau",
+            "L'eau s'est évaporée puis condensée sur le couvercle plus froid",
+            "Le couvercle fuit"
+          ],
+          "reponse": 2,
+          "evalue": "application"
+        },
+        {
+          "q": "Pourquoi la quantité d'eau sur Terre reste-t-elle à peu près la même malgré la pluie et l'évaporation ?",
+          "choix": [
+            "Elle diminue chaque jour",
+            "L'eau change d'état et de place mais n'est pas détruite",
+            "Parce qu'il pleut toujours autant partout",
+            "Parce que les nuages fabriquent de l'eau"
+          ],
+          "reponse": 1,
+          "evalue": "compréhension"
         }
       ],
       "reformulation": {
@@ -1067,15 +1452,15 @@
       ],
       "comprehension": [
         {
-          "q": "Sans aucun effet de serre naturel, la Terre serait…",
+          "q": "Pourquoi, sans aucun effet de serre naturel, la Terre serait-elle beaucoup plus froide ?",
           "choix": [
-            "beaucoup plus chaude",
-            "sans soleil",
-            "identique",
-            "beaucoup plus froide"
+            "Parce que le Soleil s'éteindrait",
+            "Elle ne serait pas plus froide",
+            "Parce que l'eau gèlerait d'abord",
+            "La chaleur émise par le sol repartirait presque toute vers l'espace"
           ],
           "reponse": 3,
-          "evalue": "restitution"
+          "evalue": "compréhension"
         },
         {
           "q": "Pourquoi l'ajout de gaz à effet de serre réchauffe-t-il le climat ?",
@@ -1089,15 +1474,15 @@
           "evalue": "compréhension"
         },
         {
-          "q": "Brûler du charbon, du pétrole ou du gaz…",
+          "q": "Une ville remplace ses bus au gazole par des bus électriques alimentés par une électricité peu carbonée. Quel effet sur l'effet de serre ?",
           "choix": [
-            "ajoute du dioxyde de carbone dans l'air",
-            "retire du dioxyde de carbone",
-            "n'a aucun effet",
-            "fabrique de l'oxygène"
+            "Moins de dioxyde de carbone émis, donc moins de renforcement de l'effet de serre",
+            "Aucun effet",
+            "Plus d'effet de serre",
+            "L'effet de serre disparaît totalement"
           ],
           "reponse": 0,
-          "evalue": "restitution"
+          "evalue": "application"
         }
       ],
       "transfert": {
@@ -1138,6 +1523,41 @@
           ],
           "reponse": 3,
           "evalue": "restitution"
+        },
+        {
+          "q": "Une personne fait chaque jour 20 km en voiture à essence pour aller travailler. Quel changement réduit le plus ses émissions de gaz à effet de serre ?",
+          "choix": [
+            "Faire le trajet en train ou en bus",
+            "Rouler vitres ouvertes",
+            "Changer la couleur de la voiture",
+            "Laver la voiture plus souvent"
+          ],
+          "reponse": 0,
+          "evalue": "application"
+        }
+      ],
+      "deblocage": [
+        {
+          "q": "Une nuit nuageuse est souvent moins froide qu'une nuit sans nuages. Avec quelle idée de l'effet de serre cela s'accorde-t-il ?",
+          "choix": [
+            "Ce qui est au-dessus du sol retient une partie de la chaleur qu'il émet",
+            "Les nuages produisent de la chaleur",
+            "Aucune",
+            "La Lune réchauffe les nuages"
+          ],
+          "reponse": 0,
+          "evalue": "application"
+        },
+        {
+          "q": "Pourquoi parle-t-on d'effet de serre « renforcé » plutôt que d'effet de serre tout court pour le changement climatique ?",
+          "choix": [
+            "C'est la même chose",
+            "L'effet existe naturellement ; les activités humaines l'augmentent",
+            "Parce que les serres de jardin chauffent la Terre",
+            "Parce qu'il n'existait pas avant"
+          ],
+          "reponse": 1,
+          "evalue": "compréhension"
         }
       ],
       "reformulation": {
@@ -1173,26 +1593,26 @@
           "evalue": "compréhension"
         },
         {
-          "q": "Sur la Lune, un astronaute pèse moins que sur Terre parce que…",
+          "q": "Sur la Lune, un astronaute pèse moins que sur Terre. Pourquoi ?",
           "choix": [
-            "il a perdu du poids",
-            "la Lune l'attire moins fort",
-            "sa combinaison est légère",
-            "il n'y a pas d'air"
+            "Il a perdu de la masse",
+            "La Lune, moins massive, l'attire moins fort",
+            "Sa combinaison est légère",
+            "Il n'y a pas d'air"
           ],
           "reponse": 1,
-          "evalue": "restitution"
+          "evalue": "compréhension"
         },
         {
-          "q": "Qu'est-ce qui maintient la Lune autour de la Terre ?",
+          "q": "Une balance indique 60 kg sur Terre. Sur la Lune, la même personne aurait-elle moins de matière ?",
           "choix": [
-            "Un câble invisible",
-            "Le vent solaire",
-            "Rien, elle est immobile",
-            "L'attraction de la Terre"
+            "Oui, elle perdrait de la matière",
+            "Elle aurait plus de matière",
+            "Elle n'aurait plus de masse",
+            "Non, la même masse, mais un poids plus faible"
           ],
           "reponse": 3,
-          "evalue": "restitution"
+          "evalue": "application"
         }
       ],
       "transfert": {
@@ -1233,6 +1653,41 @@
           ],
           "reponse": 2,
           "evalue": "restitution"
+        },
+        {
+          "q": "Mars est moins massive que la Terre. Un sac de 10 kg y serait…",
+          "choix": [
+            "plus lourd à porter",
+            "impossible à soulever",
+            "moins lourd à porter, mais toujours de 10 kg de matière",
+            "de 5 kg de matière"
+          ],
+          "reponse": 2,
+          "evalue": "application"
+        }
+      ],
+      "deblocage": [
+        {
+          "q": "Sur une planète plus massive que la Terre, mais de même taille, un objet pèserait…",
+          "choix": [
+            "rien",
+            "pareil",
+            "moins lourd",
+            "plus lourd"
+          ],
+          "reponse": 3,
+          "evalue": "application"
+        },
+        {
+          "q": "Pourquoi un satellite trop lent finit-il par retomber sur Terre ?",
+          "choix": [
+            "Parce qu'il devient plus lourd",
+            "Il ne retombe jamais",
+            "Parce que la Terre le repousse",
+            "Sa vitesse ne suffit plus à compenser l'attraction de la Terre"
+          ],
+          "reponse": 3,
+          "evalue": "compréhension"
         }
       ],
       "reformulation": {
@@ -1258,43 +1713,43 @@
       ],
       "comprehension": [
         {
-          "q": "Si on compare l'électricité à de l'eau dans un tuyau, la tension ressemble à…",
+          "q": "On compare souvent un circuit à de l'eau dans des tuyaux. Dans cette image, à quoi correspond la tension ?",
           "choix": [
-            "la couleur de l'eau",
-            "la pression qui pousse l'eau",
-            "la longueur du tuyau",
-            "le robinet fermé"
+            "À la couleur de l'eau",
+            "À la différence de pression qui fait circuler l'eau",
+            "À la longueur du tuyau",
+            "Au robinet fermé"
           ],
           "reponse": 1,
-          "evalue": "application"
-        },
-        {
-          "q": "L'intensité mesure…",
-          "choix": [
-            "le prix de l'électricité",
-            "la longueur des fils",
-            "la couleur de la lumière",
-            "la quantité de courant qui passe à chaque instant"
-          ],
-          "reponse": 3,
-          "evalue": "restitution"
+          "evalue": "compréhension"
         },
         {
           "q": "Pourquoi une lampe ne s'allume-t-elle pas si le circuit est ouvert ?",
           "choix": [
+            "Il fait jour",
             "La lampe est trop loin",
             "La tension devient trop forte",
-            "Le courant ne peut pas circuler",
-            "Il fait jour"
+            "Le courant ne peut pas circuler"
+          ],
+          "reponse": 3,
+          "evalue": "compréhension"
+        },
+        {
+          "q": "Une lampe prévue pour 6 V est branchée sur une pile de 1,5 V. Que se passe-t-il le plus probablement ?",
+          "choix": [
+            "Elle explose",
+            "Elle brille plus fort que prévu",
+            "Elle brille faiblement ou pas du tout",
+            "La pile se recharge"
           ],
           "reponse": 2,
-          "evalue": "compréhension"
+          "evalue": "application"
         }
       ],
       "transfert": {
         "situation": "Une pile de 1,5 V fait briller faiblement une petite lampe prévue pour 4,5 V.",
         "question": "Pourquoi la lampe brille-t-elle peu, et que faudrait-il changer ?",
-        "attendu": "La tension est trop faible pour la pousser à son fonctionnement normal ; il faut une tension proche de 4,5 V (par exemple trois piles en série)."
+        "attendu": "La tension est trop faible pour la faire fonctionner normalement ; il faut une tension proche de 4,5 V (par exemple trois piles de 1,5 V en série)."
       },
       "rappel": [
         {
@@ -1329,13 +1784,48 @@
           ],
           "reponse": 1,
           "evalue": "restitution"
+        },
+        {
+          "q": "Un interrupteur est ouvert dans un circuit avec une pile et une lampe. Quelle est l'intensité du courant dans la lampe ?",
+          "choix": [
+            "La même que circuit fermé",
+            "Maximale",
+            "Elle dépend de la couleur de la lampe",
+            "Nulle : aucun courant ne circule"
+          ],
+          "reponse": 3,
+          "evalue": "application"
+        }
+      ],
+      "deblocage": [
+        {
+          "q": "Pour obtenir 4,5 V avec des piles de 1,5 V, combien faut-il en mettre à la suite (en série) ?",
+          "choix": [
+            "2",
+            "3",
+            "1",
+            "4"
+          ],
+          "reponse": 1,
+          "evalue": "application"
+        },
+        {
+          "q": "Quelle est la limite de l'image de l'eau dans les tuyaux pour l'électricité ?",
+          "choix": [
+            "Un fil ne « fuit » pas quand on le coupe : le courant s'arrête, rien ne s'écoule",
+            "Il n'y en a aucune",
+            "Le courant électrique est plus lent que l'eau",
+            "Les fils contiennent vraiment de l'eau"
+          ],
+          "reponse": 0,
+          "evalue": "compréhension"
         }
       ],
       "reformulation": {
-        "idee_centrale": "La tension pousse le courant dans un circuit fermé ; l'intensité indique combien de courant passe.",
+        "idee_centrale": "La tension est ce qui fait circuler le courant dans un circuit fermé ; l'intensité indique combien de courant passe.",
         "elements_cles": [
-          "tension = ce qui pousse",
-          "intensité = quantité qui passe, circuit fermé"
+          "tension = ce qui fait circuler (différence entre deux points)",
+          "intensité = quantité qui passe, seulement si le circuit est fermé"
         ]
       }
     },
@@ -1361,29 +1851,29 @@
             "100 €"
           ],
           "reponse": 1,
-          "evalue": "restitution"
-        },
-        {
-          "q": "Si ton salaire ne bouge pas alors que les prix montent, ton pouvoir d'achat…",
-          "choix": [
-            "baisse",
-            "ne change pas",
-            "monte",
-            "double"
-          ],
-          "reponse": 0,
           "evalue": "application"
         },
         {
-          "q": "L'inflation désigne…",
+          "q": "Si ton salaire ne bouge pas alors que les prix montent, pourquoi peux-tu acheter moins ?",
           "choix": [
-            "la hausse d'un seul produit",
-            "un impôt",
-            "une baisse des salaires",
-            "une hausse générale et durable des prix"
+            "Chaque euro achète moins de choses qu'avant",
+            "Parce que ton salaire baisse automatiquement",
+            "Parce que les magasins ferment",
+            "Tu peux acheter autant"
+          ],
+          "reponse": 0,
+          "evalue": "compréhension"
+        },
+        {
+          "q": "Ton salaire augmente de 2 % et les prix de 5 % la même année. Ton pouvoir d'achat…",
+          "choix": [
+            "monte",
+            "double",
+            "ne change pas",
+            "baisse"
           ],
           "reponse": 3,
-          "evalue": "restitution"
+          "evalue": "application"
         }
       ],
       "transfert": {
@@ -1393,12 +1883,12 @@
       },
       "rappel": [
         {
-          "q": "Avec l'inflation, 100 € permettent d'acheter…",
+          "q": "L'inflation désigne…",
           "choix": [
-            "exactement pareil",
-            "un peu moins qu'avant",
-            "rien",
-            "plus qu'avant"
+            "une baisse des salaires",
+            "une hausse générale et durable des prix",
+            "un impôt",
+            "la hausse d'un seul produit"
           ],
           "reponse": 1,
           "evalue": "restitution"
@@ -1424,6 +1914,41 @@
           ],
           "reponse": 0,
           "evalue": "restitution"
+        },
+        {
+          "q": "Seul le prix des fraises double en hiver ; les autres prix ne bougent pas. Est-ce de l'inflation ?",
+          "choix": [
+            "On ne peut jamais savoir",
+            "Non : l'inflation est une hausse générale, pas celle d'un seul produit",
+            "Oui, forcément",
+            "Oui, si on aime les fraises"
+          ],
+          "reponse": 1,
+          "evalue": "application"
+        }
+      ],
+      "deblocage": [
+        {
+          "q": "Tu gardes 1 000 € dans un tiroir pendant un an avec 5 % d'inflation. Que peux-tu acheter avec à la fin ?",
+          "choix": [
+            "Rien du tout",
+            "Un peu moins qu'au début",
+            "Exactement pareil",
+            "Plus qu'au début"
+          ],
+          "reponse": 1,
+          "evalue": "application"
+        },
+        {
+          "q": "Pourquoi une hausse des salaires égale à l'inflation garde-t-elle le pouvoir d'achat à peu près stable ?",
+          "choix": [
+            "Elle ne le garde pas stable",
+            "Parce que les prix baissent",
+            "Parce que l'inflation disparaît",
+            "Les revenus et les prix montent ensemble"
+          ],
+          "reponse": 3,
+          "evalue": "compréhension"
         }
       ],
       "reformulation": {
@@ -1448,37 +1973,37 @@
       ],
       "comprehension": [
         {
-          "q": "Si beaucoup de gens veulent un produit rare, son prix a tendance à…",
+          "q": "Après une très bonne récolte de tomates, que devient en général leur prix ?",
           "choix": [
-            "baisser",
-            "monter",
-            "rester fixe",
-            "disparaître"
+            "Il monte",
+            "Il a tendance à baisser",
+            "Il double",
+            "Il reste fixe par la loi"
           ],
           "reponse": 1,
           "evalue": "application"
         },
         {
-          "q": "Après une très bonne récolte de tomates, leur prix a tendance à…",
+          "q": "Pourquoi un produit rare et très demandé devient-il souvent plus cher ?",
           "choix": [
-            "baisser",
-            "monter",
-            "rester fixe",
-            "doubler"
+            "Beaucoup d'acheteurs se disputent peu d'exemplaires",
+            "Parce que les vendeurs sont moins nombreux à le vouloir",
+            "Ce n'est pas le cas",
+            "Parce que l'État l'impose"
           ],
           "reponse": 0,
-          "evalue": "restitution"
+          "evalue": "compréhension"
         },
         {
-          "q": "Le prix d'équilibre est le prix où…",
+          "q": "Au « prix d'équilibre », pourquoi n'y a-t-il ni pénurie ni invendus ?",
           "choix": [
-            "personne n'achète",
-            "la quantité offerte égale la quantité demandée",
-            "l'État fixe le prix",
-            "le vendeur gagne le plus"
+            "Parce que l'État fixe le prix",
+            "La quantité que les vendeurs proposent égale celle que les acheteurs veulent",
+            "Parce que personne n'achète",
+            "Parce que le vendeur gagne le plus"
           ],
           "reponse": 1,
-          "evalue": "restitution"
+          "evalue": "compréhension"
         }
       ],
       "transfert": {
@@ -1507,7 +2032,7 @@
             "a tendance à baisser"
           ],
           "reponse": 3,
-          "evalue": "application"
+          "evalue": "restitution"
         },
         {
           "q": "La demande représente…",
@@ -1519,6 +2044,41 @@
           ],
           "reponse": 2,
           "evalue": "restitution"
+        },
+        {
+          "q": "En été, beaucoup de gens veulent des ventilateurs et les magasins en manquent. Que va-t-il probablement se passer pour leur prix ?",
+          "choix": [
+            "Il va baisser",
+            "Il ne bougera jamais",
+            "Il deviendra gratuit",
+            "Il va monter"
+          ],
+          "reponse": 3,
+          "evalue": "application"
+        }
+      ],
+      "deblocage": [
+        {
+          "q": "Un nouveau téléphone est vendu trop cher : il en reste des milliers en stock. Que fait souvent le vendeur ?",
+          "choix": [
+            "Il ne change rien",
+            "Il arrête de vendre",
+            "Il augmente le prix",
+            "Il baisse son prix pour écouler le stock"
+          ],
+          "reponse": 3,
+          "evalue": "application"
+        },
+        {
+          "q": "Pourquoi le prix des billets d'avion monte-t-il souvent pendant les vacances scolaires ?",
+          "choix": [
+            "Il ne monte jamais",
+            "Parce que le carburant est gratuit",
+            "Parce que les avions sont plus lourds",
+            "Beaucoup plus de gens veulent voyager aux mêmes dates"
+          ],
+          "reponse": 3,
+          "evalue": "compréhension"
         }
       ],
       "reformulation": {
@@ -1554,26 +2114,26 @@
           "evalue": "application"
         },
         {
-          "q": "Qui supporte finalement la TVA ?",
+          "q": "Pourquoi dit-on que c'est le consommateur final qui supporte la TVA ?",
           "choix": [
-            "Uniquement l'usine",
-            "La banque",
-            "Le consommateur final",
-            "Personne"
+            "Parce que l'usine la paie à sa place",
+            "Parce que la banque la rembourse",
+            "Elle est incluse dans le prix qu'il paie, et il ne peut pas la récupérer",
+            "Parce que personne ne la paie"
           ],
           "reponse": 2,
-          "evalue": "restitution"
+          "evalue": "compréhension"
         },
         {
-          "q": "« Hors taxe » signifie…",
+          "q": "Un article est affiché 60 € TTC avec une TVA de 20 %. Quel est son prix hors taxe ?",
           "choix": [
-            "un prix soldé",
-            "le prix avec la TVA",
-            "le prix avant ajout de la TVA",
-            "un prix gratuit"
+            "40 €",
+            "48 €",
+            "50 €",
+            "72 €"
           ],
           "reponse": 2,
-          "evalue": "restitution"
+          "evalue": "application"
         }
       ],
       "transfert": {
@@ -1594,15 +2154,15 @@
           "evalue": "restitution"
         },
         {
-          "q": "Avec 20 % de TVA, 50 € HT deviennent…",
+          "q": "« Hors taxe » signifie…",
           "choix": [
-            "55 €",
-            "50 €",
-            "70 €",
-            "60 €"
+            "un prix soldé",
+            "un prix gratuit",
+            "le prix avec la TVA",
+            "le prix avant ajout de la TVA"
           ],
           "reponse": 3,
-          "evalue": "application"
+          "evalue": "restitution"
         },
         {
           "q": "La TVA est une taxe sur…",
@@ -1614,6 +2174,41 @@
           ],
           "reponse": 2,
           "evalue": "restitution"
+        },
+        {
+          "q": "Avec 20 % de TVA, 50 € HT deviennent…",
+          "choix": [
+            "55 €",
+            "60 €",
+            "50 €",
+            "70 €"
+          ],
+          "reponse": 1,
+          "evalue": "application"
+        }
+      ],
+      "deblocage": [
+        {
+          "q": "Un livre coûte 10 € HT avec une TVA de 5,5 %. Combien paie le client ?",
+          "choix": [
+            "12 €",
+            "10,55 €",
+            "10,05 €",
+            "15,50 €"
+          ],
+          "reponse": 1,
+          "evalue": "application"
+        },
+        {
+          "q": "Pourquoi deux magasins qui affichent le même prix TTC payent-ils la même TVA sur cet article ?",
+          "choix": [
+            "Le taux est le même, donc la part de taxe incluse dans le prix aussi",
+            "Ce n'est pas vrai",
+            "Parce qu'ils ne paient pas de TVA",
+            "Parce qu'ils sont dans la même rue"
+          ],
+          "reponse": 0,
+          "evalue": "compréhension"
         }
       ],
       "reformulation": {
@@ -1639,43 +2234,43 @@
       ],
       "comprehension": [
         {
-          "q": "Quelle est la principale différence entre un CDI et un CDD ?",
+          "q": "Pourquoi une entreprise propose-t-elle un CDD plutôt qu'un CDI pour un besoin de quelques mois ?",
           "choix": [
-            "Le CDD a une date de fin prévue, pas le CDI",
-            "Il n'y en a aucune",
-            "Le CDI est toujours mieux payé",
-            "Le CDD n'a pas de salaire"
+            "Le CDD prévoit sa fin (date ou événement), adaptée à un besoin temporaire",
+            "Parce que le CDD n'a pas de règles",
+            "Parce que le CDD n'a pas de salaire",
+            "Parce que le CDI est interdit"
           ],
           "reponse": 0,
-          "evalue": "restitution"
+          "evalue": "compréhension"
         },
         {
-          "q": "À quoi sert la période d'essai ?",
+          "q": "À quoi sert la période d'essai, pour le salarié comme pour l'employeur ?",
           "choix": [
-            "À changer de métier",
-            "À travailler sans salaire",
-            "À permettre à chacun de vérifier que le poste convient, avec une rupture plus simple",
-            "À prolonger les vacances"
+            "Changer de métier",
+            "Travailler sans salaire",
+            "Vérifier que le poste convient, avec une rupture plus simple pendant cette période",
+            "Prolonger les vacances"
           ],
           "reponse": 2,
-          "evalue": "restitution"
+          "evalue": "compréhension"
         },
         {
-          "q": "Un contrat de travail lie…",
+          "q": "Un salarié en CDI veut démissionner. Que doit-il en général respecter ?",
           "choix": [
-            "deux entreprises",
-            "un vendeur et un acheteur",
-            "deux clients",
-            "un employeur et un salarié"
+            "Il doit payer son employeur",
+            "Il ne peut jamais démissionner",
+            "Rien du tout, il part le jour même dans tous les cas",
+            "Un préavis prévu par le contrat, la convention ou l'usage"
           ],
           "reponse": 3,
-          "evalue": "restitution"
+          "evalue": "application"
         }
       ],
       "transfert": {
         "situation": "Une entreprise embauche une personne pour remplacer une salariée en congé maternité pendant six mois.",
         "question": "Quel type de contrat est le plus adapté, et pourquoi ?",
-        "attendu": "Un CDD : le besoin est temporaire, avec une fin prévisible (le retour de la salariée)."
+        "attendu": "Un CDD (de remplacement) : le besoin est temporaire, avec une fin prévisible, le retour de la salariée."
       },
       "rappel": [
         {
@@ -1710,12 +2305,47 @@
           ],
           "reponse": 0,
           "evalue": "restitution"
+        },
+        {
+          "q": "Un magasin embauche des vendeurs supplémentaires pour les fêtes de fin d'année. Quel contrat est le plus adapté ?",
+          "choix": [
+            "Un contrat de vente",
+            "Un CDD",
+            "Un CDI",
+            "Aucun contrat"
+          ],
+          "reponse": 1,
+          "evalue": "application"
+        }
+      ],
+      "deblocage": [
+        {
+          "q": "Une boulangerie embauche quelqu'un pour un poste permanent, sans date de fin. Quel contrat est le plus adapté ?",
+          "choix": [
+            "Un CDD de 2 jours",
+            "Un contrat de location",
+            "Un CDI",
+            "Aucun contrat"
+          ],
+          "reponse": 2,
+          "evalue": "application"
+        },
+        {
+          "q": "Pourquoi un CDD doit-il préciser sa fin, par une date ou un événement ?",
+          "choix": [
+            "Pour que le salarié ne soit jamais payé",
+            "Ce n'est pas nécessaire",
+            "Parce que c'est un contrat sans règles",
+            "Parce qu'il répond à un besoin temporaire dont on doit connaître le terme"
+          ],
+          "reponse": 3,
+          "evalue": "compréhension"
         }
       ],
       "reformulation": {
-        "idee_centrale": "Le contrat de travail fixe la relation entre employeur et salarié ; le CDD a une fin prévue, le CDI non, et la période d'essai permet de vérifier que tout convient.",
+        "idee_centrale": "Le contrat de travail fixe la relation entre employeur et salarié ; le CDD a une fin prévue (date ou événement), le CDI non, et la période d'essai permet de vérifier que le poste convient.",
         "elements_cles": [
-          "CDD temporaire, CDI sans fin prévue",
+          "CDD temporaire avec une fin prévue, CDI sans fin prévue",
           "rôle de la période d'essai"
         ]
       }
@@ -1738,39 +2368,39 @@
           "choix": [
             "Le prix d'un pain",
             "La température du jour",
-            "Une adresse e-mail nominative",
+            "Une adresse e-mail au nom d'une personne",
             "Le nom d'une ville seule"
           ],
           "reponse": 2,
-          "evalue": "restitution"
+          "evalue": "application"
         },
         {
-          "q": "Le droit d'accès permet à une personne de…",
+          "q": "Pourquoi une organisation doit-elle indiquer à quoi serviront les données qu'elle collecte ?",
           "choix": [
-            "savoir quelles données une organisation détient sur elle",
-            "voir les comptes de l'entreprise",
-            "accéder à tous les sites",
-            "lire les données des autres"
-          ],
-          "reponse": 0,
-          "evalue": "restitution"
-        },
-        {
-          "q": "Pourquoi une entreprise doit-elle indiquer à quoi serviront les données qu'elle collecte ?",
-          "choix": [
-            "Pour que la personne sache et puisse décider en connaissance de cause",
+            "Pour que la personne sache comment elles sont utilisées et puisse exercer ses droits",
+            "Ce n'est pas obligatoire",
             "Pour payer moins d'impôts",
-            "Pour faire de la publicité",
-            "Ce n'est pas obligatoire"
+            "Pour faire de la publicité"
           ],
           "reponse": 0,
           "evalue": "compréhension"
+        },
+        {
+          "q": "Un client demande à un magasin quelles informations il détient sur lui. De quel droit s'agit-il ?",
+          "choix": [
+            "Le droit d'accès",
+            "Le droit de propriété",
+            "Le droit à l'image",
+            "Le droit de grève"
+          ],
+          "reponse": 0,
+          "evalue": "application"
         }
       ],
       "transfert": {
         "situation": "Une boulangerie demande l'adresse e-mail de ses clients pour leur envoyer une carte de fidélité numérique.",
         "question": "Que doit-elle faire pour respecter le RGPD ?",
-        "attendu": "Dire à quoi servira l'adresse, ne l'utiliser que pour cela (ou demander l'accord pour la publicité), la protéger et permettre de la supprimer sur demande."
+        "attendu": "Dire à quoi servira l'adresse et ne l'utiliser que pour ce but ; pour un autre usage (publicité par exemple), en informer les clients et respecter leur droit de refuser ; protéger les données ; répondre aux demandes d'accès ou de suppression."
       },
       "rappel": [
         {
@@ -1805,12 +2435,47 @@
           ],
           "reponse": 3,
           "evalue": "restitution"
+        },
+        {
+          "q": "Une salle de sport garde le numéro de téléphone de ses membres pour les prévenir d'une fermeture. Peut-elle le vendre à une autre entreprise sans les en informer ?",
+          "choix": [
+            "Oui, seulement le dimanche",
+            "Oui, elle en fait ce qu'elle veut",
+            "Oui, si le numéro est court",
+            "Non, ce n'est pas le but annoncé et les personnes doivent être informées"
+          ],
+          "reponse": 3,
+          "evalue": "application"
+        }
+      ],
+      "deblocage": [
+        {
+          "q": "Un site collecte la date de naissance pour « vérifier l'âge ». Peut-il ensuite l'utiliser librement pour autre chose ?",
+          "choix": [
+            "Non, pas sans respecter les règles : informer et avoir une base légale pour ce nouvel usage",
+            "Seulement si la date est ancienne",
+            "Oui, librement",
+            "Oui, si personne ne le remarque"
+          ],
+          "reponse": 0,
+          "evalue": "application"
+        },
+        {
+          "q": "Pourquoi une liste de numéros de clients est-elle une donnée personnelle, même sans les noms ?",
+          "choix": [
+            "Parce que la liste est longue",
+            "Parce que les chiffres sont secrets",
+            "Ce n'est pas une donnée personnelle",
+            "Un numéro de téléphone permet souvent de retrouver la personne"
+          ],
+          "reponse": 3,
+          "evalue": "compréhension"
         }
       ],
       "reformulation": {
-        "idee_centrale": "Le RGPD encadre l'usage des données qui identifient une personne : on doit l'informer, n'utiliser ses données que pour un but annoncé et respecter ses droits.",
+        "idee_centrale": "Le RGPD encadre l'usage des données qui identifient une personne : on doit l'informer, n'utiliser ses données que pour un but annoncé et légitime, et respecter ses droits.",
         "elements_cles": [
-          "données qui identifient une personne",
+          "données qui identifient une personne, directement ou non",
           "information et droits (accès, effacement)"
         ]
       }
@@ -1832,7 +2497,7 @@
           "q": "Pourquoi garde-t-on la viande au froid ?",
           "choix": [
             "Pour changer son goût",
-            "Le froid ralentit le développement des bactéries",
+            "Le froid ralentit le développement de la plupart des bactéries",
             "Le froid tue toutes les bactéries",
             "Pour qu'elle soit plus lourde"
           ],
@@ -1840,50 +2505,50 @@
           "evalue": "compréhension"
         },
         {
-          "q": "Une « rupture de la chaîne du froid », c'est…",
+          "q": "Pourquoi ne recongèle-t-on pas un produit décongelé tel quel, sans l'avoir cuit ?",
           "choix": [
-            "une panne de courant de la maison",
-            "un moment où le produit n'est plus gardé à la bonne température",
-            "un produit trop froid",
-            "un produit congelé deux fois au magasin"
-          ],
-          "reponse": 1,
-          "evalue": "restitution"
-        },
-        {
-          "q": "Pourquoi ne faut-il pas recongeler un produit décongelé ?",
-          "choix": [
-            "Les bactéries ont pu se multiplier pendant la décongélation",
             "Il deviendrait trop dur",
-            "C'est interdit pour le goût",
+            "Les bactéries ont pu se multiplier pendant la décongélation, et le froid ne les détruit pas",
+            "C'est seulement une question de goût",
             "Il changerait de couleur"
           ],
-          "reponse": 0,
+          "reponse": 1,
           "evalue": "compréhension"
+        },
+        {
+          "q": "Au supermarché, quand vaut-il mieux prendre les surgelés et les produits frais ?",
+          "choix": [
+            "À la fin des courses, juste avant de payer",
+            "Au début des courses",
+            "Après être passé à la voiture",
+            "N'importe quand, cela ne change rien"
+          ],
+          "reponse": 0,
+          "evalue": "application"
         }
       ],
       "transfert": {
         "situation": "Après les courses, des surgelés restent deux heures dans le coffre d'une voiture en plein été.",
         "question": "Quel est le risque, et que faut-il faire ?",
-        "attendu": "Ils ont pu commencer à décongeler (rupture de la chaîne du froid), et les bactéries se multiplient : il ne faut pas les recongeler ; en cas de doute sur leur température, il faut les jeter."
+        "attendu": "Ils ont pu commencer à décongeler (rupture de la chaîne du froid), et les bactéries se multiplient : il ne faut pas les recongeler tels quels ; en cas de doute sur leur température, il faut les jeter."
       },
       "rappel": [
         {
-          "q": "Quel est l'effet du froid sur les bactéries des aliments ?",
+          "q": "Quel est l'effet du froid sur la plupart des bactéries des aliments ?",
           "choix": [
-            "les nourrit",
-            "ralentit les bactéries",
-            "n'a aucun effet",
-            "tue toutes les bactéries"
+            "Il les nourrit",
+            "Il les ralentit",
+            "Il n'a aucun effet",
+            "Il les tue toutes"
           ],
           "reponse": 1,
           "evalue": "restitution"
         },
         {
-          "q": "Un produit décongelé doit être…",
+          "q": "Un produit décongelé, non cuit, doit être…",
           "choix": [
             "laissé au soleil",
-            "consommé rapidement, sans être recongelé",
+            "consommé rapidement, sans être recongelé tel quel",
             "recongelé aussitôt",
             "gardé un mois"
           ],
@@ -1900,13 +2565,48 @@
           ],
           "reponse": 3,
           "evalue": "restitution"
+        },
+        {
+          "q": "Ton réfrigérateur est resté ouvert toute la nuit. Que faire du poisson frais qu'il contenait ?",
+          "choix": [
+            "Le manger cru le jour même",
+            "Le laisser encore une journée",
+            "Le recongeler aussitôt",
+            "Ne pas prendre de risque : s'il est resté au chaud, le jeter"
+          ],
+          "reponse": 3,
+          "evalue": "application"
+        }
+      ],
+      "deblocage": [
+        {
+          "q": "Pour un pique-nique d'été, comment transporter des salades au poulet ?",
+          "choix": [
+            "Peu importe, c'est cuit",
+            "Dans un sac ordinaire au soleil",
+            "Dans un sac isotherme avec des pains de glace",
+            "Dans le coffre sans précaution"
+          ],
+          "reponse": 2,
+          "evalue": "application"
+        },
+        {
+          "q": "Pourquoi cuire un produit décongelé permet-il ensuite de le congeler à nouveau ?",
+          "choix": [
+            "On ne peut jamais",
+            "Parce que la cuisson rend l'aliment plus froid",
+            "La cuisson détruit une grande partie des bactéries qui se sont multipliées",
+            "Parce qu'un plat cuit ne contient jamais de bactéries"
+          ],
+          "reponse": 2,
+          "evalue": "compréhension"
         }
       ],
       "reformulation": {
-        "idee_centrale": "Un produit périssable doit rester au froid sans interruption de sa fabrication à sa consommation, car le froid ralentit les bactéries.",
+        "idee_centrale": "Un produit périssable doit rester au froid sans interruption de sa fabrication à sa consommation, car le froid ralentit les bactéries sans les tuer.",
         "elements_cles": [
           "froid continu sur tout le trajet",
-          "rupture = multiplication des bactéries"
+          "rupture = les bactéries se multiplient"
         ]
       }
     },
@@ -1924,15 +2624,15 @@
       ],
       "comprehension": [
         {
-          "q": "Combien de personnes au minimum doivent être présentes pour ouvrir le magasin ?",
+          "q": "Pourquoi la procédure impose-t-elle d'être au moins deux pour ouvrir le magasin ?",
           "choix": [
-            "Aucune règle",
-            "Trois",
-            "Deux",
-            "Une"
+            "Ce n'est pas imposé",
+            "Parce que la porte est lourde",
+            "Pour la sécurité des personnes et de l'argent : personne ne reste seul face à un incident",
+            "Pour aller plus vite"
           ],
           "reponse": 2,
-          "evalue": "restitution"
+          "evalue": "compréhension"
         },
         {
           "q": "Combien de temps as-tu pour désactiver l'alarme en arrivant ?",
@@ -1995,6 +2695,41 @@
           ],
           "reponse": 0,
           "evalue": "restitution"
+        },
+        {
+          "q": "À l'ouverture, ton collègue est en retard de vingt minutes. Que fais-tu ?",
+          "choix": [
+            "J'attends qu'il arrive (ou un autre collègue) avant d'ouvrir, et je préviens le responsable",
+            "J'ouvre seul pour ne pas perdre de clients",
+            "Je désactive l'alarme et j'attends à l'intérieur seul",
+            "Je rentre chez moi"
+          ],
+          "reponse": 0,
+          "evalue": "application"
+        }
+      ],
+      "deblocage": [
+        {
+          "q": "Pendant le tour de sécurité du matin, une issue de secours est bloquée par des cartons. Que fais-tu avant d'ouvrir ?",
+          "choix": [
+            "Je la dégage et je vérifie qu'elle est déverrouillée avant l'ouverture au public",
+            "Je laisse, ce n'est pas mon rôle",
+            "Je la verrouille pour éviter les vols",
+            "J'ouvre quand même, je m'en occuperai à midi"
+          ],
+          "reponse": 0,
+          "evalue": "application"
+        },
+        {
+          "q": "Pourquoi la caisse est-elle comptée à deux le soir plutôt que seul ?",
+          "choix": [
+            "Parce que la caisse est lourde",
+            "Pour que le comptage soit vérifié et qu'aucun écart ne repose sur une seule personne",
+            "Pour aller deux fois plus vite",
+            "Ce n'est pas nécessaire"
+          ],
+          "reponse": 1,
+          "evalue": "compréhension"
         }
       ],
       "reformulation": {
@@ -2041,15 +2776,15 @@
           "evalue": "restitution"
         },
         {
-          "q": "Dans quel délai ranges-tu les produits acceptés en chambre froide ?",
+          "q": "Pourquoi faut-il ranger les produits acceptés en chambre froide dans les 15 minutes ?",
           "choix": [
-            "30 minutes",
-            "15 minutes",
-            "En fin de service",
-            "1 heure"
+            "Pour libérer le quai plus vite",
+            "Pour limiter le temps hors du froid, pendant lequel les bactéries se multiplient",
+            "Pour que le chef puisse les goûter",
+            "Parce que le livreur l'exige"
           ],
           "reponse": 1,
-          "evalue": "restitution"
+          "evalue": "compréhension"
         }
       ],
       "transfert": {
@@ -2087,6 +2822,41 @@
             "Avec un thermomètre de cuisine dans l'air",
             "À la main",
             "En perçant l'emballage"
+          ],
+          "reponse": 0,
+          "evalue": "restitution"
+        },
+        {
+          "q": "Du poisson frais est livré avec une date limite dans 2 jours. Que fais-tu ?",
+          "choix": [
+            "Je l'accepte, il n'est pas périmé",
+            "Je le refuse : il faut au moins 4 jours avant la date limite",
+            "Je le congèle tout de suite",
+            "Je change l'étiquette"
+          ],
+          "reponse": 1,
+          "evalue": "application"
+        }
+      ],
+      "deblocage": [
+        {
+          "q": "Un carton de yaourts arrive écrasé et ouvert. Que fais-tu ?",
+          "choix": [
+            "Je l'accepte et je trie plus tard",
+            "Je le range directement en chambre froide",
+            "Je le rends sans rien noter",
+            "Je le refuse, je l'écris sur le bon et je garde une preuve photo"
+          ],
+          "reponse": 3,
+          "evalue": "application"
+        },
+        {
+          "q": "Pourquoi garder une photo du thermomètre et du bon quand on refuse un produit ?",
+          "choix": [
+            "Pour prouver le motif du refus au fournisseur et assurer la traçabilité",
+            "Pour décorer le registre",
+            "Parce que le livreur aime les photos",
+            "Ce n'est pas utile"
           ],
           "reponse": 0,
           "evalue": "compréhension"
@@ -2136,15 +2906,15 @@
           "evalue": "application"
         },
         {
-          "q": "Ton tiroir contient 900 € en espèces. Que se passe-t-il ?",
+          "q": "Pourquoi le responsable fait-il un prélèvement vers le coffre quand le tiroir contient trop d'espèces ?",
           "choix": [
-            "Tu rends l'argent aux clients",
-            "Tu fermes la caisse",
-            "Le responsable fait un prélèvement vers le coffre",
-            "Tu continues sans rien faire"
+            "Pour rendre la monnaie plus vite",
+            "Parce que le tiroir ne ferme plus",
+            "Pour limiter l'argent exposé en caisse en cas de vol ou d'erreur",
+            "Pour payer les salaires"
           ],
           "reponse": 2,
-          "evalue": "application"
+          "evalue": "compréhension"
         }
       ],
       "transfert": {
@@ -2185,6 +2955,41 @@
           ],
           "reponse": 2,
           "evalue": "restitution"
+        },
+        {
+          "q": "En fin de journée, il manque 15 € dans ta caisse. Que fais-tu ?",
+          "choix": [
+            "Je complète avec mon argent",
+            "Je remplis une fiche d'écart signée, car l'écart dépasse 10 €",
+            "Je ne dis rien",
+            "Je reporte l'écart au lendemain"
+          ],
+          "reponse": 1,
+          "evalue": "application"
+        }
+      ],
+      "deblocage": [
+        {
+          "q": "Un client paie avec un billet de 20 € qui te semble douteux au toucher. Que fais-tu ?",
+          "choix": [
+            "Je le vérifie et, s'il est présumé faux, je ne le remets pas en circulation et j'appelle le responsable",
+            "Je le rends en monnaie à un autre client",
+            "Je le déchire",
+            "Je l'accepte sans regarder"
+          ],
+          "reponse": 0,
+          "evalue": "application"
+        },
+        {
+          "q": "Pourquoi un billet présumé faux ne doit-il jamais être rendu en monnaie ?",
+          "choix": [
+            "Parce qu'il est sale",
+            "Parce que le client ne le voudrait pas",
+            "Le remettre en circulation est interdit : il doit être remis aux autorités",
+            "Il peut être rendu"
+          ],
+          "reponse": 2,
+          "evalue": "compréhension"
         }
       ],
       "reformulation": {
