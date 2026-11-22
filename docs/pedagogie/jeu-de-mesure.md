@@ -4,6 +4,43 @@ Statut : **proposition à relire et valider avant toute mesure**. Généré par 
 
 La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants voient les questions sans cette marque.
 
+Chaque question porte un repère « évalue » : **application** (calcul ou décision dans un cas concret), **compréhension** (expliquer une cause ou un mécanisme) ou **restitution** (redonner une définition ou un chiffre appris, donc de la mémorisation). Ce repère est un classement automatique, à vérifier à la relecture.
+
+## Bilan : ce que les questions évaluent
+
+| Bloc | Application | Compréhension | Restitution (mémorisation) |
+|---|---|---|---|
+| Compréhension immédiate (69 questions) | 14 | 19 | 36 |
+| Rappel à J+2 (69 questions) | 5 | 1 | 63 |
+
+**Lecture critique :** une grande partie des questions de « compréhension » sont en réalité des questions de restitution (définitions). Elles vérifient que l'on se souvient, pas que l'on a compris. La compréhension est surtout mesurée par la situation de transfert et par la reformulation. Proposition de règle, à valider avant toute mesure : dans chaque sujet, au moins 2 des 3 questions de compréhension en application ou en compréhension ; au rappel à J+2, au plus 1 restitution sur 3.
+
+| Élément | Compréhension immédiate : restitutions | Rappel J+2 : restitutions |
+|---|---|---|
+| S01 Le protocole IP | 2 / 3 | 3 / 3 |
+| S02 La mémoire de l'ordinateur (RAM) | 1 / 3 | 3 / 3 |
+| S03 Le chiffrement d'un message | 1 / 3 | 3 / 3 |
+| S04 Le théorème de Pythagore | 2 / 3 | 2 / 3 |
+| S05 Les fractions | 1 / 3 | 2 / 3 |
+| S06 Les intérêts composés | 1 / 3 | 2 / 3 |
+| S07 La photosynthèse | 2 / 3 | 3 / 3 |
+| S08 Le système immunitaire | 2 / 3 | 3 / 3 |
+| S09 L'ADN | 2 / 3 | 3 / 3 |
+| S10 Le vaccin | 0 / 3 | 3 / 3 |
+| S11 Le cycle de l'eau | 1 / 3 | 3 / 3 |
+| S12 L'effet de serre | 2 / 3 | 3 / 3 |
+| S13 La gravitation | 2 / 3 | 3 / 3 |
+| S14 Tension et intensité électriques | 1 / 3 | 3 / 3 |
+| S15 L'inflation | 2 / 3 | 3 / 3 |
+| S16 L'offre et la demande | 2 / 3 | 2 / 3 |
+| S17 La TVA | 2 / 3 | 2 / 3 |
+| S18 Le contrat de travail | 3 / 3 | 3 / 3 |
+| S19 Le RGPD | 2 / 3 | 3 / 3 |
+| S20 La chaîne du froid | 1 / 3 | 3 / 3 |
+| P-R1 Ouverture et fermeture du magasin (R1 v2, corpus métier n° 1, fictif) | 2 / 3 | 3 / 3 |
+| P-H1 Réception des livraisons (H1 v2, corpus métier n° 1, fictif) | 2 / 3 | 2 / 3 |
+| P-R3 Tenue de la caisse (R3, corpus métier n° 1, fictif) | 0 / 3 | 3 / 3 |
+
 ## S01 · Le protocole IP
 
 *Domaine : numérique*
@@ -12,17 +49,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Compréhension immédiate**
 
-1. Pourquoi un fichier envoyé sur Internet est-il découpé en paquets ?
+1. Pourquoi un fichier envoyé sur Internet est-il découpé en paquets ? *(évalue : compréhension)*
    - Pour le rendre secret
    - Pour qu'il prenne moins de place sur le disque
    - Parce que la loi l'impose
    - ✔ Pour qu'il voyage par petits morceaux qui peuvent prendre des chemins différents
-2. À quoi sert l'adresse IP de destination écrite sur chaque paquet ?
+2. À quoi sert l'adresse IP de destination écrite sur chaque paquet ? *(évalue : restitution (mémorisation))*
    - ✔ À indiquer où le paquet doit arriver
    - À choisir la vitesse d'envoi
    - À vérifier que le paquet n'est pas abîmé
    - À donner le nom du fichier
-3. Que fait un routeur quand il reçoit un paquet ?
+3. Que fait un routeur quand il reçoit un paquet ? *(évalue : restitution (mémorisation))*
    - Il l'ouvre et lit son contenu
    - Il le garde en mémoire
    - ✔ Il lit l'adresse de destination et le fait avancer vers elle
@@ -36,17 +73,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Rappel à J+2**
 
-1. Sur un paquet IP, qu'est-ce qui permet de savoir où il doit aller ?
+1. Sur un paquet IP, qu'est-ce qui permet de savoir où il doit aller ? *(évalue : restitution (mémorisation))*
    - L'heure d'envoi
    - Le nom de l'ordinateur
    - ✔ L'adresse de destination
    - Son poids
-2. Deux paquets d'un même message prennent-ils forcément le même chemin ?
+2. Deux paquets d'un même message prennent-ils forcément le même chemin ? *(évalue : restitution (mémorisation))*
    - Oui, toujours
    - ✔ Non, ils peuvent passer par des routeurs différents
    - Seulement la nuit
    - Seulement sur un câble
-3. Quel appareil fait passer un paquet d'un réseau à un autre ?
+3. Quel appareil fait passer un paquet d'un réseau à un autre ? *(évalue : restitution (mémorisation))*
    - L'écran
    - Le clavier
    - L'imprimante
@@ -64,17 +101,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Compréhension immédiate**
 
-1. Pourquoi un document non enregistré est-il perdu si l'ordinateur s'éteint brutalement ?
+1. Pourquoi un document non enregistré est-il perdu si l'ordinateur s'éteint brutalement ? *(évalue : compréhension)*
    - Parce que l'écran s'éteint
    - ✔ Parce qu'il était seulement dans la mémoire vive, qui s'efface sans courant
    - Parce que le disque se vide
    - Parce que le clavier est débranché
-2. Quelle est la principale différence entre la mémoire vive et le disque ?
+2. Quelle est la principale différence entre la mémoire vive et le disque ? *(évalue : restitution (mémorisation))*
    - ✔ La mémoire vive est rapide mais temporaire, le disque est plus lent mais garde les fichiers
    - Il n'y a aucune différence
    - La mémoire vive garde tout pour toujours
    - Le disque est plus rapide
-3. Pourquoi un ordinateur ralentit-il quand on ouvre beaucoup de programmes ?
+3. Pourquoi un ordinateur ralentit-il quand on ouvre beaucoup de programmes ? *(évalue : compréhension)*
    - ✔ Parce que la mémoire vive se remplit et l'ordinateur doit utiliser le disque, plus lent
    - Parce que le disque devient plus rapide
    - Parce que l'écran fatigue
@@ -88,17 +125,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Rappel à J+2**
 
-1. La mémoire vive garde-t-elle les données quand l'ordinateur est éteint ?
+1. La mémoire vive garde-t-elle les données quand l'ordinateur est éteint ? *(évalue : restitution (mémorisation))*
    - Seulement le week-end
    - ✔ Non
    - Oui
    - Seulement les photos
-2. Où faut-il enregistrer un fichier pour le retrouver le lendemain ?
+2. Où faut-il enregistrer un fichier pour le retrouver le lendemain ? *(évalue : restitution (mémorisation))*
    - Dans la mémoire vive
    - Dans l'écran
    - ✔ Sur le disque (stockage)
    - Dans le processeur
-3. Ajouter de la mémoire vive aide surtout à…
+3. Ajouter de la mémoire vive aide surtout à… *(évalue : restitution (mémorisation))*
    - garder plus de photos pour toujours
    - avoir un écran plus grand
    - se connecter à Internet
@@ -116,17 +153,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Compréhension immédiate**
 
-1. Pourquoi un message chiffré intercepté est-il inutile pour un espion qui n'a pas la clé ?
+1. Pourquoi un message chiffré intercepté est-il inutile pour un espion qui n'a pas la clé ? *(évalue : compréhension)*
    - Parce qu'il est en anglais
    - Parce qu'il est effacé
    - Parce qu'il est trop long
    - ✔ Parce qu'il est illisible sans la clé
-2. Que faut-il pour retrouver le message d'origine ?
+2. Que faut-il pour retrouver le message d'origine ? *(évalue : restitution (mémorisation))*
    - Une connexion plus rapide
    - Un écran plus grand
    - ✔ La bonne clé
    - Le nom de l'expéditeur
-3. Si quelqu'un vole la clé, que se passe-t-il ?
+3. Si quelqu'un vole la clé, que se passe-t-il ? *(évalue : application)*
    - La clé change toute seule
    - Rien, le chiffrement protège toujours
    - ✔ Il peut lire les messages chiffrés avec cette clé
@@ -140,17 +177,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Rappel à J+2**
 
-1. Chiffrer un message, c'est…
+1. Chiffrer un message, c'est… *(évalue : restitution (mémorisation))*
    - ✔ le rendre illisible sans la clé
    - l'imprimer
    - le raccourcir
    - le traduire
-2. Ce qui doit rester secret avant tout, c'est…
+2. Ce qui doit rester secret avant tout, c'est… *(évalue : restitution (mémorisation))*
    - la longueur du message
    - ✔ la clé
    - l'heure d'envoi
    - la langue
-3. Déchiffrer, c'est…
+3. Déchiffrer, c'est… *(évalue : restitution (mémorisation))*
    - envoyer le message
    - copier le message
    - ✔ retrouver le message lisible avec la clé
@@ -168,17 +205,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Compréhension immédiate**
 
-1. Dans un triangle rectangle de côtés 3 et 4 autour de l'angle droit, combien mesure le plus grand côté ?
+1. Dans un triangle rectangle de côtés 3 et 4 autour de l'angle droit, combien mesure le plus grand côté ? *(évalue : application)*
    - 7
    - 6
    - ✔ 5
    - 12
-2. À quels triangles s'applique le théorème ?
+2. À quels triangles s'applique le théorème ? *(évalue : restitution (mémorisation))*
    - ✔ Aux triangles qui ont un angle droit
    - À tous les triangles
    - Aux triangles dont les trois côtés sont égaux
    - Aux carrés
-3. Le plus grand côté d'un triangle rectangle est toujours…
+3. Le plus grand côté d'un triangle rectangle est toujours… *(évalue : restitution (mémorisation))*
    - le plus petit
    - collé à l'angle droit
    - égal aux deux autres réunis
@@ -192,17 +229,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Rappel à J+2**
 
-1. Le théorème relie…
+1. Le théorème relie… *(évalue : restitution (mémorisation))*
    - les aires de deux cercles
    - ✔ les longueurs des côtés d'un triangle rectangle
    - les angles d'un triangle
    - le périmètre d'un carré
-2. Triangle rectangle de côtés 6 et 8 autour de l'angle droit : le grand côté mesure…
+2. Triangle rectangle de côtés 6 et 8 autour de l'angle droit : le grand côté mesure… *(évalue : application)*
    - ✔ 10
    - 12
    - 9
    - 14
-3. Où se trouve l'hypoténuse ?
+3. Où se trouve l'hypoténuse ? *(évalue : restitution (mémorisation))*
    - Au centre
    - Il n'y en a pas
    - ✔ En face de l'angle droit
@@ -220,17 +257,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Compréhension immédiate**
 
-1. Une pizza est coupée en 8 parts ; tu en manges 3. Quelle fraction as-tu mangée ?
+1. Une pizza est coupée en 8 parts ; tu en manges 3. Quelle fraction as-tu mangée ? *(évalue : application)*
    - ✔ 3/8
    - 3/5
    - 5/8
    - 8/3
-2. Laquelle est la plus grande : 1/2 ou 1/4 ?
+2. Laquelle est la plus grande : 1/2 ou 1/4 ? *(évalue : restitution (mémorisation))*
    - 1/4
    - ✔ 1/2
    - Elles sont égales
    - On ne peut pas savoir
-3. Pourquoi 2/4 et 1/2 représentent-ils la même quantité ?
+3. Pourquoi 2/4 et 1/2 représentent-ils la même quantité ? *(évalue : compréhension)*
    - Parce qu'ils ont le même numérateur
    - Parce que 4 est plus grand que 2
    - Ce n'est pas la même quantité
@@ -244,17 +281,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Rappel à J+2**
 
-1. Dans 3/5, le nombre du bas indique…
+1. Dans 3/5, le nombre du bas indique… *(évalue : restitution (mémorisation))*
    - ✔ en combien de parts égales on a coupé
    - le reste
    - combien de parts on prend
    - le résultat
-2. 4/8 est égal à…
+2. 4/8 est égal à… *(évalue : application)*
    - 4
    - ✔ 1/2
    - 2/3
    - 1/4
-3. Lequel est le plus petit : 1/3 ou 1/10 ?
+3. Lequel est le plus petit : 1/3 ou 1/10 ? *(évalue : restitution (mémorisation))*
    - ✔ 1/10
    - On ne peut pas savoir
    - Égaux
@@ -272,17 +309,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Compréhension immédiate**
 
-1. Tu places 100 € à 10 % par an, intérêts composés. Combien as-tu après 2 ans ?
+1. Tu places 100 € à 10 % par an, intérêts composés. Combien as-tu après 2 ans ? *(évalue : application)*
    - 110 €
    - ✔ 121 €
    - 200 €
    - 120 €
-2. Qu'est-ce qui distingue les intérêts composés ?
+2. Qu'est-ce qui distingue les intérêts composés ? *(évalue : restitution (mémorisation))*
    - Le taux baisse chaque année
    - Ils sont interdits
    - ✔ Les intérêts gagnés rapportent à leur tour des intérêts
    - On ne touche rien avant la fin
-3. Pour un même taux, pourquoi placer tôt rapporte-t-il plus ?
+3. Pour un même taux, pourquoi placer tôt rapporte-t-il plus ? *(évalue : compréhension)*
    - ✔ Parce que les intérêts ont plus d'années pour s'ajouter et rapporter à leur tour
    - Parce que le taux augmente avec l'âge
    - Ce n'est pas vrai
@@ -296,17 +333,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Rappel à J+2**
 
-1. Avec les intérêts composés, les intérêts de l'an 1 rapportent-ils en l'an 2 ?
+1. Avec les intérêts composés, les intérêts de l'an 1 rapportent-ils en l'an 2 ? *(évalue : restitution (mémorisation))*
    - Seulement s'ils sont retirés
    - Non
    - ✔ Oui
    - Seulement à 0 %
-2. 100 € à 50 % par an pendant 2 ans, composés :
+2. 100 € à 50 % par an pendant 2 ans, composés : *(évalue : application)*
    - 150 €
    - ✔ 225 €
    - 250 €
    - 200 €
-3. Le capital, c'est…
+3. Le capital, c'est… *(évalue : restitution (mémorisation))*
    - ✔ la somme placée au départ
    - la durée
    - le taux
@@ -324,17 +361,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Compréhension immédiate**
 
-1. De quoi une plante a-t-elle besoin pour fabriquer sa nourriture par photosynthèse ?
+1. De quoi une plante a-t-elle besoin pour fabriquer sa nourriture par photosynthèse ? *(évalue : restitution (mémorisation))*
    - D'oxygène et de nuit
    - ✔ Lumière, eau et dioxyde de carbone
    - Seulement de terre
    - De sucre ajouté
-2. Quel gaz la plante rejette-t-elle pendant la photosynthèse ?
+2. Quel gaz la plante rejette-t-elle pendant la photosynthèse ? *(évalue : restitution (mémorisation))*
    - Azote
    - ✔ Oxygène
    - Dioxyde de carbone
    - Hélium
-3. Pourquoi une plante laissée dans un placard sombre dépérit-elle ?
+3. Pourquoi une plante laissée dans un placard sombre dépérit-elle ? *(évalue : compréhension)*
    - ✔ Sans lumière, elle ne peut plus fabriquer sa nourriture
    - Parce qu'elle a trop froid
    - Parce que le placard est petit
@@ -348,17 +385,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Rappel à J+2**
 
-1. La photosynthèse a lieu surtout dans…
+1. La photosynthèse a lieu surtout dans… *(évalue : restitution (mémorisation))*
    - les racines
    - les graines
    - le sol
    - ✔ les feuilles
-2. Le pigment vert qui capte la lumière s'appelle…
+2. Le pigment vert qui capte la lumière s'appelle… *(évalue : restitution (mémorisation))*
    - sève
    - ✔ chlorophylle
    - glucose
    - oxygène
-3. La photosynthèse produit…
+3. La photosynthèse produit… *(évalue : restitution (mémorisation))*
    - de la terre
    - de l'eau salée
    - ✔ du sucre et de l'oxygène
@@ -376,17 +413,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Compréhension immédiate**
 
-1. Quel est le rôle principal du système immunitaire ?
+1. Quel est le rôle principal du système immunitaire ? *(évalue : restitution (mémorisation))*
    - Digérer les aliments
    - ✔ Défendre le corps contre les microbes
    - Faire circuler le sang
    - Produire de l'énergie
-2. Pourquoi tombe-t-on rarement deux fois malade de la varicelle ?
+2. Pourquoi tombe-t-on rarement deux fois malade de la varicelle ? *(évalue : compréhension)*
    - Parce qu'on grandit
    - ✔ Parce que le corps garde la mémoire de ce microbe et réagit vite
    - Par hasard
    - Parce que le microbe disparaît de la Terre
-3. Les anticorps sont…
+3. Les anticorps sont… *(évalue : restitution (mémorisation))*
    - des microbes
    - des vitamines
    - ✔ des molécules qui repèrent un microbe précis
@@ -400,17 +437,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Rappel à J+2**
 
-1. Les globules blancs servent à…
+1. Les globules blancs servent à… *(évalue : restitution (mémorisation))*
    - digérer
    - ✔ combattre les microbes
    - coaguler le sang
    - transporter l'oxygène
-2. La mémoire immunitaire permet…
+2. La mémoire immunitaire permet… *(évalue : restitution (mémorisation))*
    - de mieux dormir
    - de grandir
    - de voir mieux
    - ✔ de réagir plus vite à un microbe déjà rencontré
-3. Un anticorps est efficace contre…
+3. Un anticorps est efficace contre… *(évalue : restitution (mémorisation))*
    - les vitamines
    - tous les microbes à la fois
    - ✔ un microbe précis
@@ -428,17 +465,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Compréhension immédiate**
 
-1. Où trouve-t-on l'ADN dans le corps ?
+1. Où trouve-t-on l'ADN dans le corps ? *(évalue : restitution (mémorisation))*
    - ✔ Dans presque toutes les cellules
    - Seulement dans les os
    - Dans l'air
    - Seulement dans le sang
-2. Pourquoi un enfant ressemble-t-il à ses parents ?
+2. Pourquoi un enfant ressemble-t-il à ses parents ? *(évalue : compréhension)*
    - Parce qu'il vit avec eux
    - Parce qu'il mange la même chose
    - Par hasard uniquement
    - ✔ Parce qu'il reçoit une partie de l'ADN de chacun
-3. Un gène est…
+3. Un gène est… *(évalue : restitution (mémorisation))*
    - un organe
    - une maladie
    - un vaccin
@@ -452,17 +489,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Rappel à J+2**
 
-1. L'ADN contient…
+1. L'ADN contient… *(évalue : restitution (mémorisation))*
    - de l'eau
    - ✔ les informations qui guident le fonctionnement de la cellule
    - de l'énergie
    - des microbes
-2. On reçoit son ADN…
+2. On reçoit son ADN… *(évalue : restitution (mémorisation))*
    - de l'alimentation
    - uniquement de sa mère
    - ✔ de ses deux parents
    - de l'air
-3. Deux personnes non jumelles ont-elles le même ADN ?
+3. Deux personnes non jumelles ont-elles le même ADN ? *(évalue : restitution (mémorisation))*
    - Seulement les frères
    - ✔ Non
    - Oui
@@ -480,17 +517,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Compréhension immédiate**
 
-1. Comment un vaccin protège-t-il ?
+1. Comment un vaccin protège-t-il ? *(évalue : compréhension)*
    - Il tue tous les microbes du corps
    - ✔ Il apprend au corps à reconnaître un microbe sans tomber vraiment malade
    - Il soigne une maladie déjà là
    - Il remplace le sang
-2. Pourquoi fait-on parfois un rappel ?
+2. Pourquoi fait-on parfois un rappel ? *(évalue : compréhension)*
    - Ce n'est jamais utile
    - Pour changer de microbe
    - ✔ Pour réveiller la mémoire du corps qui faiblit avec le temps
    - Parce que le premier était faux
-3. Pourquoi vacciner beaucoup de monde protège aussi ceux qui ne le sont pas ?
+3. Pourquoi vacciner beaucoup de monde protège aussi ceux qui ne le sont pas ? *(évalue : compréhension)*
    - ✔ Parce que le microbe circule moins
    - Ce n'est pas vrai
    - Parce que le vaccin se transmet
@@ -504,17 +541,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Rappel à J+2**
 
-1. Un vaccin entraîne…
+1. Un vaccin entraîne… *(évalue : restitution (mémorisation))*
    - la mémoire scolaire
    - les muscles
    - la digestion
    - ✔ le système immunitaire
-2. Un rappel sert à…
+2. Un rappel sert à… *(évalue : restitution (mémorisation))*
    - changer de groupe sanguin
    - ✔ entretenir la protection
    - guérir une fracture
    - rien
-3. Un vaccin agit surtout…
+3. Un vaccin agit surtout… *(évalue : restitution (mémorisation))*
    - ✔ avant la maladie
    - seulement la nuit
    - après la guérison
@@ -532,17 +569,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Compréhension immédiate**
 
-1. D'où vient l'eau qui forme les nuages ?
+1. D'où vient l'eau qui forme les nuages ? *(évalue : restitution (mémorisation))*
    - De la pollution
    - Des étoiles
    - ✔ De l'eau évaporée des mers, lacs et sols
    - Uniquement des rivières gelées
-2. Pourquoi se forme-t-il des gouttes sur un verre d'eau très froide en été ?
+2. Pourquoi se forme-t-il des gouttes sur un verre d'eau très froide en été ? *(évalue : compréhension)*
    - Le verre fuit
    - L'eau traverse le verre
    - ✔ La vapeur d'eau de l'air se condense au contact du froid
    - Le soleil chauffe le verre
-3. Que devient la pluie qui tombe sur le sol ?
+3. Que devient la pluie qui tombe sur le sol ? *(évalue : application)*
    - Elle se transforme en sel
    - Elle disparaît
    - Elle remonte au ciel tout de suite
@@ -556,17 +593,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Rappel à J+2**
 
-1. Le passage de l'eau liquide à la vapeur s'appelle…
+1. Le passage de l'eau liquide à la vapeur s'appelle… *(évalue : restitution (mémorisation))*
    - précipitation
    - ✔ évaporation
    - fusion
    - condensation
-2. Les nuages sont faits de…
+2. Les nuages sont faits de… *(évalue : restitution (mémorisation))*
    - ✔ fines gouttelettes ou cristaux d'eau
    - fumée
    - gaz carbonique
    - poussière seulement
-3. Pluie, neige et grêle sont des…
+3. Pluie, neige et grêle sont des… *(évalue : restitution (mémorisation))*
    - ✔ précipitations
    - condensations
    - nappes
@@ -584,17 +621,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Compréhension immédiate**
 
-1. Sans aucun effet de serre naturel, la Terre serait…
+1. Sans aucun effet de serre naturel, la Terre serait… *(évalue : restitution (mémorisation))*
    - beaucoup plus chaude
    - sans soleil
    - identique
    - ✔ beaucoup plus froide
-2. Pourquoi l'ajout de gaz à effet de serre réchauffe-t-il le climat ?
+2. Pourquoi l'ajout de gaz à effet de serre réchauffe-t-il le climat ? *(évalue : compréhension)*
    - ✔ Ils retiennent davantage la chaleur émise par la Terre
    - Ils bloquent toute la lumière
    - Ils rapprochent le Soleil
    - Ils font fondre le Soleil
-3. Brûler du charbon, du pétrole ou du gaz…
+3. Brûler du charbon, du pétrole ou du gaz… *(évalue : restitution (mémorisation))*
    - ✔ ajoute du dioxyde de carbone dans l'air
    - retire du dioxyde de carbone
    - n'a aucun effet
@@ -608,17 +645,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Rappel à J+2**
 
-1. L'effet de serre naturel est…
+1. L'effet de serre naturel est… *(évalue : restitution (mémorisation))*
    - inexistant
    - toujours néfaste
    - dû à la Lune
    - ✔ indispensable à la vie sur Terre
-2. Un gaz à effet de serre important émis par les activités humaines est…
+2. Un gaz à effet de serre important émis par les activités humaines est… *(évalue : restitution (mémorisation))*
    - l'azote
    - l'oxygène
    - l'hélium
    - ✔ le dioxyde de carbone
-3. Renforcer l'effet de serre conduit à…
+3. Renforcer l'effet de serre conduit à… *(évalue : restitution (mémorisation))*
    - plus de lumière
    - un refroidissement
    - aucun changement
@@ -636,17 +673,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Compréhension immédiate**
 
-1. Pourquoi une pomme lâchée tombe-t-elle vers le sol ?
+1. Pourquoi une pomme lâchée tombe-t-elle vers le sol ? *(évalue : compréhension)*
    - L'air la pousse vers le bas
    - Elle est trop mûre
    - ✔ La Terre l'attire
    - Le vent souffle
-2. Sur la Lune, un astronaute pèse moins que sur Terre parce que…
+2. Sur la Lune, un astronaute pèse moins que sur Terre parce que… *(évalue : restitution (mémorisation))*
    - il a perdu du poids
    - ✔ la Lune l'attire moins fort
    - sa combinaison est légère
    - il n'y a pas d'air
-3. Qu'est-ce qui maintient la Lune autour de la Terre ?
+3. Qu'est-ce qui maintient la Lune autour de la Terre ? *(évalue : restitution (mémorisation))*
    - Un câble invisible
    - Le vent solaire
    - Rien, elle est immobile
@@ -660,17 +697,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Rappel à J+2**
 
-1. Deux objets ayant une masse…
+1. Deux objets ayant une masse… *(évalue : restitution (mémorisation))*
    - ✔ s'attirent
    - se repoussent
    - s'ignorent
    - s'annulent
-2. Le poids d'un objet dépend…
+2. Le poids d'un objet dépend… *(évalue : restitution (mémorisation))*
    - de sa forme seulement
    - de l'heure
    - ✔ de l'astre sur lequel il se trouve
    - de sa couleur
-3. Une orbite, c'est…
+3. Une orbite, c'est… *(évalue : restitution (mémorisation))*
    - un type de fusée
    - un nuage
    - ✔ le trajet d'un objet qui tourne autour d'un astre
@@ -688,17 +725,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Compréhension immédiate**
 
-1. Si on compare l'électricité à de l'eau dans un tuyau, la tension ressemble à…
+1. Si on compare l'électricité à de l'eau dans un tuyau, la tension ressemble à… *(évalue : application)*
    - la couleur de l'eau
    - ✔ la pression qui pousse l'eau
    - la longueur du tuyau
    - le robinet fermé
-2. L'intensité mesure…
+2. L'intensité mesure… *(évalue : restitution (mémorisation))*
    - le prix de l'électricité
    - la longueur des fils
    - la couleur de la lumière
    - ✔ la quantité de courant qui passe à chaque instant
-3. Pourquoi une lampe ne s'allume-t-elle pas si le circuit est ouvert ?
+3. Pourquoi une lampe ne s'allume-t-elle pas si le circuit est ouvert ? *(évalue : compréhension)*
    - La lampe est trop loin
    - La tension devient trop forte
    - ✔ Le courant ne peut pas circuler
@@ -712,17 +749,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Rappel à J+2**
 
-1. La tension se mesure en…
+1. La tension se mesure en… *(évalue : restitution (mémorisation))*
    - watts
    - ✔ volts
    - ampères
    - mètres
-2. L'intensité se mesure en…
+2. L'intensité se mesure en… *(évalue : restitution (mémorisation))*
    - litres
    - ✔ ampères
    - degrés
    - volts
-3. Pour qu'un courant circule, le circuit doit être…
+3. Pour qu'un courant circule, le circuit doit être… *(évalue : restitution (mémorisation))*
    - ouvert
    - ✔ fermé
    - coupé
@@ -740,17 +777,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Compréhension immédiate**
 
-1. S'il y a 10 % d'inflation sur un an, un panier qui coûtait 100 € coûte environ…
+1. S'il y a 10 % d'inflation sur un an, un panier qui coûtait 100 € coûte environ… *(évalue : restitution (mémorisation))*
    - 200 €
    - ✔ 110 €
    - 90 €
    - 100 €
-2. Si ton salaire ne bouge pas alors que les prix montent, ton pouvoir d'achat…
+2. Si ton salaire ne bouge pas alors que les prix montent, ton pouvoir d'achat… *(évalue : application)*
    - ✔ baisse
    - ne change pas
    - monte
    - double
-3. L'inflation désigne…
+3. L'inflation désigne… *(évalue : restitution (mémorisation))*
    - la hausse d'un seul produit
    - un impôt
    - une baisse des salaires
@@ -764,17 +801,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Rappel à J+2**
 
-1. Avec l'inflation, 100 € permettent d'acheter…
+1. Avec l'inflation, 100 € permettent d'acheter… *(évalue : restitution (mémorisation))*
    - exactement pareil
    - ✔ un peu moins qu'avant
    - rien
    - plus qu'avant
-2. Le pouvoir d'achat, c'est…
+2. Le pouvoir d'achat, c'est… *(évalue : restitution (mémorisation))*
    - une monnaie étrangère
    - le prix d'un objet
    - ✔ ce qu'on peut acheter avec son revenu
    - le taux d'une banque
-3. L'inflation concerne…
+3. L'inflation concerne… *(évalue : restitution (mémorisation))*
    - ✔ l'ensemble des prix
    - un seul magasin
    - les seuls salaires
@@ -792,17 +829,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Compréhension immédiate**
 
-1. Si beaucoup de gens veulent un produit rare, son prix a tendance à…
+1. Si beaucoup de gens veulent un produit rare, son prix a tendance à… *(évalue : application)*
    - baisser
    - ✔ monter
    - rester fixe
    - disparaître
-2. Après une très bonne récolte de tomates, leur prix a tendance à…
+2. Après une très bonne récolte de tomates, leur prix a tendance à… *(évalue : restitution (mémorisation))*
    - ✔ baisser
    - monter
    - rester fixe
    - doubler
-3. Le prix d'équilibre est le prix où…
+3. Le prix d'équilibre est le prix où… *(évalue : restitution (mémorisation))*
    - personne n'achète
    - ✔ la quantité offerte égale la quantité demandée
    - l'État fixe le prix
@@ -816,17 +853,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Rappel à J+2**
 
-1. Une pénurie, c'est quand…
+1. Une pénurie, c'est quand… *(évalue : restitution (mémorisation))*
    - ✔ la demande dépasse l'offre
    - l'offre dépasse la demande
    - personne ne veut acheter
    - le prix baisse
-2. Si l'offre augmente et la demande ne change pas, le prix…
+2. Si l'offre augmente et la demande ne change pas, le prix… *(évalue : application)*
    - ne peut pas changer
    - monte
    - double
    - ✔ a tendance à baisser
-3. La demande représente…
+3. La demande représente… *(évalue : restitution (mémorisation))*
    - ce que les vendeurs proposent
    - les salaires
    - ✔ ce que les acheteurs veulent acheter
@@ -844,17 +881,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Compréhension immédiate**
 
-1. Un objet coûte 100 € hors taxe avec une TVA de 20 %. Son prix TTC est…
+1. Un objet coûte 100 € hors taxe avec une TVA de 20 %. Son prix TTC est… *(évalue : application)*
    - 80 €
    - ✔ 120 €
    - 200 €
    - 100 €
-2. Qui supporte finalement la TVA ?
+2. Qui supporte finalement la TVA ? *(évalue : restitution (mémorisation))*
    - Uniquement l'usine
    - La banque
    - ✔ Le consommateur final
    - Personne
-3. « Hors taxe » signifie…
+3. « Hors taxe » signifie… *(évalue : restitution (mémorisation))*
    - un prix soldé
    - le prix avec la TVA
    - ✔ le prix avant ajout de la TVA
@@ -868,17 +905,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Rappel à J+2**
 
-1. TTC veut dire…
+1. TTC veut dire… *(évalue : restitution (mémorisation))*
    - ✔ toutes taxes comprises
    - tarif type commerce
    - total temporaire
    - taxe très chère
-2. Avec 20 % de TVA, 50 € HT deviennent…
+2. Avec 20 % de TVA, 50 € HT deviennent… *(évalue : application)*
    - 55 €
    - 50 €
    - 70 €
    - ✔ 60 €
-3. La TVA est une taxe sur…
+3. La TVA est une taxe sur… *(évalue : restitution (mémorisation))*
    - les maisons uniquement
    - les voitures uniquement
    - ✔ la consommation
@@ -896,17 +933,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Compréhension immédiate**
 
-1. Quelle est la principale différence entre un CDI et un CDD ?
+1. Quelle est la principale différence entre un CDI et un CDD ? *(évalue : restitution (mémorisation))*
    - ✔ Le CDD a une date de fin prévue, pas le CDI
    - Il n'y en a aucune
    - Le CDI est toujours mieux payé
    - Le CDD n'a pas de salaire
-2. À quoi sert la période d'essai ?
+2. À quoi sert la période d'essai ? *(évalue : restitution (mémorisation))*
    - À changer de métier
    - À travailler sans salaire
    - ✔ À permettre à chacun de vérifier que le poste convient, avec une rupture plus simple
    - À prolonger les vacances
-3. Un contrat de travail lie…
+3. Un contrat de travail lie… *(évalue : restitution (mémorisation))*
    - deux entreprises
    - un vendeur et un acheteur
    - deux clients
@@ -920,17 +957,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Rappel à J+2**
 
-1. CDI signifie…
+1. CDI signifie… *(évalue : restitution (mémorisation))*
    - contrat de droit international
    - contrat d'insertion
    - contrat de durée imposée
    - ✔ contrat à durée indéterminée
-2. Pendant la période d'essai, la rupture du contrat est…
+2. Pendant la période d'essai, la rupture du contrat est… *(évalue : restitution (mémorisation))*
    - ✔ plus simple qu'après
    - interdite
    - automatique
    - payante
-3. Un CDD prend fin…
+3. Un CDD prend fin… *(évalue : restitution (mémorisation))*
    - ✔ à la date ou à l'événement prévu
    - au bout d'un jour
    - jamais
@@ -948,17 +985,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Compréhension immédiate**
 
-1. Lequel de ces éléments est une donnée personnelle ?
+1. Lequel de ces éléments est une donnée personnelle ? *(évalue : restitution (mémorisation))*
    - Le prix d'un pain
    - La température du jour
    - ✔ Une adresse e-mail nominative
    - Le nom d'une ville seule
-2. Le droit d'accès permet à une personne de…
+2. Le droit d'accès permet à une personne de… *(évalue : restitution (mémorisation))*
    - ✔ savoir quelles données une organisation détient sur elle
    - voir les comptes de l'entreprise
    - accéder à tous les sites
    - lire les données des autres
-3. Pourquoi une entreprise doit-elle indiquer à quoi serviront les données qu'elle collecte ?
+3. Pourquoi une entreprise doit-elle indiquer à quoi serviront les données qu'elle collecte ? *(évalue : compréhension)*
    - ✔ Pour que la personne sache et puisse décider en connaissance de cause
    - Pour payer moins d'impôts
    - Pour faire de la publicité
@@ -972,17 +1009,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Rappel à J+2**
 
-1. Le RGPD protège…
+1. Le RGPD protège… *(évalue : restitution (mémorisation))*
    - les brevets
    - les prix
    - les routes
    - ✔ les données personnelles
-2. Le droit à l'effacement permet de…
+2. Le droit à l'effacement permet de… *(évalue : restitution (mémorisation))*
    - oublier son mot de passe
    - ✔ demander la suppression de ses données
    - effacer une facture
    - supprimer un site
-3. Une donnée personnelle permet…
+3. Une donnée personnelle permet… *(évalue : restitution (mémorisation))*
    - de calculer un prix
    - de mesurer la météo
    - de rien
@@ -1000,17 +1037,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Compréhension immédiate**
 
-1. Pourquoi garde-t-on la viande au froid ?
+1. Pourquoi garde-t-on la viande au froid ? *(évalue : compréhension)*
    - Pour changer son goût
    - ✔ Le froid ralentit le développement des bactéries
    - Le froid tue toutes les bactéries
    - Pour qu'elle soit plus lourde
-2. Une « rupture de la chaîne du froid », c'est…
+2. Une « rupture de la chaîne du froid », c'est… *(évalue : restitution (mémorisation))*
    - une panne de courant de la maison
    - ✔ un moment où le produit n'est plus gardé à la bonne température
    - un produit trop froid
    - un produit congelé deux fois au magasin
-3. Pourquoi ne faut-il pas recongeler un produit décongelé ?
+3. Pourquoi ne faut-il pas recongeler un produit décongelé ? *(évalue : compréhension)*
    - ✔ Les bactéries ont pu se multiplier pendant la décongélation
    - Il deviendrait trop dur
    - C'est interdit pour le goût
@@ -1024,17 +1061,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Rappel à J+2**
 
-1. Quel est l'effet du froid sur les bactéries des aliments ?
+1. Quel est l'effet du froid sur les bactéries des aliments ? *(évalue : restitution (mémorisation))*
    - les nourrit
    - ✔ ralentit les bactéries
    - n'a aucun effet
    - tue toutes les bactéries
-2. Un produit décongelé doit être…
+2. Un produit décongelé doit être… *(évalue : restitution (mémorisation))*
    - laissé au soleil
    - ✔ consommé rapidement, sans être recongelé
    - recongelé aussitôt
    - gardé un mois
-3. La chaîne du froid concerne…
+3. La chaîne du froid concerne… *(évalue : restitution (mémorisation))*
    - seulement le congélateur de la maison
    - seulement le magasin
    - seulement le camion
@@ -1052,17 +1089,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Compréhension immédiate**
 
-1. Combien de personnes au minimum doivent être présentes pour ouvrir le magasin ?
+1. Combien de personnes au minimum doivent être présentes pour ouvrir le magasin ? *(évalue : restitution (mémorisation))*
    - Aucune règle
    - Trois
    - ✔ Deux
    - Une
-2. Combien de temps as-tu pour désactiver l'alarme en arrivant ?
+2. Combien de temps as-tu pour désactiver l'alarme en arrivant ? *(évalue : restitution (mémorisation))*
    - 45 secondes
    - ✔ 30 secondes
    - 2 minutes
    - Pas de limite
-3. Le voyant du défibrillateur n'est pas vert à l'ouverture. Que fais-tu ?
+3. Le voyant du défibrillateur n'est pas vert à l'ouverture. Que fais-tu ? *(évalue : application)*
    - Je débranche l'appareil
    - ✔ Je préviens le responsable avant d'ouvrir
    - Je ne fais rien
@@ -1076,17 +1113,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Rappel à J+2**
 
-1. Le fond de caisse compté à l'ouverture est de…
+1. Le fond de caisse compté à l'ouverture est de… *(évalue : restitution (mémorisation))*
    - 150 €
    - 100 €
    - ✔ 200 €
    - 300 €
-2. L'alarme se déclenche par erreur. Qui appelles-tu ?
+2. L'alarme se déclenche par erreur. Qui appelles-tu ? *(évalue : restitution (mémorisation))*
    - ✔ La télésurveillance, au numéro affiché dans le bureau
    - La police
    - Un client
    - Personne
-3. Le comptage des caisses le soir se fait…
+3. Le comptage des caisses le soir se fait… *(évalue : restitution (mémorisation))*
    - ✔ à deux personnes
    - le lendemain
    - seul
@@ -1104,17 +1141,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Compréhension immédiate**
 
-1. Une livraison de viande hachée arrive à + 4 °C. Que fais-tu ?
+1. Une livraison de viande hachée arrive à + 4 °C. Que fais-tu ? *(évalue : application)*
    - ✔ Je refuse le produit, je l'écris sur le bon et je préviens le chef
    - Je l'accepte, c'est presque bon
    - Je la mets au congélateur
    - Je la goûte
-2. Qui peut réceptionner une livraison de boissons ?
+2. Qui peut réceptionner une livraison de boissons ? *(évalue : restitution (mémorisation))*
    - Le livreur seul
    - ✔ Le chef ou son second
    - N'importe quel commis
    - Un client
-3. Dans quel délai ranges-tu les produits acceptés en chambre froide ?
+3. Dans quel délai ranges-tu les produits acceptés en chambre froide ? *(évalue : restitution (mémorisation))*
    - 30 minutes
    - ✔ 15 minutes
    - En fin de service
@@ -1128,17 +1165,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Rappel à J+2**
 
-1. Il doit rester au moins combien de jours avant la date limite pour les viandes et poissons ?
+1. Il doit rester au moins combien de jours avant la date limite pour les viandes et poissons ? *(évalue : restitution (mémorisation))*
    - 7 jours
    - 1 jour
    - 3 jours
    - ✔ 4 jours
-2. Pour un produit refusé, que faut-il en plus de la mention sur le bon ?
+2. Pour un produit refusé, que faut-il en plus de la mention sur le bon ? *(évalue : restitution (mémorisation))*
    - Rien
    - ✔ Photographier le thermomètre et le bon, et joindre les photos au registre
    - Appeler un client
    - Jeter le bon
-3. Comment mesure-t-on la température d'un produit emballé ?
+3. Comment mesure-t-on la température d'un produit emballé ? *(évalue : compréhension)*
    - ✔ Sonde entre deux emballages, sans les percer
    - Avec un thermomètre de cuisine dans l'air
    - À la main
@@ -1156,17 +1193,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Compréhension immédiate**
 
-1. Un client domicilié en France veut payer 1 200 € en espèces. Que fais-tu ?
+1. Un client domicilié en France veut payer 1 200 € en espèces. Que fais-tu ? *(évalue : application)*
    - J'accepte
    - J'appelle la police
    - ✔ Je refuse le paiement en espèces au-delà de 1 000 € et je propose un autre moyen
    - Je demande la moitié en pièces
-2. Un client veut payer 30 € uniquement en pièces de 1 centime. Es-tu obligé d'accepter ?
+2. Un client veut payer 30 € uniquement en pièces de 1 centime. Es-tu obligé d'accepter ? *(évalue : application)*
    - Oui, toujours
    - ✔ Non, pas plus de 50 pièces pour un même paiement
    - Non, jamais de pièces
    - Oui, si c'est le matin
-3. Ton tiroir contient 900 € en espèces. Que se passe-t-il ?
+3. Ton tiroir contient 900 € en espèces. Que se passe-t-il ? *(évalue : application)*
    - Tu rends l'argent aux clients
    - Tu fermes la caisse
    - ✔ Le responsable fait un prélèvement vers le coffre
@@ -1180,17 +1217,17 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 **Rappel à J+2**
 
-1. Le fond de caisse est de…
+1. Le fond de caisse est de… *(évalue : restitution (mémorisation))*
    - 50 €
    - 150 €
    - ✔ 200 €
    - 800 €
-2. Au-delà de quel écart en fin de journée faut-il une fiche signée ?
+2. Au-delà de quel écart en fin de journée faut-il une fiche signée ? *(évalue : restitution (mémorisation))*
    - 1 €
    - ✔ 10 €
    - 50 €
    - Aucun écart n'est noté
-3. À partir de quelle valeur vérifie-t-on les billets au détecteur ?
+3. À partir de quelle valeur vérifie-t-on les billets au détecteur ? *(évalue : restitution (mémorisation))*
    - 100 € seulement
    - Tous les billets
    - ✔ 50 € et plus
