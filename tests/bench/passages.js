@@ -12,6 +12,9 @@ const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/cs
 
 async function build() {
   const corpus = JSON.parse(fs.readFileSync(path.join(DIR, 'corpus.json'), 'utf8'));
+  // contrôle hors corpus (mission 2c) : mêmes passages du navigateur, fichiers sous hors-corpus/
+  const hors = JSON.parse(fs.readFileSync(path.join(DIR, 'hors-corpus', 'corpus.json'), 'utf8'));
+  corpus.documents = [...corpus.documents, ...hors.documents.map((d) => ({ ...d, fichier: `hors-corpus/${d.fichier}` }))];
   const server = http.createServer((req, res) => {
     const p = path.join(ROOT, decodeURIComponent(req.url.split('?')[0]).replace(/^\/+/, '') || 'index.html');
     if (!p.startsWith(ROOT) || !fs.existsSync(p) || fs.statSync(p).isDirectory()) { res.writeHead(404); res.end(); return; }

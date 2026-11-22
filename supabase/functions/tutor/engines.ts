@@ -164,6 +164,50 @@ export async function scenarioStart(ctx: OrgCtx, db: EnginesDb, org: string, rol
   return { id, opening: spec.opening, client: { name: spec.name, style: "scenario" }, scenario: { context: spec.context, objective: spec.objective, role_label: spec.role_label, constraints: spec.constraints || [] } };
 }
 
+
+/* ---------- Mission 2c : comparer en tenant compte du contexte (section) ----------
+   Une même phrase n'a pas forcément la même portée selon la section où elle se trouve (« Remettre sans pièce
+   d'identité » sous « Commandes de moins de 50 € » n'est pas la règle qui valait pour toutes les commandes).
+   - verSections : découpe le texte relu par le serveur en sections, d'après les lignes de titre (courtes, sans
+     ponctuation finale, commençant par une majuscule, sans numéro de liste).
+   - verWhere : les titres (normalisés) des sections où une phrase figure mot pour mot.
+   - verKnownSame : une phrase est « déjà connue » seulement si CHACUNE de ses sections dans la nouvelle version la
+     contenait déjà dans l'ancienne. Même texte dans une autre section = sens opérationnel possiblement nouveau.
+   - verSameWords : même ensemble de mots porteurs de sens et de nombres, seuls l'ordre et les mots de liaison changent
+     (« ranger et nettoyer » = « nettoyer et ranger ») ; les marqueurs d'ordre (puis, ensuite, avant, après, d'abord…)
+     comptent comme du sens : « et » → « puis » n'est PAS une simple reformulation (décision du 2026-11-22). */
+export type VerSection = { heading: string; raw: string; flat: string };
+const verLine = (l: string) => l.replace(/\s+/g, " ").trim();
+const verIsHeading = (l: string) => l.length >= 3 && l.length <= 70 && /^[A-ZÀ-Ý]/.test(l) && !/[.;:!?,]$/.test(l) && !/^\d/.test(l) && l.split(" ").length <= 8;
+export function verSections(pages: string[]): VerSection[] {
+  const out: VerSection[] = [];
+  let cur: VerSection = { heading: "", raw: "", flat: "" };
+  for (const page of pages) for (const l0 of String(page).split(/\n+/)) {
+    const l = verLine(l0);
+    if (!l) continue;
+    if (verIsHeading(l)) { if (cur.raw || cur.heading) out.push(cur); cur = { heading: oneLine(l), raw: "", flat: "" }; continue; }
+    cur.raw += (cur.raw ? " " : "") + l;
+  }
+  out.push(cur);
+  return out.map((x) => ({ ...x, flat: ` ${oneLine(x.raw)} ` }));
+}
+export function verWhere(quote: string, secs: VerSection[]): string[] {
+  const q = oneLine(quote);
+  if (q.length < 4) return [];
+  return [...new Set(secs.filter((x) => x.flat.includes(` ${q} `)).map((x) => x.heading))];
+}
+export function verKnownSame(quote: string, oldSecs: VerSection[], newSecs: VerSection[]): boolean {
+  const before = new Set(verWhere(quote, oldSecs)), after = verWhere(quote, newSecs);
+  return before.size > 0 && after.length > 0 && after.every((h) => before.has(h));
+}
+const VER_STOP = new Set(["le", "la", "les", "l", "un", "une", "des", "de", "du", "d", "et", "a", "au", "aux", "en", "dans", "par", "pour", "sur", "avec", "ce", "cette", "ces", "son", "sa", "ses", "leur", "leurs", "qui", "que", "qu", "est", "sont", "se", "s", "y", "ou"]);
+const verBag = (t: string) => oneLine(t).split(" ").filter((w) => w && !VER_STOP.has(w)).sort().join(" ");
+export function verSameWords(a: string, b: string): boolean {
+  const x = verBag(a), y = verBag(b);
+  return x.length > 0 && x === y && oneLine(a) !== oneLine(b);
+}
+const verSentences = (raw: string) => raw.split(/(?<=[.!?])\s+|\s(?=\d+\.\s)/).map((x) => x.replace(/^\d+\.\s*/, "").trim()).filter((x) => x.length >= 12);
+
 /* ---------- Live Policy Watchdog : comparer deux versions d'un document ---------- */
 const CHANGE_SCHEMA = { type: "object", additionalProperties: false, required: ["items", "added"], properties: {
   items: { type: "array", items: { type: "object", additionalProperties: false, required: ["k", "change", "quote", "body", "why"], properties: { k: estr, change: { type: "string", enum: ["reformule", "modifie", "supprime"] }, quote: estr, body: estr, why: estr } } },
@@ -179,10 +223,34 @@ export async function compareVersions(ctx: OrgCtx, db: EnginesDb, org: string, r
   const pages = (await readVerified(ctx, db, to)).pages; // intégrité du fichier vérifiée avant toute comparaison
   const text = pages.join("\n");
   const pageOf = (q: string) => { const i = pages.findIndex((p) => inDoc(q, p)); return i >= 0 ? i + 1 : null; };
+  // Mission 2c : l'ancienne version est relue aussi (empreinte vérifiée), pour comparer chaque phrase dans sa section
+  let oldSecs: VerSection[] = [];
+  try { oldSecs = verSections((await readVerified(ctx, db, from)).pages); } catch (e) { if (e instanceof OrgError && e.status === 409) throw e; oldSecs = []; }
+  const newSecs = verSections(pages);
   const old = (await need(db.knowledgeOfVersion)(from.id)).filter((k) => ["valide", "a_revalider"].includes(k.status));
   const items: Record<string, unknown>[] = [];
   const rest: Knowledge[] = [];
-  old.forEach((k) => { if (inDoc(k.quote, text)) items.push({ knowledge_id: k.id, change: "inchange", sensitive: k.kind === "sensible", new_quote: k.quote, new_page: pageOf(k.quote), explanation: "Extrait retrouvé mot pour mot dans la nouvelle version." }); else rest.push(k); });
+  old.forEach((k) => {
+    if (!inDoc(k.quote, text)) { rest.push(k); return; }
+    const before = verWhere(k.quote, oldSecs), after = verWhere(k.quote, newSecs);
+    // même texte, mais plus dans aucune de ses sections d'origine : la portée a pu changer (cas « contexte »)
+    if (before.length && after.length && !before.some((h) => after.includes(h))) {
+      items.push({ knowledge_id: k.id, change: "modifie", sensitive: k.kind === "sensible", new_quote: k.quote, new_page: pageOf(k.quote),
+        explanation: `Même texte, mais dans une autre section (« ${before[0]} » → « ${after[0]} ») : la portée de la règle a changé, à vérifier.` });
+      return;
+    }
+    items.push({ knowledge_id: k.id, change: "inchange", sensitive: k.kind === "sensible", new_quote: k.quote, new_page: pageOf(k.quote), explanation: "Extrait retrouvé mot pour mot dans la nouvelle version, dans la même section." });
+  });
+  // Mission 2c : reformulation certaine sans appel au modèle (mêmes mots porteurs de sens et mêmes nombres, même section)
+  const newSentences = newSecs.flatMap((x) => verSentences(x.raw).map((t) => ({ t, h: x.heading })));
+  for (const k of [...rest]) {
+    const hs = verWhere(k.quote, oldSecs);
+    const twin = newSentences.find((x) => verSameWords(k.quote, x.t) && (!hs.length || hs.includes(x.h)));
+    if (!twin) continue;
+    rest.splice(rest.indexOf(k), 1);
+    items.push({ knowledge_id: k.id, change: "reformule", sensitive: k.kind === "sensible", new_body: k.body, new_quote: twin.t, new_page: pageOf(twin.t),
+      explanation: "Mêmes mots et mêmes nombres, seul l'ordre ou les mots de liaison changent : reformulation sans effet sur la règle." });
+  }
   let analysed = true;
   {
     try {
@@ -204,12 +272,25 @@ Pour chaque [k…] : "reformule" (même sens, autres mots), "modifie" (le fond a
       rest.filter((k) => !seen.has(k.id)).forEach((k) => items.push({ knowledge_id: k.id, change: "modifie", sensitive: k.kind === "sensible", explanation: "Extrait introuvable dans la nouvelle version ; l'analyse n'a pas conclu : à revoir." }));
       (Array.isArray(out.added) ? out.added : []).slice(0, 10).map((x) => x as Record<string, string>).forEach((x) => {
         const quote = eclip(x.quote, 1200).trim(); if (!inDoc(quote, text)) return;
+        // Mission 2c : déjà connue seulement si présente, dans chacune de ses sections, dans l'ancienne version
+        if (oldSecs.length && verKnownSame(quote, oldSecs, newSecs)) return;
         items.push({ knowledge_id: null, change: "nouveau", sensitive: isSensitive(`${quote} ${x.body}`), new_title: eclip(x.title, 200) || quote.slice(0, 60), new_body: eclip(x.body, 6000), new_quote: quote, new_page: pageOf(quote), explanation: "Nouvelle information de cette version." });
       });
     } catch (e) {
       if (e instanceof OrgError && e.status === 503) throw e;
       analysed = false; // sans modèle : tout ce qui n'est pas retrouvé mot pour mot reste à revoir par un humain
       rest.forEach((k) => items.push({ knowledge_id: k.id, change: "modifie", sensitive: k.kind === "sensible", explanation: "Extrait introuvable dans la nouvelle version (analyse automatique indisponible) : à revoir." }));
+    }
+  }
+  // Mission 2c : même phrase que dans la v1, mais dans une section où elle n'était pas : sens opérationnel nouveau
+  if (oldSecs.length) {
+    const seenNew = new Set(items.filter((i) => i.change === "nouveau").map((i) => oneLine(String(i.new_quote || ""))));
+    for (const x of newSentences) {
+      const before = verWhere(x.t, oldSecs);
+      if (!before.length || before.includes(x.h) || seenNew.has(oneLine(x.t))) continue;
+      seenNew.add(oneLine(x.t));
+      items.push({ knowledge_id: null, change: "nouveau", sensitive: isSensitive(x.t), new_title: x.t.slice(0, 60), new_body: x.t, new_quote: x.t, new_page: pageOf(x.t),
+        explanation: `Phrase déjà présente en v1 sous « ${before[0]} », nouvelle sous « ${x.h} » : nouvelle obligation à confirmer.` });
     }
   }
   const count = (c: string) => items.filter((i) => i.change === c).length;

@@ -5,7 +5,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { scoreComparison, scoreExtraction, summarize, THRESHOLDS } from './score.mjs';
+import { scoreComparison, scoreExtraction, summarize, THRESHOLDS, criteres2c, CRITERES_2C } from './score.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 // Chaque campagne est recalculée avec le corrigé en vigueur à son lancement (décision du 2026-11-22 sur R1 : voir contenu.js)
@@ -16,11 +16,14 @@ const passages = JSON.parse(fs.readFileSync(path.join(ROOT, 'docs/benchmark/pass
 export const CAMPAGNES = {
   'mission-2': { runs: path.join(ROOT, 'docs/benchmark/runs'), report: path.join(ROOT, 'docs/benchmark-extraction.md'), corrige: CORRIGE_2026_11_16 },
   'mission-2b': { runs: path.join(ROOT, 'docs/benchmark/runs-2b'), report: path.join(ROOT, 'docs/benchmark-extraction-2b.md'), corrige: CORRIGE_2026_11_16 },
+  'mission-2c': { runs: path.join(ROOT, 'docs/benchmark/runs-2c'), report: path.join(ROOT, 'docs/benchmark-extraction-2c.md'), corrige: CORRIGE_ACTUEL, regles2c: true },
 };
 const START = '<!-- RESULTATS:DEBUT (généré par tests/bench/report.mjs, ne pas modifier à la main) -->', END = '<!-- RESULTATS:FIN -->';
 const START_CMP = '<!-- COMPARAISON:DEBUT (généré par tests/bench/report.mjs, ne pas modifier à la main) -->', END_CMP = '<!-- COMPARAISON:FIN -->';
+const START_CRIT = '<!-- CRITERES:DEBUT (généré par tests/bench/report.mjs, ne pas modifier à la main) -->', END_CRIT = '<!-- CRITERES:FIN -->';
+const START_HC = '<!-- HORS-CORPUS:DEBUT (généré par tests/bench/report.mjs, ne pas modifier à la main) -->', END_HC = '<!-- HORS-CORPUS:FIN -->';
 
-export function rescore(run, corpus = readJson(CORRIGE_ACTUEL)) {
+export function rescore(run, corpus = readJson(CORRIGE_ACTUEL), opts = { regles2c: true }) {
   const extraction = run.extraction.map((d) => {
     const doc = corpus.documents.find((x) => x.id === d.id);
     const text = passages.documents.find((x) => x.id === d.id).batches.flat().map((p) => p.text).join(' ');
@@ -30,16 +33,31 @@ export function rescore(run, corpus = readJson(CORRIGE_ACTUEL)) {
   });
   const comparaison = run.comparaison.map((c) => {
     const v2 = corpus.documents.find((x) => x.id === c.id);
-    return { id: c.id, analysee: !!(c.resultat && c.resultat.summary && c.resultat.summary.analysed), erreur: c.erreur, score: scoreComparison(c.connaissances_v1, c.elements, v2, v2.regles_attendues) };
+    return { id: c.id, analysee: !!(c.resultat && c.resultat.summary && c.resultat.summary.analysed), erreur: c.erreur, score: scoreComparison(c.connaissances_v1, c.elements, v2, v2.regles_attendues, opts) };
   });
-  return { passage: run.passage, date: run.date, modeles: run.modeles_utilises, attentes: run.attentes_limite_debit || 0, extraction, comparaison };
+  // contrôle hors corpus (mission 2c) : recalculé avec son propre corrigé, figé le 2026-11-22
+  let hors = null;
+  if (run.hors_corpus) {
+    const hc = readJson('docs/corpus-metier/hors-corpus/corpus.json');
+    hors = {
+      extraction: run.hors_corpus.extraction.map((d) => {
+        const doc = hc.documents.find((x) => x.id === d.id);
+        const text = passages.documents.find((x) => x.id === d.id).batches.flat().map((p) => p.text).join(' ');
+        return { id: d.id, score: scoreExtraction(doc.regles_attendues, d.appels.flatMap((c) => (c.reponse && c.reponse.items) || []), d.appels.flatMap((c) => c.proposees || []), text) };
+      }),
+      comparaison: run.hors_corpus.comparaison.map((c) => { const v2 = hc.documents.find((x) => x.id === c.id); return { id: c.id, score: scoreComparison(c.connaissances_v1, c.elements, v2, v2.regles_attendues, { regles2c: true }) }; }),
+    };
+  }
+  return { passage: run.passage, date: run.date, modeles: run.modeles_utilises, attentes: run.attentes_limite_debit || 0, extraction, comparaison, hors };
 }
 
-export function loadRuns(campagne = 'mission-2') {
+// override : recalculer une campagne avec un autre corrigé et d'autres règles (comparaison « à corrigé égal » du rapport 2c)
+export function loadRuns(campagne = 'mission-2', override = null) {
   const RUNS = CAMPAGNES[campagne].runs;
   if (!fs.existsSync(RUNS)) return [];
-  const corpus = readJson(CAMPAGNES[campagne].corrige);
-  return fs.readdirSync(RUNS).filter((f) => /^passage-\d+\.json$/.test(f)).sort().map((f) => rescore(JSON.parse(fs.readFileSync(path.join(RUNS, f), 'utf8')), corpus));
+  const c = override || CAMPAGNES[campagne];
+  const corpus = readJson(c.corrige);
+  return fs.readdirSync(RUNS).filter((f) => /^passage-\d+\.json$/.test(f)).sort().map((f) => rescore(JSON.parse(fs.readFileSync(path.join(RUNS, f), 'utf8')), corpus, { regles2c: !!c.regles2c }));
 }
 
 const pct = (a, b) => (b ? `${Math.round((a / b) * 100)} %` : '–');
@@ -54,8 +72,9 @@ export function block(runs) {
   L.push(`| Seuil | ${S.map((x) => `Passage ${x.r.passage}`).join(' | ')} |`, `|---|${S.map(() => '---').join('|')}|`);
   L.push(`| Valeurs chiffrées exactes : 100 % | ${S.map((x) => `${x.s.valeurs_exactes}/${x.s.valeurs_total} (${yes(x.s.seuils.valeurs_exactes)})`).join(' | ')} |`);
   L.push(`| Règles sensibles retrouvées : au moins ${THRESHOLDS.sensibles_min}/47 | ${S.map((x) => `${x.s.sensibles_trouvees}/${x.s.sensibles_total} (${yes(x.s.seuils.sensibles)})`).join(' | ')} |`);
-  L.push(`| Changements détectés : 9/9 | ${S.map((x) => `${x.s.changements_detectes}/${x.s.changements_total} (${yes(x.s.seuils.changements)})`).join(' | ')} |`);
-  L.push(`| Fausses alertes sur les 4 pièges : 0 | ${S.map((x) => `${x.s.fausses_alertes_pieges} (${yes(x.s.seuils.pieges)})`).join(' | ')} |`);
+  const tc = S[0].s.changements_total, tp = S[0].s.pieges_total;
+  L.push(`| Changements détectés : ${tc}/${tc} | ${S.map((x) => `${x.s.changements_detectes}/${x.s.changements_total} (${yes(x.s.seuils.changements)})`).join(' | ')} |`);
+  L.push(`| Fausses alertes sur les ${tp} pièges : 0 | ${S.map((x) => `${x.s.fausses_alertes_pieges} (${yes(x.s.seuils.pieges)})`).join(' | ')} |`);
   L.push(`| **Les quatre seuils** | ${S.map((x) => (x.s.seuils_atteints ? 'atteints' : '**non atteints**')).join(' | ')} |`, '');
   L.push('### Autres mesures', '');
   L.push(`| Mesure | ${S.map((x) => `P${x.r.passage}`).join(' | ')} | Moyenne | Écart (min à max) |`, `|---|${S.map(() => '---').join('|')}|---|---|`);
@@ -69,9 +88,9 @@ export function block(runs) {
   row('Inventions avant le filtre du serveur', 'inventions_avant_filtre');
   row('Inventions après le filtre du serveur', 'inventions_apres_filtre');
   row('Gardées hors corrigé (vraies mais non attendues)', 'hors_corrige');
-  row('Changements détectés (9)', 'changements_detectes', 'changements_total');
+  row(`Changements détectés (${tc})`, 'changements_detectes', 'changements_total');
   row('Changements avec le bon type', 'changements_type_exact', 'changements_total');
-  row('Fausses alertes sur les pièges (4)', 'fausses_alertes_pieges', 'pieges_total');
+  row(`Fausses alertes sur les pièges (${tp})`, 'fausses_alertes_pieges', 'pieges_total');
   row('Autres fausses alertes (règles inchangées signalées)', 'autres_fausses_alertes');
   row('Nouveautés signalées par la comparaison', 'nouveautes');
   row('dont non fondées (texte déjà présent en v1)', 'nouveautes_non_fondees', 'nouveautes');
@@ -99,14 +118,51 @@ export function compareBlock(before, after) {
   const row = (label, k, worst = 'min') => L.push(`| ${label} | ${avg(B, k)} (${worst === 'min' ? min(B, k) : max(B, k)}) | ${avg(A, k)} (${worst === 'min' ? min(A, k) : max(A, k)}) |`);
   row('Valeurs chiffrées exactes (sur 49)', 'valeurs_exactes');
   row('Règles sensibles retrouvées (sur 47)', 'sensibles_trouvees');
-  row('Changements détectés (sur 9)', 'changements_detectes');
-  row('Fausses alertes sur les pièges (sur 4)', 'fausses_alertes_pieges', 'max');
+  const tot = (k) => { const a = B[0][k], b = A[0][k]; return a === b ? `sur ${a}` : `sur ${a}, puis ${b}`; };
+  row(`Changements détectés (${tot('changements_total')})`, 'changements_detectes');
+  row(`Fausses alertes sur les pièges (${tot('pieges_total')})`, 'fausses_alertes_pieges', 'max');
   row('Règles retrouvées (sur 74)', 'regles_trouvees');
   row('Sensibles classées « sensible »', 'sensibles_bien_classees');
   row('Inventions après le filtre du serveur', 'inventions_apres_filtre', 'max');
   row('Nouveautés non fondées (texte déjà présent en v1)', 'nouveautes_non_fondees', 'max');
   L.push(`| Passages où les quatre seuils sont atteints | ${B.filter((x) => x.seuils_atteints).length} sur ${B.length} | ${A.filter((x) => x.seuils_atteints).length} sur ${A.length} |`);
   return [START_CMP, ...L, END_CMP].join('\n');
+}
+
+// Mission 2c : tous les critères fixés le 2026-11-22, passage par passage (aucun n'est modifiable après le lancement)
+export function criteriaBlock(runs) {
+  const S = runs.map((r) => ({ r, s: summarize(r) })).map((x) => ({ ...x, c: criteres2c(x.s) }));
+  const yes = (b) => (b ? 'oui' : '**non**');
+  const L = [`| Critère | ${S.map((x) => `Passage ${x.r.passage}`).join(' | ')} |`, `|---|${S.map(() => '---').join('|')}|`];
+  const tc = S[0].s.changements_total, tp = S[0].s.pieges_total;
+  L.push(`| Valeurs chiffrées exactes : ${S[0].s.valeurs_total}/${S[0].s.valeurs_total} | ${S.map((x) => `${x.s.valeurs_exactes} (${yes(x.s.seuils.valeurs_exactes)})`).join(' | ')} |`);
+  L.push(`| Règles sensibles : au moins ${THRESHOLDS.sensibles_min}/${S[0].s.sensibles_total} | ${S.map((x) => `${x.s.sensibles_trouvees} (${yes(x.s.seuils.sensibles)})`).join(' | ')} |`);
+  L.push(`| Changements détectés : ${tc}/${tc} | ${S.map((x) => `${x.s.changements_detectes} (${yes(x.s.seuils.changements)})`).join(' | ')} |`);
+  L.push(`| Fausses alertes sur les ${tp} pièges : 0 | ${S.map((x) => `${x.s.fausses_alertes_pieges} (${yes(x.s.seuils.pieges)})`).join(' | ')} |`);
+  L.push(`| Nouveautés non fondées : ${CRITERES_2C.nouveautes_non_fondees} | ${S.map((x) => `${x.s.nouveautes_non_fondees} (${yes(x.c.nouveautes)})`).join(' | ')} |`);
+  L.push(`| Inventions gardées : ${CRITERES_2C.inventions_apres_filtre} | ${S.map((x) => `${x.s.inventions_apres_filtre} (${yes(x.c.inventions)})`).join(' | ')} |`);
+  L.push(`| Extraction sans régression : au moins ${CRITERES_2C.regles_min}/${S[0].s.regles_total} règles | ${S.map((x) => `${x.s.regles_trouvees} (${yes(x.c.extraction)})`).join(' | ')} |`);
+  const all = S.map((x) => x.s.seuils_atteints && Object.values(x.c).every(Boolean));
+  L.push(`| **Tous les critères** | ${all.map((b) => (b ? 'atteints' : '**non atteints**')).join(' | ')} |`);
+  L.push('', all.every(Boolean) ? `**Mission 2c : tous les critères sont atteints sur chacun des ${S.length} passages.**` : `**Mission 2c : critères non atteints sur ${all.filter((b) => !b).length} passage(s) sur ${S.length}.**`);
+  return [START_CRIT, ...L, END_CRIT].join('\n');
+}
+
+// Contrôle hors corpus : jamais un seuil, rapporté tel quel
+export function horsBlock(runs) {
+  const H = runs.filter((r) => r.hors);
+  if (!H.length) return [START_HC, 'Aucun contrôle hors corpus enregistré.', END_HC].join('\n');
+  const L = [`| Mesure | ${H.map((r) => `P${r.passage}`).join(' | ')} |`, `|---|${H.map(() => '---').join('|')}|`];
+  const per = (r) => r.hors.extraction.flatMap((d) => d.score.per);
+  L.push(`| Règles retrouvées à l'extraction | ${H.map((r) => `${per(r).filter((p) => p.found).length}/${per(r).length}`).join(' | ')} |`);
+  const det = (r) => r.hors.comparaison.flatMap((c) => c.score.detections), tr = (r) => r.hors.comparaison.flatMap((c) => c.score.traps);
+  L.push(`| Changements détectés | ${H.map((r) => `${det(r).filter((x) => x.detecte).length}/${det(r).length}`).join(' | ')} |`);
+  L.push(`| Fausses alertes sur les pièges | ${H.map((r) => `${tr(r).filter((x) => x.fausse_alerte).length}/${tr(r).length}`).join(' | ')} |`);
+  L.push(`| Nouveautés non fondées | ${H.map((r) => r.hors.comparaison.reduce((a, c) => a + c.score.nouveautes_non_fondees, 0)).join(' | ')} |`);
+  L.push('', `| Changement attendu | ${H.map((r) => `P${r.passage}`).join(' | ')} |`, `|---|${H.map(() => '---').join('|')}|`);
+  det(H[0]).forEach((d, j) => L.push(`| ${d.id} (${d.type}) | ${H.map((r) => { const x = det(r)[j]; return x.detecte ? (x.type_exact ? 'détecté' : `détecté, classé « ${x.obtenu} »`) : `**manqué** (${x.obtenu || 'absent'})`; }).join(' | ')} |`));
+  tr(H[0]).forEach((t, j) => L.push(`| Piège ${t.piege} | ${H.map((r) => (tr(r)[j].fausse_alerte ? '**fausse alerte**' : 'pas d’alerte')).join(' | ')} |`));
+  return [START_HC, ...L, END_HC].join('\n');
 }
 
 function writeBetween(file, start, end, text, check) {
@@ -127,6 +183,13 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.a
     if (!runs.length || !fs.existsSync(c.report)) { console.log(`${name} : aucune campagne enregistrée`); continue; }
     ok = writeBetween(c.report, START, END, block(runs), check) && ok;
     if (name === 'mission-2b') ok = writeBetween(c.report, START_CMP, END_CMP, compareBlock(loadRuns('mission-2'), runs), check) && ok;
+    if (name === 'mission-2c') {
+      // « avant » = la campagne 2b recalculée avec le même corrigé et les mêmes règles que la 2c (comparaison à corrigé égal)
+      const before = loadRuns('mission-2b', { corrige: CORRIGE_ACTUEL, regles2c: true });
+      ok = writeBetween(c.report, START_CMP, END_CMP, compareBlock(before, runs), check) && ok;
+      ok = writeBetween(c.report, START_CRIT, END_CRIT, criteriaBlock(runs), check) && ok;
+      ok = writeBetween(c.report, START_HC, END_HC, horsBlock(runs), check) && ok;
+    }
     console.log(`${name} : ${check ? (ok ? 'rapport à jour' : 'rapport PAS à jour : relancer node tests/bench/report.mjs') : 'rapport écrit'}`);
   }
   process.exit(ok ? 0 : 1);

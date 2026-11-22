@@ -52,8 +52,15 @@ const check = (name, ok, extra = '') => { console.log(`${ok ? '✓' : '✗'} ${n
     check('C4 le rapport de la mission 2b contient exactement ses résultats recalculés et la comparaison avant / après', doc2b.includes(R.block(runs2b)) && doc2b.includes(R.compareBlock(runs, runs2b)));
   }
 
+  const runs2c = R.loadRuns('mission-2c');
+  if (runs2c.length) {
+    check('C5 au moins trois passages indépendants enregistrés (mission 2c)', runs2c.length >= 3, String(runs2c.length));
+    const doc2c = fs.readFileSync(path.join(ROOT, 'docs/benchmark-extraction-2c.md'), 'utf8');
+    check('C6 le rapport de la mission 2c contient exactement ses résultats, ses critères et le contrôle hors corpus recalculés', doc2c.includes(R.block(runs2c)) && doc2c.includes(R.criteriaBlock(runs2c)) && doc2c.includes(R.horsBlock(runs2c)));
+  }
+
   /* ---------- D. Aucun secret ---------- */
-  const files = ['runs', 'runs-2b'].filter((d) => fs.existsSync(path.join(ROOT, 'docs/benchmark', d))).flatMap((d) => fs.readdirSync(path.join(ROOT, 'docs/benchmark', d)).map((f) => fs.readFileSync(path.join(ROOT, 'docs/benchmark', d, f), 'utf8'))).join('\n');
+  const files = ['runs', 'runs-2b', 'runs-2c'].filter((d) => fs.existsSync(path.join(ROOT, 'docs/benchmark', d))).flatMap((d) => fs.readdirSync(path.join(ROOT, 'docs/benchmark', d)).map((f) => fs.readFileSync(path.join(ROOT, 'docs/benchmark', d, f), 'utf8'))).join('\n');
   check('D1 aucune clé ni en-tête d’authentification dans les résultats enregistrés', !/gsk_[A-Za-z0-9]{8,}|sk-[A-Za-z0-9]{16,}|authorization|Bearer\s+[A-Za-z0-9._-]{12,}|service_role/i.test(files));
 
   console.log(failed ? `\n${failed} échec(s)` : '\nTous les tests passent');
