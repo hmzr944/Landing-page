@@ -206,6 +206,20 @@ export function verSameWords(a: string, b: string): boolean {
   const x = verBag(a), y = verBag(b);
   return x.length > 0 && x === y && oneLine(a) !== oneLine(b);
 }
+/* Mission 2d : changement d'ordre certain. Mêmes mots porteurs de sens une fois les marqueurs d'ordre retirés, et la
+   nouvelle phrase impose un ordre (puis, ensuite, avant, après, d'abord…) que l'ancienne n'imposait pas : c'est une
+   modification (décision du 2026-11-22), sans appel au modèle. Si les deux phrases ont déjà un marqueur d'ordre, on ne
+   conclut pas ici : le même ordre peut être dit autrement (« avant de nettoyer » = « après l'avoir débranchée »). */
+const VER_ORDER = new Set(["puis", "ensuite", "avant", "apres", "abord", "enfin", "prealablement", "seulement"]);
+const verOrderWords = (t: string) => oneLine(t).split(" ").filter((w) => VER_ORDER.has(w));
+const verBagNoOrder = (t: string) => oneLine(t).split(" ").filter((w) => w && !VER_STOP.has(w) && !VER_ORDER.has(w)).sort().join(" ");
+export function verOrderImposed(a: string, b: string): boolean {
+  const x = verBagNoOrder(a), y = verBagNoOrder(b);
+  return x.length > 0 && x === y && verOrderWords(a).length === 0 && verOrderWords(b).length > 0;
+}
+// Mission 2d : numéro de liste en tête d'une citation (« 4. Conserver… ») : retiré avant toute comparaison, car un ajout
+// en tête de liste décale les numéros sans rien changer aux étapes suivantes.
+export const verStripNum = (q: string) => String(q).replace(/^\s*\d{1,3}[.)]\s+/, "").trim();
 const verSentences = (raw: string) => raw.split(/(?<=[.!?])\s+|\s(?=\d+\.\s)/).map((x) => x.replace(/^\d+\.\s*/, "").trim()).filter((x) => x.length >= 12);
 
 /* ---------- Live Policy Watchdog : comparer deux versions d'un document ---------- */
@@ -245,18 +259,39 @@ export async function compareVersions(ctx: OrgCtx, db: EnginesDb, org: string, r
   const newSentences = newSecs.flatMap((x) => verSentences(x.raw).map((t) => ({ t, h: x.heading })));
   for (const k of [...rest]) {
     const hs = verWhere(k.quote, oldSecs);
+    const ordered = newSentences.find((x) => verOrderImposed(k.quote, x.t) && (!hs.length || hs.includes(x.h)));
+    if (ordered) {
+      rest.splice(rest.indexOf(k), 1);
+      items.push({ knowledge_id: k.id, change: "modifie", sensitive: k.kind === "sensible", new_body: ordered.t, new_quote: ordered.t, new_page: pageOf(ordered.t),
+        explanation: "Mêmes étapes, mais la nouvelle version impose un ordre (« " + verOrderWords(ordered.t).join(", ") + " ») que l'ancienne n'imposait pas : à revalider." });
+      continue;
+    }
     const twin = newSentences.find((x) => verSameWords(k.quote, x.t) && (!hs.length || hs.includes(x.h)));
     if (!twin) continue;
     rest.splice(rest.indexOf(k), 1);
     items.push({ knowledge_id: k.id, change: "reformule", sensitive: k.kind === "sensible", new_body: k.body, new_quote: twin.t, new_page: pageOf(twin.t),
       explanation: "Mêmes mots et mêmes nombres, seul l'ordre ou les mots de liaison changent : reformulation sans effet sur la règle." });
   }
+  // Mission 2d : sections de la nouvelle version déjà « couvertes » par une connaissance existante pour une phrase donnée
+  // (inchangée, portée modifiée, reformulée, ordre imposé). Une nouveauté n'y est pas recréée : ce serait une double alerte.
+  const verCovered = (quote: string, onlyIn?: string) => {
+    const q = oneLine(verStripNum(quote));
+    const secs = onlyIn ? [onlyIn] : verWhere(quote, newSecs);
+    if (!secs.length) return false;
+    const covering = items.filter((i) => i.knowledge_id && i.change !== "supprime" && oneLine(verStripNum(String(i.new_quote || ""))) === q);
+    const covered = new Set(covering.flatMap((i) => verWhere(String(i.new_quote), newSecs)));
+    // une connaissance inchangée ne couvre que les sections où elle se trouvait déjà en v1
+    const keep = new Set(covering.filter((i) => i.change === "inchange").flatMap((i) => verWhere(String(i.new_quote), oldSecs)));
+    return secs.every((h) => covered.has(h) && (!covering.every((i) => i.change === "inchange") || keep.has(h)));
+  };
   let analysed = true;
   {
     try {
       const out = await ask(ctx, "comparer", {
         system: `Une procédure ou une fiche a changé. On te donne des connaissances de l'ANCIENNE version [k…] dont l'extrait n'apparaît plus tel quel, et le texte de la NOUVELLE version.
-Pour chaque [k…] : "reformule" (même sens, autres mots), "modifie" (le fond a changé : chiffre, règle, étape…), ou "supprime" (plus mentionné). "quote" = l'extrait de la nouvelle version COPIÉ MOT POUR MOT qui correspond ("" si supprimé), "body" = la connaissance à jour, "why" = ce qui a changé, en une phrase.
+Pour chaque [k…] : "reformule" (même sens, autres mots), "modifie" (le fond a changé : chiffre, règle, étape…), ou "supprime" (plus mentionné).
+L'ordre des étapes fait partie du fond : si la nouvelle version impose un ordre (« puis », « ensuite », « avant », « après », « d'abord ») que l'ancienne n'imposait pas, ou si elle inverse un ordre imposé, c'est "modifie". Si l'ordre reste le même, dit avec d'autres mots, c'est "reformule".
+Une même phrase placée dans une autre section peut changer de portée (pour qui, quand, dans quel cas) : c'est "modifie". "quote" = l'extrait de la nouvelle version COPIÉ MOT POUR MOT qui correspond ("" si supprimé), "body" = la connaissance à jour, "why" = ce qui a changé, en une phrase.
 "added" : les nouvelles règles ou informations importantes absentes de l'ancienne version (extrait mot pour mot). N'invente rien.`,
         user: `Anciennes connaissances :\n${kRefs(rest) || "(aucune)"}\n\nNouvelle version :\n"""${text.slice(0, 9000)}"""`,
         schema: CHANGE_SCHEMA, maxTokens: 5000, // le raisonnement de gpt-oss compte dans ces jetons : 2000 coupait la réponse
@@ -264,16 +299,17 @@ Pour chaque [k…] : "reformule" (même sens, autres mots), "modifie" (le fond a
       const seen = new Set<string>();
       (Array.isArray(out.items) ? out.items : []).map((x) => x as Record<string, string>).forEach((x) => {
         const k = kAt(rest, x.k); if (!k || seen.has(k.id)) return; seen.add(k.id);
-        const quote = eclip(x.quote, 1200).trim(), ok = x.change !== "supprime" && inDoc(quote, text);
+        const quote = verStripNum(eclip(x.quote, 1200)), ok = x.change !== "supprime" && inDoc(quote, text);
         const change = x.change === "supprime" ? "supprime" : x.change === "reformule" && ok ? "reformule" : "modifie";
         items.push({ knowledge_id: k.id, change, sensitive: k.kind === "sensible" || isSensitive(`${quote} ${x.body}`), new_body: change === "supprime" ? null : eclip(x.body, 6000) || null,
           new_quote: ok ? quote : null, new_page: ok ? pageOf(quote) : null, explanation: eclip(x.why, 500) + (change !== "supprime" && !ok ? " (extrait non retrouvé dans le document : à vérifier)" : "") });
       });
       rest.filter((k) => !seen.has(k.id)).forEach((k) => items.push({ knowledge_id: k.id, change: "modifie", sensitive: k.kind === "sensible", explanation: "Extrait introuvable dans la nouvelle version ; l'analyse n'a pas conclu : à revoir." }));
       (Array.isArray(out.added) ? out.added : []).slice(0, 10).map((x) => x as Record<string, string>).forEach((x) => {
-        const quote = eclip(x.quote, 1200).trim(); if (!inDoc(quote, text)) return;
+        const quote = verStripNum(eclip(x.quote, 1200)); if (!inDoc(quote, text)) return;
         // Mission 2c : déjà connue seulement si présente, dans chacune de ses sections, dans l'ancienne version
         if (oldSecs.length && verKnownSame(quote, oldSecs, newSecs)) return;
+        if (verCovered(quote)) return; // mission 2d : déjà signalée pour une connaissance existante (portée modifiée…)
         items.push({ knowledge_id: null, change: "nouveau", sensitive: isSensitive(`${quote} ${x.body}`), new_title: eclip(x.title, 200) || quote.slice(0, 60), new_body: eclip(x.body, 6000), new_quote: quote, new_page: pageOf(quote), explanation: "Nouvelle information de cette version." });
       });
     } catch (e) {
@@ -283,11 +319,12 @@ Pour chaque [k…] : "reformule" (même sens, autres mots), "modifie" (le fond a
     }
   }
   // Mission 2c : même phrase que dans la v1, mais dans une section où elle n'était pas : sens opérationnel nouveau
+  // (mission 2d : sauf si une connaissance existante couvre déjà cette phrase dans cette section, par exemple « portée modifiée »)
   if (oldSecs.length) {
     const seenNew = new Set(items.filter((i) => i.change === "nouveau").map((i) => oneLine(String(i.new_quote || ""))));
     for (const x of newSentences) {
       const before = verWhere(x.t, oldSecs);
-      if (!before.length || before.includes(x.h) || seenNew.has(oneLine(x.t))) continue;
+      if (!before.length || before.includes(x.h) || seenNew.has(oneLine(x.t)) || verCovered(x.t, x.h)) continue;
       seenNew.add(oneLine(x.t));
       items.push({ knowledge_id: null, change: "nouveau", sensitive: isSensitive(x.t), new_title: x.t.slice(0, 60), new_body: x.t, new_quote: x.t, new_page: pageOf(x.t),
         explanation: `Phrase déjà présente en v1 sous « ${before[0]} », nouvelle sous « ${x.h} » : nouvelle obligation à confirmer.` });
