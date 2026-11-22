@@ -5,7 +5,8 @@
    de PDF issus d'un traitement de texte). La seconde sert de test de non-régression du lecteur (défaut du 2026-11-16). */
 const fs = require('fs'), path = require('path');
 const { chromium } = require('playwright');
-const { DOCS, SOURCES, BANDEAU } = require('./contenu.js');
+const { DOCS: MAIN, SOURCES, BANDEAU } = require('./contenu.js');
+const HORS = require('./hors-corpus/contenu.js').DOCS; // contrôle hors corpus (mission 2c) : généré à part, dans hors-corpus/
 
 const DIR = __dirname;
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -36,13 +37,13 @@ ${d.sections.map(block).join('\n')}
 </body></html>`;
 }
 
-function manifest() {
+function manifest(DOCS = MAIN, nom = 'Corpus métier n° 1') {
   const regles = (d) => d.sections.flatMap((s) => (s.ol || s.ul || s.p).filter((x) => x && x.r).map((x) => ({
     id: x.r.id, texte: x.t, base: x.r.base, sensible: !!x.r.sensible,
     ...(x.r.source ? { source: SOURCES[x.r.source] } : {}),
   })));
   return {
-    nom: 'Corpus métier n° 1',
+    nom,
     avertissement: 'Tous les documents sont fabriqués (jeu de test). Les organisations sont fictives. Seules les règles de base « reglementaire » reprennent un texte public, vérifié à la source indiquée ; les règles « interne » sont inventées pour l’exercice.',
     genere_par: 'docs/corpus-metier/generer.js',
     documents: DOCS.map((d) => ({
@@ -56,18 +57,28 @@ function manifest() {
 (async () => {
   fs.mkdirSync(path.join(DIR, 'sources'), { recursive: true });
   fs.mkdirSync(path.join(DIR, 'ligatures'), { recursive: true });
+  fs.mkdirSync(path.join(DIR, 'hors-corpus', 'sources'), { recursive: true });
   const browser = await chromium.launch();
   const page = await browser.newPage();
-  for (const d of DOCS) {
+  const PDF = { format: 'A4', margin: { top: '18mm', bottom: '18mm', left: '18mm', right: '18mm' } };
+  for (const d of MAIN) {
     const h = html(d);
     fs.writeFileSync(path.join(DIR, 'sources', `${d.id}.html`), h);
     await page.setContent(h);
-    await page.pdf({ path: path.join(DIR, `${d.id}.pdf`), format: 'A4', margin: { top: '18mm', bottom: '18mm', left: '18mm', right: '18mm' } });
+    await page.pdf({ path: path.join(DIR, `${d.id}.pdf`), ...PDF });
     console.log('écrit', `${d.id}.pdf`);
     await page.setContent(html(d, true));
-    await page.pdf({ path: path.join(DIR, 'ligatures', `${d.id}.pdf`), format: 'A4', margin: { top: '18mm', bottom: '18mm', left: '18mm', right: '18mm' } });
+    await page.pdf({ path: path.join(DIR, 'ligatures', `${d.id}.pdf`), ...PDF });
+  }
+  for (const d of HORS) {
+    const h = html(d);
+    fs.writeFileSync(path.join(DIR, 'hors-corpus', 'sources', `${d.id}.html`), h);
+    await page.setContent(h);
+    await page.pdf({ path: path.join(DIR, 'hors-corpus', `${d.id}.pdf`), ...PDF });
+    console.log('écrit', `hors-corpus/${d.id}.pdf`);
   }
   await browser.close();
   fs.writeFileSync(path.join(DIR, 'corpus.json'), JSON.stringify(manifest(), null, 2) + '\n');
-  console.log('écrit corpus.json');
+  fs.writeFileSync(path.join(DIR, 'hors-corpus', 'corpus.json'), JSON.stringify(manifest(HORS, 'Contrôle hors corpus (mission 2c, figé le 2026-11-22)'), null, 2) + '\n');
+  console.log('écrit corpus.json et hors-corpus/corpus.json');
 })().catch((e) => { console.error(e); process.exit(1); });

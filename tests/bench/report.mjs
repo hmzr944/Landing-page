@@ -8,17 +8,19 @@ import { fileURLToPath } from 'node:url';
 import { scoreComparison, scoreExtraction, summarize, THRESHOLDS } from './score.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
-const corpus = JSON.parse(fs.readFileSync(path.join(ROOT, 'docs/corpus-metier/corpus.json'), 'utf8'));
+// Chaque campagne est recalculée avec le corrigé en vigueur à son lancement (décision du 2026-11-22 sur R1 : voir contenu.js)
+const readJson = (f) => JSON.parse(fs.readFileSync(path.join(ROOT, f), 'utf8'));
+const CORRIGE_2026_11_16 = 'docs/corpus-metier/corpus-reference-2026-11-16.json', CORRIGE_ACTUEL = 'docs/corpus-metier/corpus.json';
 const passages = JSON.parse(fs.readFileSync(path.join(ROOT, 'docs/benchmark/passages.json'), 'utf8'));
 // Deux campagnes : mission 2 (référence « avant ») et mission 2b (« après »), chacune avec son rapport
 export const CAMPAGNES = {
-  'mission-2': { runs: path.join(ROOT, 'docs/benchmark/runs'), report: path.join(ROOT, 'docs/benchmark-extraction.md') },
-  'mission-2b': { runs: path.join(ROOT, 'docs/benchmark/runs-2b'), report: path.join(ROOT, 'docs/benchmark-extraction-2b.md') },
+  'mission-2': { runs: path.join(ROOT, 'docs/benchmark/runs'), report: path.join(ROOT, 'docs/benchmark-extraction.md'), corrige: CORRIGE_2026_11_16 },
+  'mission-2b': { runs: path.join(ROOT, 'docs/benchmark/runs-2b'), report: path.join(ROOT, 'docs/benchmark-extraction-2b.md'), corrige: CORRIGE_2026_11_16 },
 };
 const START = '<!-- RESULTATS:DEBUT (généré par tests/bench/report.mjs, ne pas modifier à la main) -->', END = '<!-- RESULTATS:FIN -->';
 const START_CMP = '<!-- COMPARAISON:DEBUT (généré par tests/bench/report.mjs, ne pas modifier à la main) -->', END_CMP = '<!-- COMPARAISON:FIN -->';
 
-export function rescore(run) {
+export function rescore(run, corpus = readJson(CORRIGE_ACTUEL)) {
   const extraction = run.extraction.map((d) => {
     const doc = corpus.documents.find((x) => x.id === d.id);
     const text = passages.documents.find((x) => x.id === d.id).batches.flat().map((p) => p.text).join(' ');
@@ -36,7 +38,8 @@ export function rescore(run) {
 export function loadRuns(campagne = 'mission-2') {
   const RUNS = CAMPAGNES[campagne].runs;
   if (!fs.existsSync(RUNS)) return [];
-  return fs.readdirSync(RUNS).filter((f) => /^passage-\d+\.json$/.test(f)).sort().map((f) => rescore(JSON.parse(fs.readFileSync(path.join(RUNS, f), 'utf8'))));
+  const corpus = readJson(CAMPAGNES[campagne].corrige);
+  return fs.readdirSync(RUNS).filter((f) => /^passage-\d+\.json$/.test(f)).sort().map((f) => rescore(JSON.parse(fs.readFileSync(path.join(RUNS, f), 'utf8')), corpus));
 }
 
 const pct = (a, b) => (b ? `${Math.round((a / b) * 100)} %` : '–');
