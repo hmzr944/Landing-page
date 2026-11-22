@@ -1,4 +1,9 @@
-# Mission 3a : protocole de mesure pédagogique (proposition à valider)
+# Mission 3a : protocole de mesure pédagogique
+
+**Statut (2026-11-22) :** les 20 sujets et les 3 procédures sont validés. Le jeu de mesure complet
+(`docs/pedagogie/jeu-de-mesure.md`, version lisible de `jeu-de-mesure.json`) et la grille de reformulation
+(`docs/pedagogie/grille-reformulation.md`) sont **à relire et valider avant toute mesure**. Aucune modification du moteur
+pédagogique.
 
 **But :** mesurer, avant toute modification du moteur, ce que l'explication actuelle d'Arbor permet réellement :
 comprendre, reformuler avec ses mots, appliquer dans une situation différente. Ce protocole sera rejoué à
@@ -30,7 +35,7 @@ relu par vous.
 **3 procédures métier** du corpus n° 1 : ouverture et fermeture (R1 v2), réception des livraisons (H1 v2), tenue de
 la caisse (R3).
 
-Pour chaque sujet et chaque procédure, le fichier contiendra :
+Pour chaque sujet et chaque procédure, le fichier contient (questions à 4 choix, ordre des choix mélangé avec une graine fixe pour qu'aucune position ne soit toujours la bonne) :
 - 5 à 10 **termes techniques** à repérer (pour la mesure du jargon) ;
 - 3 **questions de compréhension**, avec leurs réponses ;
 - 1 **situation de transfert**, différente de tout exemple qu'Arbor pourrait donner, avec la réponse attendue ;
@@ -55,15 +60,15 @@ car les réponses varient.
 seront aussi annotées à la main par deux personnes, et l'accord entre heuristique et annotation sera publié.
 
 ## 3. Partie B : compréhension réelle (vrais apprenants)
-- **Participants :** 6 à 10 débutants volontaires, extérieurs au projet, avec leur consentement. Ils sont
-  pseudonymisés, et aucune donnée nominative n'est enregistrée. Je ne peux pas les recruter : c'est à vous de le faire.
+- **Participants :** 5 à 8 débutants volontaires, extérieurs au projet, recrutés par le responsable produit, avec leur
+  consentement. Ils sont pseudonymisés, et aucune donnée nominative n'est enregistrée.
 - **Matériel :** 4 sujets tirés au sort parmi les 20, et 1 procédure, avec l'explication actuelle d'Arbor.
 - **Durée :** environ 25 minutes par personne, plus 5 minutes deux jours plus tard.
 
 | Mesure | Comment | Note |
 |---|---|---|
 | B1 Compréhension immédiate | les 3 questions préparées, juste après l'explication | sur 3 |
-| B2 Reformulation | « explique-le à un ami, avec tes mots », écrit ou oral transcrit, notée par **deux correcteurs indépendants** avec la grille : idée centrale, deux éléments clés, aucune erreur, des mots à soi plutôt que recopiés | sur 4, avec l'accord entre correcteurs |
+| B2 Reformulation | « explique-le à un ami, avec tes mots », écrit ou oral transcrit, notée par **deux correcteurs indépendants, en aveugle** (sans savoir quelle version du moteur la personne a vue), avec la grille commune `docs/pedagogie/grille-reformulation.md` | sur 4, avec l'accord entre correcteurs (pourcentage et kappa) publié avant toute discussion |
 | B3 Transfert | la situation nouvelle préparée à l'avance | sur 2 |
 | B4 Déblocage | si B1 donne moins de 2 sur 3 : seconde explication d'Arbor (aujourd'hui, l'indice de Pousse), puis 2 nouvelles questions | % de personnes débloquées |
 | B5 Rappel à 2 jours | 3 questions différentes de B1 | sur 3 |

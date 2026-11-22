@@ -1,0 +1,269 @@
+[
+  {
+    "id": "P-R1",
+    "sujet": "Ouverture et fermeture du magasin (R1 v2, corpus métier n° 1, fictif)",
+    "domaine": "commerce de détail",
+    "glossaire": [
+      "fond de caisse",
+      "télésurveillance",
+      "issues de secours",
+      "défibrillateur",
+      "enveloppe scellée",
+      "coffre"
+    ],
+    "comprehension": [
+      {
+        "q": "Combien de personnes au minimum doivent être présentes pour ouvrir le magasin ?",
+        "choix": [
+          "Deux",
+          "Une",
+          "Trois",
+          "Aucune règle"
+        ],
+        "reponse": 0
+      },
+      {
+        "q": "Combien de temps as-tu pour désactiver l'alarme en arrivant ?",
+        "choix": [
+          "30 secondes",
+          "45 secondes",
+          "2 minutes",
+          "Pas de limite"
+        ],
+        "reponse": 0
+      },
+      {
+        "q": "Le voyant du défibrillateur n'est pas vert à l'ouverture. Que fais-tu ?",
+        "choix": [
+          "Je préviens le responsable avant d'ouvrir",
+          "J'ouvre et je verrai plus tard",
+          "Je débranche l'appareil",
+          "Je ne fais rien"
+        ],
+        "reponse": 0
+      }
+    ],
+    "transfert": {
+      "situation": "Un dimanche soir, ton collègue doit partir plus tôt et te propose de fermer seul.",
+      "question": "Que dit la procédure, et que fais-tu ?",
+      "attendu": "La fermeture se fait toujours à deux (comptage et sortie) : je ne ferme pas seul et je préviens le responsable."
+    },
+    "rappel": [
+      {
+        "q": "Le fond de caisse compté à l'ouverture est de…",
+        "choix": [
+          "200 €",
+          "150 €",
+          "100 €",
+          "300 €"
+        ],
+        "reponse": 0
+      },
+      {
+        "q": "L'alarme se déclenche par erreur. Qui appelles-tu ?",
+        "choix": [
+          "La télésurveillance, au numéro affiché dans le bureau",
+          "La police",
+          "Un client",
+          "Personne"
+        ],
+        "reponse": 0
+      },
+      {
+        "q": "Le comptage des caisses le soir se fait…",
+        "choix": [
+          "à deux personnes",
+          "seul",
+          "le lendemain",
+          "par un client"
+        ],
+        "reponse": 0
+      }
+    ],
+    "reformulation": {
+      "idee_centrale": "On ouvre et on ferme toujours à deux, en sécurisant l'alarme, les issues et l'argent à chaque étape.",
+      "elements_cles": [
+        "jamais seul (ouverture, comptage, fermeture)",
+        "contrôles de sécurité : alarme 30 s, issues, défibrillateur"
+      ]
+    }
+  },
+  {
+    "id": "P-H1",
+    "sujet": "Réception des livraisons (H1 v2, corpus métier n° 1, fictif)",
+    "domaine": "hôtellerie-restauration",
+    "glossaire": [
+      "thermomètre sonde",
+      "date limite de consommation",
+      "bon de livraison",
+      "traçabilité",
+      "chambre froide",
+      "tolérance"
+    ],
+    "comprehension": [
+      {
+        "q": "Une livraison de viande hachée arrive à + 4 °C. Que fais-tu ?",
+        "choix": [
+          "Je refuse le produit, je l'écris sur le bon et je préviens le chef",
+          "Je l'accepte, c'est presque bon",
+          "Je la mets au congélateur",
+          "Je la goûte"
+        ],
+        "reponse": 0
+      },
+      {
+        "q": "Qui peut réceptionner une livraison de boissons ?",
+        "choix": [
+          "Le chef ou son second",
+          "N'importe quel commis",
+          "Le livreur seul",
+          "Un client"
+        ],
+        "reponse": 0
+      },
+      {
+        "q": "Dans quel délai ranges-tu les produits acceptés en chambre froide ?",
+        "choix": [
+          "15 minutes",
+          "30 minutes",
+          "1 heure",
+          "En fin de service"
+        ],
+        "reponse": 0
+      }
+    ],
+    "transfert": {
+      "situation": "Pendant le déchargement, un carton de glaces affiche – 16 °C en surface ; il était à – 18 °C dans le camion.",
+      "question": "Acceptes-tu le carton ? Justifie avec la procédure.",
+      "attendu": "Oui, si c'est bref et pendant le déchargement : un écart de 3 °C au plus en surface est admis ; je le range vite au froid."
+    },
+    "rappel": [
+      {
+        "q": "Il doit rester au moins combien de jours avant la date limite pour les viandes et poissons ?",
+        "choix": [
+          "4 jours",
+          "3 jours",
+          "1 jour",
+          "7 jours"
+        ],
+        "reponse": 0
+      },
+      {
+        "q": "Pour un produit refusé, que faut-il en plus de la mention sur le bon ?",
+        "choix": [
+          "Photographier le thermomètre et le bon, et joindre les photos au registre",
+          "Rien",
+          "Appeler un client",
+          "Jeter le bon"
+        ],
+        "reponse": 0
+      },
+      {
+        "q": "Comment mesure-t-on la température d'un produit emballé ?",
+        "choix": [
+          "Sonde entre deux emballages, sans les percer",
+          "En perçant l'emballage",
+          "À la main",
+          "Avec un thermomètre de cuisine dans l'air"
+        ],
+        "reponse": 0
+      }
+    ],
+    "reformulation": {
+      "idee_centrale": "À la réception, le chef ou son second contrôle températures, dates et emballages, refuse ce qui n'est pas conforme en gardant une preuve, et range vite au froid.",
+      "elements_cles": [
+        "contrôles et seuils de température",
+        "refus documenté (bon, photos) et rangement en 15 minutes"
+      ]
+    }
+  },
+  {
+    "id": "P-R3",
+    "sujet": "Tenue de la caisse (R3, corpus métier n° 1, fictif)",
+    "domaine": "commerce de détail",
+    "glossaire": [
+      "fond de caisse",
+      "plafond de paiement en espèces",
+      "détecteur de faux billets",
+      "prélèvement",
+      "fiche d'écart",
+      "domicile fiscal"
+    ],
+    "comprehension": [
+      {
+        "q": "Un client domicilié en France veut payer 1 200 € en espèces. Que fais-tu ?",
+        "choix": [
+          "Je refuse le paiement en espèces au-delà de 1 000 € et je propose un autre moyen",
+          "J'accepte",
+          "Je demande la moitié en pièces",
+          "J'appelle la police"
+        ],
+        "reponse": 0
+      },
+      {
+        "q": "Un client veut payer 30 € uniquement en pièces de 1 centime. Es-tu obligé d'accepter ?",
+        "choix": [
+          "Non, pas plus de 50 pièces pour un même paiement",
+          "Oui, toujours",
+          "Oui, si c'est le matin",
+          "Non, jamais de pièces"
+        ],
+        "reponse": 0
+      },
+      {
+        "q": "Ton tiroir contient 900 € en espèces. Que se passe-t-il ?",
+        "choix": [
+          "Le responsable fait un prélèvement vers le coffre",
+          "Tu continues sans rien faire",
+          "Tu rends l'argent aux clients",
+          "Tu fermes la caisse"
+        ],
+        "reponse": 0
+      }
+    ],
+    "transfert": {
+      "situation": "Le détecteur signale qu'un billet de 50 € est douteux ; le client s'énerve et réclame son billet.",
+      "question": "Que fais-tu, et pourquoi ?",
+      "attendu": "Je reste courtois et je n'accuse pas le client ; le billet présumé faux ne doit pas être remis en circulation (il n'est jamais rendu en monnaie) ; j'appelle le responsable, qui le remet à la Banque de France, à un commissariat ou à une gendarmerie."
+    },
+    "rappel": [
+      {
+        "q": "Le fond de caisse est de…",
+        "choix": [
+          "200 €",
+          "150 €",
+          "800 €",
+          "50 €"
+        ],
+        "reponse": 0
+      },
+      {
+        "q": "Au-delà de quel écart en fin de journée faut-il une fiche signée ?",
+        "choix": [
+          "10 €",
+          "1 €",
+          "50 €",
+          "Aucun écart n'est noté"
+        ],
+        "reponse": 0
+      },
+      {
+        "q": "À partir de quelle valeur vérifie-t-on les billets au détecteur ?",
+        "choix": [
+          "50 € et plus",
+          "Tous les billets",
+          "100 € seulement",
+          "Jamais"
+        ],
+        "reponse": 0
+      }
+    ],
+    "reformulation": {
+      "idee_centrale": "La caisse se tient avec des règles d'argent strictes : plafonds en espèces, vérification des billets, prélèvements et écarts tracés.",
+      "elements_cles": [
+        "règles légales (1 000 €, 50 pièces, billet suspect)",
+        "règles internes (prélèvement, fiche d'écart)"
+      ]
+    }
+  }
+]

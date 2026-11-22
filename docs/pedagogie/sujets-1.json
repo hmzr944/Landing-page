@@ -1,0 +1,162 @@
+[
+  {
+    "id": "S01", "sujet": "Le protocole IP", "domaine": "numérique",
+    "glossaire": ["adresse IP", "paquet", "routeur", "réseau", "protocole", "en-tête", "Internet"],
+    "comprehension": [
+      { "q": "Pourquoi un fichier envoyé sur Internet est-il découpé en paquets ?", "choix": ["Pour qu'il voyage par petits morceaux qui peuvent prendre des chemins différents", "Pour le rendre secret", "Pour qu'il prenne moins de place sur le disque", "Parce que la loi l'impose"], "reponse": 0 },
+      { "q": "À quoi sert l'adresse IP de destination écrite sur chaque paquet ?", "choix": ["À vérifier que le paquet n'est pas abîmé", "À indiquer où le paquet doit arriver", "À donner le nom du fichier", "À choisir la vitesse d'envoi"], "reponse": 1 },
+      { "q": "Que fait un routeur quand il reçoit un paquet ?", "choix": ["Il l'ouvre et lit son contenu", "Il le renvoie à l'expéditeur", "Il lit l'adresse de destination et le fait avancer vers elle", "Il le garde en mémoire"], "reponse": 2 }
+    ],
+    "transfert": { "situation": "Pendant un appel vidéo, l'image se fige une seconde puis repart, sans que l'appel soit coupé.", "question": "Avec ce que tu sais des paquets, explique ce qui a pu se passer.", "attendu": "Certains paquets ont été retardés ou perdus en route (chemin encombré) ; les suivants sont arrivés et l'appel a continué." },
+    "rappel": [
+      { "q": "Sur un paquet IP, qu'est-ce qui permet de savoir où il doit aller ?", "choix": ["Son poids", "L'adresse de destination", "L'heure d'envoi", "Le nom de l'ordinateur"], "reponse": 1 },
+      { "q": "Deux paquets d'un même message prennent-ils forcément le même chemin ?", "choix": ["Oui, toujours", "Non, ils peuvent passer par des routeurs différents", "Seulement la nuit", "Seulement sur un câble"], "reponse": 1 },
+      { "q": "Quel appareil fait passer un paquet d'un réseau à un autre ?", "choix": ["L'écran", "Le routeur", "Le clavier", "L'imprimante"], "reponse": 1 }
+    ],
+    "reformulation": { "idee_centrale": "Les données voyagent en petits paquets portant une adresse de destination, que des routeurs font avancer de proche en proche.", "elements_cles": ["découpage en paquets", "adresse lue par les routeurs pour acheminer"] }
+  },
+  {
+    "id": "S02", "sujet": "La mémoire de l'ordinateur (RAM)", "domaine": "numérique",
+    "glossaire": ["mémoire vive", "RAM", "stockage", "disque", "volatile", "processeur", "programme"],
+    "comprehension": [
+      { "q": "Pourquoi un document non enregistré est-il perdu si l'ordinateur s'éteint brutalement ?", "choix": ["Parce qu'il était seulement dans la mémoire vive, qui s'efface sans courant", "Parce que le disque se vide", "Parce que l'écran s'éteint", "Parce que le clavier est débranché"], "reponse": 0 },
+      { "q": "Quelle est la principale différence entre la mémoire vive et le disque ?", "choix": ["La mémoire vive garde tout pour toujours", "La mémoire vive est rapide mais temporaire, le disque est plus lent mais garde les fichiers", "Le disque est plus rapide", "Il n'y a aucune différence"], "reponse": 1 },
+      { "q": "Pourquoi un ordinateur ralentit-il quand on ouvre beaucoup de programmes ?", "choix": ["Parce que l'écran fatigue", "Parce que la mémoire vive se remplit et l'ordinateur doit utiliser le disque, plus lent", "Parce que le disque devient plus rapide", "Parce que la souris consomme trop"], "reponse": 1 }
+    ],
+    "transfert": { "situation": "Tu prépares un exposé au tableau blanc pendant que tes fiches sont rangées dans un classeur.", "question": "Si tu compares à un ordinateur, que représentent le tableau et le classeur, et pourquoi ?", "attendu": "Le tableau = la mémoire vive (on travaille dessus, rapide, effacé à la fin) ; le classeur = le disque (on y range pour garder)." },
+    "rappel": [
+      { "q": "La mémoire vive garde-t-elle les données quand l'ordinateur est éteint ?", "choix": ["Oui", "Non", "Seulement les photos", "Seulement le week-end"], "reponse": 1 },
+      { "q": "Où faut-il enregistrer un fichier pour le retrouver le lendemain ?", "choix": ["Dans la mémoire vive", "Sur le disque (stockage)", "Dans le processeur", "Dans l'écran"], "reponse": 1 },
+      { "q": "Ajouter de la mémoire vive aide surtout à…", "choix": ["garder plus de photos pour toujours", "faire tourner plus de programmes en même temps sans ralentir", "avoir un écran plus grand", "se connecter à Internet"], "reponse": 1 }
+    ],
+    "reformulation": { "idee_centrale": "La mémoire vive est l'espace de travail rapide mais temporaire de l'ordinateur ; ce qui doit durer va sur le disque.", "elements_cles": ["rapide et effacée sans courant", "différence avec le stockage durable"] }
+  },
+  {
+    "id": "S03", "sujet": "Le chiffrement d'un message", "domaine": "numérique",
+    "glossaire": ["chiffrer", "déchiffrer", "clé", "message chiffré", "algorithme", "confidentialité"],
+    "comprehension": [
+      { "q": "Pourquoi un message chiffré intercepté est-il inutile pour un espion qui n'a pas la clé ?", "choix": ["Parce qu'il est effacé", "Parce qu'il est illisible sans la clé", "Parce qu'il est trop long", "Parce qu'il est en anglais"], "reponse": 1 },
+      { "q": "Que faut-il pour retrouver le message d'origine ?", "choix": ["Un écran plus grand", "La bonne clé", "Une connexion plus rapide", "Le nom de l'expéditeur"], "reponse": 1 },
+      { "q": "Si quelqu'un vole la clé, que se passe-t-il ?", "choix": ["Rien, le chiffrement protège toujours", "Il peut lire les messages chiffrés avec cette clé", "Les messages disparaissent", "La clé change toute seule"], "reponse": 1 }
+    ],
+    "transfert": { "situation": "Deux amies s'écrivent en décalant chaque lettre de trois rangs dans l'alphabet (A devient D).", "question": "Qu'est-ce qui joue ici le rôle de la clé, et que doit savoir l'autre amie pour lire le mot ?", "attendu": "La clé est le décalage de 3 ; il faut le connaître pour décaler chaque lettre dans l'autre sens." },
+    "rappel": [
+      { "q": "Chiffrer un message, c'est…", "choix": ["le rendre illisible sans la clé", "le raccourcir", "l'imprimer", "le traduire"], "reponse": 0 },
+      { "q": "Ce qui doit rester secret avant tout, c'est…", "choix": ["la longueur du message", "la clé", "l'heure d'envoi", "la langue"], "reponse": 1 },
+      { "q": "Déchiffrer, c'est…", "choix": ["supprimer le message", "retrouver le message lisible avec la clé", "envoyer le message", "copier le message"], "reponse": 1 }
+    ],
+    "reformulation": { "idee_centrale": "Chiffrer transforme un message en texte illisible que seule la personne qui a la clé peut remettre en clair.", "elements_cles": ["illisible sans la clé", "la clé doit rester secrète"] }
+  },
+  {
+    "id": "S04", "sujet": "Le théorème de Pythagore", "domaine": "mathématiques",
+    "glossaire": ["triangle rectangle", "angle droit", "hypoténuse", "côté", "carré d'un nombre", "théorème"],
+    "comprehension": [
+      { "q": "Dans un triangle rectangle de côtés 3 et 4 autour de l'angle droit, combien mesure le plus grand côté ?", "choix": ["5", "7", "6", "12"], "reponse": 0 },
+      { "q": "À quels triangles s'applique le théorème ?", "choix": ["À tous les triangles", "Aux triangles qui ont un angle droit", "Aux triangles dont les trois côtés sont égaux", "Aux carrés"], "reponse": 1 },
+      { "q": "Le plus grand côté d'un triangle rectangle est toujours…", "choix": ["collé à l'angle droit", "en face de l'angle droit", "égal aux deux autres réunis", "le plus petit"], "reponse": 1 }
+    ],
+    "transfert": { "situation": "Une échelle de 5 m est posée contre un mur ; son pied est à 3 m du mur, sur un sol plat.", "question": "À quelle hauteur l'échelle touche-t-elle le mur ? Explique ton raisonnement.", "attendu": "4 m : le mur et le sol font un angle droit, 5² = 3² + h², donc h² = 16 et h = 4." },
+    "rappel": [
+      { "q": "Le théorème relie…", "choix": ["les angles d'un triangle", "les longueurs des côtés d'un triangle rectangle", "les aires de deux cercles", "le périmètre d'un carré"], "reponse": 1 },
+      { "q": "Triangle rectangle de côtés 6 et 8 autour de l'angle droit : le grand côté mesure…", "choix": ["10", "14", "12", "9"], "reponse": 0 },
+      { "q": "Où se trouve l'hypoténuse ?", "choix": ["En face de l'angle droit", "Entre les deux petits côtés", "Au centre", "Il n'y en a pas"], "reponse": 0 }
+    ],
+    "reformulation": { "idee_centrale": "Dans un triangle rectangle, le carré du plus grand côté est égal à la somme des carrés des deux autres.", "elements_cles": ["seulement avec un angle droit", "permet de calculer un côté à partir des deux autres"] }
+  },
+  {
+    "id": "S05", "sujet": "Les fractions", "domaine": "mathématiques",
+    "glossaire": ["fraction", "numérateur", "dénominateur", "part", "simplifier", "fractions égales"],
+    "comprehension": [
+      { "q": "Une pizza est coupée en 8 parts ; tu en manges 3. Quelle fraction as-tu mangée ?", "choix": ["3/8", "8/3", "5/8", "3/5"], "reponse": 0 },
+      { "q": "Laquelle est la plus grande : 1/2 ou 1/4 ?", "choix": ["1/4", "1/2", "Elles sont égales", "On ne peut pas savoir"], "reponse": 1 },
+      { "q": "Pourquoi 2/4 et 1/2 représentent-ils la même quantité ?", "choix": ["Parce qu'ils ont le même numérateur", "Parce que 2 parts sur 4 couvrent autant que 1 part sur 2", "Parce que 4 est plus grand que 2", "Ce n'est pas la même quantité"], "reponse": 1 }
+    ],
+    "transfert": { "situation": "Une recette pour 4 personnes demande 3/4 de litre de lait ; tu cuisines pour 2 personnes.", "question": "Quelle quantité de lait faut-il, et comment le sais-tu ?", "attendu": "3/8 de litre : deux fois moins de personnes, donc la moitié de 3/4." },
+    "rappel": [
+      { "q": "Dans 3/5, le nombre du bas indique…", "choix": ["en combien de parts égales on a coupé", "combien de parts on prend", "le résultat", "le reste"], "reponse": 0 },
+      { "q": "4/8 est égal à…", "choix": ["1/2", "1/4", "2/3", "4"], "reponse": 0 },
+      { "q": "Lequel est le plus petit : 1/3 ou 1/10 ?", "choix": ["1/3", "1/10", "Égaux", "On ne peut pas savoir"], "reponse": 1 }
+    ],
+    "reformulation": { "idee_centrale": "Une fraction indique combien de parts égales on prend (en haut) sur le nombre de parts du tout (en bas).", "elements_cles": ["rôle du nombre du bas et du haut", "plus il y a de parts, plus chacune est petite"] }
+  },
+  {
+    "id": "S06", "sujet": "Les intérêts composés", "domaine": "mathématiques, finance",
+    "glossaire": ["capital", "taux d'intérêt", "intérêts", "intérêts composés", "placement", "durée"],
+    "comprehension": [
+      { "q": "Tu places 100 € à 10 % par an, intérêts composés. Combien as-tu après 2 ans ?", "choix": ["121 €", "120 €", "110 €", "200 €"], "reponse": 0 },
+      { "q": "Qu'est-ce qui distingue les intérêts composés ?", "choix": ["Les intérêts gagnés rapportent à leur tour des intérêts", "Le taux baisse chaque année", "On ne touche rien avant la fin", "Ils sont interdits"], "reponse": 0 },
+      { "q": "Pour un même taux, pourquoi placer tôt rapporte-t-il plus ?", "choix": ["Parce que le taux augmente avec l'âge", "Parce que les intérêts ont plus d'années pour s'ajouter et rapporter à leur tour", "Parce que la banque offre un cadeau", "Ce n'est pas vrai"], "reponse": 1 }
+    ],
+    "transfert": { "situation": "Une dette de carte de crédit non remboursée augmente chaque mois avec des intérêts sur les intérêts.", "question": "Pourquoi cette dette peut-elle grossir de plus en plus vite ?", "attendu": "Les intérêts s'ajoutent à la dette, puis portent eux-mêmes des intérêts : la base grossit chaque mois." },
+    "rappel": [
+      { "q": "Avec les intérêts composés, les intérêts de l'an 1 rapportent-ils en l'an 2 ?", "choix": ["Oui", "Non", "Seulement s'ils sont retirés", "Seulement à 0 %"], "reponse": 0 },
+      { "q": "100 € à 50 % par an pendant 2 ans, composés :", "choix": ["225 €", "200 €", "150 €", "250 €"], "reponse": 0 },
+      { "q": "Le capital, c'est…", "choix": ["la somme placée au départ", "le taux", "la banque", "la durée"], "reponse": 0 }
+    ],
+    "reformulation": { "idee_centrale": "Avec les intérêts composés, les intérêts gagnés s'ajoutent au capital et rapportent à leur tour, ce qui accélère la croissance.", "elements_cles": ["intérêts sur les intérêts", "effet plus fort avec le temps"] }
+  },
+  {
+    "id": "S07", "sujet": "La photosynthèse", "domaine": "sciences de la vie",
+    "glossaire": ["photosynthèse", "chlorophylle", "dioxyde de carbone", "oxygène", "glucose", "feuille", "lumière"],
+    "comprehension": [
+      { "q": "De quoi une plante a-t-elle besoin pour fabriquer sa nourriture par photosynthèse ?", "choix": ["Lumière, eau et dioxyde de carbone", "Seulement de terre", "D'oxygène et de nuit", "De sucre ajouté"], "reponse": 0 },
+      { "q": "Quel gaz la plante rejette-t-elle pendant la photosynthèse ?", "choix": ["Dioxyde de carbone", "Oxygène", "Azote", "Hélium"], "reponse": 1 },
+      { "q": "Pourquoi une plante laissée dans un placard sombre dépérit-elle ?", "choix": ["Parce qu'elle a trop froid", "Sans lumière, elle ne peut plus fabriquer sa nourriture", "Parce qu'elle a trop d'eau", "Parce que le placard est petit"], "reponse": 1 }
+    ],
+    "transfert": { "situation": "Dans une serre fermée et éclairée, on ajoute du dioxyde de carbone dans l'air.", "question": "Que peut-on attendre pour la croissance des plantes, et pourquoi ?", "attendu": "Elles peuvent pousser plus vite : plus de dioxyde de carbone disponible pour fabriquer leur nourriture, tant qu'il y a lumière et eau." },
+    "rappel": [
+      { "q": "La photosynthèse a lieu surtout dans…", "choix": ["les racines", "les feuilles", "les graines", "le sol"], "reponse": 1 },
+      { "q": "Le pigment vert qui capte la lumière s'appelle…", "choix": ["chlorophylle", "glucose", "oxygène", "sève"], "reponse": 0 },
+      { "q": "La photosynthèse produit…", "choix": ["du sucre et de l'oxygène", "du sel et de l'azote", "de la terre", "de l'eau salée"], "reponse": 0 }
+    ],
+    "reformulation": { "idee_centrale": "Grâce à la lumière, la plante fabrique son sucre à partir d'eau et de dioxyde de carbone, et rejette de l'oxygène.", "elements_cles": ["besoins : lumière, eau, CO2", "produits : sucre et oxygène"] }
+  },
+  {
+    "id": "S08", "sujet": "Le système immunitaire", "domaine": "sciences de la vie",
+    "glossaire": ["système immunitaire", "microbe", "globule blanc", "anticorps", "infection", "mémoire immunitaire"],
+    "comprehension": [
+      { "q": "Quel est le rôle principal du système immunitaire ?", "choix": ["Digérer les aliments", "Défendre le corps contre les microbes", "Faire circuler le sang", "Produire de l'énergie"], "reponse": 1 },
+      { "q": "Pourquoi tombe-t-on rarement deux fois malade de la varicelle ?", "choix": ["Parce que le corps garde la mémoire de ce microbe et réagit vite", "Parce que le microbe disparaît de la Terre", "Parce qu'on grandit", "Par hasard"], "reponse": 0 },
+      { "q": "Les anticorps sont…", "choix": ["des microbes", "des molécules qui repèrent un microbe précis", "des médicaments", "des vitamines"], "reponse": 1 }
+    ],
+    "transfert": { "situation": "Une personne dont les défenses sont affaiblies par un traitement attrape facilement des infections banales.", "question": "Explique pourquoi, avec ce que tu sais du système immunitaire.", "attendu": "Son système immunitaire réagit moins ou moins vite : les microbes ne sont plus repérés et éliminés à temps." },
+    "rappel": [
+      { "q": "Les globules blancs servent à…", "choix": ["transporter l'oxygène", "combattre les microbes", "coaguler le sang", "digérer"], "reponse": 1 },
+      { "q": "La mémoire immunitaire permet…", "choix": ["de réagir plus vite à un microbe déjà rencontré", "de mieux dormir", "de grandir", "de voir mieux"], "reponse": 0 },
+      { "q": "Un anticorps est efficace contre…", "choix": ["tous les microbes à la fois", "un microbe précis", "aucun microbe", "les vitamines"], "reponse": 1 }
+    ],
+    "reformulation": { "idee_centrale": "Le système immunitaire repère et détruit les microbes, et garde en mémoire ceux qu'il a déjà rencontrés pour réagir plus vite.", "elements_cles": ["défense contre les microbes", "mémoire d'une rencontre passée"] }
+  },
+  {
+    "id": "S09", "sujet": "L'ADN", "domaine": "sciences de la vie",
+    "glossaire": ["ADN", "gène", "cellule", "chromosome", "hérédité", "noyau"],
+    "comprehension": [
+      { "q": "Où trouve-t-on l'ADN dans le corps ?", "choix": ["Seulement dans le sang", "Dans presque toutes les cellules", "Seulement dans les os", "Dans l'air"], "reponse": 1 },
+      { "q": "Pourquoi un enfant ressemble-t-il à ses parents ?", "choix": ["Parce qu'il reçoit une partie de l'ADN de chacun", "Parce qu'il mange la même chose", "Parce qu'il vit avec eux", "Par hasard uniquement"], "reponse": 0 },
+      { "q": "Un gène est…", "choix": ["un morceau d'ADN qui porte une information", "une maladie", "un organe", "un vaccin"], "reponse": 0 }
+    ],
+    "transfert": { "situation": "Sur une scène de vol, les enquêteurs retrouvent un cheveu et le comparent à l'ADN de suspects.", "question": "Pourquoi cette comparaison peut-elle désigner une personne ?", "attendu": "L'ADN est présent dans les cellules du cheveu et il est propre à chaque personne (sauf vrais jumeaux)." },
+    "rappel": [
+      { "q": "L'ADN contient…", "choix": ["les informations qui guident le fonctionnement de la cellule", "de l'énergie", "de l'eau", "des microbes"], "reponse": 0 },
+      { "q": "On reçoit son ADN…", "choix": ["de ses deux parents", "de l'alimentation", "de l'air", "uniquement de sa mère"], "reponse": 0 },
+      { "q": "Deux personnes non jumelles ont-elles le même ADN ?", "choix": ["Oui", "Non", "Seulement les frères", "Seulement les voisins"], "reponse": 1 }
+    ],
+    "reformulation": { "idee_centrale": "L'ADN, présent dans nos cellules, porte les informations héritées de nos parents qui guident le fonctionnement du corps.", "elements_cles": ["dans les cellules", "transmis par les parents"] }
+  },
+  {
+    "id": "S10", "sujet": "Le vaccin", "domaine": "santé",
+    "glossaire": ["vaccin", "immunité", "microbe", "anticorps", "rappel", "système immunitaire"],
+    "comprehension": [
+      { "q": "Comment un vaccin protège-t-il ?", "choix": ["Il apprend au corps à reconnaître un microbe sans tomber vraiment malade", "Il tue tous les microbes du corps", "Il remplace le sang", "Il soigne une maladie déjà là"], "reponse": 0 },
+      { "q": "Pourquoi fait-on parfois un rappel ?", "choix": ["Pour réveiller la mémoire du corps qui faiblit avec le temps", "Parce que le premier était faux", "Pour changer de microbe", "Ce n'est jamais utile"], "reponse": 0 },
+      { "q": "Pourquoi vacciner beaucoup de monde protège aussi ceux qui ne le sont pas ?", "choix": ["Parce que le microbe circule moins", "Parce que le vaccin se transmet", "Parce que l'air est filtré", "Ce n'est pas vrai"], "reponse": 0 }
+    ],
+    "transfert": { "situation": "Dans une école, presque tous les élèves sont vaccinés contre la rougeole, sauf un bébé de la crèche voisine, trop jeune.", "question": "Pourquoi ce bébé est-il moins exposé qu'ailleurs ?", "attendu": "Le virus circule peu autour de lui car presque tout le monde est protégé : il a peu de chances d'être contaminé." },
+    "rappel": [
+      { "q": "Un vaccin entraîne…", "choix": ["le système immunitaire", "les muscles", "la mémoire scolaire", "la digestion"], "reponse": 0 },
+      { "q": "Un rappel sert à…", "choix": ["entretenir la protection", "guérir une fracture", "changer de groupe sanguin", "rien"], "reponse": 0 },
+      { "q": "Un vaccin agit surtout…", "choix": ["avant la maladie", "après la guérison", "seulement la nuit", "sur les plantes"], "reponse": 0 }
+    ],
+    "reformulation": { "idee_centrale": "Un vaccin présente au corps un microbe rendu inoffensif ou une partie de celui-ci, pour qu'il apprenne à le reconnaître et se défende vite plus tard.", "elements_cles": ["apprendre sans être malade", "protection qui peut demander des rappels"] }
+  }
+]
