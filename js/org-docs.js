@@ -26,11 +26,27 @@
   }
 
   /* Texte du PDF page par page, débarrassé de ce qui n'est pas du cours (évaluation, conseil, annexe) */
+  // Texte d'une page : les morceaux d'une même ligne sont joints selon leur position (comme l'import Student), pas avec un
+  // espace systématique. Sinon une ligature (« fi », « ff », « fl ») isolée par pdf.js coupe le mot : « identi fi ant ».
+  function pageText(items) {
+    const lines = [];
+    let line = null;
+    items.forEach((it) => {
+      const t = it.transform || [1, 0, 0, 1, 0, 0];
+      const size = Math.abs(t[3]) || Math.abs(t[0]) || it.height || 10;
+      if (it.str) {
+        if (!line || Math.abs(t[5] - line.y) > size * 0.5) { line = { y: t[5], parts: [] }; lines.push(line); }
+        line.parts.push({ str: it.str, x: t[4], w: it.width || 0, size });
+      }
+      if (it.hasEOL) line = null;
+    });
+    return lines.map((l) => PdfImport.joinParts(l.parts)).join(' ').replace(/\s+/g, ' ').trim();
+  }
   async function readPages(file) {
     if (!window.pdfjsLib) throw new Error('Le lecteur de PDF n’a pas pu être chargé (connexion internet ?)');
     const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
     const raw = [];
-    for (let i = 1; i <= Math.min(pdf.numPages, 80); i++) { const tc = await (await pdf.getPage(i)).getTextContent(); raw.push(tc.items.map((x) => x.str).join(' ').replace(/\s+/g, ' ').trim()); }
+    for (let i = 1; i <= Math.min(pdf.numPages, 80); i++) { const tc = await (await pdf.getPage(i)).getTextContent(); raw.push(pageText(tc.items)); }
     const profile = DocClassify.profile(raw.join('\n'));
     let aside = 0;
     const pages = raw.map((t, i) => {
@@ -194,6 +210,11 @@
       ks = await knowledgeOf(vs.map((v) => v.id));
     } catch (e) { app.querySelector('.sec').innerHTML = `<p class="hint">${d.esc(e.message)}</p>`; return; }
     const vOf = (id) => (vs.find((v) => v.id === id) || {}).version;
+    // Informations vérifiables à la place de l'ancienne « confiance X % » (certitude déclarée par l'IA, sans méthode démontrée) :
+    // origine de l'extraction, date d'extraction, date de confirmation par une personne.
+    const day = (t) => (t ? new Date(t).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '');
+    const BY = { ia: 'extraite par l’IA', regle: 'extraite par règle', humain: 'saisie par une personne' };
+    const trace = (k) => [k.created_at ? `${BY[k.extracted_by] || BY.ia} le ${day(k.created_at)}` : '', k.validated_at ? `confirmée le ${day(k.validated_at)}` : ''].filter(Boolean).map((x) => ` · ${x}`).join('');
     // L'ordre de travail : sensibles à valider, puis à revalider, puis le reste à valider ; validées et rejetées ensuite
     const rank = (k) => (k.status === 'propose' && k.kind === 'sensible' ? 0 : k.status === 'a_revalider' ? 1 : k.status === 'propose' ? 2 : k.status === 'valide' ? 3 : 4);
     ks.sort((a, b) => rank(a) - rank(b));
@@ -216,7 +237,7 @@
       return `<li class="kn kn-${k.kind} st-${k.status}">
         <div class="kn-head"><span class="kn-kind">${d.ic(ki)}${kl}</span><span class="kn-status">${STATUS[k.status] || k.status}</span></div>
         <b>${d.esc(k.title)}</b><p>${d.esc(k.body)}</p>
-        <blockquote>« ${d.esc(k.quote)} »<cite>p. ${k.page} · version ${vOf(k.source_version_id)}${k.confidence != null ? ` · confiance ${Math.round(k.confidence * 100)} %` : ''}</cite></blockquote>
+        <blockquote>« ${d.esc(k.quote)} »<cite>p. ${k.page} · version ${vOf(k.source_version_id)}${trace(k)}</cite></blockquote>
         ${pv ? `<p class="kn-prov prov-${prov(k)}">${d.ic(pv[0])}${pv[1]}</p>` : ''}
         ${act}</li>`;
     };

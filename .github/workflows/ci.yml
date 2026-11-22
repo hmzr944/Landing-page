@@ -52,7 +52,7 @@ jobs:
           - groupe: student
             suites: welcome onboarding student-path home-adaptive learning-flow foundations explore motion responsive
           - groupe: import
-            suites: pdf-structure pdf-mixed data-safety engines corpus-metier
+            suites: pdf-structure pdf-mixed data-safety engines corpus-metier benchmark
           - groupe: business
             suites: org org-setup org-learn org-engines org-docs org-onboarding org-shell org-desktop org-insight
           - groupe: serveur-simule
@@ -70,10 +70,25 @@ jobs:
         env:
           SUITES: ${{ matrix.suites }}
         run: |
+          # Statut honnête de chaque suite : un contrôle non exécuté n'est jamais compté comme réussi.
+          #  - SKIPPED : ignoré volontairement, avec sa raison (documents privés, exécutés seulement en local) ;
+          #  - NON VÉRIFIÉ : aurait dû s'exécuter mais n'a pas pu (réseau…) : la suite est PARTIELLE et la tâche échoue.
           echoue=""
+          echo "| Suite | Statut | Non exécutés |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---|---|---|" >> "$GITHUB_STEP_SUMMARY"
           for s in $SUITES; do
             echo "::group::$s"
-            if node "tests/$s.js"; then echo "$s : réussi"; else echo "::error::$s a échoué"; echoue="$echoue $s"; fi
+            if node "tests/$s.js" > "out-$s.txt" 2>&1; then rc=0; else rc=1; fi
+            cat "out-$s.txt"
             echo "::endgroup::"
+            sk=$(grep -c ': SKIPPED (' "out-$s.txt" || true)
+            nv=$(grep -c 'NON VÉRIFIÉ' "out-$s.txt" || true)
+            details=$(grep -E ': SKIPPED \(|NON VÉRIFIÉ' "out-$s.txt" | sed 's/^– //' | tr '\n' ' ' || true)
+            if [ "$rc" != "0" ]; then statut="ÉCHEC"; echo "::error::$s a échoué"; echoue="$echoue $s"
+            elif [ "$nv" != "0" ]; then statut="PARTIEL : $nv contrôle(s) non exécuté(s)"; echo "::error::$s : $nv contrôle(s) NON VÉRIFIÉ(S), donc non exécuté(s) : $details"; echoue="$echoue $s(partiel)"
+            elif [ "$sk" != "0" ]; then statut="réussi pour ce qui a été exécuté ; $sk SKIPPED"; echo "::notice::$s : $sk contrôle(s) SKIPPED : $details"
+            else statut="réussi"; fi
+            echo "$s : $statut"
+            echo "| $s | $statut | ${details:-aucun} |" >> "$GITHUB_STEP_SUMMARY"
           done
-          if [ -n "$echoue" ]; then echo "Suites en échec :$echoue"; exit 1; fi
+          if [ -n "$echoue" ]; then echo "Suites en échec ou partielles :$echoue"; exit 1; fi
