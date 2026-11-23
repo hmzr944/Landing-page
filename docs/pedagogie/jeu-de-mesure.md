@@ -6,15 +6,28 @@ La bonne réponse est marquée ✔ (ordre des choix mélangé). Les participants
 
 Chaque question porte un classement « évalue », **écrit et relu dans les sources** (pas deviné par un programme) : **application** (décider ou calculer dans un cas concret nouveau), **compréhension** (expliquer une cause ou un mécanisme) ou **restitution** (redonner une définition, un nom ou un chiffre appris, donc de la mémorisation).
 
-Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhension immédiate, au moins 2 questions sur 3 en application ou compréhension ; rappel à J+2, 3 restitutions (mesure de mémorisation) et 1 application ; déblocage, 2 questions préparées à l'avance (1 application, 1 compréhension), posées seulement après une seconde explication.
+Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhension immédiate, au moins 2 questions sur 3 en application ou compréhension ; rappel à J+2, 3 restitutions (mesure de mémorisation) et 1 application ; déblocage, 2 questions préparées à l'avance (sujets : 1 application, 1 compréhension ; procédures : 2 applications), posées seulement après la seconde explication, chacune avec les critères qui permettent de noter la justification.
+
+Procédures métier : chaque question cite la phrase de la procédure qui justifie la bonne réponse (« Appui dans la procédure »). Aucune raison non écrite dans la procédure n'est attendue : quand la procédure ne donne pas la raison d'une règle, la question porte sur son application.
 
 ## Bilan : ce que les questions évaluent
 
 | Bloc | Application | Compréhension | Restitution (mémorisation) |
 |---|---|---|---|
-| Compréhension immédiate (69 questions) | 28 | 39 | 2 |
+| Compréhension immédiate (69 questions) | 29 | 38 | 2 |
 | Rappel à J+2 (92 questions) | 23 | 0 | 69 |
-| Déblocage (46 questions) | 23 | 23 | 0 |
+| Déblocage (46 questions) | 26 | 20 | 0 |
+
+## Bilan : longueur des réponses
+
+Une bonne réponse plus longue que les autres est un indice qui permet de réussir sans comprendre. Au hasard, on attend environ 25 % de questions où la bonne réponse est la plus longue, et autant où elle est la plus courte. Seuils vérifiés par `tests/jeu-de-mesure.js` : entre 10 % et 35 % pour chacune, rapport moyen entre 0,85 et 1,15.
+
+| Bloc | Questions | Bonne réponse la plus longue | Bonne réponse la plus courte | Longueur moyenne bonne réponse / mauvaises |
+|---|---|---|---|---|
+| Compréhension immédiate | 69 | 11 (15,9 %) | 18 (26,1 %) | 0,98 |
+| Rappel à J+2 | 92 | 6 (6,5 %) | 24 (26,1 %) | 0,90 |
+| Déblocage | 46 | 9 (19,6 %) | 7 (15,2 %) | 0,99 |
+| **Total** | 207 | 26 (12,6 %) | 49 (23,7 %) | 0,94 |
 
 | Élément | Compréhension immédiate (app. / comp. / rest.) | Rappel J+2 (app. / comp. / rest.) | Déblocage (app. / comp.) |
 |---|---|---|---|
@@ -26,8 +39,8 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
 | S06 Les intérêts composés | 1 / 2 / 0 | 1 / 0 / 3 | 1 / 1 |
 | S07 La photosynthèse | 1 / 2 / 0 | 1 / 0 / 3 | 1 / 1 |
 | S08 Le système immunitaire | 1 / 2 / 0 | 1 / 0 / 3 | 1 / 1 |
-| S09 L'ADN | 1 / 2 / 0 | 1 / 0 / 3 | 1 / 1 |
-| S10 Le vaccin | 1 / 2 / 0 | 1 / 0 / 3 | 1 / 1 |
+| S09 L'ADN | 0 / 3 / 0 | 1 / 0 / 3 | 1 / 1 |
+| S10 Le vaccin | 0 / 3 / 0 | 1 / 0 / 3 | 1 / 1 |
 | S11 Le cycle de l'eau | 1 / 2 / 0 | 1 / 0 / 3 | 1 / 1 |
 | S12 L'effet de serre | 1 / 2 / 0 | 1 / 0 / 3 | 1 / 1 |
 | S13 La gravitation | 1 / 2 / 0 | 1 / 0 / 3 | 1 / 1 |
@@ -38,9 +51,9 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
 | S18 Le contrat de travail | 1 / 2 / 0 | 1 / 0 / 3 | 1 / 1 |
 | S19 Le RGPD | 2 / 1 / 0 | 1 / 0 / 3 | 1 / 1 |
 | S20 La chaîne du froid | 1 / 2 / 0 | 1 / 0 / 3 | 1 / 1 |
-| P-R1 Ouverture et fermeture du magasin (R1 v2, corpus métier n° 1, fictif) | 1 / 1 / 1 | 1 / 0 / 3 | 1 / 1 |
-| P-H1 Réception des livraisons (H1 v2, corpus métier n° 1, fictif) | 1 / 1 / 1 | 1 / 0 / 3 | 1 / 1 |
-| P-R3 Tenue de la caisse (R3, corpus métier n° 1, fictif) | 2 / 1 / 0 | 1 / 0 / 3 | 1 / 1 |
+| P-R1 Ouverture et fermeture du magasin (R1 v2, corpus métier n° 1, fictif) | 2 / 0 / 1 | 1 / 0 / 3 | 2 / 0 |
+| P-H1 Réception des livraisons (H1 v2, corpus métier n° 1, fictif) | 2 / 0 / 1 | 1 / 0 / 3 | 2 / 0 |
+| P-R3 Tenue de la caisse (R3, corpus métier n° 1, fictif) | 3 / 0 / 0 | 1 / 0 / 3 | 2 / 0 |
 
 ## S01 · Le protocole IP
 
@@ -51,20 +64,20 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
 **Compréhension immédiate**
 
 1. Pourquoi un fichier envoyé sur Internet est-il découpé en paquets ? *(évalue : compréhension)*
-   - Pour le rendre secret
-   - Pour qu'il prenne moins de place sur le disque
-   - Parce que la loi l'impose
-   - ✔ Pour qu'il voyage par petits morceaux qui peuvent prendre des chemins différents
+   - Pour être chiffré automatiquement pendant le trajet
+   - Pour prendre moins de place une fois enregistré sur le disque
+   - Parce qu'un câble ne transporte qu'une lettre à la fois
+   - ✔ Pour voyager en petits morceaux, chacun par le meilleur chemin
 2. Un routeur reçoit un paquet adressé à un ordinateur situé dans un autre pays. Que fait-il ? *(évalue : application)*
-   - Il ouvre le paquet pour lire le message
-   - Il le garde jusqu'à ce que le destinataire le réclame
-   - ✔ Il lit l'adresse de destination et l'envoie vers le routeur suivant le plus adapté
-   - Il le renvoie à l'expéditeur
+   - Il ouvre le paquet pour lire le message avant de l'envoyer
+   - Il le garde jusqu'à ce que le destinataire vienne le réclamer
+   - ✔ Il lit l'adresse de destination et le passe au routeur suivant
+   - Il le renvoie à l'expéditeur, qui doit choisir lui-même la route
 3. Un câble est coupé sur le trajet habituel entre deux villes, mais la vidéo continue d'arriver. Pourquoi ? *(évalue : compréhension)*
    - ✔ Les routeurs font passer les paquets par un autre chemin
-   - Les paquets n'ont pas besoin de chemin
-   - Le câble coupé fonctionne encore à moitié
-   - La vidéo était déjà entièrement chargée dans le câble
+   - Les paquets attendent la réparation du câble, puis repartent
+   - Le câble coupé continue de transmettre les paquets à moitié
+   - La vidéo était déjà entièrement stockée dans le câble coupé
 
 **Situation de transfert :** Pendant un appel vidéo, l'image se fige une seconde puis repart, sans que l'appel soit coupé.
 
@@ -72,41 +85,49 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
 
 *Réponse attendue :* Certains paquets ont été retardés ou perdus en route (chemin encombré) ; les suivants sont arrivés et l'appel a continué.
 
-**Déblocage** *(seulement si l'apprenant s'est déclaré bloqué : posé après la seconde explication ; grille dans `grille-reformulation.md`)*
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
 
 1. Tu envoies une photo à un ami. Combien d'adresses de destination différentes portent ses paquets ? *(évalue : application)*
-   - Une différente par paquet
-   - Une par routeur traversé
-   - Aucune
-   - ✔ Une seule : celle de l'ami, sur chaque paquet
+   - Aucune : c'est le routeur qui devine la destination
+   - Une par routeur traversé, qui change à chaque étape
+   - Une différente par paquet, pour répartir le trafic
+   - ✔ Une seule : celle de l'ami, écrite sur chaque paquet
+   - *Justification juste si elle contient :* Tous les paquets vont au même destinataire et portent donc tous son adresse ; c'est le chemin qui peut changer, pas l'adresse.
+   - *Exemple juste (2 points avec le bon choix) :* « Tous les paquets vont chez mon ami, donc ils ont tous son adresse. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « Une seule, c'est comme ça. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « Une seule, parce que tous les paquets prennent le même chemin. »
 2. Pourquoi n'a-t-on pas besoin de réserver un chemin fixe avant d'envoyer des paquets ? *(évalue : compréhension)*
-   - Parce qu'Internet n'a qu'un seul chemin
-   - Parce qu'on envoie tout en un seul morceau
-   - Parce que les paquets connaissent la carte du monde
-   - ✔ Chaque paquet porte son adresse et chaque routeur décide du pas suivant
+   - Parce qu'Internet ne possède qu'un seul chemin entre deux villes
+   - Parce qu'on envoie toujours le fichier en un seul morceau
+   - Parce que chaque paquet connaît à l'avance tout son trajet
+   - ✔ Chaque paquet porte son adresse et chaque routeur choisit la suite
+   - *Justification juste si elle contient :* L'adresse écrite sur chaque paquet suffit : chaque routeur décide du pas suivant, au fur et à mesure.
+   - *Exemple juste (2 points avec le bon choix) :* « Chaque routeur lit l'adresse et envoie plus loin, donc pas besoin de prévoir tout le trajet. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « Parce que les paquets se débrouillent. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « Parce qu'il n'y a qu'un seul chemin possible. »
 
 **Rappel à J+2**
 
 1. Sur un paquet IP, qu'est-ce qui permet de savoir où il doit aller ? *(évalue : restitution (mémorisation))*
-   - L'heure d'envoi
-   - Le nom de l'ordinateur
-   - ✔ L'adresse de destination
-   - Son poids
+   - L'heure à laquelle il a été envoyé
+   - Le poids du paquet en octets
+   - Le nom du fichier envoyé
+   - ✔ L'adresse IP de destination
 2. Deux paquets d'un même message prennent-ils forcément le même chemin ? *(évalue : restitution (mémorisation))*
-   - Oui, toujours
    - ✔ Non, ils peuvent passer par des routeurs différents
-   - Seulement la nuit
-   - Seulement sur un câble
+   - Oui, le chemin est réservé au début de l'envoi
+   - Oui, sinon le message ne pourrait pas être reconstitué
+   - Non, chaque paquet va directement au destinataire, sans routeur
 3. Quel appareil fait passer un paquet d'un réseau à un autre ? *(évalue : restitution (mémorisation))*
-   - L'écran
-   - Le clavier
-   - L'imprimante
    - ✔ Le routeur
+   - La carte mémoire
+   - Le disque dur
+   - Le processeur
 4. Un message est découpé en 10 paquets ; le 4e arrive après le 7e. Que faut-il pour reconstituer le message ? *(évalue : application)*
-   - Renvoyer tout le message
-   - Jeter le 4e paquet
-   - Rien, l'ordre n'a pas d'importance
-   - ✔ Remettre les paquets dans le bon ordre à l'arrivée
+   - Renvoyer tout le message depuis le début
+   - Jeter le 4e paquet, arrivé trop tard
+   - Rien : les paquets arrivent toujours dans l'ordre
+   - ✔ Les remettre dans l'ordre à l'arrivée
 
 **Reformulation, idée centrale :** Les données voyagent en petits paquets portant une adresse de destination, que des routeurs font avancer de proche en proche.
 
@@ -121,20 +142,20 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
 **Compréhension immédiate**
 
 1. Pourquoi un document non enregistré est-il perdu si l'ordinateur s'éteint brutalement ? *(évalue : compréhension)*
-   - Parce que l'écran s'éteint
-   - ✔ Parce qu'il était seulement dans la mémoire vive, qui s'efface sans courant
-   - Parce que le disque se vide
-   - Parce que le clavier est débranché
+   - L'écran garde le document et s'éteint en même temps que lui
+   - ✔ Il n'était que dans la mémoire vive, qui s'efface sans courant
+   - Le disque se vide entièrement quand le courant est coupé
+   - Le processeur supprime les fichiers ouverts pour se protéger
 2. Pourquoi un ordinateur ralentit-il quand on ouvre beaucoup de programmes ? *(évalue : compréhension)*
-   - L'écran fatigue
-   - La souris consomme trop
-   - ✔ La mémoire vive se remplit et l'ordinateur doit utiliser le disque, plus lent
-   - Le disque devient plus rapide
+   - L'écran doit afficher trop d'images à la fois et il chauffe
+   - Chaque programme ouvert vide un peu la batterie du processeur
+   - ✔ La mémoire vive est pleine et le disque, plus lent, prend le relais
+   - Le disque se remplit de programmes et devient inutilisable
 3. Tu dois garder des photos de vacances pendant des années. Où faut-il les enregistrer ? *(évalue : application)*
-   - Dans la mémoire vive
-   - Dans le processeur
-   - ✔ Sur le disque ou une clé, qui gardent les données sans courant
-   - Dans l'écran
+   - Dans la mémoire vive, qui est la plus rapide
+   - Dans le processeur, qui garde les calculs récents
+   - ✔ Sur le disque ou une clé USB
+   - Sur le bureau de l'écran, sans les enregistrer
 
 **Situation de transfert :** Tu prépares un exposé au tableau blanc pendant que tes fiches sont rangées dans un classeur.
 
@@ -142,41 +163,49 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
 
 *Réponse attendue :* Le tableau = la mémoire vive (on travaille dessus, rapide, effacé à la fin) ; le classeur = le disque (on y range pour garder).
 
-**Déblocage** *(seulement si l'apprenant s'est déclaré bloqué : posé après la seconde explication ; grille dans `grille-reformulation.md`)*
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
 
 1. Une coupure de courant survient pendant que tu écris. Qu'est-ce qui sera conservé ? *(évalue : application)*
-   - ✔ Ce qui avait déjà été enregistré sur le disque
-   - Tout ce qui était à l'écran
-   - Rien du tout, même enregistré
+   - ✔ Ce qui était déjà enregistré sur le disque
+   - Tout ce qui était affiché à l'écran au moment de la coupure
+   - Rien du tout, même ce qui était enregistré
    - Seulement ce qui était dans la mémoire vive
+   - *Justification juste si elle contient :* Seul le disque garde les données sans courant ; ce qui n'était qu'en mémoire vive est perdu.
+   - *Exemple juste (2 points avec le bon choix) :* « Ce qui est sauvegardé est sur le disque, et le disque garde tout sans électricité. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « Ce qui était enregistré, c'est tout. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « Ce qui était enregistré, parce que la mémoire vive le sauvegarde toute seule. »
 2. Pourquoi un ordinateur utilise-t-il de la mémoire vive au lieu de tout faire directement sur le disque ? *(évalue : compréhension)*
-   - Parce qu'elle garde les données plus longtemps
-   - Parce que le disque ne peut rien lire
-   - Parce qu'elle est gratuite
-   - ✔ Parce qu'elle est beaucoup plus rapide pour travailler
+   - Elle garde les données plus longtemps que le disque
+   - Le disque ne sait lire que les photos, pas les programmes
+   - Elle coûte moins cher et prend moins de place
+   - ✔ Elle est bien plus rapide que le disque pour travailler
+   - *Justification juste si elle contient :* La mémoire vive est beaucoup plus rapide : le disque sert à garder, la mémoire vive à travailler.
+   - *Exemple juste (2 points avec le bon choix) :* « Travailler sur le disque serait trop lent, la mémoire vive va beaucoup plus vite. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « Parce que c'est mieux. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « Parce qu'elle garde les fichiers même quand l'ordinateur est éteint. »
 
 **Rappel à J+2**
 
 1. La mémoire vive garde-t-elle les données quand l'ordinateur est éteint ? *(évalue : restitution (mémorisation))*
-   - Seulement le week-end
-   - ✔ Non
-   - Oui
-   - Seulement les photos
+   - Oui, pendant quelques semaines
+   - Oui, tout ce qu'elle contient est conservé
+   - ✔ Non, elle s'efface sans courant
+   - Seulement les photos et les vidéos
 2. Où faut-il enregistrer un fichier pour le retrouver le lendemain ? *(évalue : restitution (mémorisation))*
+   - ✔ Sur le disque (le stockage)
+   - Dans la mémoire de l'écran
    - Dans la mémoire vive
-   - Dans l'écran
-   - ✔ Sur le disque (stockage)
    - Dans le processeur
 3. Ajouter de la mémoire vive aide surtout à… *(évalue : restitution (mémorisation))*
-   - garder plus de photos pour toujours
-   - avoir un écran plus grand
-   - se connecter à Internet
-   - ✔ faire tourner plus de programmes en même temps sans ralentir
+   - ✔ ouvrir plus de programmes à la fois
+   - avoir un écran plus grand et plus net
+   - se connecter plus vite à Internet
+   - garder plus de photos et de vidéos pour toujours
 4. Ton ordinateur est très lent avec 30 onglets ouverts, mais son disque est presque vide. Quelle est la cause la plus probable ? *(évalue : application)*
-   - Le clavier est usé
+   - Le processeur est neuf et pas encore rodé
    - ✔ La mémoire vive est pleine
-   - Le disque est trop vide
-   - L'écran est trop petit
+   - Le disque est trop vide pour fonctionner
+   - L'écran est trop petit pour 30 onglets
 
 **Reformulation, idée centrale :** La mémoire vive est l'espace de travail rapide mais temporaire de l'ordinateur ; ce qui doit durer va sur le disque.
 
@@ -191,20 +220,20 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
 **Compréhension immédiate**
 
 1. Pourquoi un message chiffré intercepté est-il inutile pour un espion qui n'a pas la clé ? *(évalue : compréhension)*
-   - Parce qu'il est en anglais
-   - ✔ Parce qu'il est illisible sans la clé
-   - Parce qu'il est trop long
-   - Parce qu'il est effacé
+   - Il est trop long pour être recopié
+   - ✔ Il est illisible sans la clé
+   - Il est écrit dans une langue étrangère
+   - Il s'efface dès qu'il est intercepté
 2. Quelqu'un a volé la clé de ta messagerie chiffrée. Quel est le risque ? *(évalue : application)*
-   - Les messages disparaissent
+   - Tous les messages déjà envoyés sont effacés
    - ✔ Il peut lire les messages chiffrés avec cette clé
-   - Aucun, le chiffrement protège toujours
-   - La clé change toute seule
+   - Aucun : un message chiffré reste toujours secret
+   - La clé se change toute seule après le vol
 3. Deux personnes utilisent la même méthode de chiffrement connue de tous. Qu'est-ce qui garde leurs messages secrets ? *(évalue : compréhension)*
-   - La langue utilisée
+   - La langue dans laquelle elles écrivent
    - ✔ La clé, qu'elles seules connaissent
-   - Le fait que la méthode soit connue
-   - La longueur des messages
+   - Le secret de la méthode, connue de tous
+   - La longueur des messages qu'elles s'envoient
 
 **Situation de transfert :** Deux amies s'écrivent en décalant chaque lettre de trois rangs dans l'alphabet (A devient D).
 
@@ -212,36 +241,44 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
 
 *Réponse attendue :* La clé est le décalage de 3 ; il faut le connaître pour décaler chaque lettre dans l'autre sens.
 
-**Déblocage** *(seulement si l'apprenant s'est déclaré bloqué : posé après la seconde explication ; grille dans `grille-reformulation.md`)*
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
 
 1. Tu reçois « EBUF », chiffré avec un décalage de 1. Quel était le mot ? *(évalue : application)*
    - ✔ DATE
    - CATE
    - EBUF
    - FCVG
+   - *Justification juste si elle contient :* Chaque lettre a été avancée d'un rang ; pour déchiffrer, on recule chaque lettre d'un rang (E→D, B→A, U→T, F→E).
+   - *Exemple juste (2 points avec le bon choix) :* « J'ai reculé chaque lettre d'une place : E devient D, B devient A… »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « C'est DATE parce que ça fait un vrai mot. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « DATE, parce qu'on remplace la première lettre par un D. »
 2. Pourquoi faut-il transmettre la clé autrement que par le même canal que le message ? *(évalue : compréhension)*
-   - Parce que la clé est trop longue
-   - Parce que la loi l'interdit
-   - ✔ Si quelqu'un intercepte les deux, il peut tout lire
-   - Ce n'est jamais nécessaire
+   - Parce que la clé est trop longue pour tenir dans le message
+   - Parce que la loi interdit d'envoyer une clé par Internet
+   - ✔ Qui intercepte les deux peut tout lire
+   - Parce que la clé s'abîme si elle voyage avec le message
+   - *Justification juste si elle contient :* Si la clé voyage avec le message, celui qui intercepte l'envoi a les deux et peut déchiffrer.
+   - *Exemple juste (2 points avec le bon choix) :* « Si un espion attrape le message et la clé ensemble, il lit tout. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « Par sécurité. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « Parce que la clé est trop grosse. »
 
 **Rappel à J+2**
 
 1. Chiffrer un message, c'est… *(évalue : restitution (mémorisation))*
    - ✔ le rendre illisible sans la clé
-   - l'imprimer
-   - le raccourcir
-   - le traduire
+   - le traduire dans une autre langue
+   - le raccourcir pour l'envoyer plus vite
+   - le copier en plusieurs exemplaires
 2. Ce qui doit rester secret avant tout, c'est… *(évalue : restitution (mémorisation))*
-   - la longueur du message
    - ✔ la clé
+   - la longueur du message
+   - le nom de la méthode
    - l'heure d'envoi
-   - la langue
 3. Déchiffrer, c'est… *(évalue : restitution (mémorisation))*
-   - envoyer le message
-   - copier le message
-   - ✔ retrouver le message lisible avec la clé
-   - supprimer le message
+   - envoyer le message à plusieurs personnes
+   - inventer une clé pour chaque message
+   - supprimer le message après l'avoir lu
+   - ✔ retrouver le message lisible grâce à la clé
 4. Avec un décalage de 1 dans l'alphabet, comment s'écrit le mot « OUI » chiffré ? *(évalue : application)*
    - QWK
    - NTH
@@ -266,15 +303,15 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
    - ✔ 5
    - 12
 2. On ne peut pas utiliser le théorème pour calculer un côté d'un triangle sans angle droit. Pourquoi ? *(évalue : compréhension)*
-   - Parce que ce triangle n'a pas de côtés
-   - ✔ La relation entre les carrés des côtés n'est vraie qu'avec un angle droit
-   - Parce que le calcul serait trop long
-   - On peut l'utiliser pour tous les triangles
+   - Parce qu'un triangle sans angle droit n'a pas d'hypoténuse mesurable
+   - ✔ La relation entre les carrés n'est vraie qu'avec un angle droit
+   - Parce que le calcul serait trop long sans angle droit
+   - On peut : le théorème vaut pour tous les triangles
 3. Un triangle a des côtés 5, 12 et 13. Est-il rectangle ? *(évalue : application)*
-   - Non, aucun triangle n'a ces côtés
+   - On ne peut pas savoir sans mesurer les angles
    - ✔ Oui, car 5² + 12² = 13²
-   - On ne peut pas savoir
-   - Non, car 5 + 12 ≠ 13
+   - Non, aucun triangle ne peut avoir ces côtés
+   - Non, car 5 + 12 n'est pas égal à 13
 
 **Situation de transfert :** Une échelle de 5 m est posée contre un mur ; son pied est à 3 m du mur, sur un sol plat.
 
@@ -282,36 +319,44 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
 
 *Réponse attendue :* 4 m : le mur et le sol font un angle droit, 5² = 3² + h², donc h² = 16 et h = 4.
 
-**Déblocage** *(seulement si l'apprenant s'est déclaré bloqué : posé après la seconde explication ; grille dans `grille-reformulation.md`)*
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
 
 1. Un écran a 30 cm de large et 40 cm de haut. Combien mesure sa diagonale ? *(évalue : application)*
    - 70 cm
    - 35 cm
    - ✔ 50 cm
    - 60 cm
+   - *Justification juste si elle contient :* Largeur et hauteur forment un angle droit : 30² + 40² = 900 + 1 600 = 2 500, et la racine de 2 500 est 50 (ou : c'est le triangle 3-4-5 multiplié par 10).
+   - *Exemple juste (2 points avec le bon choix) :* « 30 au carré plus 40 au carré, ça fait 2 500, donc la diagonale fait 50. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « J'ai calculé. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « 30 + 40 = 70, et on enlève 20. »
 2. Pourquoi l'hypoténuse est-elle toujours le plus grand côté ? *(évalue : compréhension)*
-   - Ce n'est pas toujours le cas
-   - Parce qu'elle est toujours horizontale
-   - ✔ Son carré est la somme des carrés des deux autres, donc plus grand que chacun
-   - Par convention, sans raison
+   - Ce n'est vrai que si les deux autres côtés sont égaux
+   - Parce qu'elle est toujours tracée à l'horizontale, en bas
+   - ✔ Son carré est la somme des deux autres carrés, donc plus grand
+   - Par simple convention, sans raison mathématique
+   - *Justification juste si elle contient :* Le carré de l'hypoténuse est égal à la somme des carrés des deux autres côtés : il est donc plus grand que chacun d'eux, et l'hypoténuse aussi.
+   - *Exemple juste (2 points avec le bon choix) :* « Son carré, c'est les deux autres carrés additionnés, donc elle est forcément plus longue. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « Parce que c'est la plus longue. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « Parce qu'elle est en bas du triangle. »
 
 **Rappel à J+2**
 
 1. Le théorème relie… *(évalue : restitution (mémorisation))*
-   - les aires de deux cercles
-   - ✔ les longueurs des côtés d'un triangle rectangle
-   - les angles d'un triangle
-   - le périmètre d'un carré
+   - les aires de deux cercles de même centre
+   - les trois angles de n'importe quel triangle
+   - ✔ les côtés d'un triangle rectangle
+   - le périmètre et l'aire d'un carré
 2. Où se trouve l'hypoténuse ? *(évalue : restitution (mémorisation))*
    - ✔ En face de l'angle droit
-   - Au centre
-   - Il n'y en a pas
-   - Entre les deux petits côtés
+   - Le long du côté le plus court
+   - Au milieu du triangle
+   - Entre les deux plus petits côtés
 3. À quels triangles s'applique le théorème ? *(évalue : restitution (mémorisation))*
    - Aux triangles dont les trois côtés sont égaux
-   - Aux carrés
-   - À tous les triangles
-   - ✔ Aux triangles qui ont un angle droit
+   - Aux triangles dont deux côtés sont égaux
+   - ✔ Aux triangles rectangles
+   - À tous les triangles, sans exception
 4. Triangle rectangle de côtés 6 et 8 autour de l'angle droit : le grand côté mesure… *(évalue : application)*
    - 14
    - 12
@@ -336,15 +381,15 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
    - 5/8
    - 8/3
 2. Pourquoi 1/4 est-il plus petit que 1/2, alors que 4 est plus grand que 2 ? *(évalue : compréhension)*
-   - ✔ Plus on coupe le tout en parts nombreuses, plus chaque part est petite
-   - Parce que 1/4 a moins de chiffres
-   - Ils sont égaux
-   - C'est une exception à apprendre par cœur
+   - ✔ Plus on coupe le tout en parts, plus chaque part est petite
+   - Le chiffre du bas indique combien de parts on prend
+   - Ils sont égaux : seul le nombre de parts change
+   - C'est une exception qu'il faut apprendre par cœur
 3. Pourquoi 2/4 et 1/2 représentent-ils la même quantité ? *(évalue : compréhension)*
    - ✔ 2 parts sur 4 couvrent autant que 1 part sur 2
-   - Parce que 4 est plus grand que 2
-   - Ce n'est pas la même quantité
-   - Parce qu'ils ont le même numérateur
+   - Parce que 4 est le double de 2, donc tout double
+   - Ce n'est pas la même quantité : 2/4 est plus grand
+   - Parce que leurs numérateurs sont tous les deux petits
 
 **Situation de transfert :** Une recette pour 4 personnes demande 3/4 de litre de lait ; tu cuisines pour 2 personnes.
 
@@ -352,40 +397,48 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
 
 *Réponse attendue :* 3/8 de litre : deux fois moins de personnes, donc la moitié de 3/4.
 
-**Déblocage** *(seulement si l'apprenant s'est déclaré bloqué : posé après la seconde explication ; grille dans `grille-reformulation.md`)*
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
 
 1. Une bouteille d'1 litre est remplie aux 3/4. Combien de quarts de litre manque-t-il pour la remplir ? *(évalue : application)*
    - 4
    - 2
    - ✔ 1
    - 3
+   - *Justification juste si elle contient :* Une bouteille pleine fait 4/4 ; il y en a 3/4, il manque donc 4/4 − 3/4 = 1/4.
+   - *Exemple juste (2 points avec le bon choix) :* « Il faut 4 quarts pour la remplir, il y en a 3, donc il en manque 1. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « 1, c'est évident. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « 1, parce qu'il manque 1 litre. »
 2. Pourquoi peut-on remplacer 6/9 par 2/3 ? *(évalue : compréhension)*
-   - Parce que 2/3 est plus grand
-   - ✔ On a regroupé les parts par 3 : la quantité reste la même
-   - Parce que 6 et 9 sont trop grands
-   - On ne peut pas
+   - Parce que 2/3 est un peu plus grand que 6/9
+   - ✔ On regroupe les parts par 3 : la quantité ne change pas
+   - Parce que 6 et 9 sont trop grands pour être utilisés
+   - On ne peut pas : ce sont deux quantités différentes
+   - *Justification juste si elle contient :* 6/9 et 2/3 représentent la même part : en divisant le haut et le bas par 3, on regroupe les parts sans changer la quantité.
+   - *Exemple juste (2 points avec le bon choix) :* « 6 et 9 se divisent par 3, ça donne 2/3, c'est la même part avec des morceaux plus gros. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « Parce que c'est plus simple. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « Parce qu'on enlève 4 en haut et 6 en bas. »
 
 **Rappel à J+2**
 
 1. Dans 3/5, le nombre du bas indique… *(évalue : restitution (mémorisation))*
-   - ✔ en combien de parts égales on a coupé
-   - le reste
-   - combien de parts on prend
-   - le résultat
+   - ✔ en combien de parts égales le tout est coupé
+   - combien de parts il reste après partage
+   - combien de parts on a prises dans le tout
+   - le résultat de la division de 3 par 5
 2. 4/8 est égal à… *(évalue : restitution (mémorisation))*
-   - 4
+   - 8/4
    - ✔ 1/2
    - 2/3
    - 1/4
 3. Lequel est le plus petit : 1/3 ou 1/10 ? *(évalue : restitution (mémorisation))*
-   - ✔ 1/10
-   - On ne peut pas savoir
-   - Égaux
    - 1/3
+   - On ne peut pas savoir
+   - Ils sont égaux
+   - ✔ 1/10
 4. Tu as mangé 2/6 d'une tarte et ton ami 1/3. Qui en a mangé le plus ? *(évalue : application)*
-   - Ton ami
-   - On ne peut pas comparer
-   - Toi
+   - Ton ami, car 3 est plus petit que 6
+   - On ne peut pas comparer des sixièmes et des tiers
+   - Toi, car 2 est plus grand que 1
    - ✔ Autant l'un que l'autre
 
 **Reformulation, idée centrale :** Une fraction indique combien de parts égales on prend (en haut) sur le nombre de parts du tout (en bas).
@@ -406,15 +459,15 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
    - 200 €
    - 120 €
 2. Pourquoi obtient-on 121 € et non 120 € dans la question précédente ? *(évalue : compréhension)*
-   - Parce que la banque ajoute 1 € de cadeau
-   - C'est une erreur de calcul
-   - ✔ La 2e année, les 10 € d'intérêts gagnés rapportent aussi
-   - Parce que le taux monte à 11 %
+   - La banque ajoute 1 € de frais de gestion la 2e année
+   - C'est un arrondi, le vrai résultat est 120 €
+   - ✔ La 2e année, les 10 € d'intérêts rapportent aussi
+   - Le taux passe automatiquement à 11 % la 2e année
 3. Pour un même taux, pourquoi placer tôt rapporte-t-il plus ? *(évalue : compréhension)*
-   - Parce que le taux augmente avec l'âge
-   - ✔ Les intérêts ont plus d'années pour s'ajouter et rapporter à leur tour
-   - Ce n'est pas vrai
-   - Parce que la banque offre un cadeau
+   - Les banques accordent un meilleur taux aux jeunes clients
+   - ✔ Les intérêts ont plus d'années pour rapporter à leur tour
+   - Ce n'est pas vrai : seule la somme de départ compte
+   - Le taux augmente chaque année tant qu'on ne retire rien
 
 **Situation de transfert :** Une dette de carte de crédit non remboursée augmente chaque mois avec des intérêts sur les intérêts.
 
@@ -422,18 +475,26 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
 
 *Réponse attendue :* Les intérêts s'ajoutent à la dette, puis portent eux-mêmes des intérêts : la base grossit chaque mois.
 
-**Déblocage** *(seulement si l'apprenant s'est déclaré bloqué : posé après la seconde explication ; grille dans `grille-reformulation.md`)*
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
 
 1. Tu places 200 € à 10 % par an, composés. Combien as-tu au bout d'un an, puis de deux ans ? *(évalue : application)*
    - ✔ 220 €, puis 242 €
    - 200 €, puis 220 €
    - 210 €, puis 220 €
    - 220 €, puis 240 €
+   - *Justification juste si elle contient :* 1re année : 200 + 10 % = 220 €. 2e année, les 10 % portent sur 220 € : 220 + 22 = 242 €.
+   - *Exemple juste (2 points avec le bon choix) :* « La deuxième année on gagne 10 % de 220, donc 22 €, ça fait 242. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « J'ai fait le calcul. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « 242, parce qu'on ajoute 20 € puis 22 € de frais. »
 2. Si tu retires chaque année les intérêts gagnés, y a-t-il encore un effet « composé » ? *(évalue : compréhension)*
-   - Oui, c'est pareil
-   - Oui, il est même plus fort
+   - Oui, c'est exactement le même effet qu'en les laissant
+   - Oui, et l'effet est même plus fort qu'en les laissant
    - ✔ Non, les intérêts ne restent pas pour rapporter à leur tour
-   - Seulement si le taux est élevé
+   - Seulement si le taux est supérieur à 10 % par an
+   - *Justification juste si elle contient :* L'effet composé vient des intérêts laissés sur le placement, qui rapportent ensuite ; si on les retire, chaque année rapporte sur la même somme de départ.
+   - *Exemple juste (2 points avec le bon choix) :* « Non, les intérêts partis ne peuvent plus rapporter, on gagne toujours sur la même somme. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « Non, ça ne marche plus. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « Non, parce que la banque baisse le taux. »
 
 **Rappel à J+2**
 
@@ -441,17 +502,17 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
    - Seulement s'ils sont retirés
    - Non
    - ✔ Oui
-   - Seulement à 0 %
+   - Seulement si le taux dépasse 10 %
 2. Le capital, c'est… *(évalue : restitution (mémorisation))*
-   - la banque
+   - les intérêts gagnés
    - ✔ la somme placée au départ
-   - la durée
-   - le taux
+   - la durée du placement
+   - le taux d'intérêt annuel
 3. Qu'est-ce qui distingue les intérêts composés ? *(évalue : restitution (mémorisation))*
-   - ✔ Les intérêts gagnés rapportent à leur tour des intérêts
-   - Ils sont interdits
-   - Le taux baisse chaque année
-   - On ne touche rien avant la fin
+   - ✔ Les intérêts rapportent à leur tour des intérêts
+   - Les intérêts sont calculés sur la somme de départ seulement
+   - Le taux baisse un peu chaque année
+   - On ne touche les intérêts qu'à la fin du placement
 4. 100 € à 50 % par an pendant 2 ans, intérêts composés : *(évalue : application)*
    - 150 €
    - 200 €
@@ -471,20 +532,20 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
 **Compréhension immédiate**
 
 1. Pourquoi une plante laissée dans un placard sombre dépérit-elle ? *(évalue : compréhension)*
-   - Parce qu'elle a trop d'eau
-   - ✔ Sans lumière, elle ne peut plus fabriquer sa nourriture
-   - Parce qu'elle a trop froid
-   - Parce que le placard est petit
+   - Elle manque d'air frais et finit par s'étouffer lentement
+   - ✔ Sans lumière, elle ne produit plus sa nourriture
+   - Il fait trop froid dans un placard fermé
+   - La terre sèche plus vite dans le noir
 2. Une plante d'intérieur bien arrosée, posée loin de toute fenêtre, pousse mal. Que changer en priorité ? *(évalue : application)*
-   - La mettre au réfrigérateur
-   - L'arroser encore plus
-   - ✔ La rapprocher de la lumière
-   - Lui retirer ses feuilles
+   - Lui donner de l'engrais chaque semaine
+   - L'arroser davantage pour compenser
+   - ✔ La rapprocher d'une fenêtre
+   - Couper ses feuilles pour qu'elle repousse
 3. D'où vient l'essentiel de la matière qui fait grossir un arbre ? *(évalue : compréhension)*
-   - Uniquement de la terre
+   - Presque uniquement de la terre absorbée par les racines
    - ✔ Du dioxyde de carbone de l'air, transformé grâce à la lumière
-   - Des insectes
-   - Uniquement de l'eau de pluie
+   - Des minéraux du sol, transformés grâce à la chaleur
+   - Presque uniquement de l'eau de pluie stockée dans le bois
 
 **Situation de transfert :** Dans une serre fermée et éclairée, on ajoute du dioxyde de carbone dans l'air.
 
@@ -492,41 +553,49 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
 
 *Réponse attendue :* Elles peuvent pousser plus vite : plus de dioxyde de carbone disponible pour fabriquer leur nourriture, tant qu'il y a lumière et eau.
 
-**Déblocage** *(seulement si l'apprenant s'est déclaré bloqué : posé après la seconde explication ; grille dans `grille-reformulation.md`)*
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
 
 1. Une salade pousse sous une lampe éclairant 4 heures par jour au lieu de 12. Que prévoir ? *(évalue : application)*
-   - Aucun effet
-   - ✔ Elle produira moins de nourriture et poussera moins vite
-   - Elle poussera plus vite
-   - Elle produira plus d'oxygène
+   - Aucun effet, si elle est bien arrosée chaque jour
+   - ✔ Elle produira moins de nourriture et grandira moins
+   - Elle grandira plus vite pour aller chercher la lumière
+   - Elle produira plus d'oxygène pour compenser
+   - *Justification juste si elle contient :* Moins de lumière, donc moins de photosynthèse : la plante fabrique moins de sucre pour grandir.
+   - *Exemple juste (2 points avec le bon choix) :* « Avec moins de lumière elle fabrique moins de nourriture, donc elle pousse moins. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « Elle a moins de lumière. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « Elle poussera moins car elle aura moins d'eau. »
 2. Pourquoi dit-on que les plantes « nourrissent » presque tous les êtres vivants ? *(évalue : compréhension)*
-   - Parce qu'elles mangent les animaux
-   - Parce qu'elles produisent de l'eau
-   - ✔ Elles fabriquent du sucre avec la lumière, que les animaux mangent ensuite
-   - Ce n'est pas vrai
+   - Elles absorbent les restes des animaux et les recyclent
+   - Elles produisent l'eau que boivent tous les êtres vivants
+   - ✔ Elles fabriquent du sucre que mangent ensuite les animaux
+   - Elles fabriquent les vitamines de l'air que l'on respire
+   - *Justification juste si elle contient :* Grâce à la lumière, les plantes fabriquent leur matière (sucre) ; les herbivores les mangent, puis d'autres animaux mangent les herbivores.
+   - *Exemple juste (2 points avec le bon choix) :* « Les plantes font leur nourriture avec le soleil, et les animaux mangent les plantes ou ceux qui mangent les plantes. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « Parce qu'on mange des légumes. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « Parce qu'elles prennent leur nourriture dans la terre et la donnent aux animaux. »
 
 **Rappel à J+2**
 
 1. La photosynthèse a lieu surtout dans… *(évalue : restitution (mémorisation))*
-   - les racines
-   - les graines
-   - le sol
    - ✔ les feuilles
+   - les fleurs
+   - les graines
+   - les racines profondes
 2. Le pigment vert qui capte la lumière s'appelle… *(évalue : restitution (mémorisation))*
-   - sève
+   - pigment brun (mélanine)
    - ✔ chlorophylle
    - glucose
-   - oxygène
+   - hémoglobine
 3. La photosynthèse produit… *(évalue : restitution (mémorisation))*
-   - de la terre
-   - de l'eau salée
+   - de l'eau et de l'azote
+   - de la terre et des minéraux
    - ✔ du sucre et de l'oxygène
-   - du sel et de l'azote
+   - du sucre et du dioxyde de carbone
 4. Dans un aquarium éclairé, des bulles se forment sur les feuilles des plantes. Que contiennent-elles surtout ? *(évalue : application)*
    - Du dioxyde de carbone
    - ✔ De l'oxygène
-   - De l'azote
-   - De la vapeur de sel
+   - De l'azote dissous
+   - De la vapeur d'eau
 
 **Reformulation, idée centrale :** Grâce à la lumière, la plante fabrique son sucre à partir d'eau et de dioxyde de carbone, et rejette de l'oxygène.
 
@@ -542,19 +611,19 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
 
 1. Pourquoi tombe-t-on rarement deux fois malade de la varicelle ? *(évalue : compréhension)*
    - ✔ Le corps garde la mémoire de ce microbe et réagit vite
-   - Le microbe disparaît de la Terre
-   - On grandit
-   - Par hasard
+   - Le microbe de la varicelle disparaît après la maladie
+   - Les enfants deviennent résistants à tout en grandissant
+   - La première maladie détruit tous les microbes du corps
 2. Des anticorps contre la grippe protègent-ils contre la varicelle ? *(évalue : compréhension)*
-   - Oui, mais seulement l'hiver
+   - Oui, mais seulement pendant l'hiver qui suit
    - ✔ Non : un anticorps reconnaît un microbe précis
-   - Seulement chez l'adulte
-   - Oui, ils protègent contre tout
+   - Seulement chez l'adulte, dont l'immunité est complète
+   - Oui, un anticorps protège contre tous les virus
 3. Après une coupure, la peau autour devient rouge et chaude pendant un jour. Que se passe-t-il le plus probablement ? *(évalue : application)*
-   - ✔ Le système immunitaire combat des microbes entrés par la plaie
-   - C'est toujours le signe d'une maladie grave
-   - Le sang se transforme en eau
-   - La peau fabrique de la chlorophylle
+   - ✔ Le corps combat des microbes entrés par la plaie
+   - C'est une allergie au métal de l'objet qui a coupé
+   - Le sang s'est infecté et la maladie se répand dans le corps
+   - La peau brûle les cellules mortes pour refermer la plaie
 
 **Situation de transfert :** Une personne dont les défenses sont affaiblies par un traitement attrape facilement des infections banales.
 
@@ -562,41 +631,49 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
 
 *Réponse attendue :* Son système immunitaire réagit moins ou moins vite : les microbes ne sont plus repérés et éliminés à temps.
 
-**Déblocage** *(seulement si l'apprenant s'est déclaré bloqué : posé après la seconde explication ; grille dans `grille-reformulation.md`)*
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
 
-1. Un microbe nouveau, jamais rencontré, entre dans le corps. Pourquoi la défense est-elle plus lente que pour un microbe déjà connu ? *(évalue : application)*
-   - La défense est toujours aussi rapide
-   - ✔ Le corps doit d'abord apprendre à le reconnaître
-   - Parce que les nouveaux microbes sont toujours plus gros
-   - Le corps ne se défend jamais contre un nouveau microbe
+1. Un voyageur est infecté par un microbe qu'il n'a jamais rencontré et contre lequel il n'est pas vacciné. À quoi faut-il s'attendre ? *(évalue : application)*
+   - Ses anticorps contre d'autres microbes le protégeront
+   - ✔ Sa défense mettra plus de temps à se mettre en place
+   - Sa défense sera aussi rapide que pour un microbe connu
+   - Son corps ne pourra pas du tout se défendre seul
+   - *Justification juste si elle contient :* Le corps n'a aucune mémoire de ce microbe : il doit d'abord apprendre à le reconnaître avant de produire les bonnes défenses.
+   - *Exemple juste (2 points avec le bon choix) :* « Son corps ne le connaît pas, il doit d'abord apprendre à le reconnaître, donc c'est plus lent. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « Parce qu'il est nouveau. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « Parce que les microbes étrangers sont toujours plus forts. »
 2. Pourquoi le système immunitaire n'attaque-t-il pas, en temps normal, nos propres cellules ? *(évalue : compréhension)*
-   - Il les attaque toujours
-   - ✔ Il distingue ce qui appartient au corps de ce qui vient de l'extérieur
-   - Parce que nos cellules sont trop petites
-   - Parce qu'il ne fonctionne que la nuit
+   - Nos cellules produisent un poison qui le repousse
+   - ✔ Il distingue ce qui vient du corps de ce qui vient d'ailleurs
+   - Nos cellules sont trop petites pour que les globules blancs les voient
+   - Il ne fonctionne que lorsqu'on a de la fièvre
+   - *Justification juste si elle contient :* Le système immunitaire reconnaît nos propres cellules et ne s'attaque qu'à ce qui est étranger.
+   - *Exemple juste (2 points avec le bon choix) :* « Il sait reconnaître ce qui est à nous et ce qui vient de l'extérieur. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « Parce que ce serait dangereux. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « Parce qu'il ne voit que les gros microbes. »
 
 **Rappel à J+2**
 
 1. Les globules blancs servent à… *(évalue : restitution (mémorisation))*
-   - digérer
+   - digérer les graisses
+   - transporter l'oxygène dans le sang
+   - faire coaguler le sang après une coupure
    - ✔ combattre les microbes
-   - coaguler le sang
-   - transporter l'oxygène
 2. La mémoire immunitaire permet… *(évalue : restitution (mémorisation))*
-   - de mieux dormir
-   - de grandir
-   - de voir mieux
+   - de reconnaître tous les microbes avant de les rencontrer
+   - de produire des anticorps contre toutes les maladies
+   - de garder les microbes dans le corps pour s'entraîner
    - ✔ de réagir plus vite à un microbe déjà rencontré
 3. Un anticorps est efficace contre… *(évalue : restitution (mémorisation))*
-   - les vitamines
-   - tous les microbes à la fois
+   - les microbes déjà détruits seulement
    - ✔ un microbe précis
-   - aucun microbe
+   - tous les microbes à la fois
+   - les virus, mais jamais les bactéries
 4. Deux enfants attrapent le même virus ; l'un l'a déjà eu l'an dernier. Lequel guérira probablement le plus vite ? *(évalue : application)*
-   - Aucun des deux
-   - Les deux pareil, toujours
+   - Aucun des deux ne pourra guérir seul
+   - Les deux pareil, car c'est le même virus
    - ✔ Celui qui l'a déjà eu
-   - Celui qui ne l'a jamais eu
+   - Celui qui ne l'a jamais eu, car il est plus résistant
 
 **Reformulation, idée centrale :** Le système immunitaire repère et détruit les microbes, et garde en mémoire ceux qu'il a déjà rencontrés pour réagir plus vite.
 
@@ -611,20 +688,20 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
 **Compréhension immédiate**
 
 1. Pourquoi un enfant ressemble-t-il à ses deux parents à la fois ? *(évalue : compréhension)*
-   - Il mange la même chose qu'eux
-   - Il vit avec eux
-   - Par hasard uniquement
+   - Il imite leurs expressions en grandissant
+   - Il reçoit tout l'ADN de son père, et les traits de sa mère
+   - Il mange la même chose qu'eux depuis sa naissance
    - ✔ Il reçoit une partie de l'ADN de chacun
-2. On peut trouver l'ADN d'une personne dans un cheveu ou une goutte de salive. Pourquoi ? *(évalue : application)*
-   - Parce que l'ADN flotte dans l'air
-   - Parce que l'ADN est fabriqué par la bouche
-   - C'est impossible
-   - ✔ Ils contiennent des cellules, et presque toutes les cellules ont de l'ADN
+2. On peut trouver l'ADN d'une personne dans un cheveu ou une goutte de salive. Pourquoi ? *(évalue : compréhension)*
+   - L'ADN se dépose sur le corps à partir de l'air respiré
+   - L'ADN est fabriqué uniquement par la bouche et par les cheveux
+   - Ce n'est pas possible : l'ADN n'est que dans le sang
+   - ✔ Ils contiennent des cellules, qui portent presque toutes l'ADN
 3. Pourquoi des vrais jumeaux ont-ils le même ADN, mais pas des frères et sœurs ordinaires ? *(évalue : compréhension)*
-   - Parce qu'ils se ressemblent
-   - Parce qu'ils sont nés le même jour
-   - Tous les frères et sœurs ont le même ADN
-   - ✔ Les vrais jumeaux viennent d'un seul œuf qui s'est séparé
+   - Ils ont grandi ensemble et mangé les mêmes repas
+   - Ils sont nés le même jour, des mêmes parents
+   - Les frères et sœurs ont tous le même ADN aussi
+   - ✔ Ils viennent d'un seul œuf qui s'est séparé en deux
 
 **Situation de transfert :** Sur une scène de vol, les enquêteurs retrouvent un cheveu et le comparent à l'ADN de suspects.
 
@@ -632,40 +709,48 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
 
 *Réponse attendue :* L'ADN est présent dans les cellules du cheveu et il est propre à chaque personne (sauf vrais jumeaux).
 
-**Déblocage** *(seulement si l'apprenant s'est déclaré bloqué : posé après la seconde explication ; grille dans `grille-reformulation.md`)*
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
 
 1. Une cellule de peau et une cellule du foie d'une même personne ont-elles le même ADN ? *(évalue : application)*
-   - Non, chaque organe a son ADN
-   - Seulement le matin
-   - Seulement si la personne est jeune
-   - ✔ Oui, le même ADN dans presque toutes ses cellules
+   - Non, chaque organe possède son propre ADN
+   - Non, l'ADN change selon le rôle de la cellule
+   - Seulement si la personne est encore jeune
+   - ✔ Oui, presque toutes ses cellules ont le même ADN
+   - *Justification juste si elle contient :* Toutes les cellules d'une personne viennent de la même cellule de départ et portent le même ADN ; elles n'en utilisent pas les mêmes parties.
+   - *Exemple juste (2 points avec le bon choix) :* « Oui, toutes nos cellules ont le même ADN, elles viennent toutes du même œuf. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « Oui, c'est la même personne. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « Oui, parce que la peau et le foie font le même travail. »
 2. Pourquoi deux frères et sœurs, qui ne sont pas jumeaux, ne se ressemblent-ils pas exactement ? *(évalue : compréhension)*
-   - ✔ Chacun reçoit une combinaison différente de l'ADN de ses parents
-   - Parce que l'ADN change chaque année
-   - Ils ont exactement le même ADN
-   - Parce qu'ils ne mangent pas la même chose
+   - ✔ Chacun reçoit une combinaison différente de l'ADN des parents
+   - L'ADN des parents change un peu chaque année
+   - Ils ont exactement le même ADN, mais ne grandissent pas au même endroit
+   - Ils ne mangent pas la même chose en grandissant
+   - *Justification juste si elle contient :* Chaque enfant reçoit la moitié de l'ADN de chaque parent, mais pas la même moitié : la combinaison est différente pour chacun.
+   - *Exemple juste (2 points avec le bon choix) :* « Chacun reçoit un mélange différent des gènes du père et de la mère. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « Parce que chacun est unique. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « Parce que l'aîné reçoit plus d'ADN du père. »
 
 **Rappel à J+2**
 
 1. L'ADN contient… *(évalue : restitution (mémorisation))*
-   - de l'eau
-   - ✔ les informations qui guident le fonctionnement de la cellule
-   - de l'énergie
-   - des microbes
+   - les microbes qui protègent la cellule
+   - ✔ les informations qui guident la cellule
+   - l'énergie dont la cellule a besoin
+   - les réserves de sucre et de graisse de la cellule
 2. On reçoit son ADN… *(évalue : restitution (mémorisation))*
-   - de l'alimentation
    - uniquement de sa mère
+   - de l'air qu'on respire
    - ✔ de ses deux parents
-   - de l'air
+   - de ce qu'on mange enfant
 3. Un gène est… *(évalue : restitution (mémorisation))*
-   - un organe
-   - une maladie
+   - une cellule spéciale du sang
+   - une maladie que les parents transmettent à leurs enfants
    - ✔ un morceau d'ADN qui porte une information
-   - un vaccin
+   - une protéine qui détruit les microbes
 4. Deux suspects ont laissé des traces ; un seul ADN correspond au cheveu trouvé. Que peut-on conclure ? *(évalue : application)*
-   - Les deux sont coupables
-   - Le cheveu n'apprend rien
-   - Le cheveu vient forcément d'un jumeau
+   - Les deux suspects sont forcément coupables
+   - Le cheveu ne permet de rien conclure du tout
+   - Le cheveu vient forcément d'un vrai jumeau
    - ✔ Le cheveu vient probablement de ce suspect
 
 **Reformulation, idée centrale :** L'ADN, présent dans nos cellules, porte les informations héritées de nos parents qui guident le fonctionnement du corps.
@@ -681,20 +766,20 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
 **Compréhension immédiate**
 
 1. Comment un vaccin aide-t-il le corps à se protéger ? *(évalue : compréhension)*
-   - Il tue tous les microbes du corps
-   - ✔ Il lui fait rencontrer, sans danger, un élément du microbe pour qu'il apprenne à le reconnaître
-   - Il soigne une maladie déjà installée
-   - Il remplace le sang
+   - Il tue d'avance tous les microbes présents dans le corps
+   - ✔ Il fait connaître au corps, sans danger, un élément du microbe
+   - Il soigne une maladie déjà installée en détruisant le microbe
+   - Il dépose dans le sang des anticorps qui restent pour toujours
 2. Pourquoi, pour certaines maladies, faut-il un rappel quelques années plus tard ? *(évalue : compréhension)*
-   - Ce n'est jamais utile
-   - Pour changer de maladie
-   - ✔ La protection peut diminuer avec le temps ; le rappel la renforce
-   - Parce que le premier vaccin était faux
-3. Dans une ville, beaucoup de gens sont vaccinés contre une maladie contagieuse. Pourquoi un bébé trop jeune pour être vacciné y est-il moins exposé ? *(évalue : application)*
-   - ✔ La maladie circule moins, donc il a moins de chances de la rencontrer
-   - Il n'est pas moins exposé
-   - Parce que le vaccin se transmet par l'air
-   - Parce que les bébés ne tombent jamais malades
+   - Le rappel soigne les effets secondaires de la première dose
+   - Le microbe a forcément changé depuis, et la première dose ne sert plus à rien
+   - ✔ La protection peut baisser avec le temps ; le rappel la relance
+   - Le premier vaccin n'a pas fonctionné et doit être recommencé
+3. Dans une ville, beaucoup de gens sont vaccinés contre une maladie contagieuse. Pourquoi un bébé trop jeune pour être vacciné y est-il moins exposé ? *(évalue : compréhension)*
+   - ✔ La maladie circule moins, donc il risque moins de la croiser
+   - Il n'est pas moins exposé : seuls les vaccinés sont protégés
+   - Le vaccin des autres se transmet à lui par l'air qu'il respire chaque jour
+   - Les bébés ne peuvent pas attraper les maladies contagieuses
 
 **Situation de transfert :** Une personne vaccinée contre une maladie l'attrape quand même, mais de façon légère.
 
@@ -702,41 +787,49 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
 
 *Réponse attendue :* Non : aucun vaccin ne protège à 100 %, mais le corps, déjà entraîné, réagit plus vite, ce qui rend souvent la maladie moins grave.
 
-**Déblocage** *(seulement si l'apprenant s'est déclaré bloqué : posé après la seconde explication ; grille dans `grille-reformulation.md`)*
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
 
-1. Pourquoi vaccine-t-on avant une épidémie plutôt que pendant qu'on est déjà malade ? *(évalue : application)*
-   - Parce que c'est moins cher
-   - Il n'y a aucune différence
-   - ✔ Le corps a besoin de temps pour apprendre à reconnaître le microbe
-   - Parce que le vaccin soigne mieux une fois malade
+1. Une épidémie de grippe est annoncée pour dans un mois. Quand vaut-il mieux se faire vacciner ? *(évalue : application)*
+   - Au pic de l'épidémie, quand le risque est le plus fort
+   - Après l'épidémie, pour être prêt l'année suivante
+   - ✔ Dès maintenant, avant l'arrivée de l'épidémie
+   - Au premier symptôme, pour soigner la grippe plus vite
+   - *Justification juste si elle contient :* Le corps a besoin de temps pour apprendre à reconnaître le microbe ; le vaccin prépare, il ne soigne pas une maladie déjà là.
+   - *Exemple juste (2 points avec le bon choix) :* « Maintenant, parce que le corps met du temps à apprendre à se défendre. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « Maintenant, c'est mieux avant. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « Maintenant, parce que le vaccin tue le virus dès qu'il arrive. »
 2. Pourquoi une personne vaccinée réagit-elle plus vite si elle rencontre le vrai microbe ? *(évalue : compréhension)*
-   - Parce que le vaccin reste dans le sang comme un médicament
+   - Le vaccin reste dans le sang et agit comme un médicament
    - ✔ Son système immunitaire le reconnaît déjà grâce au vaccin
-   - Elle ne réagit pas plus vite
-   - Parce que le microbe est plus faible chez elle
+   - Elle ne réagit pas plus vite, elle est juste plus résistante
+   - Le microbe devient plus faible chez une personne vaccinée
+   - *Justification juste si elle contient :* Le vaccin a laissé une mémoire : le corps reconnaît le microbe et produit ses défenses beaucoup plus vite.
+   - *Exemple juste (2 points avec le bon choix) :* « Son corps a déjà vu le microbe grâce au vaccin, il le reconnaît et se défend vite. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « Parce qu'elle est vaccinée. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « Parce que le vaccin reste dans le sang et tue le microbe. »
 
 **Rappel à J+2**
 
 1. Un vaccin entraîne surtout… *(évalue : restitution (mémorisation))*
-   - la mémoire scolaire
-   - les muscles
-   - la digestion
+   - la mémoire du cerveau
+   - les muscles du bras piqué
+   - la digestion des aliments
    - ✔ le système immunitaire
 2. Un rappel sert à… *(évalue : restitution (mémorisation))*
    - changer de groupe sanguin
    - ✔ entretenir la protection
-   - guérir une fracture
-   - rien
+   - guérir une maladie déjà là
+   - remplacer le premier vaccin raté
 3. Un vaccin agit surtout… *(évalue : restitution (mémorisation))*
    - ✔ avant que la maladie survienne
-   - seulement la nuit
-   - après la guérison
-   - sur les plantes
+   - seulement après la guérison
+   - une fois que la maladie est déjà installée
+   - uniquement sur les bactéries
 4. Un adulte n'a pas fait le rappel conseillé depuis longtemps. Quel est le risque le plus probable ? *(évalue : application)*
    - ✔ Sa protection a pu baisser
-   - Son vaccin le rend malade
-   - Il est malade en ce moment
-   - Il est protégé à vie quoi qu'il arrive
+   - Son ancien vaccin peut le rendre malade
+   - Il est sûrement malade en ce moment
+   - Il reste protégé à vie, quoi qu'il arrive
 
 **Reformulation, idée centrale :** Un vaccin fait rencontrer au corps, sans danger, un élément du microbe (ou de quoi le fabriquer), pour qu'il apprenne à le reconnaître et se défende plus vite plus tard.
 
@@ -751,19 +844,19 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
 **Compréhension immédiate**
 
 1. Pourquoi se forme-t-il des gouttes sur un verre d'eau très froide en été ? *(évalue : compréhension)*
-   - Le soleil chauffe le verre
-   - Le verre fuit
+   - Le soleil fait fondre une fine couche de glace
+   - L'eau froide traverse lentement la paroi du verre
    - ✔ La vapeur d'eau de l'air se condense au contact du froid
-   - L'eau traverse le verre
-2. Du linge mouillé sèche plus vite dehors par une journée chaude et venteuse. Pourquoi ? *(évalue : application)*
-   - Le vent pousse l'eau dans le sol
-   - Le soleil transforme l'eau en sel
-   - ✔ La chaleur et le vent accélèrent l'évaporation de l'eau
-   - Il ne sèche pas plus vite
+   - Le froid fabrique de l'eau à la surface du verre
+2. Tu veux que ton linge mouillé sèche le plus vite possible. Où l'étendre ? *(évalue : application)*
+   - Dans une salle de bain fermée et humide
+   - Dans un placard sombre, à l'abri de l'air
+   - ✔ Dehors, au soleil et au vent
+   - Au sous-sol, là où il fait le plus frais
 3. L'eau d'une flaque disparaît sans couler nulle part. Où est-elle partie ? *(évalue : compréhension)*
-   - Elle s'est transformée en nuage instantanément sur place
-   - Elle a été détruite
-   - Elle est devenue de la terre
+   - Elle s'est transformée en nuage directement sur place
+   - Elle a été absorbée entièrement par le goudron
+   - Elle a été détruite par la chaleur du soleil
    - ✔ Elle s'est évaporée dans l'air sous forme de vapeur
 
 **Situation de transfert :** Le matin, la vitre de la salle de bain est couverte de buée après une douche chaude.
@@ -772,35 +865,43 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
 
 *Réponse attendue :* L'eau chaude s'évapore (vapeur), puis la vapeur se condense en gouttelettes sur la vitre froide.
 
-**Déblocage** *(seulement si l'apprenant s'est déclaré bloqué : posé après la seconde explication ; grille dans `grille-reformulation.md`)*
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
 
 1. Une casserole d'eau bouillante a un couvercle ; des gouttes coulent sous le couvercle. Que s'est-il passé ? *(évalue : application)*
-   - L'eau a traversé le métal
-   - La casserole fabrique de l'eau
-   - ✔ L'eau s'est évaporée puis condensée sur le couvercle plus froid
-   - Le couvercle fuit
+   - La vapeur a traversé le métal du couvercle et coulé
+   - La chaleur fabrique de l'eau à partir de l'air
+   - ✔ L'eau s'est évaporée puis condensée sur le couvercle
+   - Le couvercle laisse passer l'eau par de petits trous
+   - *Justification juste si elle contient :* L'eau chauffée devient vapeur ; la vapeur touche le couvercle plus froid et redevient liquide (condensation).
+   - *Exemple juste (2 points avec le bon choix) :* « L'eau s'évapore, la vapeur monte, refroidit sur le couvercle et redevient de l'eau. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « C'est la vapeur. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « L'eau saute en gouttes jusqu'au couvercle quand elle bout. »
 2. Pourquoi la quantité d'eau sur Terre reste-t-elle à peu près la même malgré la pluie et l'évaporation ? *(évalue : compréhension)*
-   - Elle diminue chaque jour
-   - ✔ L'eau change d'état et de place mais n'est pas détruite
-   - Parce qu'il pleut toujours autant partout
-   - Parce que les nuages fabriquent de l'eau
+   - Les océans produisent de l'eau en continu au fond des mers
+   - ✔ L'eau change d'état et de place, mais n'est pas détruite
+   - Il pleut chaque jour exactement autant qu'il s'évapore
+   - Les nuages fabriquent de l'eau nouvelle à partir de l'air
+   - *Justification juste si elle contient :* L'eau ne disparaît pas : elle passe d'un état (liquide, vapeur, glace) et d'un endroit à l'autre, en cycle.
+   - *Exemple juste (2 points avec le bon choix) :* « L'eau qui s'évapore revient en pluie, elle ne fait que changer de forme et de place. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « Parce que c'est un cycle. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « Parce que les nuages créent de l'eau. »
 
 **Rappel à J+2**
 
 1. Le passage de l'eau liquide à la vapeur s'appelle… *(évalue : restitution (mémorisation))*
    - précipitation
    - ✔ évaporation
-   - fusion
+   - solidification
    - condensation
 2. Les nuages sont faits de… *(évalue : restitution (mémorisation))*
    - ✔ fines gouttelettes ou cristaux d'eau
-   - fumée
-   - gaz carbonique
-   - poussière seulement
+   - vapeur d'eau invisible, sans aucune goutte
+   - gaz carbonique refroidi
+   - fumée et poussières
 3. Pluie, neige et grêle sont des… *(évalue : restitution (mémorisation))*
    - ✔ précipitations
+   - ruissellements
    - condensations
-   - nappes
    - évaporations
 4. Tu sors une bouteille du réfrigérateur un jour humide : elle se couvre de gouttes. Quelle étape du cycle est-ce ? *(évalue : application)*
    - ✔ La condensation
@@ -821,20 +922,20 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
 **Compréhension immédiate**
 
 1. Pourquoi, sans aucun effet de serre naturel, la Terre serait-elle beaucoup plus froide ? *(évalue : compréhension)*
-   - Parce que le Soleil s'éteindrait
-   - Elle ne serait pas plus froide
-   - Parce que l'eau gèlerait d'abord
-   - ✔ La chaleur émise par le sol repartirait presque toute vers l'espace
+   - Le Soleil enverrait beaucoup moins de lumière vers la Terre
+   - Elle ne serait pas plus froide, seulement plus sèche
+   - Les océans gèleraient d'abord et refroidiraient l'air
+   - ✔ La chaleur du sol repartirait presque toute vers l'espace
 2. Pourquoi l'ajout de gaz à effet de serre réchauffe-t-il le climat ? *(évalue : compréhension)*
    - ✔ Ils retiennent davantage la chaleur émise par la Terre
-   - Ils bloquent toute la lumière
-   - Ils rapprochent le Soleil
-   - Ils font fondre le Soleil
+   - Ils détruisent la couche d'ozone
+   - Ils laissent entrer plus de lumière venue du Soleil
+   - Ils produisent eux-mêmes de la chaleur en brûlant
 3. Une ville remplace ses bus au gazole par des bus électriques alimentés par une électricité peu carbonée. Quel effet sur l'effet de serre ? *(évalue : application)*
-   - ✔ Moins de dioxyde de carbone émis, donc moins de renforcement de l'effet de serre
-   - Aucun effet
-   - Plus d'effet de serre
-   - L'effet de serre disparaît totalement
+   - ✔ Moins de dioxyde de carbone émis, effet de serre moins renforcé
+   - Aucun effet : un bus reste un bus
+   - Plus d'effet de serre, car l'électricité réchauffe l'air de la ville
+   - L'effet de serre disparaît totalement dans cette ville
 
 **Situation de transfert :** Une voiture garée au soleil, vitres fermées, devient très chaude à l'intérieur.
 
@@ -842,39 +943,47 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
 
 *Réponse attendue :* La chaleur entre et reste en partie piégée ; mais dans la voiture c'est surtout l'air enfermé, alors que pour la Terre ce sont des gaz qui retiennent le rayonnement de chaleur.
 
-**Déblocage** *(seulement si l'apprenant s'est déclaré bloqué : posé après la seconde explication ; grille dans `grille-reformulation.md`)*
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
 
 1. Une nuit nuageuse est souvent moins froide qu'une nuit sans nuages. Avec quelle idée de l'effet de serre cela s'accorde-t-il ? *(évalue : application)*
-   - ✔ Ce qui est au-dessus du sol retient une partie de la chaleur qu'il émet
-   - Les nuages produisent de la chaleur
-   - Aucune
-   - La Lune réchauffe les nuages
+   - ✔ Les nuages retiennent une partie de la chaleur du sol
+   - Les nuages produisent de la chaleur en se formant
+   - Aucune : les nuages n'ont rien à voir avec la chaleur
+   - Les nuages renvoient la lumière de la Lune vers le sol
+   - *Justification juste si elle contient :* Comme les gaz à effet de serre, les nuages empêchent une partie de la chaleur émise par le sol de repartir vers l'espace.
+   - *Exemple juste (2 points avec le bon choix) :* « Les nuages font comme une couverture qui garde la chaleur du sol, comme les gaz à effet de serre. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « Les nuages protègent. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « Les nuages chauffent parce qu'ils sont plus près du Soleil. »
 2. Pourquoi parle-t-on d'effet de serre « renforcé » plutôt que d'effet de serre tout court pour le changement climatique ? *(évalue : compréhension)*
-   - C'est la même chose
-   - ✔ L'effet existe naturellement ; les activités humaines l'augmentent
-   - Parce que les serres de jardin chauffent la Terre
-   - Parce qu'il n'existait pas avant
+   - C'est la même chose, le mot « renforcé » ne change rien
+   - ✔ L'effet existe naturellement ; l'activité humaine l'augmente
+   - Les serres agricoles réchauffent l'atmosphère
+   - L'effet de serre n'existait pas avant la naissance de l'industrie
+   - *Justification juste si elle contient :* Un effet de serre naturel existe et rend la Terre habitable ; le problème vient de son augmentation par les gaz ajoutés par les activités humaines.
+   - *Exemple juste (2 points avec le bon choix) :* « Il y en a déjà un naturel, utile ; l'homme ajoute des gaz qui le rendent plus fort. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « Parce que c'est plus fort. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « Parce que l'effet de serre est entièrement créé par l'homme. »
 
 **Rappel à J+2**
 
 1. L'effet de serre naturel est… *(évalue : restitution (mémorisation))*
-   - inexistant
-   - toujours néfaste
-   - dû à la Lune
+   - provoqué uniquement par les activités humaines
+   - toujours néfaste pour le climat
+   - dû à la chaleur de la Lune
    - ✔ indispensable à la vie sur Terre
 2. Un gaz à effet de serre important émis par les activités humaines est… *(évalue : restitution (mémorisation))*
-   - l'azote
-   - l'oxygène
-   - l'hélium
+   - l'azote de l'air
+   - l'oxygène que l'on respire
+   - l'hélium des ballons
    - ✔ le dioxyde de carbone
 3. Renforcer l'effet de serre conduit à… *(évalue : restitution (mémorisation))*
-   - plus de lumière
-   - un refroidissement
-   - aucun changement
+   - plus de lumière sur Terre
+   - un refroidissement du climat
+   - aucun changement mesurable
    - ✔ un réchauffement du climat
 4. Une personne fait chaque jour 20 km en voiture à essence pour aller travailler. Quel changement réduit le plus ses émissions de gaz à effet de serre ? *(évalue : application)*
-   - ✔ Faire le trajet en train ou en bus
-   - Rouler vitres ouvertes
+   - ✔ Prendre le train ou le bus
+   - Rouler toujours vitres ouvertes
    - Changer la couleur de la voiture
    - Laver la voiture plus souvent
 
@@ -892,19 +1001,19 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
 
 1. Pourquoi une pomme lâchée tombe-t-elle vers le sol ? *(évalue : compréhension)*
    - L'air la pousse vers le bas
-   - Elle est trop mûre
-   - ✔ La Terre l'attire
-   - Le vent souffle
+   - Elle est trop lourde pour flotter dans l'air
+   - ✔ La Terre l'attire vers elle
+   - Le vent la pousse toujours vers le sol
 2. Sur la Lune, un astronaute pèse moins que sur Terre. Pourquoi ? *(évalue : compréhension)*
-   - Il a perdu de la masse
+   - Il a perdu de la masse pendant le voyage
    - ✔ La Lune, moins massive, l'attire moins fort
-   - Sa combinaison est légère
-   - Il n'y a pas d'air
+   - Sa combinaison spatiale le rend plus léger
+   - Il n'y a pas d'air sur la Lune pour l'écraser vers le sol
 3. Une balance indique 60 kg sur Terre. Sur la Lune, la même personne aurait-elle moins de matière ? *(évalue : application)*
-   - Oui, elle perdrait de la matière
-   - Elle aurait plus de matière
-   - Elle n'aurait plus de masse
-   - ✔ Non, la même masse, mais un poids plus faible
+   - Oui, elle perdrait une partie de sa matière
+   - Oui, elle aurait seulement 10 kg de matière
+   - Non, elle aurait plus de matière qu'avant
+   - ✔ Non : même masse, mais poids plus faible
 
 **Situation de transfert :** Un satellite tourne autour de la Terre sans moteur allumé.
 
@@ -912,18 +1021,26 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
 
 *Réponse attendue :* La Terre l'attire en permanence, mais il va assez vite sur le côté : il « tombe » autour de la Terre en restant en orbite.
 
-**Déblocage** *(seulement si l'apprenant s'est déclaré bloqué : posé après la seconde explication ; grille dans `grille-reformulation.md`)*
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
 
-1. Sur une planète plus massive que la Terre, mais de même taille, un objet pèserait… *(évalue : application)*
-   - rien
-   - pareil
-   - moins lourd
-   - ✔ plus lourd
+1. Sur une planète deux fois plus massive que la Terre, mais de même taille, un sac de 10 kg serait… *(évalue : application)*
+   - de 20 kg de matière
+   - exactement aussi lourd
+   - moins lourd à porter
+   - ✔ plus lourd à porter
+   - *Justification juste si elle contient :* À taille égale, une planète plus massive attire plus fort : le poids augmente, mais la masse (10 kg) ne change pas.
+   - *Exemple juste (2 points avec le bon choix) :* « La planète a plus de masse, donc elle attire plus fort et le sac pèse plus, même s'il fait toujours 10 kg. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « Plus lourd, parce que c'est une autre planète. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « Plus lourd, parce que le sac contient plus de matière là-bas. »
 2. Pourquoi un satellite trop lent finit-il par retomber sur Terre ? *(évalue : compréhension)*
-   - Parce qu'il devient plus lourd
-   - Il ne retombe jamais
-   - Parce que la Terre le repousse
-   - ✔ Sa vitesse ne suffit plus à compenser l'attraction de la Terre
+   - Il devient plus lourd en perdant de la vitesse
+   - Il ne retombe jamais, puisque la gravité n'existe pas dans l'espace
+   - La Terre le repousse quand il ralentit trop
+   - ✔ Sa vitesse ne compense plus l'attraction de la Terre
+   - *Justification juste si elle contient :* La Terre l'attire en permanence ; c'est sa vitesse sur le côté qui le fait « tomber autour » de la Terre. Trop lent, il tombe vers elle.
+   - *Exemple juste (2 points avec le bon choix) :* « Il ne va plus assez vite pour tourner autour, donc l'attraction de la Terre le fait tomber. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « Parce qu'il ralentit. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « Parce qu'en ralentissant il devient plus lourd. »
 
 **Rappel à J+2**
 
@@ -934,19 +1051,19 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
    - s'annulent
 2. Le poids d'un objet dépend… *(évalue : restitution (mémorisation))*
    - de sa forme seulement
-   - de l'heure
-   - ✔ de l'astre sur lequel il se trouve
+   - de la température de l'air
+   - ✔ de l'astre où il se trouve
    - de sa couleur
 3. Une orbite, c'est… *(évalue : restitution (mémorisation))*
-   - un type de fusée
-   - un nuage
-   - ✔ le trajet d'un objet qui tourne autour d'un astre
-   - une étoile
+   - un nuage de poussière dans l'espace
+   - la surface visible d'une planète
+   - ✔ le trajet d'un objet autour d'un astre
+   - une étoile qui tourne très vite sur elle-même
 4. Mars est moins massive que la Terre. Un sac de 10 kg y serait… *(évalue : application)*
-   - plus lourd à porter
+   - plus lourd à porter, car l'air de Mars est plus épais
    - impossible à soulever
-   - ✔ moins lourd à porter, mais toujours de 10 kg de matière
-   - de 5 kg de matière
+   - ✔ moins lourd à porter, avec la même masse
+   - de 5 kg de matière seulement
 
 **Reformulation, idée centrale :** Tout objet ayant une masse attire les autres ; c'est ce qui nous fait tomber vers la Terre et ce qui garde la Lune en orbite.
 
@@ -961,20 +1078,20 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
 **Compréhension immédiate**
 
 1. On compare souvent un circuit à de l'eau dans des tuyaux. Dans cette image, à quoi correspond la tension ? *(évalue : compréhension)*
-   - À la couleur de l'eau
+   - À la longueur totale du tuyau
    - ✔ À la différence de pression qui fait circuler l'eau
-   - À la longueur du tuyau
-   - Au robinet fermé
+   - À la quantité d'eau qui passe chaque seconde
+   - Au diamètre du tuyau, selon qu'il est large ou très étroit
 2. Pourquoi une lampe ne s'allume-t-elle pas si le circuit est ouvert ? *(évalue : compréhension)*
-   - Il fait jour
-   - La lampe est trop loin
-   - La tension devient trop forte
-   - ✔ Le courant ne peut pas circuler
+   - La lampe n'est plus assez près de la pile
+   - La pile se vide dès qu'on ouvre le circuit
+   - La tension devient trop forte pour la lampe
+   - ✔ Le courant ne peut plus circuler
 3. Une lampe prévue pour 6 V est branchée sur une pile de 1,5 V. Que se passe-t-il le plus probablement ? *(évalue : application)*
-   - Elle explose
+   - Elle grille immédiatement
    - Elle brille plus fort que prévu
-   - ✔ Elle brille faiblement ou pas du tout
-   - La pile se recharge
+   - ✔ Elle brille faiblement, ou pas du tout
+   - Elle brille normalement, comme sur une pile de 6 V
 
 **Situation de transfert :** Une pile de 1,5 V fait briller faiblement une petite lampe prévue pour 4,5 V.
 
@@ -982,18 +1099,26 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
 
 *Réponse attendue :* La tension est trop faible pour la faire fonctionner normalement ; il faut une tension proche de 4,5 V (par exemple trois piles de 1,5 V en série).
 
-**Déblocage** *(seulement si l'apprenant s'est déclaré bloqué : posé après la seconde explication ; grille dans `grille-reformulation.md`)*
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
 
 1. Pour obtenir 4,5 V avec des piles de 1,5 V, combien faut-il en mettre à la suite (en série) ? *(évalue : application)*
    - 2
    - ✔ 3
    - 1
    - 4
+   - *Justification juste si elle contient :* En série, les tensions s'additionnent : 1,5 + 1,5 + 1,5 = 4,5 V.
+   - *Exemple juste (2 points avec le bon choix) :* « Trois fois 1,5 ça fait 4,5, et en série les volts s'ajoutent. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « 3, j'ai compté. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « 3, parce qu'il faut une pile pour chaque volt et demi de la lampe et que les piles se partagent le courant. »
 2. Quelle est la limite de l'image de l'eau dans les tuyaux pour l'électricité ? *(évalue : compréhension)*
-   - ✔ Un fil ne « fuit » pas quand on le coupe : le courant s'arrête, rien ne s'écoule
-   - Il n'y en a aucune
-   - Le courant électrique est plus lent que l'eau
-   - Les fils contiennent vraiment de l'eau
+   - ✔ Un fil coupé ne « fuit » pas : le courant s'arrête net
+   - Il n'y en a aucune : le courant est vraiment de l'eau
+   - Le courant électrique va beaucoup moins vite que l'eau
+   - Les fils électriques contiennent un liquide comme les tuyaux
+   - *Justification juste si elle contient :* Dans un tuyau coupé, l'eau s'échappe ; dans un fil coupé, rien ne sort : le circuit est ouvert et le courant s'arrête. L'image aide, mais n'est pas la réalité.
+   - *Exemple juste (2 points avec le bon choix) :* « Quand on coupe un tuyau l'eau coule partout, mais un fil coupé ne laisse rien sortir, le courant s'arrête. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « Parce que l'électricité, ce n'est pas de l'eau. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « Parce que l'électricité va plus lentement que l'eau. »
 
 **Rappel à J+2**
 
@@ -1001,11 +1126,11 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
    - watts
    - ✔ volts
    - ampères
-   - mètres
+   - ohms
 2. L'intensité se mesure en… *(évalue : restitution (mémorisation))*
-   - litres
+   - watts
    - ✔ ampères
-   - degrés
+   - kilowattheures
    - volts
 3. Pour qu'un courant circule, le circuit doit être… *(évalue : restitution (mémorisation))*
    - ouvert
@@ -1013,9 +1138,9 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
    - coupé
    - mouillé
 4. Un interrupteur est ouvert dans un circuit avec une pile et une lampe. Quelle est l'intensité du courant dans la lampe ? *(évalue : application)*
-   - La même que circuit fermé
-   - Maximale
-   - Elle dépend de la couleur de la lampe
+   - La même que lorsque le circuit est fermé
+   - Maximale, car rien ne freine le courant
+   - Faible, mais pas tout à fait nulle
    - ✔ Nulle : aucun courant ne circule
 
 **Reformulation, idée centrale :** La tension est ce qui fait circuler le courant dans un circuit fermé ; l'intensité indique combien de courant passe.
@@ -1037,9 +1162,9 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
    - 100 €
 2. Si ton salaire ne bouge pas alors que les prix montent, pourquoi peux-tu acheter moins ? *(évalue : compréhension)*
    - ✔ Chaque euro achète moins de choses qu'avant
-   - Parce que ton salaire baisse automatiquement
-   - Parce que les magasins ferment
-   - Tu peux acheter autant
+   - Ton salaire baisse avec les prix
+   - Les magasins vendent moins de produits
+   - Les banques retirent un peu de ton argent
 3. Ton salaire augmente de 2 % et les prix de 5 % la même année. Ton pouvoir d'achat… *(évalue : application)*
    - monte
    - double
@@ -1052,41 +1177,49 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
 
 *Réponse attendue :* Pas forcément : il faut comparer au salaire de l'époque ; l'inflation fait monter les prix mais aussi, souvent, les salaires.
 
-**Déblocage** *(seulement si l'apprenant s'est déclaré bloqué : posé après la seconde explication ; grille dans `grille-reformulation.md`)*
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
 
 1. Tu gardes 1 000 € dans un tiroir pendant un an avec 5 % d'inflation. Que peux-tu acheter avec à la fin ? *(évalue : application)*
-   - Rien du tout
+   - Rien : l'argent a perdu toute sa valeur
    - ✔ Un peu moins qu'au début
-   - Exactement pareil
-   - Plus qu'au début
+   - Exactement la même chose qu'au début
+   - Un peu plus qu'au début, grâce à la hausse
+   - *Justification juste si elle contient :* La somme reste de 1 000 €, mais les prix ont monté d'environ 5 % : les mêmes 1 000 € achètent moins.
+   - *Exemple juste (2 points avec le bon choix) :* « Les prix ont augmenté de 5 % alors que j'ai toujours 1 000 €, donc j'achète un peu moins. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « Moins, à cause de l'inflation. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « Moins, parce que les billets perdent 5 % de leur montant dans le tiroir. »
 2. Pourquoi une hausse des salaires égale à l'inflation garde-t-elle le pouvoir d'achat à peu près stable ? *(évalue : compréhension)*
-   - Elle ne le garde pas stable
-   - Parce que les prix baissent
-   - Parce que l'inflation disparaît
-   - ✔ Les revenus et les prix montent ensemble
+   - Il ne reste pas stable : il baisse toujours
+   - Les prix finissent par redescendre
+   - L'inflation disparaît quand les salaires montent
+   - ✔ Revenus et prix montent au même rythme
+   - *Justification juste si elle contient :* Le pouvoir d'achat dépend du rapport entre revenu et prix ; si les deux montent du même pourcentage, ce rapport ne change pas.
+   - *Exemple juste (2 points avec le bon choix) :* « Si je gagne 5 % de plus et que tout coûte 5 % de plus, j'achète pareil. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « Parce que ça s'équilibre. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « Parce que les prix baissent ensuite. »
 
 **Rappel à J+2**
 
 1. L'inflation désigne… *(évalue : restitution (mémorisation))*
-   - une baisse des salaires
+   - une baisse générale des salaires
    - ✔ une hausse générale et durable des prix
-   - un impôt
-   - la hausse d'un seul produit
+   - un impôt prélevé sur les achats
+   - la forte hausse du prix d'un seul produit, comme l'essence
 2. Le pouvoir d'achat, c'est… *(évalue : restitution (mémorisation))*
-   - une monnaie étrangère
-   - le prix d'un objet
+   - la somme d'argent sur un compte
+   - le prix moyen d'un panier de courses
    - ✔ ce qu'on peut acheter avec son revenu
-   - le taux d'une banque
+   - le taux d'intérêt fixé chaque année par la banque centrale
 3. L'inflation concerne… *(évalue : restitution (mémorisation))*
    - ✔ l'ensemble des prix
-   - un seul magasin
-   - les seuls salaires
-   - les seules actions
+   - les prix d'un seul magasin
+   - uniquement les salaires
+   - uniquement les loyers
 4. Seul le prix des fraises double en hiver ; les autres prix ne bougent pas. Est-ce de l'inflation ? *(évalue : application)*
-   - On ne peut jamais savoir
-   - ✔ Non : l'inflation est une hausse générale, pas celle d'un seul produit
-   - Oui, forcément
-   - Oui, si on aime les fraises
+   - On ne peut jamais le savoir sans les salaires
+   - ✔ Non : la hausse ne touche qu'un produit
+   - Oui, toute hausse de prix est de l'inflation
+   - Oui, si la hausse dure plus d'un mois
 
 **Reformulation, idée centrale :** L'inflation est la hausse générale des prix : avec la même somme, on achète moins, sauf si les revenus suivent.
 
@@ -1101,20 +1234,20 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
 **Compréhension immédiate**
 
 1. Après une très bonne récolte de tomates, que devient en général leur prix ? *(évalue : application)*
-   - Il monte
+   - Il a tendance à monter
    - ✔ Il a tendance à baisser
-   - Il double
-   - Il reste fixe par la loi
+   - Il double, car il y a plus de travail
+   - Il reste fixé par la loi
 2. Pourquoi un produit rare et très demandé devient-il souvent plus cher ? *(évalue : compréhension)*
    - ✔ Beaucoup d'acheteurs se disputent peu d'exemplaires
-   - Parce que les vendeurs sont moins nombreux à le vouloir
-   - Ce n'est pas le cas
-   - Parce que l'État l'impose
+   - Les vendeurs sont moins nombreux à vouloir le vendre
+   - Ce n'est pas le cas : la rareté fait baisser le prix
+   - L'État impose un prix plus élevé aux produits rares
 3. Au « prix d'équilibre », pourquoi n'y a-t-il ni pénurie ni invendus ? *(évalue : compréhension)*
-   - Parce que l'État fixe le prix
-   - ✔ La quantité que les vendeurs proposent égale celle que les acheteurs veulent
-   - Parce que personne n'achète
-   - Parce que le vendeur gagne le plus
+   - C'est le prix où plus personne ne veut acheter
+   - ✔ Les vendeurs proposent autant que les acheteurs veulent
+   - C'est le prix que l'État fixe pour tous les marchés
+   - C'est le prix où le vendeur gagne le plus d'argent possible
 
 **Situation de transfert :** Les billets d'un concert très attendu sont revendus bien plus cher que leur prix initial.
 
@@ -1122,40 +1255,48 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
 
 *Réponse attendue :* Le nombre de places est limité (offre faible) et beaucoup veulent y aller (demande forte) : le prix de revente monte.
 
-**Déblocage** *(seulement si l'apprenant s'est déclaré bloqué : posé après la seconde explication ; grille dans `grille-reformulation.md`)*
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
 
 1. Un nouveau téléphone est vendu trop cher : il en reste des milliers en stock. Que fait souvent le vendeur ? *(évalue : application)*
-   - Il ne change rien
-   - Il arrête de vendre
-   - Il augmente le prix
+   - Il ne change rien et attend la demande
+   - Il arrête de vendre et détruit le stock
+   - Il augmente le prix pour gagner plus par vente
    - ✔ Il baisse son prix pour écouler le stock
+   - *Justification juste si elle contient :* À ce prix, l'offre dépasse la demande ; baisser le prix attire plus d'acheteurs.
+   - *Exemple juste (2 points avec le bon choix) :* « Trop de téléphones et pas assez d'acheteurs, donc il baisse le prix pour en vendre plus. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « Pour vendre. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « Parce que les vieux téléphones coûtent moins cher à fabriquer. »
 2. Pourquoi le prix des billets d'avion monte-t-il souvent pendant les vacances scolaires ? *(évalue : compréhension)*
-   - Il ne monte jamais
-   - Parce que le carburant est gratuit
-   - Parce que les avions sont plus lourds
+   - Le prix ne monte pas, c'est une impression
+   - Les compagnies paient leurs employés deux fois plus en vacances
+   - Les avions consomment plus de carburant en été
    - ✔ Beaucoup plus de gens veulent voyager aux mêmes dates
+   - *Justification juste si elle contient :* La demande augmente fortement aux mêmes dates alors que le nombre de places est limité : le prix monte.
+   - *Exemple juste (2 points avec le bon choix) :* « Tout le monde part en même temps et les places sont limitées, donc c'est plus cher. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « Parce que c'est les vacances. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « Parce que le carburant coûte plus cher l'été. »
 
 **Rappel à J+2**
 
 1. Une pénurie, c'est quand… *(évalue : restitution (mémorisation))*
    - ✔ la demande dépasse l'offre
    - l'offre dépasse la demande
-   - personne ne veut acheter
-   - le prix baisse
+   - personne ne veut plus acheter
+   - le prix baisse fortement
 2. Si l'offre augmente et la demande ne change pas, le prix… *(évalue : restitution (mémorisation))*
-   - ne peut pas changer
-   - monte
-   - double
+   - ne peut pas changer du tout
+   - a tendance à monter
+   - double rapidement
    - ✔ a tendance à baisser
 3. La demande représente… *(évalue : restitution (mémorisation))*
    - ce que les vendeurs proposent
-   - les salaires
+   - le nombre de magasins ouverts
    - ✔ ce que les acheteurs veulent acheter
-   - les impôts
+   - le prix que fixent ensemble les magasins du quartier
 4. En été, beaucoup de gens veulent des ventilateurs et les magasins en manquent. Que va-t-il probablement se passer pour leur prix ? *(évalue : application)*
    - Il va baisser
-   - Il ne bougera jamais
-   - Il deviendra gratuit
+   - Il ne bougera pas, c'est un prix fixé
+   - Il deviendra presque gratuit
    - ✔ Il va monter
 
 **Reformulation, idée centrale :** Le prix d'un bien évolue selon l'équilibre entre ce que les vendeurs proposent et ce que les acheteurs veulent.
@@ -1176,10 +1317,10 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
    - 200 €
    - 100 €
 2. Pourquoi dit-on que c'est le consommateur final qui supporte la TVA ? *(évalue : compréhension)*
-   - Parce que l'usine la paie à sa place
-   - Parce que la banque la rembourse
-   - ✔ Elle est incluse dans le prix qu'il paie, et il ne peut pas la récupérer
-   - Parce que personne ne la paie
+   - L'usine la paie entièrement à sa place
+   - Personne ne la paie vraiment, elle s'annule
+   - ✔ Elle est dans le prix qu'il paie, et il ne peut pas la récupérer
+   - Le magasin la rembourse au client chaque mois, sur son ticket de caisse
 3. Un article est affiché 60 € TTC avec une TVA de 20 %. Quel est son prix hors taxe ? *(évalue : application)*
    - 40 €
    - 48 €
@@ -1192,34 +1333,42 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
 
 *Réponse attendue :* 1 000 € HT ; l'entreprise peut en général récupérer la TVA payée, son coût réel est donc le prix hors taxe.
 
-**Déblocage** *(seulement si l'apprenant s'est déclaré bloqué : posé après la seconde explication ; grille dans `grille-reformulation.md`)*
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
 
 1. Un livre coûte 10 € HT avec une TVA de 5,5 %. Combien paie le client ? *(évalue : application)*
    - 12 €
    - ✔ 10,55 €
    - 10,05 €
    - 15,50 €
+   - *Justification juste si elle contient :* 5,5 % de 10 € = 0,55 € ; le client paie le prix hors taxe plus la TVA : 10 + 0,55 = 10,55 €.
+   - *Exemple juste (2 points avec le bon choix) :* « 5,5 % de 10, c'est 0,55, que j'ajoute aux 10 €. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « J'ai fait le calcul. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « On ajoute 0,55 € parce que la TVA des livres est toujours de 55 centimes. »
 2. Pourquoi deux magasins qui affichent le même prix TTC payent-ils la même TVA sur cet article ? *(évalue : compréhension)*
-   - ✔ Le taux est le même, donc la part de taxe incluse dans le prix aussi
-   - Ce n'est pas vrai
-   - Parce qu'ils ne paient pas de TVA
-   - Parce qu'ils sont dans la même rue
+   - ✔ Même taux, donc même part de taxe incluse
+   - Ce n'est pas vrai : chaque magasin fixe sa TVA
+   - Parce que les magasins ne paient jamais de TVA
+   - Parce qu'ils sont situés dans la même ville
+   - *Justification juste si elle contient :* La TVA est un pourcentage fixé par la loi selon le produit : à prix TTC égal et taux égal, la part de TVA incluse est la même.
+   - *Exemple juste (2 points avec le bon choix) :* « Le taux est le même pour tout le monde, donc dans le même prix il y a la même TVA. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « Parce que c'est la loi. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « Parce que les deux magasins ont le même fournisseur. »
 
 **Rappel à J+2**
 
 1. TTC veut dire… *(évalue : restitution (mémorisation))*
    - ✔ toutes taxes comprises
-   - tarif type commerce
-   - total temporaire
+   - total temporaire calculé
+   - tarif toujours constant
    - taxe très chère
 2. « Hors taxe » signifie… *(évalue : restitution (mémorisation))*
    - un prix soldé
-   - un prix gratuit
-   - le prix avec la TVA
+   - un prix sans aucun bénéfice
+   - le prix TVA ajoutée
    - ✔ le prix avant ajout de la TVA
 3. La TVA est une taxe sur… *(évalue : restitution (mémorisation))*
    - les maisons uniquement
-   - les voitures uniquement
+   - les bénéfices des entreprises
    - ✔ la consommation
    - les salaires uniquement
 4. Avec 20 % de TVA, 50 € HT deviennent… *(évalue : application)*
@@ -1241,20 +1390,20 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
 **Compréhension immédiate**
 
 1. Pourquoi une entreprise propose-t-elle un CDD plutôt qu'un CDI pour un besoin de quelques mois ? *(évalue : compréhension)*
-   - ✔ Le CDD prévoit sa fin (date ou événement), adaptée à un besoin temporaire
-   - Parce que le CDD n'a pas de règles
-   - Parce que le CDD n'a pas de salaire
-   - Parce que le CDI est interdit
+   - ✔ Le CDD a une fin prévue, adaptée à un besoin temporaire
+   - Le CDD n'impose aucune règle à l'employeur
+   - Le CDD permet de payer le salarié moins que le salaire minimum
+   - Le CDI est interdit pour les besoins de moins d'un an
 2. À quoi sert la période d'essai, pour le salarié comme pour l'employeur ? *(évalue : compréhension)*
-   - Changer de métier
-   - Travailler sans salaire
-   - ✔ Vérifier que le poste convient, avec une rupture plus simple pendant cette période
-   - Prolonger les vacances
+   - Permettre à l'employeur seul de changer le salaire
+   - Faire travailler le salarié sans le payer au début
+   - ✔ Vérifier que le poste convient, avec une rupture plus simple
+   - Former le salarié, sans contrat, avant de signer le vrai contrat de travail
 3. Un salarié en CDI veut démissionner. Que doit-il en général respecter ? *(évalue : application)*
-   - Il doit payer son employeur
-   - Il ne peut jamais démissionner
-   - Rien du tout, il part le jour même dans tous les cas
-   - ✔ Un préavis prévu par le contrat, la convention ou l'usage
+   - Il doit rembourser sa formation à l'employeur
+   - Il doit obtenir l'accord écrit de son employeur et de l'inspection du travail
+   - Rien : il peut toujours partir le jour même
+   - ✔ Un préavis, selon la convention, l'usage ou le contrat
 
 **Situation de transfert :** Une entreprise embauche une personne pour remplacer une salariée en congé maternité pendant six mois.
 
@@ -1262,41 +1411,49 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
 
 *Réponse attendue :* Un CDD (de remplacement) : le besoin est temporaire, avec une fin prévisible, le retour de la salariée.
 
-**Déblocage** *(seulement si l'apprenant s'est déclaré bloqué : posé après la seconde explication ; grille dans `grille-reformulation.md`)*
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
 
 1. Une boulangerie embauche quelqu'un pour un poste permanent, sans date de fin. Quel contrat est le plus adapté ? *(évalue : application)*
-   - Un CDD de 2 jours
-   - Un contrat de location
+   - Un CDD renouvelé chaque mois
+   - Aucun contrat écrit
    - ✔ Un CDI
-   - Aucun contrat
+   - Un contrat de prestation
+   - *Justification juste si elle contient :* Le poste est permanent, sans fin prévue : c'est la situation du CDI ; le CDD est réservé aux besoins temporaires.
+   - *Exemple juste (2 points avec le bon choix) :* « Le poste ne s'arrête pas, il n'y a pas de fin prévue : c'est un CDI. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « Un CDI, c'est le plus normal. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « Un CDI, parce que le CDD est réservé aux étudiants. »
 2. Pourquoi un CDD doit-il préciser sa fin, par une date ou un événement ? *(évalue : compréhension)*
-   - Pour que le salarié ne soit jamais payé
-   - Ce n'est pas nécessaire
-   - Parce que c'est un contrat sans règles
-   - ✔ Parce qu'il répond à un besoin temporaire dont on doit connaître le terme
+   - Pour que le salarié ne soit payé qu'à la fin
+   - Ce n'est pas nécessaire pour un CDD
+   - Pour qu'il puisse durer toute la vie du salarié
+   - ✔ Il répond à un besoin temporaire, qui a un terme
+   - *Justification juste si elle contient :* Le CDD n'est permis que pour un besoin temporaire ; sa fin (une date, ou un événement comme le retour d'une personne remplacée) doit donc être prévue.
+   - *Exemple juste (2 points avec le bon choix) :* « C'est pour un besoin qui ne dure pas, donc on doit savoir quand ça s'arrête, par une date ou un événement. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « Parce que c'est un CDD. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « Pour savoir quand on paie le salarié. »
 
 **Rappel à J+2**
 
 1. CDI signifie… *(évalue : restitution (mémorisation))*
-   - contrat de droit international
    - contrat d'insertion
-   - contrat de durée imposée
+   - contrat de droit international
+   - contrat à durée imposée
    - ✔ contrat à durée indéterminée
 2. Pendant la période d'essai, la rupture du contrat est… *(évalue : restitution (mémorisation))*
    - ✔ plus simple qu'après
-   - interdite
-   - automatique
-   - payante
+   - interdite aux deux parties
+   - automatique au bout d'un mois
+   - payante pour le salarié
 3. Un CDD prend fin… *(évalue : restitution (mémorisation))*
    - ✔ à la date ou à l'événement prévu
-   - au bout d'un jour
-   - jamais
    - quand le salarié le décide seul
+   - jamais, sauf démission
+   - au bout de six mois, toujours
 4. Un magasin embauche des vendeurs supplémentaires pour les fêtes de fin d'année. Quel contrat est le plus adapté ? *(évalue : application)*
-   - Un contrat de vente
+   - Aucun contrat
    - ✔ Un CDD
    - Un CDI
-   - Aucun contrat
+   - Un contrat de vente
 
 **Reformulation, idée centrale :** Le contrat de travail fixe la relation entre employeur et salarié ; le CDD a une fin prévue (date ou événement), le CDI non, et la période d'essai permet de vérifier que le poste convient.
 
@@ -1311,20 +1468,20 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
 **Compréhension immédiate**
 
 1. Lequel de ces éléments est une donnée personnelle ? *(évalue : application)*
-   - Le prix d'un pain
-   - La température du jour
+   - Le prix moyen d'une baguette de pain dans toute la France
+   - La température moyenne du jour à Lyon
    - ✔ Une adresse e-mail au nom d'une personne
-   - Le nom d'une ville seule
+   - Le nombre d'habitants d'une ville
 2. Pourquoi une organisation doit-elle indiquer à quoi serviront les données qu'elle collecte ? *(évalue : compréhension)*
-   - ✔ Pour que la personne sache comment elles sont utilisées et puisse exercer ses droits
-   - Ce n'est pas obligatoire
-   - Pour payer moins d'impôts
-   - Pour faire de la publicité
+   - ✔ Pour qu'elle sache leur usage et puisse exercer ses droits
+   - Ce n'est pas obligatoire, c'est seulement une politesse
+   - Pour pouvoir les revendre plus cher à d'autres entreprises
+   - Pour pouvoir ensuite les utiliser librement pour tout autre usage
 3. Un client demande à un magasin quelles informations il détient sur lui. De quel droit s'agit-il ? *(évalue : application)*
    - ✔ Le droit d'accès
    - Le droit de propriété
    - Le droit à l'image
-   - Le droit de grève
+   - Le droit de rectification
 
 **Situation de transfert :** Une boulangerie demande l'adresse e-mail de ses clients pour leur envoyer une carte de fidélité numérique.
 
@@ -1332,41 +1489,49 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
 
 *Réponse attendue :* Dire à quoi servira l'adresse et ne l'utiliser que pour ce but ; pour un autre usage (publicité par exemple), en informer les clients et respecter leur droit de refuser ; protéger les données ; répondre aux demandes d'accès ou de suppression.
 
-**Déblocage** *(seulement si l'apprenant s'est déclaré bloqué : posé après la seconde explication ; grille dans `grille-reformulation.md`)*
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
 
 1. Un site collecte la date de naissance pour « vérifier l'âge ». Peut-il ensuite l'utiliser librement pour autre chose ? *(évalue : application)*
-   - ✔ Non, pas sans respecter les règles : informer et avoir une base légale pour ce nouvel usage
-   - Seulement si la date est ancienne
-   - Oui, librement
-   - Oui, si personne ne le remarque
+   - ✔ Non : un nouvel usage doit être annoncé et justifié
+   - Oui, si le site supprime la donnée au bout d'un an
+   - Oui, une fois collectée, elle peut servir à tout ce que le site veut
+   - Oui, à condition que personne ne s'en aperçoive
+   - *Justification juste si elle contient :* Les données ne servent qu'au but annoncé ; un autre usage demande d'informer la personne et d'avoir une base légale (par exemple son consentement).
+   - *Exemple juste (2 points avec le bon choix) :* « Non, on l'a donnée pour vérifier l'âge, pas pour autre chose ; pour un autre usage il faut prévenir et en avoir le droit. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « Non, c'est interdit. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « Non, parce qu'une date de naissance n'est jamais utile. »
 2. Pourquoi une liste de numéros de clients est-elle une donnée personnelle, même sans les noms ? *(évalue : compréhension)*
-   - Parce que la liste est longue
-   - Parce que les chiffres sont secrets
-   - Ce n'est pas une donnée personnelle
-   - ✔ Un numéro de téléphone permet souvent de retrouver la personne
+   - Ce n'en est pas une, puisqu'il n'y a pas de nom
+   - Parce que les chiffres d'un numéro sont secrets
+   - Parce que la liste contient plus de cent numéros
+   - ✔ Un numéro permet souvent de retrouver la personne
+   - *Justification juste si elle contient :* Une donnée est personnelle si elle permet d'identifier quelqu'un, même indirectement : un numéro de téléphone mène à une personne précise.
+   - *Exemple juste (2 points avec le bon choix) :* « Avec un numéro on peut retrouver qui c'est, même sans le nom. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « Parce que c'est privé. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « Parce que tous les chiffres sont des données personnelles. »
 
 **Rappel à J+2**
 
 1. Le RGPD protège… *(évalue : restitution (mémorisation))*
-   - les brevets
-   - les prix
-   - les routes
+   - les brevets des inventions
+   - les prix des produits
+   - les logiciels des entreprises
    - ✔ les données personnelles
 2. Le droit à l'effacement permet de… *(évalue : restitution (mémorisation))*
-   - oublier son mot de passe
+   - faire oublier son mot de passe
    - ✔ demander la suppression de ses données
-   - effacer une facture
-   - supprimer un site
+   - effacer une facture impayée
+   - supprimer l'historique de son ordinateur à distance
 3. Une donnée personnelle permet… *(évalue : restitution (mémorisation))*
-   - de calculer un prix
-   - de mesurer la météo
-   - de rien
+   - de calculer le prix d'un produit
+   - de prévoir la météo locale
+   - de mesurer, sans savoir qui, l'audience globale d'un site
    - ✔ d'identifier une personne, directement ou non
 4. Une salle de sport garde le numéro de téléphone de ses membres pour les prévenir d'une fermeture. Peut-elle le vendre à une autre entreprise sans les en informer ? *(évalue : application)*
-   - Oui, seulement le dimanche
-   - Oui, elle en fait ce qu'elle veut
-   - Oui, si le numéro est court
-   - ✔ Non, ce n'est pas le but annoncé et les personnes doivent être informées
+   - Oui, à condition de ne pas vendre les noms avec
+   - Oui, une fois collectées, les données lui appartiennent
+   - Oui, si l'entreprise acheteuse est dans la même ville
+   - ✔ Non : ce n'est pas l'usage annoncé aux membres
 
 **Reformulation, idée centrale :** Le RGPD encadre l'usage des données qui identifient une personne : on doit l'informer, n'utiliser ses données que pour un but annoncé et légitime, et respecter ses droits.
 
@@ -1381,20 +1546,20 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
 **Compréhension immédiate**
 
 1. Pourquoi garde-t-on la viande au froid ? *(évalue : compréhension)*
-   - Pour changer son goût
-   - ✔ Le froid ralentit le développement de la plupart des bactéries
-   - Le froid tue toutes les bactéries
-   - Pour qu'elle soit plus lourde
+   - Le froid empêche la viande de sécher à l'air
+   - ✔ Le froid ralentit la plupart des bactéries
+   - Le froid tue toutes les bactéries présentes
+   - Le froid garde le goût de la viande intact
 2. Pourquoi ne recongèle-t-on pas un produit décongelé tel quel, sans l'avoir cuit ? *(évalue : compréhension)*
-   - Il deviendrait trop dur
-   - ✔ Les bactéries ont pu se multiplier pendant la décongélation, et le froid ne les détruit pas
-   - C'est seulement une question de goût
-   - Il changerait de couleur
+   - Le produit deviendrait trop dur une fois recongelé
+   - ✔ Les bactéries ont pu se multiplier ; le froid ne les tuera pas
+   - Le congélateur ne peut pas refroidir correctement un produit qui est déjà froid
+   - Il changerait de couleur et serait moins appétissant
 3. Au supermarché, quand vaut-il mieux prendre les surgelés et les produits frais ? *(évalue : application)*
    - ✔ À la fin des courses, juste avant de payer
-   - Au début des courses
-   - Après être passé à la voiture
-   - N'importe quand, cela ne change rien
+   - Au début des courses, quand on a le plus de place
+   - Après avoir rangé les autres sacs dans la voiture
+   - N'importe quand : quelques minutes ne changent rien
 
 **Situation de transfert :** Après les courses, des surgelés restent deux heures dans le coffre d'une voiture en plein été.
 
@@ -1402,41 +1567,49 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
 
 *Réponse attendue :* Ils ont pu commencer à décongeler (rupture de la chaîne du froid), et les bactéries se multiplient : il ne faut pas les recongeler tels quels ; en cas de doute sur leur température, il faut les jeter.
 
-**Déblocage** *(seulement si l'apprenant s'est déclaré bloqué : posé après la seconde explication ; grille dans `grille-reformulation.md`)*
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
 
 1. Pour un pique-nique d'été, comment transporter des salades au poulet ? *(évalue : application)*
-   - Peu importe, c'est cuit
-   - Dans un sac ordinaire au soleil
+   - Comme on veut : le poulet cuit ne craint rien
+   - Dans un sac ordinaire, à l'ombre si possible
    - ✔ Dans un sac isotherme avec des pains de glace
-   - Dans le coffre sans précaution
+   - Dans le coffre, puisque le trajet est court
+   - *Justification juste si elle contient :* Ces salades sont périssables : le froid doit être maintenu pendant tout le trajet, sinon les bactéries se multiplient, même dans un aliment cuit.
+   - *Exemple juste (2 points avec le bon choix) :* « Il faut que ça reste froid tout le temps, sinon les bactéries se développent, même si le poulet est cuit. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « Pour que ce soit frais. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « Pour que la mayonnaise ne fonde pas. »
 2. Pourquoi cuire un produit décongelé permet-il ensuite de le congeler à nouveau ? *(évalue : compréhension)*
-   - On ne peut jamais
-   - Parce que la cuisson rend l'aliment plus froid
-   - ✔ La cuisson détruit une grande partie des bactéries qui se sont multipliées
-   - Parce qu'un plat cuit ne contient jamais de bactéries
+   - On ne peut jamais recongeler un aliment, même cuit
+   - La cuisson refroidit l'aliment plus vite ensuite
+   - ✔ La cuisson détruit la plupart des bactéries apparues
+   - Un plat cuit ne contient plus jamais de bactéries
+   - *Justification juste si elle contient :* Pendant la décongélation, des bactéries se sont multipliées ; une cuisson suffisante en détruit la plupart, et on repart d'un plat sain qu'on peut congeler.
+   - *Exemple juste (2 points avec le bon choix) :* « En cuisant, on tue les bactéries qui se sont développées, donc on peut congeler le plat cuit. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « Parce que c'est cuit. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « Parce que le plat cuit est plus froid. »
 
 **Rappel à J+2**
 
 1. Quel est l'effet du froid sur la plupart des bactéries des aliments ? *(évalue : restitution (mémorisation))*
-   - Il les nourrit
+   - Il n'a aucun effet sur elles
    - ✔ Il les ralentit
-   - Il n'a aucun effet
+   - Il les rend plus fortes
    - Il les tue toutes
 2. Un produit décongelé, non cuit, doit être… *(évalue : restitution (mémorisation))*
-   - laissé au soleil
+   - gardé au réfrigérateur encore une semaine au moins, sans risque
    - ✔ consommé rapidement, sans être recongelé tel quel
-   - recongelé aussitôt
-   - gardé un mois
+   - recongelé aussitôt pour stopper les bactéries
+   - laissé à température ambiante pour finir
 3. La chaîne du froid concerne… *(évalue : restitution (mémorisation))*
    - seulement le congélateur de la maison
-   - seulement le magasin
-   - seulement le camion
-   - ✔ tout le trajet du produit, de la fabrication à l'assiette
+   - seulement le transport, dans le camion frigorifique du livreur
+   - seulement la vitrine du magasin
+   - ✔ tout le trajet, de la fabrication à l'assiette
 4. Ton réfrigérateur est resté ouvert toute la nuit. Que faire du poisson frais qu'il contenait ? *(évalue : application)*
-   - Le manger cru le jour même
-   - Le laisser encore une journée
-   - Le recongeler aussitôt
-   - ✔ Ne pas prendre de risque : s'il est resté au chaud, le jeter
+   - Le manger cru le jour même, vite
+   - Le remettre au frais et le garder deux jours de plus
+   - Le recongeler aussitôt pour le sauver
+   - ✔ Le jeter s'il est resté au chaud
 
 **Reformulation, idée centrale :** Un produit périssable doit rester au froid sans interruption de sa fabrication à sa consommation, car le froid ralentit les bactéries sans les tuer.
 
@@ -1450,21 +1623,24 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
 
 **Compréhension immédiate**
 
-1. Pourquoi la procédure impose-t-elle d'être au moins deux pour ouvrir le magasin ? *(évalue : compréhension)*
-   - Ce n'est pas imposé
-   - Parce que la porte est lourde
-   - ✔ Pour la sécurité des personnes et de l'argent : personne ne reste seul face à un incident
-   - Pour aller plus vite
+1. Il est 9 h 05. Tu es seul devant le magasin ; ton collègue n'arrivera qu'à 9 h 20. Que fais-tu ? *(évalue : application)*
+   - J'appelle la télésurveillance pour ouvrir à distance
+   - J'ouvre seul, puisque le public n'arrive qu'à 9 h 30
+   - ✔ J'attends mon collègue : on ouvre au moins à deux
+   - J'entre seul et je désactive l'alarme en l'attendant
+   - *Appui dans la procédure :* « Le magasin est ouvert par deux personnes au minimum, présentes dès 9 h 00. »
 2. Combien de temps as-tu pour désactiver l'alarme en arrivant ? *(évalue : restitution (mémorisation))*
    - 45 secondes
    - ✔ 30 secondes
    - 2 minutes
-   - Pas de limite
+   - Pas de délai fixé
+   - *Appui dans la procédure :* « Désactiver l’alarme dans les 30 secondes avec son code personnel. »
 3. Le voyant du défibrillateur n'est pas vert à l'ouverture. Que fais-tu ? *(évalue : application)*
-   - Je débranche l'appareil
-   - ✔ Je préviens le responsable avant d'ouvrir
-   - Je ne fais rien
-   - J'ouvre et je verrai plus tard
+   - Je débranche l'appareil puis je le rebranche
+   - ✔ Je préviens le responsable avant l'ouverture
+   - Rien : le voyant ne compte qu'à la fermeture
+   - J'ouvre et je le signale en fin de journée
+   - *Appui dans la procédure :* « Vérifier que le voyant du défibrillateur est vert ; sinon prévenir le responsable avant l’ouverture. »
 
 **Situation de transfert :** Un dimanche soir, ton collègue doit partir plus tôt et te propose de fermer seul.
 
@@ -1472,18 +1648,28 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
 
 *Réponse attendue :* La fermeture se fait toujours à deux (comptage et sortie) : je ne ferme pas seul et je préviens le responsable.
 
-**Déblocage** *(seulement si l'apprenant s'est déclaré bloqué : posé après la seconde explication ; grille dans `grille-reformulation.md`)*
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
 
 1. Pendant le tour de sécurité du matin, une issue de secours est bloquée par des cartons. Que fais-tu avant d'ouvrir ? *(évalue : application)*
-   - ✔ Je la dégage et je vérifie qu'elle est déverrouillée avant l'ouverture au public
-   - Je laisse, ce n'est pas mon rôle
-   - Je la verrouille pour éviter les vols
-   - J'ouvre quand même, je m'en occuperai à midi
-2. Pourquoi la caisse est-elle comptée à deux le soir plutôt que seul ? *(évalue : compréhension)*
-   - Parce que la caisse est lourde
-   - ✔ Pour que le comptage soit vérifié et qu'aucun écart ne repose sur une seule personne
-   - Pour aller deux fois plus vite
-   - Ce n'est pas nécessaire
+   - ✔ Je la dégage et je vérifie qu'elle est déverrouillée
+   - Je laisse : seul le responsable s'occupe des issues
+   - Je la verrouille pour éviter les vols pendant la journée
+   - J'ouvre, et je la dégagerai pendant la pause de midi
+   - *Appui dans la procédure :* « Faire le tour de sécurité : issues de secours dégagées et déverrouillées, extincteurs à leur place. »
+   - *Justification juste si elle contient :* La procédure demande, au tour de sécurité d'avant l'ouverture, des issues de secours dégagées et déverrouillées.
+   - *Exemple juste (2 points avec le bon choix) :* « Au tour de sécurité, les issues doivent être dégagées et déverrouillées avant d'ouvrir, c'est dans la procédure. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « Parce que c'est mieux comme ça. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « Je la dégage parce que les clients doivent pouvoir entrer par là. »
+2. Ce soir, tu as compté ta caisse seul pendant que ton collègue rangeait la réserve. Est-ce conforme à la procédure ? *(évalue : application)*
+   - Oui, le comptage à deux ne vaut que le dimanche
+   - ✔ Non : les caisses se comptent à deux personnes
+   - Oui, si le montant compté correspond au ticket
+   - Non : seul le responsable a le droit de compter
+   - *Appui dans la procédure :* « Compter les caisses à deux personnes et placer l’enveloppe scellée dans le coffre. »
+   - *Justification juste si elle contient :* La procédure de fermeture impose de compter les caisses à deux personnes, sans exception écrite.
+   - *Exemple juste (2 points avec le bon choix) :* « Non, à la fermeture le comptage des caisses se fait à deux, c'est écrit dans la procédure. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « Non, ce n'est pas bien. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « Non, parce que seul le responsable peut compter la caisse. »
 
 **Rappel à J+2**
 
@@ -1492,21 +1678,25 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
    - 100 €
    - ✔ 200 €
    - 300 €
+   - *Appui dans la procédure :* « Compter le fond de caisse de 200 € en présence du responsable et signaler tout écart. »
 2. L'alarme se déclenche par erreur. Qui appelles-tu ? *(évalue : restitution (mémorisation))*
    - ✔ La télésurveillance, au numéro affiché dans le bureau
-   - La police
-   - Un client
-   - Personne
+   - La police, en composant le 17 depuis le magasin
+   - Le responsable du magasin, sur son téléphone personnel, puis la police
+   - Personne : l'alarme s'arrête seule
+   - *Appui dans la procédure :* « En cas de déclenchement de l’alarme par erreur, appeler la télésurveillance au numéro affiché dans le bureau et donner le mot de passe du site. »
 3. Le comptage des caisses le soir se fait… *(évalue : restitution (mémorisation))*
    - ✔ à deux personnes
-   - le lendemain
-   - seul
-   - par un client
-4. À l'ouverture, ton collègue est en retard de vingt minutes. Que fais-tu ? *(évalue : application)*
-   - ✔ J'attends qu'il arrive (ou un autre collègue) avant d'ouvrir, et je préviens le responsable
-   - J'ouvre seul pour ne pas perdre de clients
-   - Je désactive l'alarme et j'attends à l'intérieur seul
-   - Je rentre chez moi
+   - le lendemain matin
+   - par le responsable seul
+   - par le vendeur de la caisse
+   - *Appui dans la procédure :* « Compter les caisses à deux personnes et placer l’enveloppe scellée dans le coffre. »
+4. Il est 18 h 45. Quelle étape de la fermeture dois-tu faire maintenant ? *(évalue : application)*
+   - ✔ Annoncer aux clients la fermeture
+   - Compter les caisses à deux personnes
+   - Fermer les issues de secours
+   - Activer l'alarme et sortir à deux
+   - *Appui dans la procédure :* « Annoncer la fermeture aux clients 15 minutes avant. » « Fermer les portes à 19 h 00 et accompagner les derniers clients vers la sortie. »
 
 **Reformulation, idée centrale :** On ouvre et on ferme toujours à deux, en sécurisant l'alarme, les issues et l'argent à chaque étape.
 
@@ -1521,20 +1711,23 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
 **Compréhension immédiate**
 
 1. Une livraison de viande hachée arrive à + 4 °C. Que fais-tu ? *(évalue : application)*
-   - ✔ Je refuse le produit, je l'écris sur le bon et je préviens le chef
-   - Je l'accepte, c'est presque bon
-   - Je la mets au congélateur
-   - Je la goûte
+   - ✔ Je la refuse, je l'écris sur le bon et je préviens le chef
+   - Je l'accepte : la limite des viandes est de + 4 °C
+   - Je l'accepte et je la range tout de suite au congélateur
+   - Je la refuse sans rien noter, puis je la rends directement au livreur
+   - *Appui dans la procédure :* « Viandes hachées : + 2 °C. » « Si une température dépasse le maximum, refuser le produit, l’écrire sur le bon de livraison et prévenir le chef. »
 2. Qui peut réceptionner une livraison de boissons ? *(évalue : restitution (mémorisation))*
-   - Le livreur seul
+   - Le livreur, qui range lui-même
    - ✔ Le chef ou son second
-   - N'importe quel commis
-   - Un client
-3. Pourquoi faut-il ranger les produits acceptés en chambre froide dans les 15 minutes ? *(évalue : compréhension)*
-   - Pour libérer le quai plus vite
-   - ✔ Pour limiter le temps hors du froid, pendant lequel les bactéries se multiplient
-   - Pour que le chef puisse les goûter
-   - Parce que le livreur l'exige
+   - N'importe quel commis présent
+   - Le plongeur, s'il est disponible
+   - *Appui dans la procédure :* « Les livraisons sont reçues entre 7 h et 10 h par le chef ou son second. » « Cette règle vaut pour toutes les livraisons, boissons et épicerie sèche comprises. »
+3. Des escalopes de volaille arrivent à + 3 °C. Que fais-tu ? *(évalue : application)*
+   - Je les refuse : la limite des volailles est de + 2 °C
+   - ✔ Je les accepte et je les range en chambre froide sous 15 minutes
+   - Je les refuse et je préviens le chef, par précaution
+   - Je les accepte, puis je les laisse en cuisine jusqu'au début du service
+   - *Appui dans la procédure :* « Viandes de volaille et préparations de viandes : + 4 °C. » « Ranger les produits acceptés en chambre froide dans les 15 minutes. »
 
 **Situation de transfert :** Pendant le déchargement, un carton de glaces affiche – 16 °C en surface ; il était à – 18 °C dans le camion.
 
@@ -1542,18 +1735,28 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
 
 *Réponse attendue :* Oui, si c'est bref et pendant le déchargement : un écart de 3 °C au plus en surface est admis ; je le range vite au froid.
 
-**Déblocage** *(seulement si l'apprenant s'est déclaré bloqué : posé après la seconde explication ; grille dans `grille-reformulation.md`)*
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
 
-1. Un carton de yaourts arrive écrasé et ouvert. Que fais-tu ? *(évalue : application)*
-   - Je l'accepte et je trie plus tard
-   - Je le range directement en chambre froide
-   - Je le rends sans rien noter
-   - ✔ Je le refuse, je l'écris sur le bon et je garde une preuve photo
-2. Pourquoi garder une photo du thermomètre et du bon quand on refuse un produit ? *(évalue : compréhension)*
-   - ✔ Pour prouver le motif du refus au fournisseur et assurer la traçabilité
-   - Pour décorer le registre
-   - Parce que le livreur aime les photos
-   - Ce n'est pas utile
+1. Une livraison de préparations culinaires élaborées à l'avance arrive à + 5 °C. Que fais-tu ? *(évalue : application)*
+   - Je l'accepte : les préparations sont admises jusqu'à + 6 °C
+   - Je la refuse, sans rien noter ni photographier, pour ne pas retarder le livreur
+   - Je l'accepte et je la range tout de suite en chambre froide
+   - ✔ Je la refuse, je le note sur le bon et je photographie les preuves
+   - *Appui dans la procédure :* « Préparations culinaires élaborées à l’avance : + 3 °C. » « Si une température dépasse le maximum, refuser le produit, l’écrire sur le bon de livraison et prévenir le chef. » « Photographier le thermomètre et le bon de livraison pour chaque produit refusé, et joindre les photos au registre. »
+   - *Justification juste si elle contient :* Le maximum est de + 3 °C pour ces préparations : à + 5 °C, refus, mention sur le bon, chef prévenu, photos du thermomètre et du bon jointes au registre.
+   - *Exemple juste (2 points avec le bon choix) :* « La limite est de + 3 °C, c'est trop chaud, donc je refuse, je l'écris sur le bon et je prends les photos. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « Je refuse parce que ce n'est pas bon. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « Je refuse parce que la limite est de 0 °C. »
+2. Une livraison de boissons arrive à 8 h ; seul un commis est en cuisine. Que fait-il ? *(évalue : application)*
+   - ✔ Il ne la réceptionne pas : c'est le rôle du chef ou du second
+   - Il la réceptionne, puisque les boissons ne sont pas des produits périssables
+   - Il la réceptionne et fait signer le bon au livreur
+   - Il la réceptionne s'il prend les photos des produits
+   - *Appui dans la procédure :* « Les livraisons sont reçues entre 7 h et 10 h par le chef ou son second. » « Cette règle vaut pour toutes les livraisons, boissons et épicerie sèche comprises. »
+   - *Justification juste si elle contient :* Toutes les livraisons, boissons comprises, sont reçues par le chef ou son second : un commis ne réceptionne pas.
+   - *Exemple juste (2 points avec le bon choix) :* « Non, même pour les boissons, c'est le chef ou son second qui réceptionne. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « Non, il n'a pas le droit. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « Non, parce que les livraisons n'arrivent qu'après 10 h. »
 
 **Rappel à J+2**
 
@@ -1562,21 +1765,25 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
    - 1 jour
    - 3 jours
    - ✔ 4 jours
+   - *Appui dans la procédure :* « Contrôler la date limite de consommation : il doit rester au moins 4 jours pour les viandes et les poissons. »
 2. Pour un produit refusé, que faut-il en plus de la mention sur le bon ? *(évalue : restitution (mémorisation))*
-   - Rien
-   - ✔ Photographier le thermomètre et le bon, et joindre les photos au registre
-   - Appeler un client
-   - Jeter le bon
+   - Appeler le fournisseur pour demander un remplacement le jour même
+   - ✔ Photographier le thermomètre et le bon de livraison
+   - Faire signer le livreur sur le registre des températures
+   - Rien d'autre : la mention sur le bon suffit
+   - *Appui dans la procédure :* « Photographier le thermomètre et le bon de livraison pour chaque produit refusé, et joindre les photos au registre. »
 3. Comment mesure-t-on la température d'un produit emballé ? *(évalue : restitution (mémorisation))*
    - ✔ Sonde entre deux emballages, sans les percer
-   - Avec un thermomètre de cuisine dans l'air
-   - À la main
-   - En perçant l'emballage
-4. Du poisson frais est livré avec une date limite dans 2 jours. Que fais-tu ? *(évalue : application)*
-   - Je l'accepte, il n'est pas périmé
-   - ✔ Je le refuse : il faut au moins 4 jours avant la date limite
-   - Je le congèle tout de suite
-   - Je change l'étiquette
+   - À la main, en touchant l'emballage
+   - Thermomètre posé à l'air libre, près du carton
+   - Sonde plantée au cœur du produit, à travers l'emballage
+   - *Appui dans la procédure :* « Mesurer la température avec le thermomètre sonde, placé entre deux emballages, sans les percer. »
+4. Du saumon frais arrive à + 3 °C. Que fais-tu ? *(évalue : application)*
+   - Je l'accepte : le poisson frais tolère jusqu'à + 4 °C
+   - ✔ Je le refuse, je le note sur le bon et préviens le chef
+   - Je l'accepte et je le mets aussitôt en chambre froide
+   - Je l'accepte si sa date limite de consommation est dans plus de 4 jours
+   - *Appui dans la procédure :* « Produits de la pêche frais : + 2 °C. » « Si une température dépasse le maximum, refuser le produit, l’écrire sur le bon de livraison et prévenir le chef. »
 
 **Reformulation, idée centrale :** À la réception, le chef ou son second contrôle températures, dates et emballages, refuse ce qui n'est pas conforme en gardant une preuve, et range vite au froid.
 
@@ -1591,20 +1798,23 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
 **Compréhension immédiate**
 
 1. Un client domicilié en France veut payer 1 200 € en espèces. Que fais-tu ? *(évalue : application)*
-   - J'accepte
-   - J'appelle la police
-   - ✔ Je refuse le paiement en espèces au-delà de 1 000 € et je propose un autre moyen
-   - Je demande la moitié en pièces
+   - J'accepte, le plafond n'existe que pour les entreprises
+   - Je refuse et j'appelle le responsable pour un contrôle
+   - ✔ Je refuse les espèces : le plafond est de 1 000 €
+   - J'accepte s'il paie la moitié en pièces de monnaie
+   - *Appui dans la procédure :* « Un client dont le domicile fiscal est en France ne peut pas payer en espèces un achat de plus de 1 000 €. »
 2. Un client veut payer 30 € uniquement en pièces de 1 centime. Es-tu obligé d'accepter ? *(évalue : application)*
-   - Oui, toujours
-   - ✔ Non, pas plus de 50 pièces pour un même paiement
-   - Non, jamais de pièces
-   - Oui, si c'est le matin
-3. Pourquoi le responsable fait-il un prélèvement vers le coffre quand le tiroir contient trop d'espèces ? *(évalue : compréhension)*
-   - Pour rendre la monnaie plus vite
-   - Parce que le tiroir ne ferme plus
-   - ✔ Pour limiter l'argent exposé en caisse en cas de vol ou d'erreur
-   - Pour payer les salaires
+   - Oui, toute pièce en euros doit être acceptée
+   - ✔ Non : au-delà de 50 pièces, je peux refuser
+   - Non, les pièces de 1 centime sont interdites
+   - Oui, si le client compte les pièces lui-même
+   - *Appui dans la procédure :* « Le vendeur n’est pas tenu d’accepter plus de 50 pièces pour un même paiement. »
+3. Ton tiroir contient 850 € en espèces. Que se passe-t-il ? *(évalue : application)*
+   - Tu déposes toi-même l'excédent à la banque
+   - Tu rends la monnaie en billets
+   - ✔ Le responsable fait un prélèvement vers le coffre
+   - Rien, le plafond du tiroir est de 1 000 €
+   - *Appui dans la procédure :* « Quand le tiroir contient plus de 800 € en espèces, le responsable fait un prélèvement vers le coffre. »
 
 **Situation de transfert :** Le détecteur signale qu'un billet de 50 € est douteux ; le client s'énerve et réclame son billet.
 
@@ -1612,18 +1822,28 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
 
 *Réponse attendue :* Je reste courtois et je n'accuse pas le client ; le billet présumé faux ne doit pas être remis en circulation (il n'est jamais rendu en monnaie) ; j'appelle le responsable, qui le remet à la Banque de France, à un commissariat ou à une gendarmerie.
 
-**Déblocage** *(seulement si l'apprenant s'est déclaré bloqué : posé après la seconde explication ; grille dans `grille-reformulation.md`)*
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
 
-1. Un client paie avec un billet de 20 € qui te semble douteux au toucher. Que fais-tu ? *(évalue : application)*
-   - ✔ Je le vérifie et, s'il est présumé faux, je ne le remets pas en circulation et j'appelle le responsable
-   - Je le rends en monnaie à un autre client
-   - Je le déchire
-   - Je l'accepte sans regarder
-2. Pourquoi un billet présumé faux ne doit-il jamais être rendu en monnaie ? *(évalue : compréhension)*
-   - Parce qu'il est sale
-   - Parce que le client ne le voudrait pas
-   - ✔ Le remettre en circulation est interdit : il doit être remis aux autorités
-   - Il peut être rendu
+1. Un client dont le domicile fiscal est à l'étranger veut payer 1 500 € en espèces. Que fais-tu ? *(évalue : application)*
+   - ✔ J'appelle le responsable : son plafond est plus élevé
+   - Je refuse : 1 000 € est le plafond pour tous les clients
+   - J'accepte sans rien vérifier, la règle ne le concerne pas
+   - J'accepte s'il paie 500 € par carte et le reste en espèces
+   - *Appui dans la procédure :* « Pour un client dont le domicile fiscal est à l’étranger, le plafond est plus élevé : appeler le responsable. » « Un client dont le domicile fiscal est en France ne peut pas payer en espèces un achat de plus de 1 000 €. »
+   - *Justification juste si elle contient :* Le plafond de 1 000 € vise les clients dont le domicile fiscal est en France ; pour un domicile fiscal à l'étranger, le plafond est plus élevé et la procédure demande d'appeler le responsable.
+   - *Exemple juste (2 points avec le bon choix) :* « Il a son domicile à l'étranger, donc la limite n'est pas 1 000 € ; la procédure dit d'appeler le responsable. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « J'appelle le responsable parce que c'est beaucoup d'argent. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « J'appelle le responsable parce que les touristes ne peuvent pas payer en espèces. »
+2. En partant en pause, un vendeur laisse sa session de caisse ouverte pour son collègue. Est-ce conforme ? *(évalue : application)*
+   - Oui, si le collègue travaille dans le même rayon
+   - Oui, à condition que la pause dure moins de dix minutes
+   - ✔ Non : une session ne doit jamais rester ouverte
+   - Non : seul le responsable a le droit d'ouvrir une session
+   - *Appui dans la procédure :* « Chaque vendeur se connecte à la caisse avec son identifiant personnel et ne laisse jamais sa session ouverte. »
+   - *Justification juste si elle contient :* Chaque vendeur utilise son propre identifiant et ne laisse jamais sa session ouverte, même pour un collègue.
+   - *Exemple juste (2 points avec le bon choix) :* « Non, chacun a son identifiant et on ne laisse jamais sa session ouverte, même pour un collègue. »
+   - *Exemple insuffisant (1 point avec le bon choix) :* « Non, ce n'est pas prudent. »
+   - *Exemple faux (0 point, même avec le bon choix) :* « Non, parce que les pauses sont interdites pendant l'ouverture. »
 
 **Rappel à J+2**
 
@@ -1632,21 +1852,25 @@ Règles de composition, vérifiées par `tests/jeu-de-mesure.js` : compréhensio
    - 150 €
    - ✔ 200 €
    - 800 €
+   - *Appui dans la procédure :* « Le fond de caisse est de 200 €. »
 2. Au-delà de quel écart en fin de journée faut-il une fiche signée ? *(évalue : restitution (mémorisation))*
    - 1 €
    - ✔ 10 €
    - 50 €
-   - Aucun écart n'est noté
+   - Aucun : tout écart est accepté
+   - *Appui dans la procédure :* « Tout écart de plus de 10 € en fin de journée fait l’objet d’une fiche d’écart signée par le vendeur et le responsable. »
 3. À partir de quelle valeur vérifie-t-on les billets au détecteur ? *(évalue : restitution (mémorisation))*
-   - 100 € seulement
+   - 100 € et plus seulement
    - Tous les billets
    - ✔ 50 € et plus
-   - Jamais
+   - Seulement les billets neufs
+   - *Appui dans la procédure :* « Vérifier chaque billet de 50 € et plus au détecteur. »
 4. En fin de journée, il manque 15 € dans ta caisse. Que fais-tu ? *(évalue : application)*
-   - Je complète avec mon argent
-   - ✔ Je remplis une fiche d'écart signée, car l'écart dépasse 10 €
-   - Je ne dis rien
-   - Je reporte l'écart au lendemain
+   - Je complète la caisse avec mon propre argent
+   - ✔ Je remplis une fiche d'écart, signée avec le responsable
+   - Rien : un écart de moins de 20 € est toléré
+   - Je note l'écart et je le reporte sur la caisse de demain matin
+   - *Appui dans la procédure :* « Tout écart de plus de 10 € en fin de journée fait l’objet d’une fiche d’écart signée par le vendeur et le responsable. »
 
 **Reformulation, idée centrale :** La caisse se tient avec des règles d'argent strictes : plafonds en espèces, vérification des billets, prélèvements et écarts tracés.
 

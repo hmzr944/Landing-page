@@ -45,24 +45,43 @@ Règles de décision :
 
 ### Quand
 Seulement si la personne a obtenu moins de 2 sur 3 aux questions de compréhension immédiate (B1), ou s'est déclarée
-bloquée. Elle reçoit alors la seconde explication d'Arbor, puis les **2 questions de déblocage préparées à l'avance**
-(champ `deblocage` : une d'application, une de compréhension). Elles ne reprennent aucune question de B1.
+bloquée. Le déblocage vient **après** la reformulation (B2) et le transfert (B3), pour que la seconde explication ne
+donne pas d'indice sur le transfert. La personne reçoit la seconde explication d'Arbor, puis les **2 questions de
+déblocage préparées à l'avance** (champ `deblocage` : pour un sujet, une d'application et une de compréhension ; pour
+une procédure, deux d'application). Elles ne reprennent aucune question de B1.
 
 ### Ce qu'on demande
 Pour chacune des 2 questions : le choix de réponse, puis une phrase : « Pourquoi as-tu choisi cette réponse ? »
 
-### Grille de décision
-| Résultat | Condition |
+### Ce que le correcteur a sous les yeux, pour chaque question
+Écrits à l'avance dans `jeu-de-mesure.md` (et `.json`, champ `criteres`), question par question :
+- **la raison attendue** : ce qu'une justification doit contenir pour être juste ;
+- **un exemple de justification juste** ;
+- **un exemple de justification insuffisante** : elle répète la réponse, reste vague (« c'est mieux », « par
+  sécurité ») ou décrit la situation sans en donner la raison ;
+- **un exemple de justification fausse** : elle contient une erreur de fond.
+
+Pour les procédures, la raison attendue est toujours une règle **écrite dans la procédure** (phrase citée sous
+« Appui dans la procédure »). Une raison non écrite, même vraie (« c'est plus sûr »), est insuffisante, pas fausse.
+
+### Note de chaque question (0, 1 ou 2)
+| Note | Condition |
 |---|---|
-| **Débloqué** | 2 bonnes réponses sur 2 **et** au moins une justification juste (la phrase donne la bonne raison, même maladroitement) |
-| **Partiellement débloqué** | 2 bonnes réponses sans justification juste, **ou** 1 bonne réponse avec sa justification juste |
-| **Non débloqué** | 0 bonne réponse, ou 1 bonne réponse sans justification juste |
+| **2** | bon choix **et** justification juste : elle contient la raison attendue, même avec d'autres mots, et aucune erreur de fond |
+| **1** | bon choix, mais justification absente, vague, ou qui ne fait que répéter la réponse |
+| **0** | mauvais choix, **ou** bon choix avec une justification qui contient une erreur de fond (le bon choix est alors probablement dû au hasard ou à une idée fausse) |
 
-Une justification est « juste » si elle contient la raison attendue (écrite dans les notes du correcteur pour chaque
-question) et aucune erreur de fond. La justification évite de compter comme débloquée une personne qui a répondu au
-hasard (25 % de chances par question, 6 % pour deux).
+### Décision pour la personne (somme des 2 questions, sur 4)
+| Résultat | Somme | Exemples |
+|---|---|---|
+| **Débloqué** | 3 ou 4 | 2 + 2 ; 2 + 1 (les deux bons choix, au moins une raison juste) |
+| **Partiellement débloqué** | 2 | 1 + 1 (deux bons choix sans raison) ; 2 + 0 (une question comprise, l'autre manquée) |
+| **Non débloqué** | 0 ou 1 | 1 + 0 ; 0 + 0 |
 
-Les justifications sont notées par les deux mêmes correcteurs, en aveugle, comme la reformulation.
+La justification évite de compter comme débloquée une personne qui a répondu au hasard : 25 % de chances par
+question, 6 % pour les deux, mais une raison juste au hasard est très improbable. Les notes de chaque question sont
+données par les deux mêmes correcteurs, en aveugle, comme la reformulation ; l'accord entre eux est mesuré sur la note
+de chaque question (kappa pondéré) et sur la décision finale.
 
 ## Correction en aveugle, par deux correcteurs indépendants
 1. **Anonymisation.** Chaque réponse reçoit un code aléatoire. Le correcteur ne voit ni le participant, ni la version

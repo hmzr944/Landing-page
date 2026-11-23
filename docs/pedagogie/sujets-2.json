@@ -1,212 +1,232 @@
 [
   {
-    "id": "S11", "sujet": "Le cycle de l'eau", "domaine": "sciences de la Terre",
-    "glossaire": ["évaporation", "condensation", "précipitations", "vapeur d'eau", "nuage", "ruissellement", "nappe souterraine"],
+    "id": "S11",
+    "sujet": "Le cycle de l'eau",
+    "domaine": "sciences de la Terre",
+    "glossaire": ["évaporation","condensation","précipitations","vapeur d'eau","nuage","ruissellement","nappe souterraine"],
     "comprehension": [
-      { "evalue": "compréhension", "q": "Pourquoi se forme-t-il des gouttes sur un verre d'eau très froide en été ?", "choix": ["La vapeur d'eau de l'air se condense au contact du froid", "Le verre fuit", "L'eau traverse le verre", "Le soleil chauffe le verre"], "reponse": 0 },
-      { "evalue": "application", "q": "Du linge mouillé sèche plus vite dehors par une journée chaude et venteuse. Pourquoi ?", "choix": ["La chaleur et le vent accélèrent l'évaporation de l'eau", "Le vent pousse l'eau dans le sol", "Le soleil transforme l'eau en sel", "Il ne sèche pas plus vite"], "reponse": 0 },
-      { "evalue": "compréhension", "q": "L'eau d'une flaque disparaît sans couler nulle part. Où est-elle partie ?", "choix": ["Elle s'est évaporée dans l'air sous forme de vapeur", "Elle a été détruite", "Elle est devenue de la terre", "Elle s'est transformée en nuage instantanément sur place"], "reponse": 0 }
+      {"evalue":"compréhension","q":"Pourquoi se forme-t-il des gouttes sur un verre d'eau très froide en été ?","choix":["La vapeur d'eau de l'air se condense au contact du froid","L'eau froide traverse lentement la paroi du verre","Le froid fabrique de l'eau à la surface du verre","Le soleil fait fondre une fine couche de glace"],"reponse":0},
+      {"evalue":"application","q":"Tu veux que ton linge mouillé sèche le plus vite possible. Où l'étendre ?","choix":["Dehors, au soleil et au vent","Dans une salle de bain fermée et humide","Dans un placard sombre, à l'abri de l'air","Au sous-sol, là où il fait le plus frais"],"reponse":0},
+      {"evalue":"compréhension","q":"L'eau d'une flaque disparaît sans couler nulle part. Où est-elle partie ?","choix":["Elle s'est évaporée dans l'air sous forme de vapeur","Elle a été absorbée entièrement par le goudron","Elle a été détruite par la chaleur du soleil","Elle s'est transformée en nuage directement sur place"],"reponse":0}
     ],
-    "transfert": { "situation": "Le matin, la vitre de la salle de bain est couverte de buée après une douche chaude.", "question": "Quelles étapes du cycle de l'eau retrouves-tu ici ?", "attendu": "L'eau chaude s'évapore (vapeur), puis la vapeur se condense en gouttelettes sur la vitre froide." },
-    "rappel": [
-      { "evalue": "restitution", "q": "Le passage de l'eau liquide à la vapeur s'appelle…", "choix": ["évaporation", "condensation", "précipitation", "fusion"], "reponse": 0 },
-      { "evalue": "restitution", "q": "Les nuages sont faits de…", "choix": ["fines gouttelettes ou cristaux d'eau", "fumée", "poussière seulement", "gaz carbonique"], "reponse": 0 },
-      { "evalue": "restitution", "q": "Pluie, neige et grêle sont des…", "choix": ["précipitations", "évaporations", "nappes", "condensations"], "reponse": 0 },
-      { "evalue": "application", "q": "Tu sors une bouteille du réfrigérateur un jour humide : elle se couvre de gouttes. Quelle étape du cycle est-ce ?", "choix": ["La condensation", "L'évaporation", "Le ruissellement", "L'infiltration"], "reponse": 0 }
-    ],
+    "transfert": {"situation":"Le matin, la vitre de la salle de bain est couverte de buée après une douche chaude.","question":"Quelles étapes du cycle de l'eau retrouves-tu ici ?","attendu":"L'eau chaude s'évapore (vapeur), puis la vapeur se condense en gouttelettes sur la vitre froide."},
     "deblocage": [
-      { "evalue": "application", "q": "Une casserole d'eau bouillante a un couvercle ; des gouttes coulent sous le couvercle. Que s'est-il passé ?", "choix": ["L'eau s'est évaporée puis condensée sur le couvercle plus froid", "Le couvercle fuit", "L'eau a traversé le métal", "La casserole fabrique de l'eau"], "reponse": 0 },
-      { "evalue": "compréhension", "q": "Pourquoi la quantité d'eau sur Terre reste-t-elle à peu près la même malgré la pluie et l'évaporation ?", "choix": ["L'eau change d'état et de place mais n'est pas détruite", "Parce qu'il pleut toujours autant partout", "Parce que les nuages fabriquent de l'eau", "Elle diminue chaque jour"], "reponse": 0 }
+      {"evalue":"application","q":"Une casserole d'eau bouillante a un couvercle ; des gouttes coulent sous le couvercle. Que s'est-il passé ?","choix":["L'eau s'est évaporée puis condensée sur le couvercle","Le couvercle laisse passer l'eau par de petits trous","La vapeur a traversé le métal du couvercle et coulé","La chaleur fabrique de l'eau à partir de l'air"],"reponse":0,"criteres":{"raison":"L'eau chauffée devient vapeur ; la vapeur touche le couvercle plus froid et redevient liquide (condensation).","juste":"L'eau s'évapore, la vapeur monte, refroidit sur le couvercle et redevient de l'eau.","insuffisant":"C'est la vapeur.","faux":"L'eau saute en gouttes jusqu'au couvercle quand elle bout."}},
+      {"evalue":"compréhension","q":"Pourquoi la quantité d'eau sur Terre reste-t-elle à peu près la même malgré la pluie et l'évaporation ?","choix":["L'eau change d'état et de place, mais n'est pas détruite","Il pleut chaque jour exactement autant qu'il s'évapore","Les nuages fabriquent de l'eau nouvelle à partir de l'air","Les océans produisent de l'eau en continu au fond des mers"],"reponse":0,"criteres":{"raison":"L'eau ne disparaît pas : elle passe d'un état (liquide, vapeur, glace) et d'un endroit à l'autre, en cycle.","juste":"L'eau qui s'évapore revient en pluie, elle ne fait que changer de forme et de place.","insuffisant":"Parce que c'est un cycle.","faux":"Parce que les nuages créent de l'eau."}}
     ],
-    "reformulation": { "idee_centrale": "L'eau circule sans cesse : elle s'évapore, se condense en nuages, retombe en pluie puis rejoint rivières, sols et mers.", "elements_cles": ["évaporation puis condensation", "retour au sol et aux mers"] }
+    "rappel": [
+      {"evalue":"restitution","q":"Le passage de l'eau liquide à la vapeur s'appelle…","choix":["évaporation","condensation","précipitation","solidification"],"reponse":0},
+      {"evalue":"restitution","q":"Les nuages sont faits de…","choix":["fines gouttelettes ou cristaux d'eau","vapeur d'eau invisible, sans aucune goutte","fumée et poussières","gaz carbonique refroidi"],"reponse":0},
+      {"evalue":"restitution","q":"Pluie, neige et grêle sont des…","choix":["précipitations","évaporations","condensations","ruissellements"],"reponse":0},
+      {"evalue":"application","q":"Tu sors une bouteille du réfrigérateur un jour humide : elle se couvre de gouttes. Quelle étape du cycle est-ce ?","choix":["La condensation","L'évaporation","Le ruissellement","L'infiltration"],"reponse":0}
+    ],
+    "reformulation": {"idee_centrale":"L'eau circule sans cesse : elle s'évapore, se condense en nuages, retombe en pluie puis rejoint rivières, sols et mers.","elements_cles":["évaporation puis condensation","retour au sol et aux mers"]}
   },
   {
-    "id": "S12", "sujet": "L'effet de serre", "domaine": "sciences de la Terre",
-    "glossaire": ["effet de serre", "gaz à effet de serre", "atmosphère", "rayonnement", "dioxyde de carbone", "réchauffement climatique"],
+    "id": "S12",
+    "sujet": "L'effet de serre",
+    "domaine": "sciences de la Terre",
+    "glossaire": ["effet de serre","gaz à effet de serre","atmosphère","rayonnement","dioxyde de carbone","réchauffement climatique"],
     "comprehension": [
-      { "evalue": "compréhension", "q": "Pourquoi, sans aucun effet de serre naturel, la Terre serait-elle beaucoup plus froide ?", "choix": ["La chaleur émise par le sol repartirait presque toute vers l'espace", "Parce que le Soleil s'éteindrait", "Parce que l'eau gèlerait d'abord", "Elle ne serait pas plus froide"], "reponse": 0 },
-      { "evalue": "compréhension", "q": "Pourquoi l'ajout de gaz à effet de serre réchauffe-t-il le climat ?", "choix": ["Ils retiennent davantage la chaleur émise par la Terre", "Ils rapprochent le Soleil", "Ils font fondre le Soleil", "Ils bloquent toute la lumière"], "reponse": 0 },
-      { "evalue": "application", "q": "Une ville remplace ses bus au gazole par des bus électriques alimentés par une électricité peu carbonée. Quel effet sur l'effet de serre ?", "choix": ["Moins de dioxyde de carbone émis, donc moins de renforcement de l'effet de serre", "Aucun effet", "Plus d'effet de serre", "L'effet de serre disparaît totalement"], "reponse": 0 }
+      {"evalue":"compréhension","q":"Pourquoi, sans aucun effet de serre naturel, la Terre serait-elle beaucoup plus froide ?","choix":["La chaleur du sol repartirait presque toute vers l'espace","Le Soleil enverrait beaucoup moins de lumière vers la Terre","Les océans gèleraient d'abord et refroidiraient l'air","Elle ne serait pas plus froide, seulement plus sèche"],"reponse":0},
+      {"evalue":"compréhension","q":"Pourquoi l'ajout de gaz à effet de serre réchauffe-t-il le climat ?","choix":["Ils retiennent davantage la chaleur émise par la Terre","Ils laissent entrer plus de lumière venue du Soleil","Ils produisent eux-mêmes de la chaleur en brûlant","Ils détruisent la couche d'ozone"],"reponse":0},
+      {"evalue":"application","q":"Une ville remplace ses bus au gazole par des bus électriques alimentés par une électricité peu carbonée. Quel effet sur l'effet de serre ?","choix":["Moins de dioxyde de carbone émis, effet de serre moins renforcé","Aucun effet : un bus reste un bus","Plus d'effet de serre, car l'électricité réchauffe l'air de la ville","L'effet de serre disparaît totalement dans cette ville"],"reponse":0}
     ],
-    "transfert": { "situation": "Une voiture garée au soleil, vitres fermées, devient très chaude à l'intérieur.", "question": "En quoi cela ressemble-t-il à l'effet de serre, et quelle est la limite de la comparaison ?", "attendu": "La chaleur entre et reste en partie piégée ; mais dans la voiture c'est surtout l'air enfermé, alors que pour la Terre ce sont des gaz qui retiennent le rayonnement de chaleur." },
-    "rappel": [
-      { "evalue": "restitution", "q": "L'effet de serre naturel est…", "choix": ["indispensable à la vie sur Terre", "toujours néfaste", "inexistant", "dû à la Lune"], "reponse": 0 },
-      { "evalue": "restitution", "q": "Un gaz à effet de serre important émis par les activités humaines est…", "choix": ["le dioxyde de carbone", "l'hélium", "l'oxygène", "l'azote"], "reponse": 0 },
-      { "evalue": "restitution", "q": "Renforcer l'effet de serre conduit à…", "choix": ["un réchauffement du climat", "un refroidissement", "plus de lumière", "aucun changement"], "reponse": 0 },
-      { "evalue": "application", "q": "Une personne fait chaque jour 20 km en voiture à essence pour aller travailler. Quel changement réduit le plus ses émissions de gaz à effet de serre ?", "choix": ["Faire le trajet en train ou en bus", "Laver la voiture plus souvent", "Rouler vitres ouvertes", "Changer la couleur de la voiture"], "reponse": 0 }
-    ],
+    "transfert": {"situation":"Une voiture garée au soleil, vitres fermées, devient très chaude à l'intérieur.","question":"En quoi cela ressemble-t-il à l'effet de serre, et quelle est la limite de la comparaison ?","attendu":"La chaleur entre et reste en partie piégée ; mais dans la voiture c'est surtout l'air enfermé, alors que pour la Terre ce sont des gaz qui retiennent le rayonnement de chaleur."},
     "deblocage": [
-      { "evalue": "application", "q": "Une nuit nuageuse est souvent moins froide qu'une nuit sans nuages. Avec quelle idée de l'effet de serre cela s'accorde-t-il ?", "choix": ["Ce qui est au-dessus du sol retient une partie de la chaleur qu'il émet", "Les nuages produisent de la chaleur", "La Lune réchauffe les nuages", "Aucune"], "reponse": 0 },
-      { "evalue": "compréhension", "q": "Pourquoi parle-t-on d'effet de serre « renforcé » plutôt que d'effet de serre tout court pour le changement climatique ?", "choix": ["L'effet existe naturellement ; les activités humaines l'augmentent", "Parce qu'il n'existait pas avant", "Parce que les serres de jardin chauffent la Terre", "C'est la même chose"], "reponse": 0 }
+      {"evalue":"application","q":"Une nuit nuageuse est souvent moins froide qu'une nuit sans nuages. Avec quelle idée de l'effet de serre cela s'accorde-t-il ?","choix":["Les nuages retiennent une partie de la chaleur du sol","Les nuages produisent de la chaleur en se formant","Les nuages renvoient la lumière de la Lune vers le sol","Aucune : les nuages n'ont rien à voir avec la chaleur"],"reponse":0,"criteres":{"raison":"Comme les gaz à effet de serre, les nuages empêchent une partie de la chaleur émise par le sol de repartir vers l'espace.","juste":"Les nuages font comme une couverture qui garde la chaleur du sol, comme les gaz à effet de serre.","insuffisant":"Les nuages protègent.","faux":"Les nuages chauffent parce qu'ils sont plus près du Soleil."}},
+      {"evalue":"compréhension","q":"Pourquoi parle-t-on d'effet de serre « renforcé » plutôt que d'effet de serre tout court pour le changement climatique ?","choix":["L'effet existe naturellement ; l'activité humaine l'augmente","L'effet de serre n'existait pas avant la naissance de l'industrie","Les serres agricoles réchauffent l'atmosphère","C'est la même chose, le mot « renforcé » ne change rien"],"reponse":0,"criteres":{"raison":"Un effet de serre naturel existe et rend la Terre habitable ; le problème vient de son augmentation par les gaz ajoutés par les activités humaines.","juste":"Il y en a déjà un naturel, utile ; l'homme ajoute des gaz qui le rendent plus fort.","insuffisant":"Parce que c'est plus fort.","faux":"Parce que l'effet de serre est entièrement créé par l'homme."}}
     ],
-    "reformulation": { "idee_centrale": "Certains gaz de l'atmosphère retiennent une partie de la chaleur de la Terre ; en en ajoutant, on renforce ce piège et le climat se réchauffe.", "elements_cles": ["effet naturel utile", "ajout humain de gaz qui renforce le réchauffement"] }
+    "rappel": [
+      {"evalue":"restitution","q":"L'effet de serre naturel est…","choix":["indispensable à la vie sur Terre","toujours néfaste pour le climat","provoqué uniquement par les activités humaines","dû à la chaleur de la Lune"],"reponse":0},
+      {"evalue":"restitution","q":"Un gaz à effet de serre important émis par les activités humaines est…","choix":["le dioxyde de carbone","l'hélium des ballons","l'oxygène que l'on respire","l'azote de l'air"],"reponse":0},
+      {"evalue":"restitution","q":"Renforcer l'effet de serre conduit à…","choix":["un réchauffement du climat","un refroidissement du climat","plus de lumière sur Terre","aucun changement mesurable"],"reponse":0},
+      {"evalue":"application","q":"Une personne fait chaque jour 20 km en voiture à essence pour aller travailler. Quel changement réduit le plus ses émissions de gaz à effet de serre ?","choix":["Prendre le train ou le bus","Laver la voiture plus souvent","Rouler toujours vitres ouvertes","Changer la couleur de la voiture"],"reponse":0}
+    ],
+    "reformulation": {"idee_centrale":"Certains gaz de l'atmosphère retiennent une partie de la chaleur de la Terre ; en en ajoutant, on renforce ce piège et le climat se réchauffe.","elements_cles":["effet naturel utile","ajout humain de gaz qui renforce le réchauffement"]}
   },
   {
-    "id": "S13", "sujet": "La gravitation", "domaine": "physique",
-    "glossaire": ["gravitation", "masse", "force", "attraction", "poids", "orbite"],
+    "id": "S13",
+    "sujet": "La gravitation",
+    "domaine": "physique",
+    "glossaire": ["gravitation","masse","force","attraction","poids","orbite"],
     "comprehension": [
-      { "evalue": "compréhension", "q": "Pourquoi une pomme lâchée tombe-t-elle vers le sol ?", "choix": ["La Terre l'attire", "L'air la pousse vers le bas", "Elle est trop mûre", "Le vent souffle"], "reponse": 0 },
-      { "evalue": "compréhension", "q": "Sur la Lune, un astronaute pèse moins que sur Terre. Pourquoi ?", "choix": ["La Lune, moins massive, l'attire moins fort", "Il a perdu de la masse", "Il n'y a pas d'air", "Sa combinaison est légère"], "reponse": 0 },
-      { "evalue": "application", "q": "Une balance indique 60 kg sur Terre. Sur la Lune, la même personne aurait-elle moins de matière ?", "choix": ["Non, la même masse, mais un poids plus faible", "Oui, elle perdrait de la matière", "Elle aurait plus de matière", "Elle n'aurait plus de masse"], "reponse": 0 }
+      {"evalue":"compréhension","q":"Pourquoi une pomme lâchée tombe-t-elle vers le sol ?","choix":["La Terre l'attire vers elle","L'air la pousse vers le bas","Elle est trop lourde pour flotter dans l'air","Le vent la pousse toujours vers le sol"],"reponse":0},
+      {"evalue":"compréhension","q":"Sur la Lune, un astronaute pèse moins que sur Terre. Pourquoi ?","choix":["La Lune, moins massive, l'attire moins fort","Il a perdu de la masse pendant le voyage","Il n'y a pas d'air sur la Lune pour l'écraser vers le sol","Sa combinaison spatiale le rend plus léger"],"reponse":0},
+      {"evalue":"application","q":"Une balance indique 60 kg sur Terre. Sur la Lune, la même personne aurait-elle moins de matière ?","choix":["Non : même masse, mais poids plus faible","Oui, elle perdrait une partie de sa matière","Oui, elle aurait seulement 10 kg de matière","Non, elle aurait plus de matière qu'avant"],"reponse":0}
     ],
-    "transfert": { "situation": "Un satellite tourne autour de la Terre sans moteur allumé.", "question": "Pourquoi ne s'éloigne-t-il pas dans l'espace et ne tombe-t-il pas tout droit ?", "attendu": "La Terre l'attire en permanence, mais il va assez vite sur le côté : il « tombe » autour de la Terre en restant en orbite." },
-    "rappel": [
-      { "evalue": "restitution", "q": "Deux objets ayant une masse…", "choix": ["s'attirent", "se repoussent", "s'ignorent", "s'annulent"], "reponse": 0 },
-      { "evalue": "restitution", "q": "Le poids d'un objet dépend…", "choix": ["de l'astre sur lequel il se trouve", "de sa couleur", "de sa forme seulement", "de l'heure"], "reponse": 0 },
-      { "evalue": "restitution", "q": "Une orbite, c'est…", "choix": ["le trajet d'un objet qui tourne autour d'un astre", "une étoile", "un type de fusée", "un nuage"], "reponse": 0 },
-      { "evalue": "application", "q": "Mars est moins massive que la Terre. Un sac de 10 kg y serait…", "choix": ["moins lourd à porter, mais toujours de 10 kg de matière", "plus lourd à porter", "de 5 kg de matière", "impossible à soulever"], "reponse": 0 }
-    ],
+    "transfert": {"situation":"Un satellite tourne autour de la Terre sans moteur allumé.","question":"Pourquoi ne s'éloigne-t-il pas dans l'espace et ne tombe-t-il pas tout droit ?","attendu":"La Terre l'attire en permanence, mais il va assez vite sur le côté : il « tombe » autour de la Terre en restant en orbite."},
     "deblocage": [
-      { "evalue": "application", "q": "Sur une planète plus massive que la Terre, mais de même taille, un objet pèserait…", "choix": ["plus lourd", "moins lourd", "pareil", "rien"], "reponse": 0 },
-      { "evalue": "compréhension", "q": "Pourquoi un satellite trop lent finit-il par retomber sur Terre ?", "choix": ["Sa vitesse ne suffit plus à compenser l'attraction de la Terre", "Parce qu'il devient plus lourd", "Parce que la Terre le repousse", "Il ne retombe jamais"], "reponse": 0 }
+      {"evalue":"application","q":"Sur une planète deux fois plus massive que la Terre, mais de même taille, un sac de 10 kg serait…","choix":["plus lourd à porter","moins lourd à porter","exactement aussi lourd","de 20 kg de matière"],"reponse":0,"criteres":{"raison":"À taille égale, une planète plus massive attire plus fort : le poids augmente, mais la masse (10 kg) ne change pas.","juste":"La planète a plus de masse, donc elle attire plus fort et le sac pèse plus, même s'il fait toujours 10 kg.","insuffisant":"Plus lourd, parce que c'est une autre planète.","faux":"Plus lourd, parce que le sac contient plus de matière là-bas."}},
+      {"evalue":"compréhension","q":"Pourquoi un satellite trop lent finit-il par retomber sur Terre ?","choix":["Sa vitesse ne compense plus l'attraction de la Terre","Il devient plus lourd en perdant de la vitesse","La Terre le repousse quand il ralentit trop","Il ne retombe jamais, puisque la gravité n'existe pas dans l'espace"],"reponse":0,"criteres":{"raison":"La Terre l'attire en permanence ; c'est sa vitesse sur le côté qui le fait « tomber autour » de la Terre. Trop lent, il tombe vers elle.","juste":"Il ne va plus assez vite pour tourner autour, donc l'attraction de la Terre le fait tomber.","insuffisant":"Parce qu'il ralentit.","faux":"Parce qu'en ralentissant il devient plus lourd."}}
     ],
-    "reformulation": { "idee_centrale": "Tout objet ayant une masse attire les autres ; c'est ce qui nous fait tomber vers la Terre et ce qui garde la Lune en orbite.", "elements_cles": ["attraction entre masses", "explique la chute et les orbites"] }
+    "rappel": [
+      {"evalue":"restitution","q":"Deux objets ayant une masse…","choix":["s'attirent","se repoussent","s'ignorent","s'annulent"],"reponse":0},
+      {"evalue":"restitution","q":"Le poids d'un objet dépend…","choix":["de l'astre où il se trouve","de sa couleur","de sa forme seulement","de la température de l'air"],"reponse":0},
+      {"evalue":"restitution","q":"Une orbite, c'est…","choix":["le trajet d'un objet autour d'un astre","une étoile qui tourne très vite sur elle-même","un nuage de poussière dans l'espace","la surface visible d'une planète"],"reponse":0},
+      {"evalue":"application","q":"Mars est moins massive que la Terre. Un sac de 10 kg y serait…","choix":["moins lourd à porter, avec la même masse","plus lourd à porter, car l'air de Mars est plus épais","de 5 kg de matière seulement","impossible à soulever"],"reponse":0}
+    ],
+    "reformulation": {"idee_centrale":"Tout objet ayant une masse attire les autres ; c'est ce qui nous fait tomber vers la Terre et ce qui garde la Lune en orbite.","elements_cles":["attraction entre masses","explique la chute et les orbites"]}
   },
   {
-    "id": "S14", "sujet": "Tension et intensité électriques", "domaine": "physique",
-    "glossaire": ["tension", "volt", "intensité", "ampère", "circuit", "courant électrique", "générateur"],
+    "id": "S14",
+    "sujet": "Tension et intensité électriques",
+    "domaine": "physique",
+    "glossaire": ["tension","volt","intensité","ampère","circuit","courant électrique","générateur"],
     "comprehension": [
-      { "evalue": "compréhension", "q": "On compare souvent un circuit à de l'eau dans des tuyaux. Dans cette image, à quoi correspond la tension ?", "choix": ["À la différence de pression qui fait circuler l'eau", "À la longueur du tuyau", "À la couleur de l'eau", "Au robinet fermé"], "reponse": 0 },
-      { "evalue": "compréhension", "q": "Pourquoi une lampe ne s'allume-t-elle pas si le circuit est ouvert ?", "choix": ["Le courant ne peut pas circuler", "La tension devient trop forte", "La lampe est trop loin", "Il fait jour"], "reponse": 0 },
-      { "evalue": "application", "q": "Une lampe prévue pour 6 V est branchée sur une pile de 1,5 V. Que se passe-t-il le plus probablement ?", "choix": ["Elle brille faiblement ou pas du tout", "Elle brille plus fort que prévu", "Elle explose", "La pile se recharge"], "reponse": 0 }
+      {"evalue":"compréhension","q":"On compare souvent un circuit à de l'eau dans des tuyaux. Dans cette image, à quoi correspond la tension ?","choix":["À la différence de pression qui fait circuler l'eau","À la quantité d'eau qui passe chaque seconde","À la longueur totale du tuyau","Au diamètre du tuyau, selon qu'il est large ou très étroit"],"reponse":0},
+      {"evalue":"compréhension","q":"Pourquoi une lampe ne s'allume-t-elle pas si le circuit est ouvert ?","choix":["Le courant ne peut plus circuler","La tension devient trop forte pour la lampe","La pile se vide dès qu'on ouvre le circuit","La lampe n'est plus assez près de la pile"],"reponse":0},
+      {"evalue":"application","q":"Une lampe prévue pour 6 V est branchée sur une pile de 1,5 V. Que se passe-t-il le plus probablement ?","choix":["Elle brille faiblement, ou pas du tout","Elle brille plus fort que prévu","Elle grille immédiatement","Elle brille normalement, comme sur une pile de 6 V"],"reponse":0}
     ],
-    "transfert": { "situation": "Une pile de 1,5 V fait briller faiblement une petite lampe prévue pour 4,5 V.", "question": "Pourquoi la lampe brille-t-elle peu, et que faudrait-il changer ?", "attendu": "La tension est trop faible pour la faire fonctionner normalement ; il faut une tension proche de 4,5 V (par exemple trois piles de 1,5 V en série)." },
-    "rappel": [
-      { "evalue": "restitution", "q": "La tension se mesure en…", "choix": ["volts", "ampères", "watts", "mètres"], "reponse": 0 },
-      { "evalue": "restitution", "q": "L'intensité se mesure en…", "choix": ["ampères", "volts", "litres", "degrés"], "reponse": 0 },
-      { "evalue": "restitution", "q": "Pour qu'un courant circule, le circuit doit être…", "choix": ["fermé", "ouvert", "coupé", "mouillé"], "reponse": 0 },
-      { "evalue": "application", "q": "Un interrupteur est ouvert dans un circuit avec une pile et une lampe. Quelle est l'intensité du courant dans la lampe ?", "choix": ["Nulle : aucun courant ne circule", "Maximale", "La même que circuit fermé", "Elle dépend de la couleur de la lampe"], "reponse": 0 }
-    ],
+    "transfert": {"situation":"Une pile de 1,5 V fait briller faiblement une petite lampe prévue pour 4,5 V.","question":"Pourquoi la lampe brille-t-elle peu, et que faudrait-il changer ?","attendu":"La tension est trop faible pour la faire fonctionner normalement ; il faut une tension proche de 4,5 V (par exemple trois piles de 1,5 V en série)."},
     "deblocage": [
-      { "evalue": "application", "q": "Pour obtenir 4,5 V avec des piles de 1,5 V, combien faut-il en mettre à la suite (en série) ?", "choix": ["3", "2", "4", "1"], "reponse": 0 },
-      { "evalue": "compréhension", "q": "Quelle est la limite de l'image de l'eau dans les tuyaux pour l'électricité ?", "choix": ["Un fil ne « fuit » pas quand on le coupe : le courant s'arrête, rien ne s'écoule", "Il n'y en a aucune", "Les fils contiennent vraiment de l'eau", "Le courant électrique est plus lent que l'eau"], "reponse": 0 }
+      {"evalue":"application","q":"Pour obtenir 4,5 V avec des piles de 1,5 V, combien faut-il en mettre à la suite (en série) ?","choix":["3","2","4","1"],"reponse":0,"criteres":{"raison":"En série, les tensions s'additionnent : 1,5 + 1,5 + 1,5 = 4,5 V.","juste":"Trois fois 1,5 ça fait 4,5, et en série les volts s'ajoutent.","insuffisant":"3, j'ai compté.","faux":"3, parce qu'il faut une pile pour chaque volt et demi de la lampe et que les piles se partagent le courant."}},
+      {"evalue":"compréhension","q":"Quelle est la limite de l'image de l'eau dans les tuyaux pour l'électricité ?","choix":["Un fil coupé ne « fuit » pas : le courant s'arrête net","Il n'y en a aucune : le courant est vraiment de l'eau","Les fils électriques contiennent un liquide comme les tuyaux","Le courant électrique va beaucoup moins vite que l'eau"],"reponse":0,"criteres":{"raison":"Dans un tuyau coupé, l'eau s'échappe ; dans un fil coupé, rien ne sort : le circuit est ouvert et le courant s'arrête. L'image aide, mais n'est pas la réalité.","juste":"Quand on coupe un tuyau l'eau coule partout, mais un fil coupé ne laisse rien sortir, le courant s'arrête.","insuffisant":"Parce que l'électricité, ce n'est pas de l'eau.","faux":"Parce que l'électricité va plus lentement que l'eau."}}
     ],
-    "reformulation": { "idee_centrale": "La tension est ce qui fait circuler le courant dans un circuit fermé ; l'intensité indique combien de courant passe.", "elements_cles": ["tension = ce qui fait circuler (différence entre deux points)", "intensité = quantité qui passe, seulement si le circuit est fermé"] }
+    "rappel": [
+      {"evalue":"restitution","q":"La tension se mesure en…","choix":["volts","ampères","watts","ohms"],"reponse":0},
+      {"evalue":"restitution","q":"L'intensité se mesure en…","choix":["ampères","volts","watts","kilowattheures"],"reponse":0},
+      {"evalue":"restitution","q":"Pour qu'un courant circule, le circuit doit être…","choix":["fermé","ouvert","coupé","mouillé"],"reponse":0},
+      {"evalue":"application","q":"Un interrupteur est ouvert dans un circuit avec une pile et une lampe. Quelle est l'intensité du courant dans la lampe ?","choix":["Nulle : aucun courant ne circule","Maximale, car rien ne freine le courant","La même que lorsque le circuit est fermé","Faible, mais pas tout à fait nulle"],"reponse":0}
+    ],
+    "reformulation": {"idee_centrale":"La tension est ce qui fait circuler le courant dans un circuit fermé ; l'intensité indique combien de courant passe.","elements_cles":["tension = ce qui fait circuler (différence entre deux points)","intensité = quantité qui passe, seulement si le circuit est fermé"]}
   },
   {
-    "id": "S15", "sujet": "L'inflation", "domaine": "économie",
-    "glossaire": ["inflation", "prix", "pouvoir d'achat", "monnaie", "taux d'inflation", "salaire"],
+    "id": "S15",
+    "sujet": "L'inflation",
+    "domaine": "économie",
+    "glossaire": ["inflation","prix","pouvoir d'achat","monnaie","taux d'inflation","salaire"],
     "comprehension": [
-      { "evalue": "application", "q": "S'il y a 10 % d'inflation sur un an, un panier qui coûtait 100 € coûte environ…", "choix": ["110 €", "90 €", "100 €", "200 €"], "reponse": 0 },
-      { "evalue": "compréhension", "q": "Si ton salaire ne bouge pas alors que les prix montent, pourquoi peux-tu acheter moins ?", "choix": ["Chaque euro achète moins de choses qu'avant", "Parce que les magasins ferment", "Parce que ton salaire baisse automatiquement", "Tu peux acheter autant"], "reponse": 0 },
-      { "evalue": "application", "q": "Ton salaire augmente de 2 % et les prix de 5 % la même année. Ton pouvoir d'achat…", "choix": ["baisse", "monte", "ne change pas", "double"], "reponse": 0 }
+      {"evalue":"application","q":"S'il y a 10 % d'inflation sur un an, un panier qui coûtait 100 € coûte environ…","choix":["110 €","90 €","100 €","200 €"],"reponse":0},
+      {"evalue":"compréhension","q":"Si ton salaire ne bouge pas alors que les prix montent, pourquoi peux-tu acheter moins ?","choix":["Chaque euro achète moins de choses qu'avant","Les magasins vendent moins de produits","Ton salaire baisse avec les prix","Les banques retirent un peu de ton argent"],"reponse":0},
+      {"evalue":"application","q":"Ton salaire augmente de 2 % et les prix de 5 % la même année. Ton pouvoir d'achat…","choix":["baisse","monte","ne change pas","double"],"reponse":0}
     ],
-    "transfert": { "situation": "Ta grand-mère raconte qu'une baguette coûtait beaucoup moins cher dans sa jeunesse.", "question": "Est-ce que cela veut forcément dire que le pain était plus « accessible » à l'époque ? Explique.", "attendu": "Pas forcément : il faut comparer au salaire de l'époque ; l'inflation fait monter les prix mais aussi, souvent, les salaires." },
-    "rappel": [
-      { "evalue": "restitution", "q": "L'inflation désigne…", "choix": ["une hausse générale et durable des prix", "la hausse d'un seul produit", "une baisse des salaires", "un impôt"], "reponse": 0 },
-      { "evalue": "restitution", "q": "Le pouvoir d'achat, c'est…", "choix": ["ce qu'on peut acheter avec son revenu", "le prix d'un objet", "le taux d'une banque", "une monnaie étrangère"], "reponse": 0 },
-      { "evalue": "restitution", "q": "L'inflation concerne…", "choix": ["l'ensemble des prix", "un seul magasin", "les seuls salaires", "les seules actions"], "reponse": 0 },
-      { "evalue": "application", "q": "Seul le prix des fraises double en hiver ; les autres prix ne bougent pas. Est-ce de l'inflation ?", "choix": ["Non : l'inflation est une hausse générale, pas celle d'un seul produit", "Oui, forcément", "Oui, si on aime les fraises", "On ne peut jamais savoir"], "reponse": 0 }
-    ],
+    "transfert": {"situation":"Ta grand-mère raconte qu'une baguette coûtait beaucoup moins cher dans sa jeunesse.","question":"Est-ce que cela veut forcément dire que le pain était plus « accessible » à l'époque ? Explique.","attendu":"Pas forcément : il faut comparer au salaire de l'époque ; l'inflation fait monter les prix mais aussi, souvent, les salaires."},
     "deblocage": [
-      { "evalue": "application", "q": "Tu gardes 1 000 € dans un tiroir pendant un an avec 5 % d'inflation. Que peux-tu acheter avec à la fin ?", "choix": ["Un peu moins qu'au début", "Plus qu'au début", "Exactement pareil", "Rien du tout"], "reponse": 0 },
-      { "evalue": "compréhension", "q": "Pourquoi une hausse des salaires égale à l'inflation garde-t-elle le pouvoir d'achat à peu près stable ?", "choix": ["Les revenus et les prix montent ensemble", "Parce que les prix baissent", "Parce que l'inflation disparaît", "Elle ne le garde pas stable"], "reponse": 0 }
+      {"evalue":"application","q":"Tu gardes 1 000 € dans un tiroir pendant un an avec 5 % d'inflation. Que peux-tu acheter avec à la fin ?","choix":["Un peu moins qu'au début","Un peu plus qu'au début, grâce à la hausse","Exactement la même chose qu'au début","Rien : l'argent a perdu toute sa valeur"],"reponse":0,"criteres":{"raison":"La somme reste de 1 000 €, mais les prix ont monté d'environ 5 % : les mêmes 1 000 € achètent moins.","juste":"Les prix ont augmenté de 5 % alors que j'ai toujours 1 000 €, donc j'achète un peu moins.","insuffisant":"Moins, à cause de l'inflation.","faux":"Moins, parce que les billets perdent 5 % de leur montant dans le tiroir."}},
+      {"evalue":"compréhension","q":"Pourquoi une hausse des salaires égale à l'inflation garde-t-elle le pouvoir d'achat à peu près stable ?","choix":["Revenus et prix montent au même rythme","Les prix finissent par redescendre","L'inflation disparaît quand les salaires montent","Il ne reste pas stable : il baisse toujours"],"reponse":0,"criteres":{"raison":"Le pouvoir d'achat dépend du rapport entre revenu et prix ; si les deux montent du même pourcentage, ce rapport ne change pas.","juste":"Si je gagne 5 % de plus et que tout coûte 5 % de plus, j'achète pareil.","insuffisant":"Parce que ça s'équilibre.","faux":"Parce que les prix baissent ensuite."}}
     ],
-    "reformulation": { "idee_centrale": "L'inflation est la hausse générale des prix : avec la même somme, on achète moins, sauf si les revenus suivent.", "elements_cles": ["hausse générale des prix", "effet sur le pouvoir d'achat"] }
+    "rappel": [
+      {"evalue":"restitution","q":"L'inflation désigne…","choix":["une hausse générale et durable des prix","la forte hausse du prix d'un seul produit, comme l'essence","une baisse générale des salaires","un impôt prélevé sur les achats"],"reponse":0},
+      {"evalue":"restitution","q":"Le pouvoir d'achat, c'est…","choix":["ce qu'on peut acheter avec son revenu","le prix moyen d'un panier de courses","le taux d'intérêt fixé chaque année par la banque centrale","la somme d'argent sur un compte"],"reponse":0},
+      {"evalue":"restitution","q":"L'inflation concerne…","choix":["l'ensemble des prix","les prix d'un seul magasin","uniquement les salaires","uniquement les loyers"],"reponse":0},
+      {"evalue":"application","q":"Seul le prix des fraises double en hiver ; les autres prix ne bougent pas. Est-ce de l'inflation ?","choix":["Non : la hausse ne touche qu'un produit","Oui, toute hausse de prix est de l'inflation","Oui, si la hausse dure plus d'un mois","On ne peut jamais le savoir sans les salaires"],"reponse":0}
+    ],
+    "reformulation": {"idee_centrale":"L'inflation est la hausse générale des prix : avec la même somme, on achète moins, sauf si les revenus suivent.","elements_cles":["hausse générale des prix","effet sur le pouvoir d'achat"]}
   },
   {
-    "id": "S16", "sujet": "L'offre et la demande", "domaine": "économie",
-    "glossaire": ["offre", "demande", "prix d'équilibre", "pénurie", "surplus", "marché"],
+    "id": "S16",
+    "sujet": "L'offre et la demande",
+    "domaine": "économie",
+    "glossaire": ["offre","demande","prix d'équilibre","pénurie","surplus","marché"],
     "comprehension": [
-      { "evalue": "application", "q": "Après une très bonne récolte de tomates, que devient en général leur prix ?", "choix": ["Il a tendance à baisser", "Il monte", "Il double", "Il reste fixe par la loi"], "reponse": 0 },
-      { "evalue": "compréhension", "q": "Pourquoi un produit rare et très demandé devient-il souvent plus cher ?", "choix": ["Beaucoup d'acheteurs se disputent peu d'exemplaires", "Parce que les vendeurs sont moins nombreux à le vouloir", "Parce que l'État l'impose", "Ce n'est pas le cas"], "reponse": 0 },
-      { "evalue": "compréhension", "q": "Au « prix d'équilibre », pourquoi n'y a-t-il ni pénurie ni invendus ?", "choix": ["La quantité que les vendeurs proposent égale celle que les acheteurs veulent", "Parce que le vendeur gagne le plus", "Parce que personne n'achète", "Parce que l'État fixe le prix"], "reponse": 0 }
+      {"evalue":"application","q":"Après une très bonne récolte de tomates, que devient en général leur prix ?","choix":["Il a tendance à baisser","Il a tendance à monter","Il double, car il y a plus de travail","Il reste fixé par la loi"],"reponse":0},
+      {"evalue":"compréhension","q":"Pourquoi un produit rare et très demandé devient-il souvent plus cher ?","choix":["Beaucoup d'acheteurs se disputent peu d'exemplaires","Les vendeurs sont moins nombreux à vouloir le vendre","L'État impose un prix plus élevé aux produits rares","Ce n'est pas le cas : la rareté fait baisser le prix"],"reponse":0},
+      {"evalue":"compréhension","q":"Au « prix d'équilibre », pourquoi n'y a-t-il ni pénurie ni invendus ?","choix":["Les vendeurs proposent autant que les acheteurs veulent","C'est le prix où le vendeur gagne le plus d'argent possible","C'est le prix que l'État fixe pour tous les marchés","C'est le prix où plus personne ne veut acheter"],"reponse":0}
     ],
-    "transfert": { "situation": "Les billets d'un concert très attendu sont revendus bien plus cher que leur prix initial.", "question": "Explique ce phénomène avec l'offre et la demande.", "attendu": "Le nombre de places est limité (offre faible) et beaucoup veulent y aller (demande forte) : le prix de revente monte." },
-    "rappel": [
-      { "evalue": "restitution", "q": "Une pénurie, c'est quand…", "choix": ["la demande dépasse l'offre", "l'offre dépasse la demande", "le prix baisse", "personne ne veut acheter"], "reponse": 0 },
-      { "evalue": "restitution", "q": "Si l'offre augmente et la demande ne change pas, le prix…", "choix": ["a tendance à baisser", "monte", "double", "ne peut pas changer"], "reponse": 0 },
-      { "evalue": "restitution", "q": "La demande représente…", "choix": ["ce que les acheteurs veulent acheter", "ce que les vendeurs proposent", "les impôts", "les salaires"], "reponse": 0 },
-      { "evalue": "application", "q": "En été, beaucoup de gens veulent des ventilateurs et les magasins en manquent. Que va-t-il probablement se passer pour leur prix ?", "choix": ["Il va monter", "Il va baisser", "Il ne bougera jamais", "Il deviendra gratuit"], "reponse": 0 }
-    ],
+    "transfert": {"situation":"Les billets d'un concert très attendu sont revendus bien plus cher que leur prix initial.","question":"Explique ce phénomène avec l'offre et la demande.","attendu":"Le nombre de places est limité (offre faible) et beaucoup veulent y aller (demande forte) : le prix de revente monte."},
     "deblocage": [
-      { "evalue": "application", "q": "Un nouveau téléphone est vendu trop cher : il en reste des milliers en stock. Que fait souvent le vendeur ?", "choix": ["Il baisse son prix pour écouler le stock", "Il augmente le prix", "Il arrête de vendre", "Il ne change rien"], "reponse": 0 },
-      { "evalue": "compréhension", "q": "Pourquoi le prix des billets d'avion monte-t-il souvent pendant les vacances scolaires ?", "choix": ["Beaucoup plus de gens veulent voyager aux mêmes dates", "Parce que les avions sont plus lourds", "Parce que le carburant est gratuit", "Il ne monte jamais"], "reponse": 0 }
+      {"evalue":"application","q":"Un nouveau téléphone est vendu trop cher : il en reste des milliers en stock. Que fait souvent le vendeur ?","choix":["Il baisse son prix pour écouler le stock","Il augmente le prix pour gagner plus par vente","Il arrête de vendre et détruit le stock","Il ne change rien et attend la demande"],"reponse":0,"criteres":{"raison":"À ce prix, l'offre dépasse la demande ; baisser le prix attire plus d'acheteurs.","juste":"Trop de téléphones et pas assez d'acheteurs, donc il baisse le prix pour en vendre plus.","insuffisant":"Pour vendre.","faux":"Parce que les vieux téléphones coûtent moins cher à fabriquer."}},
+      {"evalue":"compréhension","q":"Pourquoi le prix des billets d'avion monte-t-il souvent pendant les vacances scolaires ?","choix":["Beaucoup plus de gens veulent voyager aux mêmes dates","Les avions consomment plus de carburant en été","Les compagnies paient leurs employés deux fois plus en vacances","Le prix ne monte pas, c'est une impression"],"reponse":0,"criteres":{"raison":"La demande augmente fortement aux mêmes dates alors que le nombre de places est limité : le prix monte.","juste":"Tout le monde part en même temps et les places sont limitées, donc c'est plus cher.","insuffisant":"Parce que c'est les vacances.","faux":"Parce que le carburant coûte plus cher l'été."}}
     ],
-    "reformulation": { "idee_centrale": "Le prix d'un bien évolue selon l'équilibre entre ce que les vendeurs proposent et ce que les acheteurs veulent.", "elements_cles": ["rare et demandé = plus cher", "abondant = moins cher"] }
+    "rappel": [
+      {"evalue":"restitution","q":"Une pénurie, c'est quand…","choix":["la demande dépasse l'offre","l'offre dépasse la demande","le prix baisse fortement","personne ne veut plus acheter"],"reponse":0},
+      {"evalue":"restitution","q":"Si l'offre augmente et la demande ne change pas, le prix…","choix":["a tendance à baisser","a tendance à monter","double rapidement","ne peut pas changer du tout"],"reponse":0},
+      {"evalue":"restitution","q":"La demande représente…","choix":["ce que les acheteurs veulent acheter","ce que les vendeurs proposent","le prix que fixent ensemble les magasins du quartier","le nombre de magasins ouverts"],"reponse":0},
+      {"evalue":"application","q":"En été, beaucoup de gens veulent des ventilateurs et les magasins en manquent. Que va-t-il probablement se passer pour leur prix ?","choix":["Il va monter","Il va baisser","Il ne bougera pas, c'est un prix fixé","Il deviendra presque gratuit"],"reponse":0}
+    ],
+    "reformulation": {"idee_centrale":"Le prix d'un bien évolue selon l'équilibre entre ce que les vendeurs proposent et ce que les acheteurs veulent.","elements_cles":["rare et demandé = plus cher","abondant = moins cher"]}
   },
   {
-    "id": "S17", "sujet": "La TVA", "domaine": "fiscalité",
-    "glossaire": ["TVA", "taxe", "hors taxe", "toutes taxes comprises", "taux", "consommateur final"],
+    "id": "S17",
+    "sujet": "La TVA",
+    "domaine": "fiscalité",
+    "glossaire": ["TVA","taxe","hors taxe","toutes taxes comprises","taux","consommateur final"],
     "comprehension": [
-      { "evalue": "application", "q": "Un objet coûte 100 € hors taxe avec une TVA de 20 %. Son prix TTC est…", "choix": ["120 €", "100 €", "80 €", "200 €"], "reponse": 0 },
-      { "evalue": "compréhension", "q": "Pourquoi dit-on que c'est le consommateur final qui supporte la TVA ?", "choix": ["Elle est incluse dans le prix qu'il paie, et il ne peut pas la récupérer", "Parce que l'usine la paie à sa place", "Parce que personne ne la paie", "Parce que la banque la rembourse"], "reponse": 0 },
-      { "evalue": "application", "q": "Un article est affiché 60 € TTC avec une TVA de 20 %. Quel est son prix hors taxe ?", "choix": ["50 €", "48 €", "72 €", "40 €"], "reponse": 0 }
+      {"evalue":"application","q":"Un objet coûte 100 € hors taxe avec une TVA de 20 %. Son prix TTC est…","choix":["120 €","100 €","80 €","200 €"],"reponse":0},
+      {"evalue":"compréhension","q":"Pourquoi dit-on que c'est le consommateur final qui supporte la TVA ?","choix":["Elle est dans le prix qu'il paie, et il ne peut pas la récupérer","L'usine la paie entièrement à sa place","Le magasin la rembourse au client chaque mois, sur son ticket de caisse","Personne ne la paie vraiment, elle s'annule"],"reponse":0},
+      {"evalue":"application","q":"Un article est affiché 60 € TTC avec une TVA de 20 %. Quel est son prix hors taxe ?","choix":["50 €","48 €","72 €","40 €"],"reponse":0}
     ],
-    "transfert": { "situation": "Une entreprise achète un ordinateur 1 200 € TTC (TVA 20 %) pour son activité.", "question": "Quel est le prix hors taxe, et pourquoi l'entreprise s'intéresse-t-elle surtout à ce montant ?", "attendu": "1 000 € HT ; l'entreprise peut en général récupérer la TVA payée, son coût réel est donc le prix hors taxe." },
-    "rappel": [
-      { "evalue": "restitution", "q": "TTC veut dire…", "choix": ["toutes taxes comprises", "taxe très chère", "total temporaire", "tarif type commerce"], "reponse": 0 },
-      { "evalue": "restitution", "q": "« Hors taxe » signifie…", "choix": ["le prix avant ajout de la TVA", "le prix avec la TVA", "un prix gratuit", "un prix soldé"], "reponse": 0 },
-      { "evalue": "restitution", "q": "La TVA est une taxe sur…", "choix": ["la consommation", "les salaires uniquement", "les maisons uniquement", "les voitures uniquement"], "reponse": 0 },
-      { "evalue": "application", "q": "Avec 20 % de TVA, 50 € HT deviennent…", "choix": ["60 €", "70 €", "50 €", "55 €"], "reponse": 0 }
-    ],
+    "transfert": {"situation":"Une entreprise achète un ordinateur 1 200 € TTC (TVA 20 %) pour son activité.","question":"Quel est le prix hors taxe, et pourquoi l'entreprise s'intéresse-t-elle surtout à ce montant ?","attendu":"1 000 € HT ; l'entreprise peut en général récupérer la TVA payée, son coût réel est donc le prix hors taxe."},
     "deblocage": [
-      { "evalue": "application", "q": "Un livre coûte 10 € HT avec une TVA de 5,5 %. Combien paie le client ?", "choix": ["10,55 €", "15,50 €", "10,05 €", "12 €"], "reponse": 0 },
-      { "evalue": "compréhension", "q": "Pourquoi deux magasins qui affichent le même prix TTC payent-ils la même TVA sur cet article ?", "choix": ["Le taux est le même, donc la part de taxe incluse dans le prix aussi", "Parce qu'ils sont dans la même rue", "Parce qu'ils ne paient pas de TVA", "Ce n'est pas vrai"], "reponse": 0 }
+      {"evalue":"application","q":"Un livre coûte 10 € HT avec une TVA de 5,5 %. Combien paie le client ?","choix":["10,55 €","15,50 €","10,05 €","12 €"],"reponse":0,"criteres":{"raison":"5,5 % de 10 € = 0,55 € ; le client paie le prix hors taxe plus la TVA : 10 + 0,55 = 10,55 €.","juste":"5,5 % de 10, c'est 0,55, que j'ajoute aux 10 €.","insuffisant":"J'ai fait le calcul.","faux":"On ajoute 0,55 € parce que la TVA des livres est toujours de 55 centimes."}},
+      {"evalue":"compréhension","q":"Pourquoi deux magasins qui affichent le même prix TTC payent-ils la même TVA sur cet article ?","choix":["Même taux, donc même part de taxe incluse","Parce qu'ils sont situés dans la même ville","Parce que les magasins ne paient jamais de TVA","Ce n'est pas vrai : chaque magasin fixe sa TVA"],"reponse":0,"criteres":{"raison":"La TVA est un pourcentage fixé par la loi selon le produit : à prix TTC égal et taux égal, la part de TVA incluse est la même.","juste":"Le taux est le même pour tout le monde, donc dans le même prix il y a la même TVA.","insuffisant":"Parce que c'est la loi.","faux":"Parce que les deux magasins ont le même fournisseur."}}
     ],
-    "reformulation": { "idee_centrale": "La TVA est une taxe ajoutée au prix hors taxe ; c'est le consommateur final qui la paie dans le prix TTC.", "elements_cles": ["HT + TVA = TTC", "payée au final par le consommateur"] }
+    "rappel": [
+      {"evalue":"restitution","q":"TTC veut dire…","choix":["toutes taxes comprises","taxe très chère","tarif toujours constant","total temporaire calculé"],"reponse":0},
+      {"evalue":"restitution","q":"« Hors taxe » signifie…","choix":["le prix avant ajout de la TVA","le prix TVA ajoutée","un prix sans aucun bénéfice","un prix soldé"],"reponse":0},
+      {"evalue":"restitution","q":"La TVA est une taxe sur…","choix":["la consommation","les salaires uniquement","les maisons uniquement","les bénéfices des entreprises"],"reponse":0},
+      {"evalue":"application","q":"Avec 20 % de TVA, 50 € HT deviennent…","choix":["60 €","70 €","50 €","55 €"],"reponse":0}
+    ],
+    "reformulation": {"idee_centrale":"La TVA est une taxe ajoutée au prix hors taxe ; c'est le consommateur final qui la paie dans le prix TTC.","elements_cles":["HT + TVA = TTC","payée au final par le consommateur"]}
   },
   {
-    "id": "S18", "sujet": "Le contrat de travail", "domaine": "droit",
-    "glossaire": ["contrat de travail", "employeur", "salarié", "CDI", "CDD", "période d'essai", "rupture"],
+    "id": "S18",
+    "sujet": "Le contrat de travail",
+    "domaine": "droit",
+    "glossaire": ["contrat de travail","employeur","salarié","CDI","CDD","période d'essai","rupture"],
     "comprehension": [
-      { "evalue": "compréhension", "q": "Pourquoi une entreprise propose-t-elle un CDD plutôt qu'un CDI pour un besoin de quelques mois ?", "choix": ["Le CDD prévoit sa fin (date ou événement), adaptée à un besoin temporaire", "Parce que le CDD n'a pas de salaire", "Parce que le CDI est interdit", "Parce que le CDD n'a pas de règles"], "reponse": 0 },
-      { "evalue": "compréhension", "q": "À quoi sert la période d'essai, pour le salarié comme pour l'employeur ?", "choix": ["Vérifier que le poste convient, avec une rupture plus simple pendant cette période", "Travailler sans salaire", "Prolonger les vacances", "Changer de métier"], "reponse": 0 },
-      { "evalue": "application", "q": "Un salarié en CDI veut démissionner. Que doit-il en général respecter ?", "choix": ["Un préavis prévu par le contrat, la convention ou l'usage", "Rien du tout, il part le jour même dans tous les cas", "Il ne peut jamais démissionner", "Il doit payer son employeur"], "reponse": 0 }
+      {"evalue":"compréhension","q":"Pourquoi une entreprise propose-t-elle un CDD plutôt qu'un CDI pour un besoin de quelques mois ?","choix":["Le CDD a une fin prévue, adaptée à un besoin temporaire","Le CDD permet de payer le salarié moins que le salaire minimum","Le CDI est interdit pour les besoins de moins d'un an","Le CDD n'impose aucune règle à l'employeur"],"reponse":0},
+      {"evalue":"compréhension","q":"À quoi sert la période d'essai, pour le salarié comme pour l'employeur ?","choix":["Vérifier que le poste convient, avec une rupture plus simple","Faire travailler le salarié sans le payer au début","Former le salarié, sans contrat, avant de signer le vrai contrat de travail","Permettre à l'employeur seul de changer le salaire"],"reponse":0},
+      {"evalue":"application","q":"Un salarié en CDI veut démissionner. Que doit-il en général respecter ?","choix":["Un préavis, selon la convention, l'usage ou le contrat","Rien : il peut toujours partir le jour même","Il doit obtenir l'accord écrit de son employeur et de l'inspection du travail","Il doit rembourser sa formation à l'employeur"],"reponse":0}
     ],
-    "transfert": { "situation": "Une entreprise embauche une personne pour remplacer une salariée en congé maternité pendant six mois.", "question": "Quel type de contrat est le plus adapté, et pourquoi ?", "attendu": "Un CDD (de remplacement) : le besoin est temporaire, avec une fin prévisible, le retour de la salariée." },
-    "rappel": [
-      { "evalue": "restitution", "q": "CDI signifie…", "choix": ["contrat à durée indéterminée", "contrat de durée imposée", "contrat d'insertion", "contrat de droit international"], "reponse": 0 },
-      { "evalue": "restitution", "q": "Pendant la période d'essai, la rupture du contrat est…", "choix": ["plus simple qu'après", "interdite", "automatique", "payante"], "reponse": 0 },
-      { "evalue": "restitution", "q": "Un CDD prend fin…", "choix": ["à la date ou à l'événement prévu", "jamais", "au bout d'un jour", "quand le salarié le décide seul"], "reponse": 0 },
-      { "evalue": "application", "q": "Un magasin embauche des vendeurs supplémentaires pour les fêtes de fin d'année. Quel contrat est le plus adapté ?", "choix": ["Un CDD", "Un CDI", "Aucun contrat", "Un contrat de vente"], "reponse": 0 }
-    ],
+    "transfert": {"situation":"Une entreprise embauche une personne pour remplacer une salariée en congé maternité pendant six mois.","question":"Quel type de contrat est le plus adapté, et pourquoi ?","attendu":"Un CDD (de remplacement) : le besoin est temporaire, avec une fin prévisible, le retour de la salariée."},
     "deblocage": [
-      { "evalue": "application", "q": "Une boulangerie embauche quelqu'un pour un poste permanent, sans date de fin. Quel contrat est le plus adapté ?", "choix": ["Un CDI", "Un CDD de 2 jours", "Aucun contrat", "Un contrat de location"], "reponse": 0 },
-      { "evalue": "compréhension", "q": "Pourquoi un CDD doit-il préciser sa fin, par une date ou un événement ?", "choix": ["Parce qu'il répond à un besoin temporaire dont on doit connaître le terme", "Pour que le salarié ne soit jamais payé", "Parce que c'est un contrat sans règles", "Ce n'est pas nécessaire"], "reponse": 0 }
+      {"evalue":"application","q":"Une boulangerie embauche quelqu'un pour un poste permanent, sans date de fin. Quel contrat est le plus adapté ?","choix":["Un CDI","Un CDD renouvelé chaque mois","Un contrat de prestation","Aucun contrat écrit"],"reponse":0,"criteres":{"raison":"Le poste est permanent, sans fin prévue : c'est la situation du CDI ; le CDD est réservé aux besoins temporaires.","juste":"Le poste ne s'arrête pas, il n'y a pas de fin prévue : c'est un CDI.","insuffisant":"Un CDI, c'est le plus normal.","faux":"Un CDI, parce que le CDD est réservé aux étudiants."}},
+      {"evalue":"compréhension","q":"Pourquoi un CDD doit-il préciser sa fin, par une date ou un événement ?","choix":["Il répond à un besoin temporaire, qui a un terme","Pour que le salarié ne soit payé qu'à la fin","Pour qu'il puisse durer toute la vie du salarié","Ce n'est pas nécessaire pour un CDD"],"reponse":0,"criteres":{"raison":"Le CDD n'est permis que pour un besoin temporaire ; sa fin (une date, ou un événement comme le retour d'une personne remplacée) doit donc être prévue.","juste":"C'est pour un besoin qui ne dure pas, donc on doit savoir quand ça s'arrête, par une date ou un événement.","insuffisant":"Parce que c'est un CDD.","faux":"Pour savoir quand on paie le salarié."}}
     ],
-    "reformulation": { "idee_centrale": "Le contrat de travail fixe la relation entre employeur et salarié ; le CDD a une fin prévue (date ou événement), le CDI non, et la période d'essai permet de vérifier que le poste convient.", "elements_cles": ["CDD temporaire avec une fin prévue, CDI sans fin prévue", "rôle de la période d'essai"] }
+    "rappel": [
+      {"evalue":"restitution","q":"CDI signifie…","choix":["contrat à durée indéterminée","contrat à durée imposée","contrat de droit international","contrat d'insertion"],"reponse":0},
+      {"evalue":"restitution","q":"Pendant la période d'essai, la rupture du contrat est…","choix":["plus simple qu'après","interdite aux deux parties","automatique au bout d'un mois","payante pour le salarié"],"reponse":0},
+      {"evalue":"restitution","q":"Un CDD prend fin…","choix":["à la date ou à l'événement prévu","jamais, sauf démission","quand le salarié le décide seul","au bout de six mois, toujours"],"reponse":0},
+      {"evalue":"application","q":"Un magasin embauche des vendeurs supplémentaires pour les fêtes de fin d'année. Quel contrat est le plus adapté ?","choix":["Un CDD","Un CDI","Un contrat de vente","Aucun contrat"],"reponse":0}
+    ],
+    "reformulation": {"idee_centrale":"Le contrat de travail fixe la relation entre employeur et salarié ; le CDD a une fin prévue (date ou événement), le CDI non, et la période d'essai permet de vérifier que le poste convient.","elements_cles":["CDD temporaire avec une fin prévue, CDI sans fin prévue","rôle de la période d'essai"]}
   },
   {
-    "id": "S19", "sujet": "Le RGPD", "domaine": "droit, numérique",
-    "glossaire": ["RGPD", "donnée personnelle", "consentement", "responsable de traitement", "droit d'accès", "droit à l'effacement"],
+    "id": "S19",
+    "sujet": "Le RGPD",
+    "domaine": "droit, numérique",
+    "glossaire": ["RGPD","donnée personnelle","consentement","responsable de traitement","droit d'accès","droit à l'effacement"],
     "comprehension": [
-      { "evalue": "application", "q": "Lequel de ces éléments est une donnée personnelle ?", "choix": ["Une adresse e-mail au nom d'une personne", "La température du jour", "Le prix d'un pain", "Le nom d'une ville seule"], "reponse": 0 },
-      { "evalue": "compréhension", "q": "Pourquoi une organisation doit-elle indiquer à quoi serviront les données qu'elle collecte ?", "choix": ["Pour que la personne sache comment elles sont utilisées et puisse exercer ses droits", "Pour faire de la publicité", "Ce n'est pas obligatoire", "Pour payer moins d'impôts"], "reponse": 0 },
-      { "evalue": "application", "q": "Un client demande à un magasin quelles informations il détient sur lui. De quel droit s'agit-il ?", "choix": ["Le droit d'accès", "Le droit à l'image", "Le droit de grève", "Le droit de propriété"], "reponse": 0 }
+      {"evalue":"application","q":"Lequel de ces éléments est une donnée personnelle ?","choix":["Une adresse e-mail au nom d'une personne","La température moyenne du jour à Lyon","Le prix moyen d'une baguette de pain dans toute la France","Le nombre d'habitants d'une ville"],"reponse":0},
+      {"evalue":"compréhension","q":"Pourquoi une organisation doit-elle indiquer à quoi serviront les données qu'elle collecte ?","choix":["Pour qu'elle sache leur usage et puisse exercer ses droits","Pour pouvoir ensuite les utiliser librement pour tout autre usage","Ce n'est pas obligatoire, c'est seulement une politesse","Pour pouvoir les revendre plus cher à d'autres entreprises"],"reponse":0},
+      {"evalue":"application","q":"Un client demande à un magasin quelles informations il détient sur lui. De quel droit s'agit-il ?","choix":["Le droit d'accès","Le droit à l'image","Le droit de rectification","Le droit de propriété"],"reponse":0}
     ],
-    "transfert": { "situation": "Une boulangerie demande l'adresse e-mail de ses clients pour leur envoyer une carte de fidélité numérique.", "question": "Que doit-elle faire pour respecter le RGPD ?", "attendu": "Dire à quoi servira l'adresse et ne l'utiliser que pour ce but ; pour un autre usage (publicité par exemple), en informer les clients et respecter leur droit de refuser ; protéger les données ; répondre aux demandes d'accès ou de suppression." },
-    "rappel": [
-      { "evalue": "restitution", "q": "Le RGPD protège…", "choix": ["les données personnelles", "les prix", "les brevets", "les routes"], "reponse": 0 },
-      { "evalue": "restitution", "q": "Le droit à l'effacement permet de…", "choix": ["demander la suppression de ses données", "effacer une facture", "supprimer un site", "oublier son mot de passe"], "reponse": 0 },
-      { "evalue": "restitution", "q": "Une donnée personnelle permet…", "choix": ["d'identifier une personne, directement ou non", "de calculer un prix", "de mesurer la météo", "de rien"], "reponse": 0 },
-      { "evalue": "application", "q": "Une salle de sport garde le numéro de téléphone de ses membres pour les prévenir d'une fermeture. Peut-elle le vendre à une autre entreprise sans les en informer ?", "choix": ["Non, ce n'est pas le but annoncé et les personnes doivent être informées", "Oui, elle en fait ce qu'elle veut", "Oui, si le numéro est court", "Oui, seulement le dimanche"], "reponse": 0 }
-    ],
+    "transfert": {"situation":"Une boulangerie demande l'adresse e-mail de ses clients pour leur envoyer une carte de fidélité numérique.","question":"Que doit-elle faire pour respecter le RGPD ?","attendu":"Dire à quoi servira l'adresse et ne l'utiliser que pour ce but ; pour un autre usage (publicité par exemple), en informer les clients et respecter leur droit de refuser ; protéger les données ; répondre aux demandes d'accès ou de suppression."},
     "deblocage": [
-      { "evalue": "application", "q": "Un site collecte la date de naissance pour « vérifier l'âge ». Peut-il ensuite l'utiliser librement pour autre chose ?", "choix": ["Non, pas sans respecter les règles : informer et avoir une base légale pour ce nouvel usage", "Oui, librement", "Oui, si personne ne le remarque", "Seulement si la date est ancienne"], "reponse": 0 },
-      { "evalue": "compréhension", "q": "Pourquoi une liste de numéros de clients est-elle une donnée personnelle, même sans les noms ?", "choix": ["Un numéro de téléphone permet souvent de retrouver la personne", "Parce que les chiffres sont secrets", "Ce n'est pas une donnée personnelle", "Parce que la liste est longue"], "reponse": 0 }
+      {"evalue":"application","q":"Un site collecte la date de naissance pour « vérifier l'âge ». Peut-il ensuite l'utiliser librement pour autre chose ?","choix":["Non : un nouvel usage doit être annoncé et justifié","Oui, une fois collectée, elle peut servir à tout ce que le site veut","Oui, à condition que personne ne s'en aperçoive","Oui, si le site supprime la donnée au bout d'un an"],"reponse":0,"criteres":{"raison":"Les données ne servent qu'au but annoncé ; un autre usage demande d'informer la personne et d'avoir une base légale (par exemple son consentement).","juste":"Non, on l'a donnée pour vérifier l'âge, pas pour autre chose ; pour un autre usage il faut prévenir et en avoir le droit.","insuffisant":"Non, c'est interdit.","faux":"Non, parce qu'une date de naissance n'est jamais utile."}},
+      {"evalue":"compréhension","q":"Pourquoi une liste de numéros de clients est-elle une donnée personnelle, même sans les noms ?","choix":["Un numéro permet souvent de retrouver la personne","Parce que les chiffres d'un numéro sont secrets","Parce que la liste contient plus de cent numéros","Ce n'en est pas une, puisqu'il n'y a pas de nom"],"reponse":0,"criteres":{"raison":"Une donnée est personnelle si elle permet d'identifier quelqu'un, même indirectement : un numéro de téléphone mène à une personne précise.","juste":"Avec un numéro on peut retrouver qui c'est, même sans le nom.","insuffisant":"Parce que c'est privé.","faux":"Parce que tous les chiffres sont des données personnelles."}}
     ],
-    "reformulation": { "idee_centrale": "Le RGPD encadre l'usage des données qui identifient une personne : on doit l'informer, n'utiliser ses données que pour un but annoncé et légitime, et respecter ses droits.", "elements_cles": ["données qui identifient une personne, directement ou non", "information et droits (accès, effacement)"] }
+    "rappel": [
+      {"evalue":"restitution","q":"Le RGPD protège…","choix":["les données personnelles","les prix des produits","les brevets des inventions","les logiciels des entreprises"],"reponse":0},
+      {"evalue":"restitution","q":"Le droit à l'effacement permet de…","choix":["demander la suppression de ses données","effacer une facture impayée","supprimer l'historique de son ordinateur à distance","faire oublier son mot de passe"],"reponse":0},
+      {"evalue":"restitution","q":"Une donnée personnelle permet…","choix":["d'identifier une personne, directement ou non","de calculer le prix d'un produit","de prévoir la météo locale","de mesurer, sans savoir qui, l'audience globale d'un site"],"reponse":0},
+      {"evalue":"application","q":"Une salle de sport garde le numéro de téléphone de ses membres pour les prévenir d'une fermeture. Peut-elle le vendre à une autre entreprise sans les en informer ?","choix":["Non : ce n'est pas l'usage annoncé aux membres","Oui, une fois collectées, les données lui appartiennent","Oui, si l'entreprise acheteuse est dans la même ville","Oui, à condition de ne pas vendre les noms avec"],"reponse":0}
+    ],
+    "reformulation": {"idee_centrale":"Le RGPD encadre l'usage des données qui identifient une personne : on doit l'informer, n'utiliser ses données que pour un but annoncé et légitime, et respecter ses droits.","elements_cles":["données qui identifient une personne, directement ou non","information et droits (accès, effacement)"]}
   },
   {
-    "id": "S20", "sujet": "La chaîne du froid", "domaine": "hygiène",
-    "glossaire": ["chaîne du froid", "denrée périssable", "température", "rupture de la chaîne du froid", "bactérie", "décongélation"],
+    "id": "S20",
+    "sujet": "La chaîne du froid",
+    "domaine": "hygiène",
+    "glossaire": ["chaîne du froid","denrée périssable","température","rupture de la chaîne du froid","bactérie","décongélation"],
     "comprehension": [
-      { "evalue": "compréhension", "q": "Pourquoi garde-t-on la viande au froid ?", "choix": ["Le froid ralentit le développement de la plupart des bactéries", "Le froid tue toutes les bactéries", "Pour qu'elle soit plus lourde", "Pour changer son goût"], "reponse": 0 },
-      { "evalue": "compréhension", "q": "Pourquoi ne recongèle-t-on pas un produit décongelé tel quel, sans l'avoir cuit ?", "choix": ["Les bactéries ont pu se multiplier pendant la décongélation, et le froid ne les détruit pas", "Il deviendrait trop dur", "Il changerait de couleur", "C'est seulement une question de goût"], "reponse": 0 },
-      { "evalue": "application", "q": "Au supermarché, quand vaut-il mieux prendre les surgelés et les produits frais ?", "choix": ["À la fin des courses, juste avant de payer", "Au début des courses", "N'importe quand, cela ne change rien", "Après être passé à la voiture"], "reponse": 0 }
+      {"evalue":"compréhension","q":"Pourquoi garde-t-on la viande au froid ?","choix":["Le froid ralentit la plupart des bactéries","Le froid tue toutes les bactéries présentes","Le froid garde le goût de la viande intact","Le froid empêche la viande de sécher à l'air"],"reponse":0},
+      {"evalue":"compréhension","q":"Pourquoi ne recongèle-t-on pas un produit décongelé tel quel, sans l'avoir cuit ?","choix":["Les bactéries ont pu se multiplier ; le froid ne les tuera pas","Le produit deviendrait trop dur une fois recongelé","Il changerait de couleur et serait moins appétissant","Le congélateur ne peut pas refroidir correctement un produit qui est déjà froid"],"reponse":0},
+      {"evalue":"application","q":"Au supermarché, quand vaut-il mieux prendre les surgelés et les produits frais ?","choix":["À la fin des courses, juste avant de payer","Au début des courses, quand on a le plus de place","N'importe quand : quelques minutes ne changent rien","Après avoir rangé les autres sacs dans la voiture"],"reponse":0}
     ],
-    "transfert": { "situation": "Après les courses, des surgelés restent deux heures dans le coffre d'une voiture en plein été.", "question": "Quel est le risque, et que faut-il faire ?", "attendu": "Ils ont pu commencer à décongeler (rupture de la chaîne du froid), et les bactéries se multiplient : il ne faut pas les recongeler tels quels ; en cas de doute sur leur température, il faut les jeter." },
-    "rappel": [
-      { "evalue": "restitution", "q": "Quel est l'effet du froid sur la plupart des bactéries des aliments ?", "choix": ["Il les ralentit", "Il les tue toutes", "Il n'a aucun effet", "Il les nourrit"], "reponse": 0 },
-      { "evalue": "restitution", "q": "Un produit décongelé, non cuit, doit être…", "choix": ["consommé rapidement, sans être recongelé tel quel", "recongelé aussitôt", "laissé au soleil", "gardé un mois"], "reponse": 0 },
-      { "evalue": "restitution", "q": "La chaîne du froid concerne…", "choix": ["tout le trajet du produit, de la fabrication à l'assiette", "seulement le congélateur de la maison", "seulement le magasin", "seulement le camion"], "reponse": 0 },
-      { "evalue": "application", "q": "Ton réfrigérateur est resté ouvert toute la nuit. Que faire du poisson frais qu'il contenait ?", "choix": ["Ne pas prendre de risque : s'il est resté au chaud, le jeter", "Le recongeler aussitôt", "Le manger cru le jour même", "Le laisser encore une journée"], "reponse": 0 }
-    ],
+    "transfert": {"situation":"Après les courses, des surgelés restent deux heures dans le coffre d'une voiture en plein été.","question":"Quel est le risque, et que faut-il faire ?","attendu":"Ils ont pu commencer à décongeler (rupture de la chaîne du froid), et les bactéries se multiplient : il ne faut pas les recongeler tels quels ; en cas de doute sur leur température, il faut les jeter."},
     "deblocage": [
-      { "evalue": "application", "q": "Pour un pique-nique d'été, comment transporter des salades au poulet ?", "choix": ["Dans un sac isotherme avec des pains de glace", "Dans un sac ordinaire au soleil", "Dans le coffre sans précaution", "Peu importe, c'est cuit"], "reponse": 0 },
-      { "evalue": "compréhension", "q": "Pourquoi cuire un produit décongelé permet-il ensuite de le congeler à nouveau ?", "choix": ["La cuisson détruit une grande partie des bactéries qui se sont multipliées", "Parce que la cuisson rend l'aliment plus froid", "Parce qu'un plat cuit ne contient jamais de bactéries", "On ne peut jamais"], "reponse": 0 }
+      {"evalue":"application","q":"Pour un pique-nique d'été, comment transporter des salades au poulet ?","choix":["Dans un sac isotherme avec des pains de glace","Dans un sac ordinaire, à l'ombre si possible","Dans le coffre, puisque le trajet est court","Comme on veut : le poulet cuit ne craint rien"],"reponse":0,"criteres":{"raison":"Ces salades sont périssables : le froid doit être maintenu pendant tout le trajet, sinon les bactéries se multiplient, même dans un aliment cuit.","juste":"Il faut que ça reste froid tout le temps, sinon les bactéries se développent, même si le poulet est cuit.","insuffisant":"Pour que ce soit frais.","faux":"Pour que la mayonnaise ne fonde pas."}},
+      {"evalue":"compréhension","q":"Pourquoi cuire un produit décongelé permet-il ensuite de le congeler à nouveau ?","choix":["La cuisson détruit la plupart des bactéries apparues","La cuisson refroidit l'aliment plus vite ensuite","Un plat cuit ne contient plus jamais de bactéries","On ne peut jamais recongeler un aliment, même cuit"],"reponse":0,"criteres":{"raison":"Pendant la décongélation, des bactéries se sont multipliées ; une cuisson suffisante en détruit la plupart, et on repart d'un plat sain qu'on peut congeler.","juste":"En cuisant, on tue les bactéries qui se sont développées, donc on peut congeler le plat cuit.","insuffisant":"Parce que c'est cuit.","faux":"Parce que le plat cuit est plus froid."}}
     ],
-    "reformulation": { "idee_centrale": "Un produit périssable doit rester au froid sans interruption de sa fabrication à sa consommation, car le froid ralentit les bactéries sans les tuer.", "elements_cles": ["froid continu sur tout le trajet", "rupture = les bactéries se multiplient"] }
+    "rappel": [
+      {"evalue":"restitution","q":"Quel est l'effet du froid sur la plupart des bactéries des aliments ?","choix":["Il les ralentit","Il les tue toutes","Il les rend plus fortes","Il n'a aucun effet sur elles"],"reponse":0},
+      {"evalue":"restitution","q":"Un produit décongelé, non cuit, doit être…","choix":["consommé rapidement, sans être recongelé tel quel","recongelé aussitôt pour stopper les bactéries","gardé au réfrigérateur encore une semaine au moins, sans risque","laissé à température ambiante pour finir"],"reponse":0},
+      {"evalue":"restitution","q":"La chaîne du froid concerne…","choix":["tout le trajet, de la fabrication à l'assiette","seulement le congélateur de la maison","seulement le transport, dans le camion frigorifique du livreur","seulement la vitrine du magasin"],"reponse":0},
+      {"evalue":"application","q":"Ton réfrigérateur est resté ouvert toute la nuit. Que faire du poisson frais qu'il contenait ?","choix":["Le jeter s'il est resté au chaud","Le recongeler aussitôt pour le sauver","Le manger cru le jour même, vite","Le remettre au frais et le garder deux jours de plus"],"reponse":0}
+    ],
+    "reformulation": {"idee_centrale":"Un produit périssable doit rester au froid sans interruption de sa fabrication à sa consommation, car le froid ralentit les bactéries sans les tuer.","elements_cles":["froid continu sur tout le trajet","rupture = les bactéries se multiplient"]}
   }
 ]

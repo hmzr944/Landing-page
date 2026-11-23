@@ -1,9 +1,9 @@
 # Mission 3a : protocole de mesure pédagogique
 
-**Statut (2026-11-22) :** seconde version, corrigée après la relecture du 2026-11-22. Les 20 sujets et les 3 procédures
+**Statut (2026-11-23) :** troisième version, corrigée après les relectures du 2026-11-22 et du 2026-11-23. Les 20 sujets et les 3 procédures
 sont validés. Le jeu de mesure (`docs/pedagogie/jeu-de-mesure.md`, version lisible de `jeu-de-mesure.json`), les grilles
 (`docs/pedagogie/grille-reformulation.md`) et ce protocole sont **à valider avant toute mesure**. Le détail des
-corrections est dans `docs/pedagogie/corrections-3a-2026-11-22.md`. Aucune modification du moteur pédagogique ; aucune
+corrections est dans `docs/pedagogie/corrections-3a-2026-11-22.md` puis `docs/pedagogie/corrections-3a-2026-11-23.md`. Aucune modification du moteur pédagogique ; aucune
 mesure lancée, ni technique ni avec des participants.
 
 **But :** mesurer, avant toute modification du moteur, ce que l'explication actuelle d'Arbor permet réellement :
@@ -25,17 +25,30 @@ Pour chaque élément (questions à 4 choix, ordre des choix mélangé avec une 
 - 5 à 10 **termes techniques** à repérer (glossaire, pour A2) ;
 - 3 **questions de compréhension immédiate** (B1), dont **au moins 2 d'application ou de compréhension** ;
 - 1 **situation de transfert** (B3), différente de tout exemple du jeu, avec la réponse attendue ;
-- 2 **questions de déblocage** (B4), préparées à l'avance : 1 d'application, 1 de compréhension ;
+- 2 **questions de déblocage** (B4), préparées à l'avance (sujets : 1 d'application, 1 de compréhension ; procédures :
+  2 d'application), chacune avec ses critères de notation de la justification ;
 - 4 **questions de rappel à J+2** (B5) : 3 de restitution (mesure de mémorisation) et 1 d'application ;
 - l'idée centrale et les 2 éléments clés de la **reformulation** (B2).
 
 Chaque question porte un classement explicite (« evalue » : application, compréhension ou restitution), écrit dans
 les sources et relu, jamais deviné par un programme. Les règles de composition sont vérifiées par
-`tests/jeu-de-mesure.js` (contrôles A1 à A15).
+`tests/jeu-de-mesure.js` (contrôles J1 à J29, nommés J pour ne pas les confondre avec les mesures A1 à A6 de la
+partie A).
 
-**Biais connu, non corrigé dans cette version :** dans 167 questions sur 207, la bonne réponse est le choix le plus
-long. Un participant qui choisit toujours la réponse la plus longue aurait un score élevé sans rien comprendre. Ce
-défaut est à corriger (allonger ou préciser les mauvaises réponses) avant toute mesure ; voir le récapitulatif.
+**Procédures métier :** chaque question, et chaque situation de transfert, cite la phrase de la procédure qui
+justifie la bonne réponse ; un contrôle vérifie que la phrase existe mot pour mot dans la procédure. Aucune raison
+non écrite dans la procédure n'est attendue : les questions « pourquoi » ont été remplacées par des questions
+d'application.
+
+**Biais de longueur, corrigé le 2026-11-23 :** la bonne réponse était le choix le plus long dans 167 questions sur
+207. Les choix ont été réécrits : elle l'est maintenant dans 26 questions (12,6 %) et elle est la plus courte dans 49
+(23,7 %), pour environ 25 % attendus au hasard. Des contrôles automatiques (J16 à J20) empêchent le biais de revenir,
+ou de s'inverser. Le tableau « Bilan : longueur des réponses » de `jeu-de-mesure.md` donne les chiffres par bloc.
+
+**Cohérence vérifiée automatiquement :** une question « pourquoi » est classée compréhension, une phrase à compléter
+sans cas chiffré est classée restitution, une question de décision (« Que fais-tu ? ») est classée application ; 30
+réponses chiffrées sont recalculées (calculs, seuils des procédures) ; aucune bonne réponse n'est répétée dans un même
+élément (J21 à J29).
 
 ## 2. Partie A : mesures techniques
 On mesure les trois chemins actuels : sujet libre sans compte (fiche Wikipédia, `course.js`), sujet libre avec le
@@ -87,7 +100,7 @@ contrôle manuel (2.3) montre qu'elle est fiable.
 | B1 Compréhension immédiate | les 3 questions préparées, juste après l'explication | sur 3 |
 | B2 Reformulation | « explique-le à un ami, avec tes mots », écrit ou oral transcrit, noté par **deux correcteurs indépendants, en aveugle**, avec `grille-reformulation.md` (partie 1) | sur 8, avec l'accord entre correcteurs : % d'accord exact et kappa pondéré quadratique, calculés sur les notes individuelles avant toute discussion |
 | B3 Transfert | la situation nouvelle préparée à l'avance, réponse libre notée par les deux correcteurs | sur 2 |
-| B4 Déblocage | si B1 < 2 sur 3 ou si la personne se dit bloquée : seconde explication d'Arbor (aujourd'hui, l'indice de Pousse), puis les 2 questions de déblocage préparées, chacune avec une phrase de justification | débloqué, partiellement débloqué ou non débloqué (`grille-reformulation.md`, partie 2) ; % de personnes débloquées |
+| B4 Déblocage | si B1 < 2 sur 3 ou si la personne se dit bloquée, **après B2 et B3** : seconde explication d'Arbor (aujourd'hui, l'indice de Pousse), puis les 2 questions de déblocage préparées, chacune avec une phrase de justification | chaque question notée 0, 1 ou 2 avec ses critères écrits ; somme sur 4 : débloqué (3-4), partiellement (2), non débloqué (0-1) (`grille-reformulation.md`, partie 2) ; % de personnes débloquées |
 | B5 Rappel à 2 jours | 4 questions : 3 de restitution (mémorisation) et 1 d'application | mémorisation sur 3 et application sur 1, rapportées séparément |
 | B6 Ressenti (secondaire) | clarté perçue de 1 à 5, et mots non compris cités par la personne | brut |
 
@@ -193,7 +206,7 @@ soient comparés sur des sujets, des domaines et des positions équilibrés.
 
 ## 7. Décisions attendues
 - Valider ou modifier les corrections (récapitulatif joint).
-- Correction du biais « réponse la plus longue » avant la mesure (proposé).
+- Valider les choix réécrits, les critères de déblocage et les appuis des procédures (récapitulatif du 2026-11-23).
 - Qui sont les deux correcteurs, les deux annotateurs de la partie A, et la personne qui garde la clé de
   correspondance.
 - Espace de stockage privé retenu, et contact à indiquer sur le formulaire.
