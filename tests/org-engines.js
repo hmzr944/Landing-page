@@ -153,7 +153,7 @@ const tasks = (t) => db.sent.filter((x) => x.path === '/functions/v1/tutor' && x
   {
     const { ctx, page } = await as('eve');
     await page.goto(`${URL0}#/org/${ORG}`); await wait(page, 900);
-    check('A1 un manager a la rubrique Développer (scénarios dans « Entraîner »)', !!(await page.$('.org-tabs a[href$="/developper"]')));
+    check('A1 un manager a l’espace Scenario Studio (scénarios)', !!(await page.$('.org-tabs a[href$="/studio"]')));
     await go(page, `#/org/${ORG}/scenarios`);
     await page.selectOption('#scKind', 'procedure'); await page.fill('#scBrief', 'Un client sans ticket');
     await page.click('#scForm button'); await wait(page, 900);

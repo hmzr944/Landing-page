@@ -42,7 +42,9 @@
     app.querySelector('#scForm').onsubmit = async (e) => {
       e.preventDefault();
       const msg = app.querySelector('#scMsg'); msg.textContent = 'Conception du scénario…';
-      try { const r = await srv({ task: 'scenario_concevoir', org: o.id, kind: app.querySelector('#scKind').value, brief: app.querySelector('#scBrief').value.trim() }, (m) => { msg.textContent = m; });
+      // Scenario Studio (Arbor 2) : tension de la situation (1 à 3) et compétence visée, si le formulaire les propose
+      const tn = app.querySelector('#scForm .tension input:checked'), skl = app.querySelector('#scSkill');
+      try { const r = await srv({ task: 'scenario_concevoir', org: o.id, kind: app.querySelector('#scKind').value, brief: app.querySelector('#scBrief').value.trim(), ...(tn ? { tension: Number(tn.value) } : {}), ...(skl && skl.value ? { skill: skl.value } : {}) }, (m) => { msg.textContent = m; });
         msg.textContent = ''; review(app, o, head, r.version, r.spec, r.title); }
       catch (x) {
         if (/connaissances validées/.test(x.message)) msg.innerHTML = `Il faut au moins 2 connaissances validées : Arbor ne conçoit un scénario qu’à partir de ce qui est vérifié. <a href="#/org/${o.id}/documents">Ajouter ou valider un document</a>`;

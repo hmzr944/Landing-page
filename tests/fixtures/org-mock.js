@@ -145,7 +145,7 @@ function handle(r) {
   if (p === '/rest/v1/knowledge_edges') return ok(db.edges.filter((e) => lead || e.status === 'valide'));
   if (p === '/rest/v1/sources') return ok([{ id: 'src1', title: 'Procédure retours', current_version: 2 }]);
   if (p === '/rest/v1/source_versions') return ok([{ id: 'v1', version: 1, page_count: 3 }, { id: 'v2', version: 2, page_count: 3 }]);
-  if (p === '/rest/v1/policy_changes') return ok(lead || me.role === 'expert' ? [{ id: 'ch1', status: 'ouvert', to_version_id: 'v2', created_at: iso(0), summary: { modifie: 1, supprime: 0, nouveau: 1, reformule: 0, inchange: 1, analysed: true } }] : []);
+  if (p === '/rest/v1/policy_changes') return ok(lead || me.role === 'expert' ? [{ id: 'ch1', source_id: 'src1', status: 'ouvert', to_version_id: 'v2', created_at: iso(0), summary: { modifie: 1, supprime: 0, nouveau: 1, reformule: 0, inchange: 1, analysed: true } }] : []);
   if (p === '/rest/v1/policy_change_items') return ok(db.items);
   if (p === '/rest/v1/invitations') return ok(r.method() === 'GET' ? [{ id: 'inv1', email: 'zoe@magasin.fr', role: 'member', expires_at: new Date(Date.now() + 6e8).toISOString(), created_at: iso(0) }].filter(() => u.searchParams.get('email')) : null);
   // Retours (migration 010) : écriture par la personne elle-même ; lecture par l'auteur et les responsables de l'organisation

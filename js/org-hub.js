@@ -18,7 +18,7 @@
   function dataState({ evs = [], ms = [], revals = [], radar = null }) {
     const people = new Set(evs.map((e) => e.user_id)).size;
     const open = (revals || []).filter((r) => r.status === 'requires_revalidation');
-    if (open.length) return { key: 'revalidation', icon: 'arrows-clockwise', title: 'Une procédure a changé', text: `${plural(new Set(open.map((r) => r.user_id)).size, 'personne')} doit revalider une compétence. Leurs preuves passées restent dans l’historique.`, action: ['Voir qui revalider', 'developper'] };
+    if (open.length) return { key: 'revalidation', icon: 'arrows-clockwise', title: 'Une procédure a changé', text: `${plural(new Set(open.map((r) => r.user_id)).size, 'personne')} doit revalider une compétence. Leurs preuves passées restent dans l’historique.`, action: ['Voir qui revalider', window.OrgChanges ? 'changements' : 'developper'] };
     if (!evs.length) return { key: 'vide', icon: 'plant', title: 'Votre radar d’équipe se prépare', text: 'Invitez vos collaborateurs et lancez les premiers diagnostics pour découvrir les compétences de votre équipe.', action: ['Inviter mon équipe', 'equipe'] };
     const enough = radar ? radar.blind.length > 0 || (radar.limits.people >= 2 && evs.length >= 3 && !radar.insufficient) : people >= 2 && evs.length >= 3;
     if (people < 2 || evs.length < 3) return { key: 'insuffisant', icon: 'plant', title: 'Premières réponses reçues', text: 'Il faut quelques réponses de plus, d’au moins deux personnes, avant de tirer une conclusion.', action: ['Proposer un diagnostic', 'apprendre/epreuve'] };
@@ -208,8 +208,9 @@
       <a href="#/org/${o.id}/savoir" ${cur === 'k' ? 'aria-current="page"' : ''}>${d.ic('seal-check', cur === 'k')}<span>Connaissances validées</span></a>${d.ic('caret-right')}
       <a href="#/org/${o.id}/competences" ${cur === 'skills' ? 'aria-current="page"' : ''}>${d.ic('target', cur === 'skills')}<span>Compétences</span></a>
     </nav>`;
-  function knowledge(app, o, head, deps, sub) {
+  function knowledge(app, o, head, deps, sub, bare) {
     d = deps;
+    if (bare) return OrgDocs.render(app, o, sub, d, head);
     const intro = sub ? '' : `<header class="pg-h"><div><h1>Base de savoir</h1><p>Les documents de référence de ${d.esc(o.name)} et les connaissances validées qui nourrissent le diagnostic, les simulations et les compétences.</p></div></header>`;
     return OrgDocs.render(app, o, sub, d, `${head}${intro}${pipe(o, sub ? 'k' : 'docs')}`);
   }

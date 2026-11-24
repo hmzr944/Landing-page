@@ -50,11 +50,11 @@ jobs:
       matrix:
         include:
           - groupe: student
-            suites: welcome onboarding student-path home-adaptive learning-flow foundations explore motion responsive fiche jeu-de-mesure
+            suites: welcome onboarding student-path home-adaptive learning-flow foundations explore motion responsive fiche jeu-de-mesure parcours learn
           - groupe: import
             suites: pdf-structure pdf-mixed data-safety engines corpus-metier benchmark
           - groupe: business
-            suites: org org-setup org-learn org-engines org-docs org-onboarding org-shell org-desktop org-insight
+            suites: org org-setup org-learn org-engines org-docs org-onboarding org-shell org-desktop org-insight org-changes desk2
           - groupe: serveur-simule
             suites: tutor ai-server league feedback
     steps:

@@ -62,12 +62,16 @@
       // résumé des observations (le détail est dans le journal) : nombre, succès, jours de rappel réussi, confusions
       ...(node.ev && typeof node.ev === 'object' ? { ev: { n: +node.ev.n || 0, ok: +node.ev.ok || 0, miss: +node.ev.miss || 0, last: +node.ev.last || 0, lastOkAt: +node.ev.lastOkAt || 0,
         recall: Array.isArray(node.ev.recall) ? node.ev.recall.filter((k) => /^\d{4}-\d{2}-\d{2}$/.test(k)).slice(-10) : [],
+        // Arbor 2 : jours de réussite en application et en transfert (4 = réponse construite)
+        ...Object.fromEntries(['app', 'app4', 'tr', 'tr4'].filter((k) => Array.isArray(node.ev[k])).map((k) => [k, node.ev[k].filter((x) => /^\d{4}-\d{2}-\d{2}$/.test(x)).slice(-10)])),
         ...(Array.isArray(node.ev.mis) ? { mis: node.ev.mis.slice(-5).map((m) => ({ label: String(m.label || '').slice(0, 120), at: +m.at || 0 })) } : {}) } } : {}),
       // passage d'origine dans le document importé : pages et extrait exact
       ...(node.src && Array.isArray(node.src.pages) ? { src: { pages: node.src.pages.filter((x) => Number.isInteger(x) && x > 0).slice(0, 12), quote: String(node.src.quote || '').slice(0, 300), doc: String(node.src.doc || '').slice(0, 120) } } : {}),
       ...(Array.isArray(node.objectives) && node.objectives.length ? { objectives: node.objectives.map(String).filter(Boolean).slice(0, 12) } : {}),
       // ce que dit le document en dehors du cours (évaluation, conseil, commentaire, annexe) : gardé à part, jamais appris
       ...(Array.isArray(node.context) && node.context.length ? { context: node.context.filter((c) => c && c.text && /^(evaluation|recommandation|commentaire|annexe)$/.test(c.kind)).slice(0, 40).map((c) => ({ kind: c.kind, ...(c.title ? { title: String(c.title).slice(0, 200) } : {}), text: String(c.text).slice(0, 4000), pages: (Array.isArray(c.pages) ? c.pages : []).filter((p) => Number.isInteger(p) && p > 0).slice(0, 12), ...(c.why ? { why: String(c.why).slice(0, 80) } : {}) })) } : {}),
+      // Arbor 2 : fiche pédagogique de la notion (contrôlée par FicheValidateur avant d'être servie)
+      ...(node.fiche && typeof node.fiche === 'object' && /^fiche-v[12]$/.test(node.fiche.format) ? { fiche: node.fiche } : {}),
       status: ['todo', 'doing', 'done'].includes(node.status) ? node.status : 'todo',
     });
     if (keepIds && ID.test(String(node.id || ''))) n.id = node.id;

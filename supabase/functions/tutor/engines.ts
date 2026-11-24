@@ -121,16 +121,27 @@ const SPEC_SCHEMA = { type: "object", additionalProperties: false,
     rubric: { type: "array", items: { type: "object", additionalProperties: false, required: ["id", "label"], properties: { id: estr, label: estr } } },
     opening: estr, knowledge: { type: "array", items: estr } } };
 
+/* Tension de la situation (Scenario Studio) : elle change la complexité réelle, pas seulement le ton */
+export const TENSION_RULES = [
+  "Tension 1 (standard) : une situation courante, une seule difficulté à la fois, une objection au plus, aucun événement de pression.",
+  "Tension 2 (sous pression) : un personnage exigeant ou pressé, 2 à 3 objections qui s'enchaînent, une contrainte de temps explicite, et au moins un événement qui ajoute de la pression (file d'attente, appel, client qui s'impatiente).",
+  "Tension 3 (cas limite) : la situation met en tension au moins deux connaissances validées (par exemple une règle de service et une règle de sécurité) ; la bonne conduite consiste à appliquer la règle prioritaire ou à escalader vers un responsable, et la grille de comportements doit l'observer. Si aucune tension réelle n'existe entre les connaissances fournies, construis le cas limite sur une information manquante qui impose d'escalader, sans inventer de règle.",
+];
 export async function scenarioDesign(ctx: OrgCtx, db: EnginesDb, org: string, role: string, b: Record<string, unknown>) {
   if (!LEAD.includes(role)) throw new OrgError(403, "accès refusé");
   const kind = SC_KINDS.includes(String(b.kind)) ? String(b.kind) : "client";
   const brief = eclip(b.brief, 400).trim();
+  // Scenario Studio (Arbor 2) : tension 1 standard, 2 sous pression, 3 cas limite ; compétence visée (nom)
+  const tension = [1, 2, 3].includes(Number(b.tension)) ? Number(b.tension) : 1;
+  const skill = eclip(b.skill, 160).trim();
   const ks = (await ctx.db.validatedKnowledge(org, 60)).slice(0, 30);
   if (ks.length < 2) throw new OrgError(400, "il faut au moins 2 connaissances validées pour concevoir un scénario");
   const out = await ask(ctx, "scenario", {
     system: `Tu conçois un scénario d'entraînement professionnel (type : ${kind}). La personne formée joue "role_label" (ex. vendeur, technicien, manager) ; l'IA joue "role_play" (le personnage ou la situation).
 Le scénario contient : un contexte, un objectif observable, un personnage (name, profile, personality), un enjeu caché ("need") que la personne doit faire émerger, 1 à 3 objections ou difficultés, des contraintes (temps, règles), 1 à 3 événements qui font évoluer la situation à un tour donné (2 à 8), une grille de 3 à 6 comportements observables (id en minuscules sans espace, label court), la première réplique ("opening").
-Tout fait (produit, règle, procédure, chiffre) doit venir des connaissances validées [k…] ; liste celles mobilisées dans "knowledge". Prénoms fictifs. Écris en français.${brief ? `\nDemande du responsable : ${brief}` : ""}`,
+Tout fait (produit, règle, procédure, chiffre) doit venir des connaissances validées [k…] ; liste celles mobilisées dans "knowledge". Prénoms fictifs. Écris en français.
+${TENSION_RULES[tension - 1]}
+N'invente jamais une règle, une exception ou un chiffre pour rendre la situation plus difficile : la difficulté vient de la situation (temps, émotion, informations manquantes, enchaînement), pas des règles.${skill ? `\nCompétence visée : ${skill}. Mobilise d'abord les connaissances qui s'y rapportent.` : ""}${brief ? `\nDemande du responsable : ${brief}` : ""}`,
     user: kRefs(ks), schema: SPEC_SCHEMA, maxTokens: 1800,
   });
   const used = [...new Set((Array.isArray(out.knowledge) ? out.knowledge : []).map((r) => kAt(ks, r)).filter(Boolean) as Knowledge[])];
@@ -144,7 +155,7 @@ Tout fait (produit, règle, procédure, chiffre) doit venir des connaissances va
     objections: (Array.isArray(out.objections) ? out.objections : []).slice(0, 3).map((o) => ({ text: eclip(o, 200), resolved: false })),
     constraints: (Array.isArray(out.constraints) ? out.constraints : []).slice(0, 4).map((c) => eclip(c, 200)),
     events: (Array.isArray(out.events) ? out.events : []).map((e) => e as { turn: number; text: string }).filter((e) => Number(e.turn) >= 2 && Number(e.turn) <= 8 && e.text).slice(0, 3).map((e) => ({ turn: Number(e.turn), text: eclip(e.text, 300) })),
-    rubric: rubric.length >= 2 ? rubric : undefined, opening: eclip(out.opening, 400) || "Bonjour…", knowledge: used.map((k) => k.id),
+    rubric: rubric.length >= 2 ? rubric : undefined, opening: eclip(out.opening, 400) || "Bonjour…", knowledge: used.map((k) => k.id), tension,
   };
   const title = eclip(out.title, 160).trim() || "Scénario";
   const sid = await need(db.createScenarioDef)({ org_id: org, title: title.length >= 2 ? title : "Scénario", kind, created_by: ctx.userId });

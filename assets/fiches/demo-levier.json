@@ -1,0 +1,429 @@
+{
+  "format": "fiche-v1",
+  "meta": {
+    "id": "essai-levier",
+    "notion": "Le levier",
+    "version": 1,
+    "langue": "fr",
+    "statut": "brouillon",
+    "origine": "humaine",
+    "domaine": "physique (hors jeu 3a)",
+    "essai": true,
+    "avertissement": "Fiche d’essai fabriquée pour les tests de la mission 3b-0. Ce n’est pas une fiche pédagogique validée."
+  },
+  "validation": null,
+  "sources": [
+    {
+      "id": "s1",
+      "titre": "Wikipédia : Levier",
+      "url": "https://fr.wikipedia.org/wiki/Levier",
+      "licence": "CC BY-SA 4.0",
+      "extrait": "Un levier est un solide (ordinairement une barre rigide) mobile autour d’un axe ou d’un point d’appui, permettant de multiplier une force."
+    }
+  ],
+  "prerequis": [],
+  "situation": {
+    "texte": "Pour déplacer une grosse pierre dans son jardin, Samir glisse une longue barre de fer sous la pierre, pose la barre sur un petit rondin tout près de la pierre, puis appuie sur l’autre bout. La pierre se soulève, alors qu’il n’arrivait pas à la bouger à mains nues.",
+    "question_ouverture": "Pourquoi, d’après toi, Samir y arrive-t-il avec la barre et pas à mains nues ?"
+  },
+  "explication": {
+    "simple": {
+      "ancre_situation": "Quand Samir appuie sur l’autre bout de la barre",
+      "texte": "Quand Samir appuie sur l’autre bout de la barre, celle-ci tourne autour du rondin. Le bout où il appuie parcourt une grande distance, le bout sous la pierre une petite. En échange, la petite force de Samir devient une grande force sous la pierre. Une barre qui tourne autour d’un point d’appui s’appelle un levier : plus on appuie loin du point d’appui, moins il faut de force."
+    },
+    "standard": {
+      "ancre_situation": "la barre de Samir tourne autour du rondin",
+      "texte": "Dans le jardin, la barre de Samir tourne autour du rondin, son point d’appui. La force qu’il exerce, multipliée par sa distance au rondin, équilibre le poids de la pierre multiplié par la distance de la pierre au rondin. Comme le bras de Samir est bien plus long que celui de la pierre, une petite force suffit à soulever une lourde charge. C’est le principe du levier : on gagne en force ce que l’on perd en distance parcourue."
+    }
+  },
+  "idee_centrale": "Un levier est une barre qui tourne autour d’un point d’appui et permet de soulever une lourde charge avec une petite force, en appuyant loin de ce point.",
+  "elements_cles": [
+    "plus on appuie loin du point d’appui, moins il faut de force",
+    "on gagne en force ce que l’on perd en distance parcourue"
+  ],
+  "representations": [
+    {
+      "id": "r1",
+      "type": "exemple",
+      "texte": "Une paire de ciseaux coupe plus facilement un carton épais près de l’axe des lames qu’au bout des lames : le carton est alors proche du point d’appui."
+    },
+    {
+      "id": "r2",
+      "type": "etapes",
+      "texte": "1. Choisir un point d’appui solide. 2. Placer la charge tout près de ce point. 3. Appuyer le plus loin possible de l’autre côté. 4. Accepter de déplacer sa main sur une plus grande distance."
+    },
+    {
+      "id": "r3",
+      "type": "analogie",
+      "texte": "Une balançoire à bascule : un enfant léger assis tout au bout peut soulever un adulte assis près du milieu.",
+      "limite": "Sur la bascule, les deux personnes pèsent et bougent ; dans un levier ordinaire, une seule force pousse et la charge ne fait que résister."
+    },
+    {
+      "id": "r4",
+      "type": "contre_exemple",
+      "texte": "Si Samir pose le rondin au milieu de la barre, il doit appuyer aussi fort que pèse la pierre : le levier ne l’aide plus du tout."
+    }
+  ],
+  "confusions": [
+    {
+      "id": "c1",
+      "libelle": "Une barre plus longue aide toujours",
+      "description": "Croire que seule la longueur de la barre compte, alors que c’est la position du point d’appui qui décide de l’effort.",
+      "remede": "r4",
+      "controle": {
+        "id": "lc-c1",
+        "evalue": "application",
+        "q": "Une barre de deux mètres repose sur un appui placé en son milieu, une charge de 40 kg à un bout. Quelle force faut-il à l’autre bout ?",
+        "choix": [
+          {
+            "texte": "Environ autant que le poids de la charge",
+            "juste": true
+          },
+          {
+            "texte": "Beaucoup moins, car la barre est longue",
+            "confusion": "c1"
+          },
+          {
+            "texte": "Deux fois plus que le poids de la charge"
+          },
+          {
+            "texte": "Aucune, la barre s’équilibre seule"
+          }
+        ]
+      }
+    },
+    {
+      "id": "c2",
+      "libelle": "Le levier donne de la force gratuitement",
+      "description": "Croire qu’on gagne de la force sans contrepartie, alors qu’il faut déplacer sa main sur une plus grande distance.",
+      "remede": "r2",
+      "controle": {
+        "id": "lc-c2",
+        "evalue": "application",
+        "q": "Avec un levier, Samir soulève une caisse de 5 cm. De combien déplace-t-il le bout où il appuie ?",
+        "choix": [
+          {
+            "texte": "De 5 cm exactement, comme la caisse",
+            "confusion": "c2"
+          },
+          {
+            "texte": "De bien plus de 5 cm",
+            "juste": true
+          },
+          {
+            "texte": "De moins de 5 cm"
+          },
+          {
+            "texte": "Il ne le déplace pas du tout"
+          }
+        ]
+      }
+    }
+  ],
+  "questions": {
+    "comprehension": [
+      {
+        "id": "lq1",
+        "evalue": "compréhension",
+        "q": "Pourquoi place-t-on le point d’appui tout près de la charge à soulever ?",
+        "choix": [
+          {
+            "texte": "Pour que la barre ne glisse pas sous la charge"
+          },
+          {
+            "texte": "Pour que la barre paraisse plus longue",
+            "confusion": "c1"
+          },
+          {
+            "texte": "Pour que la charge devienne moins lourde"
+          },
+          {
+            "texte": "Pour que la main soit loin de l’appui et force moins",
+            "juste": true
+          }
+        ]
+      },
+      {
+        "id": "lq2",
+        "evalue": "compréhension",
+        "q": "Pourquoi la main parcourt-elle une plus grande distance que la charge ?",
+        "choix": [
+          {
+            "texte": "Elle est plus loin du point d’appui",
+            "juste": true
+          },
+          {
+            "texte": "Elle pousse plus fort que la charge ne pèse"
+          },
+          {
+            "texte": "La barre se plie sous le poids de la main"
+          },
+          {
+            "texte": "La charge s’enfonce un peu dans le sol"
+          }
+        ]
+      },
+      {
+        "id": "lq3",
+        "evalue": "restitution",
+        "q": "Le point autour duquel tourne un levier s’appelle…",
+        "choix": [
+          {
+            "texte": "le bras de force"
+          },
+          {
+            "texte": "le point d’appui",
+            "juste": true
+          },
+          {
+            "texte": "le centre de gravité"
+          },
+          {
+            "texte": "la charge utile"
+          }
+        ]
+      }
+    ],
+    "comprehension_reserve": [
+      {
+        "id": "lq4",
+        "evalue": "compréhension",
+        "q": "Pourquoi un levier ne fait-il gagner aucune énergie ?",
+        "choix": [
+          {
+            "texte": "Il en fait gagner, d’autant plus que la barre est longue",
+            "confusion": "c2"
+          },
+          {
+            "texte": "Le frottement du rondin absorbe tout le gain"
+          },
+          {
+            "texte": "La force gagnée se paie en distance parcourue",
+            "juste": true
+          },
+          {
+            "texte": "La pierre devient plus légère en montant"
+          }
+        ]
+      },
+      {
+        "id": "lq5",
+        "evalue": "compréhension",
+        "q": "Pourquoi une poignée placée loin des gonds rend-elle une porte facile à ouvrir ?",
+        "choix": [
+          {
+            "texte": "La poignée rend la porte plus légère"
+          },
+          {
+            "texte": "La porte est plus mince de ce côté"
+          },
+          {
+            "texte": "Les gonds poussent la porte dans l’autre sens"
+          },
+          {
+            "texte": "Elle est loin de l’axe, comme une main loin de l’appui",
+            "juste": true
+          }
+        ]
+      }
+    ],
+    "application": [
+      {
+        "id": "lq6",
+        "evalue": "application",
+        "q": "Samir n’arrive pas à soulever une pierre plus lourde. Que doit-il changer en priorité ?",
+        "choix": [
+          {
+            "texte": "Rapprocher le rondin de la pierre",
+            "juste": true
+          },
+          {
+            "texte": "Rapprocher sa main du rondin"
+          },
+          {
+            "texte": "Prendre une barre plus courte et plus épaisse"
+          },
+          {
+            "texte": "Poser le rondin au milieu de la barre",
+            "confusion": "c1"
+          }
+        ]
+      },
+      {
+        "id": "lq7",
+        "evalue": "application",
+        "q": "Une barre de 2 m repose sur un appui à 20 cm de la charge. Où appuyer pour forcer le moins ?",
+        "choix": [
+          {
+            "texte": "Juste à côté de l’appui"
+          },
+          {
+            "texte": "Tout au bout de la barre",
+            "juste": true
+          },
+          {
+            "texte": "Au milieu exact de la barre"
+          },
+          {
+            "texte": "Directement sur la charge elle-même"
+          }
+        ]
+      }
+    ],
+    "application_reserve": [
+      {
+        "id": "lq8",
+        "evalue": "application",
+        "q": "Pour casser une noix avec un casse-noix, où placer la noix ?",
+        "choix": [
+          {
+            "texte": "Au bout des branches, près des mains"
+          },
+          {
+            "texte": "N’importe où, la force reste la même",
+            "confusion": "c1"
+          },
+          {
+            "texte": "Près de la charnière du casse-noix",
+            "juste": true
+          },
+          {
+            "texte": "Entre les deux mains, au milieu"
+          }
+        ]
+      }
+    ],
+    "transfert": [
+      {
+        "id": "lq9",
+        "evalue": "compréhension",
+        "q": "Pourquoi un jardinier tient-il sa brouette chargée de terre tout au bout des poignées ?",
+        "choix": [
+          {
+            "texte": "Les poignées sont plus solides à leur extrémité"
+          },
+          {
+            "texte": "La roue tourne plus vite quand on tient le bout"
+          },
+          {
+            "texte": "La terre pèse moins à l’arrière de la brouette"
+          },
+          {
+            "texte": "Loin de la roue, il soulève la charge avec moins d’effort",
+            "juste": true
+          }
+        ]
+      }
+    ],
+    "transfert_reserve": [
+      {
+        "id": "lq10",
+        "evalue": "compréhension",
+        "q": "Pourquoi un pied-de-biche arrache-t-il un clou qu’on ne peut pas retirer avec les doigts ?",
+        "choix": [
+          {
+            "texte": "La main loin de l’appui multiplie sa force sur le clou",
+            "juste": true
+          },
+          {
+            "texte": "Le métal du pied-de-biche attire le clou"
+          },
+          {
+            "texte": "Le clou se dévisse quand on tourne l’outil"
+          },
+          {
+            "texte": "Le bois devient plus mou sous l’outil"
+          }
+        ]
+      }
+    ],
+    "rappel": [
+      {
+        "id": "lq11",
+        "evalue": "restitution",
+        "q": "Avec un levier, on gagne en force mais on perd en…",
+        "choix": [
+          {
+            "texte": "poids de la charge"
+          },
+          {
+            "texte": "distance parcourue",
+            "juste": true
+          },
+          {
+            "texte": "solidité de la barre"
+          },
+          {
+            "texte": "vitesse de l’appui"
+          }
+        ]
+      },
+      {
+        "id": "lq12",
+        "evalue": "restitution",
+        "q": "Pour forcer le moins, la charge doit être…",
+        "choix": [
+          {
+            "texte": "loin du point d’appui"
+          },
+          {
+            "texte": "au milieu de la barre"
+          },
+          {
+            "texte": "proche du point d’appui",
+            "juste": true
+          },
+          {
+            "texte": "posée sur la main"
+          }
+        ]
+      },
+      {
+        "id": "lq13",
+        "evalue": "restitution",
+        "q": "Un levier tourne autour…",
+        "choix": [
+          {
+            "texte": "de la charge soulevée"
+          },
+          {
+            "texte": "de la main qui pousse"
+          },
+          {
+            "texte": "du sol sous la barre"
+          },
+          {
+            "texte": "d’un point d’appui",
+            "juste": true
+          }
+        ]
+      }
+    ]
+  },
+  "glossaire": [
+    {
+      "terme": "levier",
+      "explication": "barre qui tourne autour d’un point d’appui"
+    },
+    {
+      "terme": "point d’appui",
+      "explication": "point fixe autour duquel la barre tourne"
+    },
+    {
+      "terme": "force",
+      "explication": "action qui pousse ou qui tire"
+    },
+    {
+      "terme": "charge",
+      "explication": "ce que l’on veut soulever ou déplacer"
+    },
+    {
+      "terme": "distance",
+      "explication": "longueur du chemin parcouru"
+    },
+    {
+      "terme": "poids",
+      "explication": "force avec laquelle la Terre attire un objet"
+    }
+  ]
+}

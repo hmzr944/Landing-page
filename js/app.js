@@ -108,6 +108,9 @@
       const mode = ['fiche', 'carte', 'revision'].includes(parts[3]) ? parts[3] : 'fiche';
       view = { name: 'subject', id: s.id, nodeId, mode };
       if (nodeId !== s.root.id) state.lastVisit = { sid: s.id, nid: nodeId, at: Date.now(), kind: 'fiche' };
+    } else if (parts[0] === 'apprendre' && (parts[1] === 'demo' || (subjectById(parts[1]) && find(subjectById(parts[1]).root, parts[2] || '')))) {
+      view = parts[1] === 'demo' ? { name: 'learn', demo: true, key: 'demo' } : { name: 'learn', sid: parts[1], nid: parts[2], key: `${parts[1]}/${parts[2]}` };
+      if (window.Learn && (!prev || prev.key !== view.key)) Learn.reset();
     } else if (parts[0] === 'reviser') {
       view = { name: 'study' };
     } else if (parts[0] === 'methode') {
@@ -125,7 +128,7 @@
     } else {
       view = { name: 'home' };
     }
-    const navOf = { home: 'home', study: 'home', courses: 'courses', subject: 'courses', progress: 'progress', trophies: 'progress' }[view.name];
+    const navOf = { home: 'home', study: 'home', courses: 'courses', subject: 'courses', learn: 'courses', progress: 'progress', trophies: 'progress' }[view.name];
     // Espace professionnel : les menus de l'espace personnel (cours, niveau, import) disparaissent, rien ne s'y mélange
     const inOrg = view.name === 'org' || view.name === 'join';
     document.documentElement.classList.toggle('in-org', inOrg);
@@ -137,6 +140,13 @@
     render(prev);
   }
   const link = (sid, nid, mode = 'fiche') => `#/s/${sid}/${nid}/${mode}`;
+  /* Arbor 2 : outils donnés à l'écran « Apprendre une notion » (js/learn.js) */
+  const learnDeps = () => ({
+    esc, ic, compte: !!(window.Tutor && Tutor.signedIn()),
+    node: (sid, nid) => { const s = subjectById(sid), r = s && find(s.root, nid); return r ? r.node : null; },
+    back: (v) => (v.demo ? '#/cours' : link(v.sid, v.nid)),
+    record: (obs) => { const s = subjectById(obs.sid), r = s && find(s.root, obs.nid), node = r && r.node; if (!node) return; Obs.summarize(node, { ...obs, at: Date.now() }); Obs.add(obs); s.updatedAt = Date.now(); save(); },
+  });
 
   /* Espaces : personnel (sur l'appareil) et professionnels (dans la base). Le module Org ne reçoit que des outils
      d'affichage, jamais l'état personnel : il ne peut pas envoyer de cours ou de révisions au serveur. */
@@ -171,6 +181,7 @@
       else if (view.name === 'trophies') renderTrophies();
       else if (view.name === 'courses') renderCourses();
       else if (view.name === 'progress') renderProgress();
+      else if (view.name === 'learn') Learn.render(app, view, learnDeps());
       else renderSubject(bigChange);
       updateBadges();
       if (bigChange) {
@@ -350,6 +361,7 @@
       <section class="home courses-page">
         <header class="page-head">
           <h1>Mes cours <span class="muted num">${subjects.length}</span></h1>
+          <a class="pill-btn learn-demo-link" href="#/apprendre/demo">${ic('play-circle')}<span>Découvrir le parcours Arbor 2</span></a>
           <div class="row-btns">
             <button class="btn ghost" data-act="import-pdf">${ic('file-arrow-up')}<span>Importer un PDF</span></button>
             <button class="btn" data-act="new-subject">${ic('plus')}<span class="hide-sm">Sujet</span></button>
@@ -611,6 +623,7 @@
           ${node.children.length ? ring(st.pct) : ''}
         </div>
 
+        ${node.fiche ? `<a class="learn-cta card" href="#/apprendre/${s.id}/${node.id}">${ic('path', true)}<span><small>Parcours Arbor 2</small><b>Apprendre cette notion</b><em>Situation, explication, exercices, transfert</em></span>${ic('arrow-right')}</a>` : ''}
         ${isModule(s, node) ? modulePanel(s, node) : node.children.length >= 2 ? lessonCard(s, node, false) : ''}
         ${practiceCard(s, node)}
         ${memoryLine(s, node, isRoot)}

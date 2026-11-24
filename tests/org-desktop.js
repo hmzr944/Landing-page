@@ -48,23 +48,24 @@ const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m);
     const { ctx, page } = await as('ana');
     await page.goto(`${URL0}#/org/${ORG}`); await wait(page, 1500);
     const side = await page.evaluate(() => { const r = document.querySelector('#app > .org-head').getBoundingClientRect(); const cs = getComputedStyle(document.querySelector('#app > .org-head')); return { x: r.left, y: r.top, w: Math.round(r.width), h: Math.round(r.height), pos: cs.position, bg: cs.backgroundColor, radius: cs.borderTopRightRadius }; });
-    check('A1 barre latérale ancrée : collée à gauche, toute la hauteur, 248 px, fond mat, sans arrondi', side.x === 0 && side.y === 0 && side.h === 768 && side.w === 248 && side.pos === 'fixed' && side.bg === 'rgb(15, 26, 23)' && side.radius === '0px', JSON.stringify(side));
-    const top = await page.evaluate(() => { const t = document.querySelector('.org-top').getBoundingClientRect(); const c = document.querySelector('.pg-h').getBoundingClientRect(); return { h: Math.round(t.height), left: Math.round(t.left), cl: Math.round(c.left) }; });
+    check('A1 barre latérale ancrée : collée à gauche, toute la hauteur, 248 px, fond mat, sans arrondi', side.x === 0 && side.y === 0 && side.h === 768 && side.w === 248 && side.pos === 'fixed' && side.bg !== 'rgba(0, 0, 0, 0)' && side.radius === '0px', JSON.stringify(side));
+    const top = await page.evaluate(() => { const t = document.querySelector('.org-top').getBoundingClientRect(); const c = document.querySelector('.pg-h, .d2-head').getBoundingClientRect(); return { h: Math.round(t.height), left: Math.round(t.left), cl: Math.round(c.left) }; });
     check('A2 barre supérieure compacte (48 à 56 px), à droite de la barre latérale ; le contenu ne passe pas dessous', top.h >= 48 && top.h <= 56 && top.left >= 248 && top.cl >= 248, JSON.stringify(top));
     check('A3 un seul sélecteur d’espace visible (la barre Student et « Changer d’espace » ont disparu)', (await page.isVisible('[data-space-menu]')) && !(await page.isVisible('#spaceBtn')) && !(await page.isVisible('.topbar')) && (await page.$$eval('[data-org-space]', (xs) => xs.filter((x) => x.offsetParent).length)) === 0);
-    const navs = await page.$$eval('.org-head .org-tabs a', (as2) => as2.map((a) => a.textContent.trim()));
-    check('A4 les cinq rubriques, chacune avec icône et libellé ; Cockpit actif', navs.join('|') === 'Cockpit|Mon équipe|Base de savoir|Développer|Mon apprentissage' && (await page.$$('.org-head .org-tabs a i')).length === 5 && /Cockpit/.test(await page.textContent('.org-tabs a[aria-current]')), navs.join('|'));
+    const navs = await page.$$eval('.org-head .org-tabs a', (as2) => as2.map((a) => a.querySelector('span').textContent.trim()));
+    check('A4 Arbor Desktop 2 : les cinq espaces puis le contexte d’organisation, chacun avec icône et libellé ; Cockpit actif', navs.join('|') === 'Cockpit|Knowledge & Impact|Scenario Studio|Blind Spots|Evidence & Governance|Mon équipe|Mon apprentissage' && (await page.$$('.org-head .org-tabs a i')).length === 7 && /Cockpit/.test(await page.textContent('.org-tabs a[aria-current]')), navs.join('|'));
     const crumbs = await page.$$eval('.desk-crumbs li', (ls) => ls.map((l) => l.textContent.trim()));
     check('A5 fil d’Ariane contextuel : Arbor Business / organisation / rubrique', crumbs.join(' / ') === 'Arbor Business / Magasin de Lyon / Cockpit', crumbs.join(' / '));
     check('A6 pied de barre : centre d’aide, avis, paramètres, profil compact', (await page.isVisible('[data-desk-help]')) && (await page.isVisible('.org-side-foot [data-org-feedback]')) && (await page.isVisible('[data-desk-set]')) && (await page.isVisible('[data-me-menu]')));
     check('A7 action principale contextuelle du Cockpit : « Inviter »', /Inviter/.test(await page.textContent('.desk-act')));
     const bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-    check('A8 palette Arbor sombre appliquée (fond #0B1412)', bg === 'rgb(11, 20, 18)', bg);
+    // Arbor Desktop 2 : clair par défaut (blanc cassé #F6F5F1), sombre seulement si l'utilisateur le choisit
+    check('A8 palette Arbor Desktop 2 appliquée (fond blanc cassé #F6F5F1)', bg === 'rgb(246, 245, 241)', bg);
     // repli
     await page.click('[data-side-toggle]'); await wait(page, 400);
     const w2 = await page.evaluate(() => Math.round(document.querySelector('#app > .org-head').getBoundingClientRect().width));
     const lblHidden = await page.evaluate(() => { const s = document.querySelector('.org-tabs a span'); return s.getBoundingClientRect().width <= 1; });
-    check('A9 repli manuel : 64 px, icônes seules, libellés en infobulle (title) et pour les lecteurs d’écran', w2 === 64 && lblHidden && (await page.getAttribute('.org-tabs a', 'title')) === 'Cockpit' && (await page.getAttribute('[data-side-toggle]', 'aria-pressed')) === 'true', String(w2));
+    check('A9 repli manuel : 64 px, icônes seules, libellés en infobulle (title) et pour les lecteurs d’écran', w2 === 64 && lblHidden && /^Cockpit/.test(await page.getAttribute('.org-tabs a', 'title')) && (await page.getAttribute('[data-side-toggle]', 'aria-pressed')) === 'true', String(w2));
     await page.reload(); await wait(page, 1500);
     const w3 = await page.evaluate(() => Math.round(document.querySelector('#app > .org-head').getBoundingClientRect().width));
     check('A10 la préférence de repli est mémorisée sur l’appareil', w3 === 64, String(w3));
@@ -117,10 +118,10 @@ const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m);
     check('D2 Base de savoir : action « Nouveau document »', /Nouveau document/.test(await page.textContent('.desk-act')));
     await page.click('.desk-act'); await wait(page, 900);
     check('D2b qui place le curseur dans le formulaire d’ajout', await page.evaluate(() => ['dfTitle', 'dfFile'].includes(document.activeElement && document.activeElement.id)));
-    await go(page, `#/org/${ORG}/developper`, 1600);
-    check('D3 Développer : « Nouveau scénario », et le parcours Diagnostiquer → Comprendre → Entraîner → Mesurer', /Nouveau scénario/.test(await page.textContent('.desk-act')) && (await page.$$eval('.journey a b', (bs) => bs.map((b) => b.textContent).join('>'))) === 'Diagnostiquer>Comprendre>Entraîner>Mesurer');
+    await go(page, `#/org/${ORG}/studio`, 1600);
+    check('D3 Scenario Studio : « Nouveau scénario », la structure Situation → … → Maîtrise et les trois tensions', /Nouveau scénario/.test(await page.textContent('.desk-act')) && (await page.$$eval('.d2-flow li', (ls) => ls.length)) === 6 && (await page.$$eval('.tension .tn', (ls) => ls.length)) === 3);
     await page.click('.desk-act'); await wait(page, 2200);
-    check('D3b qui ouvre Entraîner sur le formulaire de scénario', /\/developper\/entrainer$/.test(page.url()) && await page.evaluate(() => document.activeElement && document.activeElement.id === 'scKind'), page.url());
+    check('D3b qui place le curseur dans le formulaire de scénario', /\/studio$/.test(page.url()) && await page.evaluate(() => document.activeElement && document.activeElement.id === 'scKind'), page.url());
     await go(page, `#/org/${ORG}/parametres`);
     const pc = await page.$$eval('.desk-crumbs li', (ls) => ls.map((l) => l.textContent.trim()).join(' / '));
     check('D4 Paramètres : fil d’Ariane juste, pas d’action hors sujet, lien du pied de barre actif', pc === 'Arbor Business / Magasin de Lyon / Paramètres' && !(await page.$('.desk-act')) && !!(await page.$('[data-desk-set][aria-current]')), pc);
@@ -157,22 +158,23 @@ const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m);
   for (const [w, h] of [[1366, 768], [1440, 900], [1920, 1080]]) {
     const { ctx, page } = await as('ana', { width: w, height: h });
     const bad = [];
-    for (const hash of ['', '/equipe', '/savoir', '/developper', '/developper/entrainer', '/apprendre', '/parametres', '/suivi/u-bob']) {
+    for (const hash of ['', '/savoir', '/savoir/impact', '/studio', '/angles', '/preuves', '/equipe', '/apprendre', '/parametres', '/suivi/u-bob']) {
       await page.goto(`${URL0}#/org/${ORG}${hash}`); await wait(page, 1300);
       if (await overflow(page)) bad.push(`${hash || '/'} déborde`);
       const g = await page.evaluate(() => { const s = [...document.querySelectorAll('#app > :not(.org-head):not(.org-top)')].map((e) => e.getBoundingClientRect()).filter((r) => r.width); return { minL: Math.min(...s.map((r) => r.left)), maxW: Math.max(...s.map((r) => r.width)) }; });
       if (g.minL < 248 || g.maxW > 1441) bad.push(`${hash || '/'} ${JSON.stringify(g)}`);
     }
-    check(`G ${w}×${h} : 8 écrans sans débordement, contenu à droite de la barre, largeur ≤ 1440 px`, !bad.length, bad.join(' ; '));
+    check(`G ${w}×${h} : 10 écrans sans débordement, contenu à droite de la barre, largeur ≤ 1440 px`, !bad.length, bad.join(' ; '));
     if (w === 1366) {
       await page.goto(`${URL0}#/org/${ORG}`); await wait(page, 1400);
-      const fold = await page.evaluate(() => { const t = document.querySelector('.hub-todo'); return t.getBoundingClientRect().top < innerHeight; });
+      const fold = await page.evaluate(() => { const t = document.querySelector('.b-acts'); return !!t && t.getBoundingClientRect().top < innerHeight; });
       check('G2 1366 × 768 : les actions prioritaires commencent au-dessus de la ligne de flottaison', fold);
     }
     if (w === 1920) {
       await page.goto(`${URL0}#/org/${ORG}`); await wait(page, 1400);
-      const cols = await page.evaluate(() => { const m = document.querySelector('.ck-main'), s = document.querySelector('.ck-side'); return m && s ? [Math.round(m.getBoundingClientRect().width), Math.round(s.getBoundingClientRect().width)] : []; });
-      check('G3 1920 : grille asymétrique (environ 65 / 35)', cols.length === 2 && cols[0] / (cols[0] + cols[1]) > 0.6 && cols[0] / (cols[0] + cols[1]) < 0.7, cols.join('/'));
+      // Bento asymétrique : la carte principale (7/12) plus large que les actions (5/12), sur la même ligne
+      const cols = await page.evaluate(() => { const m = document.querySelector('.b-main'), s = document.querySelector('.b-main + .b-card'); return m && s && Math.abs(m.getBoundingClientRect().top - s.getBoundingClientRect().top) < 2 ? [Math.round(m.getBoundingClientRect().width), Math.round(s.getBoundingClientRect().width)] : []; });
+      check('G3 1920 : Bento asymétrique (environ 58 / 42 en première ligne)', cols.length === 2 && cols[0] / (cols[0] + cols[1]) > 0.54 && cols[0] / (cols[0] + cols[1]) < 0.62, cols.join('/'));
     }
     await ctx.close();
   }

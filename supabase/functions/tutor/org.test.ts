@@ -248,6 +248,7 @@ Deno.test("scénario : conçu à partir des connaissances validées, brouillon n
   assertEquals(v.spec.events.map((x: any) => x.turn), [2]);
   assertEquals(v.spec.rubric.map((x: any) => x.id), ["procedure_appliquee", "calme"]);
   assertEquals(v.knowledge_ids, ["k-retour"]);
+  assertEquals(v.spec.tension, 1); // Scenario Studio : tension standard par défaut
   assertEquals((await call(d, { task: "scenario_start", org: ORG, version: c.data.version })).status, 403); // brouillon
   v.status = "valide";
   const st = await call(d, { task: "scenario_start", org: ORG, version: c.data.version });
@@ -364,4 +365,11 @@ Deno.test("verdicts : une pratique de terrain plausible mais absente des fiches 
   const fin = await call(d, { task: "mystere_fin", org: ORG, session: st.data.id });
   assertEquals(fin.data.debrief.outOfScope.map((x: any) => x.text), ["on peut aussi passer par la borne"]);
   assertEquals(fin.data.debrief.incorrect.length + fin.data.debrief.correct.length, 0);
+});
+
+Deno.test("Scenario Studio : trois niveaux de tension, le cas limite escalade sans inventer de règle", async () => {
+  const { TENSION_RULES } = await import("./engines.ts");
+  assertEquals(TENSION_RULES.length, 3);
+  assert(/escalader/.test(TENSION_RULES[2]) && /sans inventer de règle/.test(TENSION_RULES[2]));
+  assert(/objections/.test(TENSION_RULES[1]) && /temps/.test(TENSION_RULES[1]));
 });

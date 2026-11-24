@@ -46,13 +46,16 @@ const db = () => M.state.db;
   /* A. Navigation selon le rôle et routes directes */
   {
     // Navigation par intention (docs/business-v2.md, D13) : 5 rubriques au plus ; les paramètres sont une icône (administrateur)
-    const expect = { ana: ['accueil', 'equipe', 'savoir', 'developper', 'apprendre'], eve: ['accueil', 'equipe', 'savoir', 'developper', 'apprendre'],
+    // Arbor Desktop 2 : cinq espaces pour les responsables (Cockpit, Knowledge & Impact, Scenario Studio, Blind Spots,
+    // Evidence & Governance), puis le contexte d'organisation (Mon équipe, Mon apprentissage)
+    const LEAD = ['accueil', 'savoir', 'studio', 'angles', 'preuves', 'equipe', 'apprendre'];
+    const expect = { ana: LEAD, eve: LEAD,
       paul: ['accueil', 'savoir', 'apprendre'], bob: ['accueil', 'canopee', 'apprendre', 'resultats'] };
     for (const who of Object.keys(expect)) {
       const { ctx, page } = await as(who);
       await page.goto(`${URL0}#/org/${ORG}`); await wait(page, 1200);
       const got = await navHrefs(page);
-      check(`A1 ${M.U[who].role} : la navigation montre exactement ses rubriques (5 au plus)`, got.join() === expect[who].join() && got.length <= 5, got.join());
+      check(`A1 ${M.U[who].role} : la navigation montre exactement ses rubriques (5 au plus)`, got.join() === expect[who].join() && (expect[who] === LEAD ? got.length - 2 : got.length) <= 5, got.join());
       check(`A1b ${M.U[who].role} : l’icône Paramètres seulement pour l’administrateur`, !!(await page.$('.org-set')) === (who === 'ana'));
       await ctx.close();
     }
@@ -76,14 +79,15 @@ const db = () => M.state.db;
     const { ctx, page } = await as('eve');
     await page.goto(`${URL0}#/org/${ORG}`); await wait(page, 1400);
     const t = await text(page);
-    check('B1 Cockpit : état des données (une procédure a changé) et indicateurs calculés avec leur base', /Cockpit/.test(t) && /Une procédure a changé/.test(t) && /compétences acquises/.test(t) && /à renforcer/.test(t) && /à revalider/.test(t) && /réponses cette semaine/.test(t));
+    // Arbor Desktop 2 : Cockpit en Bento, chaque carte répond à une question, chiffres comptés avec leur base
+    check('B1 Cockpit : état des connaissances, procédures qui ont évolué, compétences fragiles, activité, chiffres avec leur base', /Cockpit/.test(t) && /État des connaissances/.test(t) && /compétence de poste acquise/.test(t) && /Procédures qui ont évolué/.test(t) && /Compétences fragiles/.test(t) && /réponses? sur 14 jours/.test(t) && /Données réelles/.test(t));
     check('B2 double voile : aucun nom ni « fausse certitude » individuelle dans le Cockpit', !/bob@|chloe@|Fausse certitude|fausses certitudes/.test(t));
-    const acts = await page.$$eval('.hub-todo li', (bs) => bs.map((b) => b.textContent));
-    check('B3 « À faire aujourd’hui » : revalidation en attente, angle mort, connaissance de terrain', acts.some((a) => /revalidation/.test(a)) && acts.some((a) => /Batterie endommagée/.test(a)) && acts.some((a) => /hors référentiel/.test(a)), acts.join(' | '));
+    const acts = await page.$$eval('.b-acts li', (bs) => bs.map((b) => b.textContent));
+    check('B3 « Actions prioritaires » : décider d’un changement, revalidation en attente, affirmation hors référentiel', acts.some((a) => /Décider des changements/.test(a)) && acts.some((a) => /revalidation/.test(a)) && acts.some((a) => /hors référentiel/.test(a)), acts.join(' | '));
     await go(page, `#/org/${ORG}/developper/entrainer`, 1300);
     check('B4 accès conservés dans « Développer » (client mystère, diagnostic) et « Mon équipe » dans la navigation', !!(await page.$('#app a[href$="/mystere"]')) && !!(await page.$('#app a[href$="/diagnostic"]')) && !!(await page.$('.org-tabs a[href$="/equipe"]')));
     await go(page, `#/org/${ORG}`, 1300);
-    const box = await page.evaluate(() => { const h = document.querySelector('.org-head').getBoundingClientRect(), s = document.querySelector('#app > .pg, #app > .sec').getBoundingClientRect(); return { pos: getComputedStyle(document.querySelector('.org-head')).position, hr: h.right, sl: s.left, dir: getComputedStyle(document.querySelector('.org-tabs')).flexDirection }; });
+    const box = await page.evaluate(() => { const h = document.querySelector('.org-head').getBoundingClientRect(), s = document.querySelector('#app > .pg, #app > .sec, #app > .d2').getBoundingClientRect(); return { pos: getComputedStyle(document.querySelector('.org-head')).position, hr: h.right, sl: s.left, dir: getComputedStyle(document.querySelector('.org-tabs')).flexDirection }; });
     check('B5 ordinateur : barre latérale fixe à gauche, le contenu commence après elle', box.pos === 'fixed' && box.dir === 'column' && box.hr <= box.sl, JSON.stringify(box));
     if (process.env.ARBOR_SHOTS) await page.screenshot({ path: path.join(process.env.ARBOR_SHOTS, 'xp-overview.png'), fullPage: true });
     // un seul sélecteur d'espace sur ordinateur (D14) : en tête de la barre latérale
