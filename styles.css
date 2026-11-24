@@ -4553,3 +4553,4 @@ mark.ins { background: var(--accent-soft); color: var(--accent-ink); border-radi
   .ktree:not(.still) .kt-n > * { transform-box: fill-box; transform-origin: center; animation: kt-pop .5s cubic-bezier(.2, .8, .2, 1.2) both; animation-delay: calc(var(--k) * 90ms + 250ms); }
   .ktree:not(.still) .kt-leaf text { animation-name: d2-in; }
 }
+@media (max-width: 560px) { .sec-head:has(> .mini-seg) { flex-wrap: wrap; } .sec-head > .mini-seg { order: 3; flex-basis: 100%; width: max-content; max-width: 100%; margin-left: 0; } }
