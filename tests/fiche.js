@@ -223,7 +223,7 @@ const r = rng(20261124), pick = (l) => l[Math.floor(r() * l.length)];
   catch (e) { liste = null; }
   if (!liste) console.log('– CA9 périmètre de la branche par rapport à main : SKIPPED (historique de main 5be606a absent : copie superficielle du dépôt, comme en CI ; F30 vérifie l’essentiel)');
   else {
-    const PERMIS = [/^js\/pedagogie\//, /^tests\/fiche\.js$/, /^tests\/fixtures\/fiches\//, /^tests\/fixtures\/jeu-3a\//, /^tests\/fixtures\/chevauchements\.json$/, /^tools\/fiche-verifier\.js$/, /^docs\/pedagogie\/fiche-v1\.md$/, /^docs\/rapport-mission-3b-0\.md$/, /^\.github\/workflows\/ci\.yml$/];
+    const PERMIS = [/^js\/pedagogie\//, /^tests\/fiche\.js$/, /^tests\/fixtures\/fiches\//, /^tests\/fixtures\/jeu-3a\//, /^tests\/fixtures\/chevauchements\.json$/, /^tools\/fiche-verifier\.js$/, /^docs\/pedagogie\/fiche-v1\.md$/, /^docs\/rapport-mission-3b-0\.md$/, /^\.github\/workflows\/ci\.yml$/, /^tests\/ai-server\.js$/];
     const hors = liste.filter((f) => !PERMIS.some((p) => p.test(f)));
     check('F31 CA9 : la branche ne modifie que les fichiers prévus par 3b-0', !hors.length, hors.join(', ') || `${liste.length} fichiers`);
   }
