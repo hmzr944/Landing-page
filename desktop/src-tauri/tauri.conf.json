@@ -12,10 +12,10 @@
       {
         "label": "main",
         "title": "Arbor",
-        "width": 1360,
-        "height": 860,
-        "minWidth": 1024,
-        "minHeight": 680,
+        "width": 1280,
+        "height": 820,
+        "minWidth": 900,
+        "minHeight": 600,
         "center": true,
         "resizable": true,
         "titleBarStyle": "Visible"

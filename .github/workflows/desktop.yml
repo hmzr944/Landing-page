@@ -1,12 +1,16 @@
 # Arbor Desktop : construit les installateurs Windows et macOS (Tauri 2), puis les ESSAIE sur le runner :
 # installation silencieuse, lancement, processus vivant après 20 s, capture d'écran de la fenêtre.
-# Ne publie rien, ne signe rien : installateurs et captures sont joints au run comme artefacts, pour essai.
+# Ne signe rien. Installateurs et captures sont joints au run comme artefacts, pour essai.
 # Déclenchement : à la main (depuis main, quand ce fichier y sera) ou à chaque envoi sur arbor-2 touchant l'application.
+# Version : seulement quand le PROPRIÉTAIRE pousse une étiquette vX.Y.Z, un BROUILLON de release est préparé
+# (installateurs + empreintes SHA-256). Un brouillon n'est visible de personne d'autre : la publication reste
+# un geste manuel du propriétaire sur GitHub. La page « Télécharger » du site lit la dernière release publiée.
 name: Desktop
 on:
   workflow_dispatch:
   push:
     branches: [arbor-2]
+    tags: ['v*']
     paths: ['desktop/**', '.github/workflows/desktop.yml', 'index.html', 'js/**', 'styles.css']
 permissions:
   contents: read
@@ -87,3 +91,24 @@ jobs:
             desktop/src-tauri/target/release/bundle/nsis/*.exe
             essai/
           if-no-files-found: warn
+
+  brouillon:
+    name: Brouillon de release (étiquette vX.Y.Z seulement)
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { path: art }
+      - name: Empreintes et brouillon
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          mkdir -p sortie
+          find art -type f \( -name '*.exe' -o -name '*.msi' -o -name '*.dmg' \) -exec cp {} sortie/ \;
+          (cd sortie && sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt)
+          gh release create "$TAG" sortie/* --repo "$GITHUB_REPOSITORY" --draft --title "Arbor $TAG" \
+            --notes "Installateurs non signés : Windows affichera SmartScreen, macOS Gatekeeper (voir la documentation, page Installer). Empreintes SHA-256 dans SHA256SUMS.txt."

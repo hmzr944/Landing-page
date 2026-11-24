@@ -1,0 +1,68 @@
+# Arbor sur iPhone : ESSAI sur le simulateur iOS d'un runner macOS (gratuit). Rien n'est signé ni envoyé à Apple.
+# Même application web que le site et l'ordinateur (Tauri 2), en interface téléphone.
+# Étapes : génération du projet Xcode, compilation pour simulateur, installation, lancement, capture d'écran.
+# La diffusion sur l'App Store demande un compte Apple Developer (payant) : décision du propriétaire, non faite ici.
+name: Mobile (essai iOS)
+on:
+  workflow_dispatch:
+  push:
+    branches: [arbor-2]
+    paths: ['desktop/**', '.github/workflows/mobile.yml']
+permissions:
+  contents: read
+concurrency:
+  group: mobile-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  ios-simulateur:
+    runs-on: macos-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-ios,aarch64-apple-ios-sim
+      - name: Outils (xcodegen, interface Tauri locale)
+        working-directory: desktop
+        run: |
+          brew list xcodegen >/dev/null 2>&1 || brew install xcodegen
+          echo '{"private":true,"scripts":{"tauri":"tauri"}}' > package.json
+          npm install --no-audit --no-fund @tauri-apps/cli@2
+      - name: Préparer les fichiers de l'application
+        run: node desktop/prepare.js
+      - name: Projet Xcode
+        working-directory: desktop
+        run: npm run tauri -- ios init --ci
+      - name: Compiler pour le simulateur
+        working-directory: desktop
+        run: npm run tauri -- ios build --target aarch64-sim --debug --ci
+      - name: Installer, lancer, capturer
+        run: |
+          APP=$(find desktop/src-tauri/gen/apple desktop/src-tauri/target ~/Library/Developer/Xcode/DerivedData -name '*.app' -path '*imulator*' -o -name '*.app' -path '*sim*' 2>/dev/null | grep -v '\.app/' | head -1)
+          echo "Application : $APP"
+          test -n "$APP"
+          UDID=$(xcrun simctl list devices available -j | python3 -c 'import json,sys
+          d=json.load(sys.stdin)["devices"]
+          print(next(x["udid"] for k,v in d.items() if "iOS" in k for x in v if x["name"].startswith("iPhone")))')
+          NAME=$(xcrun simctl list devices | grep "$UDID" | sed 's/ (.*//' | xargs)
+          echo "Simulateur : $NAME ($UDID)"
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b
+          xcrun simctl install "$UDID" "$APP"
+          BID=$(/usr/libexec/PlistBuddy -c 'Print CFBundleIdentifier' "$APP/Info.plist")
+          xcrun simctl launch "$UDID" "$BID"
+          sleep 25
+          mkdir -p essai
+          xcrun simctl io "$UDID" screenshot essai/iphone-lancement.png
+          xcrun simctl spawn "$UDID" launchctl list | grep -q "$BID" && VIVANT=oui || VIVANT=non
+          printf "simulateur=%s\napplication=%s\nidentifiant=%s\nvivant_25s=%s\n" "$NAME" "$(basename "$APP")" "$BID" "$VIVANT" > essai/iphone-essai.txt
+          cat essai/iphone-essai.txt
+          test "$VIVANT" = oui
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arbor-iphone-simulateur
+          path: essai/
+          if-no-files-found: warn
