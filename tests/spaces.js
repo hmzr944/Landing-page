@@ -37,6 +37,9 @@ const check = (name, ok, extra = '') => { console.log(`${ok ? '✓' : '✗'} ${n
     }
     await go('#/explorer');
     check(`S02 ${tag} Explorer : nouveau sujet, document, démonstration, discussion ; tes domaines`, (await page.$$('.sp-tile')).length === 4 && /TSSR/.test(await t()));
+    // régression : une .b-card pleine largeur créait 12 colonnes implicites et écrasait le formulaire de départ
+    const exW = await page.$eval('#exStart', (f) => f.getBoundingClientRect().width), spW = await page.$eval('.d2.sp', (e) => e.getBoundingClientRect().width);
+    check(`S02b ${tag} Explorer : le formulaire de départ occupe toute la largeur`, exW > spW * 0.9, `${Math.round(exW)} / ${Math.round(spW)} px`);
     await go('#/studio');
     check(`S03 ${tag} Studio pédagogique : structure Situation → Maîtrise et trois points de départ`, (await page.$$('.d2-flow li')).length === 6 && (await page.$$('.sp-tile')).length === 3);
     await go('#/pratiquer');

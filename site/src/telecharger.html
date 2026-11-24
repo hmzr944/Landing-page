@@ -1,56 +1,53 @@
 <!-- {"title": "Télécharger Arbor pour Windows et macOS", "desc": "Arbor Desktop, l’expérience complète d’Arbor sur ordinateur : installateurs Windows et macOS, configuration requise, installation pas à pas."} -->
-    <section class="hero" style="padding-bottom:24px">
-      <div class="wrap" style="grid-template-columns:1fr">
-        <div>
-          <p class="eyebrow"><i class="ph-fill ph-desktop" aria-hidden="true"></i>Arbor Desktop</p>
-          <h1>L’expérience complète, sur ton ordinateur.</h1>
-          <p class="lead">Une vraie application, dans sa propre fenêtre : raccourcis clavier, rappels de révision natifs, et le même compte que sur le Web.</p>
-        </div>
+    <section class="hero" style="padding-bottom:0">
+      <div class="wrap">
+        <h1>Arbor, dans sa propre fenêtre.</h1>
+        <p class="lead">L’expérience complète sur ordinateur : raccourcis clavier, rappels de révision natifs, et le même compte que sur le Web.</p>
+      </div>
+      <div class="stage" style="max-width:920px">
+        <div class="mac"><div class="mac-bar"><i></i><i></i><i></i><span class="url">Arbor</span></div><img src="img/desk-apprendre.webp" width="1600" height="1000" alt="Arbor Desktop : une notion en cours, la situation du levier, avec les six étapes du parcours." /></div>
       </div>
     </section>
-    <section class="sec" style="padding-top:8px">
+    <section class="sec" style="padding-top:72px">
       <div class="wrap" id="dl" data-repo="{{repo}}">
         <div id="dlState" class="dl-state" aria-live="polite"><div class="callout"><i class="ph ph-hourglass-medium" aria-hidden="true"></i><p>Recherche de la dernière version…</p></div></div>
         <div class="dl">
           <article class="card" data-os="win">
-            <div class="os"><i class="ph-fill ph-windows-logo" aria-hidden="true"></i><div><h3>Windows</h3><span class="tag plan">Windows 10 et 11, 64 bits</span></div></div>
+            <div class="os"><i class="ph-fill ph-windows-logo" aria-hidden="true"></i><div><h3>Windows</h3><span class="tag">Windows 10 et 11, 64 bits</span></div></div>
             <p class="meta">…</p>
             <div class="btns"><a class="btn primary" data-get href="#" aria-disabled="true"><i class="ph ph-download-simple" aria-hidden="true"></i><span>Télécharger</span></a><a class="btn ghost" data-alt href="#" hidden>Paquet .msi (entreprises)</a></div>
-            <div class="req"><b>Installation</b><ol><li>Ouvre <code>Arbor_…_x64-setup.exe</code>. Aucun droit d’administrateur n’est demandé : Arbor s’installe pour ton compte.</li><li>Si Windows affiche « Windows a protégé votre ordinateur », choisis <b>Informations complémentaires</b>, puis <b>Exécuter quand même</b>. Cet avertissement vient de l’absence de signature, expliquée plus bas.</li><li>Arbor apparaît dans le menu Démarrer.</li></ol></div>
+            <div class="req"><b>Installation</b><ol><li>Ouvre <code>Arbor_…_x64-setup.exe</code>. Aucun droit d’administrateur n’est demandé : Arbor s’installe pour ton compte.</li><li>Si Windows affiche « Windows a protégé votre ordinateur », choisis <b>Informations complémentaires</b>, puis <b>Exécuter quand même</b>.</li><li>Arbor apparaît dans le menu Démarrer.</li></ol></div>
           </article>
           <article class="card" data-os="mac">
-            <div class="os"><i class="ph-fill ph-apple-logo" aria-hidden="true"></i><div><h3>macOS</h3><span class="tag plan">macOS 11 ou plus · puce Apple (M1 et suivantes)</span></div></div>
+            <div class="os"><i class="ph-fill ph-apple-logo" aria-hidden="true"></i><div><h3>macOS</h3><span class="tag">macOS 11 ou plus, puce Apple</span></div></div>
             <p class="meta">…</p>
             <div class="btns"><a class="btn primary" data-get href="#" aria-disabled="true"><i class="ph ph-download-simple" aria-hidden="true"></i><span>Télécharger</span></a></div>
-            <div class="req"><b>Installation</b><ol><li>Ouvre le fichier <code>.dmg</code> et fais glisser Arbor dans <b>Applications</b>.</li><li>Au premier lancement, si macOS refuse d’ouvrir l’application, va dans <b>Réglages Système → Confidentialité et sécurité</b> et choisis <b>Ouvrir quand même</b>.</li><li>Les Mac à processeur Intel ne sont pas encore pris en charge : utilise Arbor Web.</li></ol></div>
+            <div class="req"><b>Installation</b><ol><li>Ouvre le fichier <code>.dmg</code> et fais glisser Arbor dans <b>Applications</b>.</li><li>Si macOS refuse d’ouvrir l’application : <b>Réglages Système</b>, <b>Confidentialité et sécurité</b>, puis <b>Ouvrir quand même</b>.</li><li>Les Mac à processeur Intel ne sont pas encore pris en charge : utilise Arbor Web.</li></ol></div>
           </article>
         </div>
         <div class="callout" id="dlMobile" hidden style="margin-top:16px"><i class="ph ph-device-mobile" aria-hidden="true"></i><p>Tu es sur un téléphone. Arbor Desktop s’installe sur un ordinateur ; sur téléphone, <a href="mobile.html">installe Arbor depuis ton navigateur</a>.</p></div>
       </div>
     </section>
-    <section class="sec alt">
-      <div class="wrap grid2">
-        <article class="card reveal">
-          <span class="ic"><i class="ph ph-shield-warning" aria-hidden="true"></i></span>
-          <h3>Pourquoi un avertissement à l’installation ?</h3>
-          <p>Les installateurs d’Arbor ne sont pas encore <b>signés</b> par un certificat d’éditeur (Microsoft) ni <b>notarisés</b> par Apple. Windows et macOS préviennent donc qu’ils ne connaissent pas l’éditeur. Le contenu est construit automatiquement à partir du code public d’Arbor, et chaque version publiée donne les <b>empreintes SHA-256</b> de ses fichiers pour vérifier qu’ils n’ont pas été modifiés.</p>
-          <a href="docs/installer.html#verifier">Vérifier un fichier téléchargé</a>
-        </article>
-        <article class="card reveal">
-          <span class="ic"><i class="ph ph-globe-simple" aria-hidden="true"></i></span>
-          <h3>Pas besoin d’installer pour apprendre</h3>
-          <p>Arbor Web offre les mêmes fonctions d’apprentissage : créer un parcours, importer un document, réviser, utiliser le compagnon, accéder à son organisation. L’application installée ajoute du confort : fenêtre dédiée, raccourcis, rappels natifs.</p>
-          <a class="btn ghost" href="{{app}}">Ouvrir Arbor Web</a>
-        </article>
+    <section class="sec" style="padding-top:0">
+      <div class="wrap">
+        <div class="feat">
+          <article class="card"><i class="ph ph-keyboard" aria-hidden="true"></i><h3>Raccourcis</h3><p><kbd>Ctrl</kbd> ou <kbd>⌘</kbd> avec <kbd>1</kbd> à <kbd>8</kbd> ouvrent les huit espaces ; avec <kbd>K</kbd>, le compagnon.</p></article>
+          <article class="card"><i class="ph ph-bell" aria-hidden="true"></i><h3>Rappels natifs</h3><p>Un rappel par jour au plus, seulement s’il y a des notions à revoir.</p></article>
+          <article class="card"><i class="ph ph-app-window" aria-hidden="true"></i><h3>Sa propre fenêtre</h3><p>Une seule instance, taille et position retenues, liens externes dans ton navigateur.</p></article>
+        </div>
       </div>
     </section>
-    <section class="sec">
-      <div class="wrap">
-        <div class="sec-h"><h2>Ce que l’application ajoute</h2></div>
-        <div class="grid3">
-          <article class="card reveal"><span class="ic"><i class="ph ph-keyboard" aria-hidden="true"></i></span><h3>Raccourcis</h3><p><kbd>Ctrl</kbd> ou <kbd>⌘</kbd> + <kbd>1</kbd> à <kbd>8</kbd> ouvrent les huit espaces ; <kbd>Ctrl</kbd> ou <kbd>⌘</kbd> + <kbd>K</kbd>, le compagnon.</p></article>
-          <article class="card reveal"><span class="ic"><i class="ph ph-bell" aria-hidden="true"></i></span><h3>Rappels natifs</h3><p>Un rappel par jour au plus, au lancement, seulement s’il y a des notions à revoir. Jamais de publicité.</p></article>
-          <article class="card reveal"><span class="ic"><i class="ph ph-app-window" aria-hidden="true"></i></span><h3>Sa propre fenêtre</h3><p>Une seule instance, taille et position retenues, liens externes ouverts dans ton navigateur.</p></article>
+    <section class="sec forest">
+      <div class="wrap proof">
+        <div>
+          <h2 style="font-size:2rem">Pourquoi un avertissement à l’installation ?</h2>
+          <p>Les installateurs ne sont pas encore signés par un certificat d’éditeur ni notarisés par Apple : Windows et macOS préviennent donc qu’ils ne connaissent pas l’éditeur. Chaque version publiée donne les empreintes SHA-256 de ses fichiers pour vérifier qu’ils n’ont pas été modifiés.</p>
+          <a href="docs/installer.html#verifier">Vérifier un fichier téléchargé</a>
+        </div>
+        <div>
+          <h2 style="font-size:2rem">Pas besoin d’installer pour apprendre.</h2>
+          <p>Arbor Web offre les mêmes fonctions d’apprentissage. L’application ajoute du confort.</p>
+          <a class="btn primary" href="{{app}}">Ouvrir Arbor Web</a>
         </div>
       </div>
     </section>

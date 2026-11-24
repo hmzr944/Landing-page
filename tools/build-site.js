@@ -33,11 +33,15 @@ function shell({ title, desc, root, current, body }) {
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>${title}</title>
   <meta name="description" content="${desc}" />
-  <meta name="theme-color" content="#F6F5F1" media="(prefers-color-scheme: light)" />
-  <meta name="theme-color" content="#0E1311" media="(prefers-color-scheme: dark)" />
+  <meta name="theme-color" content="#F5F5F7" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
+  <meta property="og:title" content="${title}" />
+  <meta property="og:description" content="${desc}" />
+  <meta property="og:image" content="https://hmzr944.github.io/Landing-page/site/img/og-arbor.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <!-- SF Pro sur les appareils Apple (police système) ; Inter, très proche, ailleurs -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" />
   <link rel="stylesheet" href="${root}site.css" />
@@ -50,7 +54,7 @@ function shell({ title, desc, root, current, body }) {
     <div class="wrap">
       <a class="s-brand" href="${root}index.html" aria-label="Arbor, accueil du site">${LOGO}<span translate="no">Arbor</span></a>
       <nav class="s-nav" aria-label="Site">${nav.map(([h, l, id]) => `<a href="${h}"${id === current ? ' aria-current="page"' : ''}>${l}</a>`).join('')}</nav>
-      <div class="s-cta"><a class="btn sm ghost" href="${app}">Se connecter</a><a class="btn sm primary" href="${app}">Ouvrir Arbor Web</a></div>
+      <div class="s-cta"><a class="btn sm primary" href="${app}">Ouvrir Arbor Web</a></div>
       <button class="s-menu" type="button" aria-label="Menu" aria-expanded="false"><i class="ph ph-list" aria-hidden="true"></i></button>
     </div>
   </header>
@@ -59,7 +63,7 @@ ${body}
   </main>
   <footer class="s-foot">
     <div class="wrap">
-      <div><a class="s-brand" href="${root}index.html">${LOGO}<span translate="no">Arbor</span></a><p style="margin-top:10px">Apprendre, comprendre, pratiquer, maîtriser. Un même compte sur le Web, l’ordinateur et le téléphone.</p></div>
+      <div><a class="s-brand" href="${root}index.html">${LOGO}<span translate="no">Arbor</span></a><p style="margin-top:12px">Apprendre, comprendre, pratiquer, maîtriser. Un même compte sur le Web, l’ordinateur et le téléphone.</p></div>
       <div><b>Arbor</b><a href="${app}">Arbor Web</a><a href="${root}telecharger.html">Windows et macOS</a><a href="${root}mobile.html">Téléphone</a></div>
       <div><b>Documentation</b><a href="${root}docs/demarrer.html">Premiers pas</a><a href="${root}docs/apprendre.html">Fiches et parcours</a><a href="${root}docs/business.html">Arbor Business</a></div>
       <div><b>Confiance</b><a href="${root}docs/sources.html">Sources</a><a href="${root}docs/donnees.html">Données</a><a href="${root}docs/faq.html">Questions fréquentes</a></div>
@@ -74,7 +78,7 @@ ${body}
 function docShell(id, inner) {
   const i = FLAT.findIndex(([x]) => x === id);
   const prev = FLAT[i - 1], next = FLAT[i + 1];
-  const side = DOCS.map(([g, items]) => `<p>${g}</p>${items.map(([x, ic, l]) => `<a href="${x}.html"${x === id ? ' aria-current="page"' : ''}><i class="ph ph-${ic}" aria-hidden="true"></i>${l}</a>`).join('')}`).join('');
+  const side = DOCS.map(([g, items]) => `<p>${g}</p><div class="grp">${items.map(([x, ic, l]) => `<a href="${x}.html"${x === id ? ' aria-current="page"' : ''}><i class="ph-fill ph-${ic}" aria-hidden="true"></i>${l}</a>`).join('')}</div>`).join('');
   const select = `<label class="docs-sel-l"><span class="skip">Aller à une page</span><select class="docs-sel">${DOCS.map(([g, items]) => `<optgroup label="${g}">${items.map(([x, , l]) => `<option value="${x}.html"${x === id ? ' selected' : ''}>${l}</option>`).join('')}</optgroup>`).join('')}</select></label>`;
   const pager = `<nav class="doc-pager" aria-label="Pages voisines">${prev ? `<a href="${prev[0]}.html"><small>Précédent</small>${prev[2]}</a>` : ''}${next ? `<a class="next" href="${next[0]}.html"><small>Suivant</small>${next[2]}</a>` : ''}</nav>`;
   return `    <div class="wrap docs"><nav class="docs-nav" aria-label="Documentation">${side}</nav><div>${select}<article class="doc">

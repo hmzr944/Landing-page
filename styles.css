@@ -4339,7 +4339,9 @@ h1, h2, h3, .brand-name { font-family: var(--font-display); letter-spacing: -0.0
 
 /* -- Bento -- */
 .dbento { display: grid; gap: 14px; grid-template-columns: repeat(12, minmax(0, 1fr)); }
-.b-card { grid-column: span 12; position: relative; display: flex; flex-direction: column; gap: 14px; min-width: 0; padding: 20px 22px; border-radius: var(--r-panel, 16px); background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-1, none); }
+/* la pleine largeur ne vaut que dans une grille bento : ailleurs (Explorer…), elle créait 12 colonnes implicites */
+:where(.dbento) > .b-card { grid-column: span 12; }
+.b-card { position: relative; display: flex; flex-direction: column; gap: 14px; min-width: 0; padding: 20px 22px; border-radius: var(--r-panel, 16px); background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-1, none); }
 .b-h { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .b-h h2 { margin: 0; font-family: var(--font-display); font-weight: 600; font-size: 1.12rem; letter-spacing: -0.02em; }
 .b-h h2 small { font: 500 .85rem var(--font); color: var(--text-3); margin-left: 6px; }

@@ -105,6 +105,38 @@ const RELEASE = { tag_name: 'v2.0.0', published_at: '2026-11-24T10:00:00Z', html
     check('W16 menu téléphone : s’ouvre et mène à la documentation', await p.isVisible('.s-nav a[href="docs/index.html"]'));
     await ctx.close();
   }
+  // Design « Clairière » (docs/site-design.md) : images réelles présentes, récit, sélecteur, mouvement réduit, palette
+  {
+    const imgs = [...new Set(PAGES.flatMap((pg) => [...fs.readFileSync(path.join(ROOT, pg), 'utf8').matchAll(/<img[^>]+src="([^"]+)"/g)].map((m) => path.join(path.dirname(path.join(ROOT, pg)), m[1]))))];
+    const missing = imgs.filter((f) => !fs.existsSync(f));
+    check('W17 toutes les images des pages existent (captures réelles, simulateur iPhone)', imgs.length >= 10 && !missing.length, missing.map((f) => path.relative(ROOT, f)).join(', ') || `${imgs.length} images`);
+    const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    await ctx.route(/fonts\.(googleapis|gstatic)\.com|unpkg\.com/, (r) => r.fulfill({ status: 200, body: '' }));
+    const p = await ctx.newPage();
+    await p.goto(BASE + 'site/index.html'); await p.waitForTimeout(400);
+    check('W18 récit : six étapes et six écrans de téléphone', (await p.$$('.story-steps li')).length === 6 && (await p.$$('.story-phone .scr img')).length === 6);
+    const pane = async () => p.$$eval('.xp-media > [data-pane]', (els) => els.filter((e) => e.getAttribute('aria-hidden') === 'false').map((e) => e.dataset.pane).join(','));
+    const before = await pane();
+    await p.click('.seg button[data-key="phone"]'); await p.waitForTimeout(400);
+    const after = await pane();
+    const pillX = await p.$eval('.seg .pill', (e) => e.style.transform);
+    check('W19 sélecteur segmenté : un seul panneau visible, il change au toucher, la pastille suit', before === 'web' && after === 'phone' && /translateX\((?!0px)/.test(pillX), `${before} -> ${after} ${pillX}`);
+    await p.keyboard.press('ArrowLeft'); await p.waitForTimeout(300);
+    check('W20 sélecteur segmenté au clavier (flèches)', (await pane()) === 'desk');
+    await ctx.close();
+    const rm = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
+    const q = await rm.newPage();
+    await q.goto(BASE + 'site/index.html'); await q.waitForTimeout(300);
+    const t = await q.evaluate(() => ({ p: document.querySelector('.tree-art').style.getPropertyValue('--p'), lit: document.querySelectorAll('.tree-art .nd.lit').length }));
+    check('W21 mouvement réduit : l’arbre est entièrement dessiné, les notions allumées, sans attendre le défilement', t.p === '1.000' && t.lit >= 7, JSON.stringify(t));
+    await rm.close();
+    const css = fs.readFileSync(path.join(ROOT, 'site/site.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+    const ALLOWED = ['#F5F5F7', '#FFFFFF', '#1D1D1F', '#6E6E73', '#86868B', '#000000', '#1C1C1E', '#98989D', '#8E8E93', '#0B3B2E', '#17874D', '#4CD787', '#032614', '#0E1512', '#F3F8F6', '#9FB8AE', '#636366', '#000', '#FFF'];
+    const hex = [...new Set([...css.matchAll(/#[0-9A-Fa-f]{3,8}\b/g)].map((m) => m[0].toUpperCase()))];
+    const extra = hex.filter((h) => !ALLOWED.includes(h));
+    check('W22 règle des trois couleurs : aucune teinte hors Givre (gris Apple), Sous-bois et Canopée', !extra.length, extra.join(' ') || `${hex.length} valeurs, toutes déclarées`);
+  }
+
   await browser.close(); server.close();
   console.log(failed ? `\n${failed} échec(s)` : '\nTous les tests passent');
   process.exit(failed ? 1 : 0);
