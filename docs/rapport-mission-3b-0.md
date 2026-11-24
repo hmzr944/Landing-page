@@ -27,7 +27,8 @@ Business, et la v53 reste telle quelle.
 | `tests/fixtures/fiches/*.json` | nouveaux : 4 fiches d'essai **fabriquées** (fermentation et levier, hors du jeu 3a ; chaîne du froid et Pythagore, sur des notions du jeu 3a, écrites sans en reprendre les éléments) |
 | `tests/fixtures/chevauchements.json` | nouveau : jeu d'essai du non-chevauchement (28 reprises, 9 reformulations difficiles, 15 questions légitimes) |
 | `tests/fixtures/jeu-3a/jeu-de-mesure.json` | nouveau : copie à l'identique de `mission-3a` (`523f730`), empreinte vérifiée (`3abd95eb…2443257`) ; `mission-3a` n'est pas fusionnée |
-| `.github/workflows/ci.yml` | **seule modification d'un fichier existant** : ajout de la suite `fiche` au groupe `student` |
+| `.github/workflows/ci.yml` | **fichier existant modifié (1 sur 2)** : ajout de la suite `fiche` au groupe `student` |
+| `tests/ai-server.js` | **fichier existant modifié (2 sur 2)**, test uniquement : le contrôle « aucune clé d'IA dans les fichiers servis » lisait chaque entrée de `js/` comme un fichier et plantait sur le nouveau dossier `js/pedagogie/` (EISDIR). Il parcourt maintenant les sous-dossiers ; les fichiers existants sont contrôlés comme avant, et les nouveaux modules le sont aussi |
 | `docs/rapport-mission-3b-0.md` | ce rapport |
 
 Les nouveaux modules ne sont chargés par aucune page : ni `index.html`, ni `sw.js` ne les citent (contrôle F29).
@@ -115,6 +116,9 @@ Le niveau de preuve reste 3. L'état est distinct de « Maîtrisée » (niveau 4
 - **V-ordre-01 et 02 sont des contrôles de surface :**
   - ils reconnaissent le nom de la notion et des marqueurs forts de définition ;
   - ils ne prouvent pas qu'une situation est vraiment concrète ni bien choisie.
+- **Premier passage de l'intégration continue en échec** (run 45396023841) : seule la suite `ai-server` échouait,
+  à cause du nouveau dossier `js/pedagogie/` (voir § 1, `tests/ai-server.js`). Ce n'était pas une régression de
+  l'application, mais un test qui supposait que `js/` ne contenait que des fichiers. Corrigé dans le commit `bcca3df`.
 - **V-sources** (ancrage lexical d'une fiche générée dans ses sources) n'est pas mis en œuvre : prévu en 3b-5. 3b-0
   vérifie seulement la forme du bloc `sources`.
 
@@ -178,11 +182,29 @@ du jeu 3a.
 - Monter NC3 à 0,6 perd les 2 cas difficiles détectés.
 - 0,5 et 0,3 donnent ici le meilleur compromis. **Ce compromis n'est démontré que sur ce petit jeu d'essai.**
 
-### 5.3 Non-régression des suites existantes
-_Voir § 5.4 : résultats de l'exécution complète._
+### 5.3 Non-régression des suites existantes (exécution locale)
+Toutes les suites du dépôt ont été relancées localement sur la branche (commit `bcca3df`) :
 
-### 5.4 Exécution complète
-_Exécution en cours au moment de ce commit : résultats ajoutés dans le commit suivant de la branche._
+| Groupe | Suites | Résultat |
+|---|---|---|
+| Student | welcome, onboarding, student-path, home-adaptive, learning-flow, foundations, explore, motion, responsive, fiche | OK |
+| Documents | pdf-structure, pdf-mixed | OK ; pdf-mixed : 1 SKIPPED (documents privés absents, déjà le cas sur `main`) |
+| Moteurs et données | data-safety, engines, corpus-metier, benchmark | OK |
+| Business | org, org-setup, org-learn, org-engines, org-docs, org-onboarding, org-shell, org-desktop, org-insight | OK |
+| Autres | tutor, league, feedback | OK |
+| Serveur IA | ai-server | OK ; 1 NON VÉRIFIÉ en local (D3 demande l'accès réseau à Wikimedia, bloqué ici ; vérifié en CI) |
+| Deno, base de données | deno, db-rls | OK |
+
+### 5.4 Intégration continue
+- Run 45396023841 (commit `c64a636`) : **échec** de `ai-server` seulement (EISDIR, voir § 4). Les autres groupes
+  avaient réussi.
+- Run 45397967400 (commit `bcca3df`) : **réussi**. Les 6 jobs sont en succès : base de données (RLS, PostgreSQL 16), fonction
+  tutor (Deno), navigateur student, business, import et serveur-simulé. La suite `fiche` y affiche « réussi pour ce qui
+  a été exécuté ; 1 SKIPPED » : F31 (périmètre) ne peut pas s'exécuter sur une copie superficielle du dépôt. F30
+  (71 fichiers de l'application identiques à `main`) y est exécuté et réussi.
+
+**Une CI verte n'est pas une validation fonctionnelle** : elle montre qu'aucun test existant ne casse et que les
+fichiers de l'application sont identiques à ceux de `main` (F30). Elle ne dit rien de la qualité pédagogique.
 
 ## 6. Résultats des campagnes d'IA réelles
 **Aucune.** 3b-0 n'appelle aucun modèle : le validateur et le contrôle de non-chevauchement sont déterministes.
