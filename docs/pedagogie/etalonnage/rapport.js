@@ -14,9 +14,11 @@ const repTxt = (it) => it.grille === 'B4' ? `Q1 : « ${it.q1.choix} » ; « ${it
 
 function build() {
   const map = E.codes(), items = E.ITEMS;
-  const mesure = fs.existsSync(FA) && fs.existsSync(FB);
+  // Statut : aucun accord n'est calculé dès qu'une feuille manque ou est invalide.
+  const presentes = { A: fs.existsSync(FA), B: fs.existsSync(FB) };
+  const nb = Number(presentes.A) + Number(presentes.B);
   let A, B, res, erreurs = [];
-  if (mesure) {
+  if (nb === 2) {
     A = E.lireFeuille(FA); B = E.lireFeuille(FB); erreurs = [...A.erreurs.map((e) => 'A ' + e), ...B.erreurs.map((e) => 'B ' + e)];
     if (!erreurs.length) res = E.accord(A.notes, B.notes);
   }
@@ -24,8 +26,9 @@ function build() {
     'Généré par `docs/pedagogie/etalonnage/rapport.js`. Ne pas modifier à la main.', '',
     '**Toutes les réponses sont fabriquées pour l\'exercice. Aucune ne vient d\'un participant.** Aucune mesure réelle n\'a été faite.', ''];
   L.push('## Statut', '');
-  if (!mesure) L.push('**NON MESURÉ.** Les deux correcteurs n\'ont pas encore rendu leurs feuilles (`notes/notes-correcteur-A.csv`, `notes/notes-correcteur-B.csv`). Les sections 3 à 6 restent vides : aucune note n\'est estimée ni simulée.', '');
-  else if (erreurs.length) L.push('**FEUILLES INCOMPLÈTES : accord non calculé.**', '', ...erreurs.map((e) => `- ${e}`), '');
+  if (nb === 0) L.push('**NON MESURÉ.** Les deux correcteurs n\'ont pas encore rendu leurs feuilles (`notes/notes-correcteur-A.csv`, `notes/notes-correcteur-B.csv`). Les sections 3 à 6 restent vides : aucune note n\'est estimée ni simulée.', '');
+  else if (nb === 1) { const ok = presentes.A ? 'A' : 'B', manque = presentes.A ? 'B' : 'A'; L.push(`**INCOMPLET — accord non calculé.** Seule la feuille du correcteur ${ok} est présente ; celle du correcteur ${manque} (\`notes/notes-correcteur-${manque}.csv\`) manque. Aucune note n'est affichée et aucun accord n'est calculé tant que les deux feuilles ne sont pas là.`, ''); }
+  else if (erreurs.length) L.push('**FEUILLES INCOMPLÈTES — accord non calculé.** Les deux feuilles sont présentes, mais au moins une est invalide :', '', ...erreurs.map((e) => `- ${e}`), '');
   else L.push(`**MESURÉ** sur les notes individuelles, telles que remises, avant toute discussion. Empreintes SHA-256 des feuilles : A \`${A.sha256.slice(0, 16)}\`, B \`${B.sha256.slice(0, 16)}\`.`, '');
 
   // 1. Couverture

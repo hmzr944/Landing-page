@@ -112,14 +112,20 @@ const pv = valide.replace(/^﻿?/, '﻿').split('\n').map((l) => l.replace(/,(?=
 const lpv = essai('pv.csv', pv);
 check('E21 feuille enregistrée par un tableur réglé en français (point-virgule, BOM, fins de ligne Windows) acceptée telle quelle', !lpv.length && Object.keys(E.lireFeuille(path.join(tmp, 'pv.csv')).notes).length === items.length, lpv.slice(0, 2).join(' ; '));
 check('E22 la feuille de test valide ne produit aucune erreur', !A.erreurs.length && !B.erreurs.length, [...A.erreurs, ...B.erreurs].slice(0, 2).join(' ; '));
-{ // rapport : refuse de calculer sur une feuille invalide, calcule sur des feuilles valides
-  const d1 = path.join(tmp, 'ok'), d2 = path.join(tmp, 'ko'); fs.mkdirSync(d1); fs.mkdirSync(d2);
-  fs.copyFileSync(path.join(tmp, 'a.csv'), path.join(d1, 'notes-correcteur-A.csv')); fs.copyFileSync(path.join(tmp, 'b.csv'), path.join(d1, 'notes-correcteur-B.csv'));
-  fs.copyFileSync(path.join(tmp, 'a.csv'), path.join(d2, 'notes-correcteur-A.csv')); fs.copyFileSync(path.join(tmp, 'inv0.csv'), path.join(d2, 'notes-correcteur-B.csv'));
+{ // rapport : les quatre statuts ; aucun accord dès qu'une feuille manque ou est invalide
+  const dossier = (nom, fa, fb) => { const d = path.join(tmp, nom); fs.mkdirSync(d); if (fa) fs.copyFileSync(path.join(tmp, fa), path.join(d, 'notes-correcteur-A.csv')); if (fb) fs.copyFileSync(path.join(tmp, fb), path.join(d, 'notes-correcteur-B.csv')); return d; };
   const rap = (d) => { process.env.ETALONNAGE_NOTES_DIR = d; delete require.cache[require.resolve(path.join(dir, 'rapport.js'))]; const t = require(path.join(dir, 'rapport.js')).build(); delete process.env.ETALONNAGE_NOTES_DIR; return t; };
-  const ok = rap(d1), ko = rap(d2);
-  check('E23 rapport : feuilles valides → statut MESURÉ, accords et désaccords calculés', /\*\*MESURÉ\*\*/.test(ok) && /\| B4 décision \| 13 \|/.test(ok) && /B2-03 \| C4/.test(ok));
-  check('E24 rapport : une feuille invalide → aucun accord calculé, erreurs listées', /FEUILLES INCOMPLÈTES/.test(ko) && !/\| B4 décision \| 13 \|/.test(ko) && ko.includes(`${b3} : B3`));
+  const accordCalcule = (t) => /\| B4 décision \| 13 \|/.test(t) || /\*\*MESURÉ\*\*/.test(t);
+  const ok = rap(dossier('ok', 'a.csv', 'b.csv'));
+  check('E23 rapport, deux feuilles valides → MESURÉ, accords et désaccords calculés', /\*\*MESURÉ\*\*/.test(ok) && /\| B4 décision \| 13 \|/.test(ok) && /B2-03 \| C4/.test(ok));
+  const aucune = rap(dossier('aucune')), seuleA = rap(dossier('seuleA', 'a.csv')), seuleB = rap(dossier('seuleB', null, 'b.csv')), ko = rap(dossier('ko', 'a.csv', 'inv0.csv'));
+  const statuts = [
+    ['aucune feuille → NON MESURÉ', /\*\*NON MESURÉ\.\*\*/.test(aucune) && !accordCalcule(aucune)],
+    ['feuille A seule → INCOMPLET', aucune !== seuleA && /\*\*INCOMPLET — accord non calculé\.\*\*/.test(seuleA) && /correcteur B .*manque/.test(seuleA) && !accordCalcule(seuleA)],
+    ['feuille B seule → INCOMPLET', /\*\*INCOMPLET — accord non calculé\.\*\*/.test(seuleB) && /correcteur A .*manque/.test(seuleB) && !accordCalcule(seuleB)],
+    ['deux feuilles, une invalide → FEUILLES INCOMPLÈTES, erreurs listées', /\*\*FEUILLES INCOMPLÈTES — accord non calculé\.\*\*/.test(ko) && ko.includes(`${b3} : B3`) && !accordCalcule(ko)],
+  ].filter(([, v]) => !v).map(([nom]) => nom);
+  check('E24 rapport, feuille absente ou invalide → aucun accord : NON MESURÉ (aucune), INCOMPLET (une seule, A ou B), FEUILLES INCOMPLÈTES (une invalide)', !statuts.length, statuts.join(' ; '));
 }
 fs.rmSync(tmp, { recursive: true });
 
@@ -132,9 +138,15 @@ const GELES = { 'docs/pedagogie/grille-reformulation.md': 'ad04fb422f1773d194738
 const modifies = Object.entries(GELES).filter(([f, h]) => sha(f) !== h).map(([f]) => f);
 check('E20 grille, jeu de mesure et protocole identiques à la version 523f730 (aucune modification automatique)', !modifies.length, modifies.join(', '));
 
-const grilleRemise = ['A', 'B'].filter((L) => sha(`docs/pedagogie/etalonnage/remise/correcteur-${L}/grille-reformulation.md`) !== GELES['docs/pedagogie/grille-reformulation.md']);
-const annexe = rd('remise/correcteur-A/grille-reformulation.md').includes("## Annexe A : copies d'ancrage") && rd('remise/correcteur-A/consignes.md').includes('Annexe A');
-check('E28 chaque dossier de remise contient la grille 523f730 à l\'identique, avec son annexe A d\'ancrage, citée dans les consignes', !grilleRemise.length && annexe, grilleRemise.join(', '));
+// E28 : pour A ET B, séparément
+const remiseBad = [];
+for (const L of ['A', 'B']) {
+  const g = `docs/pedagogie/etalonnage/remise/correcteur-${L}/grille-reformulation.md`;
+  if (sha(g) !== GELES['docs/pedagogie/grille-reformulation.md']) remiseBad.push(`${L} : grille différente de la version 523f730`);
+  if (!/^## Annexe A : copies d'ancrage \(fabriquées, pas des participants\)$/m.test(rd(`remise/correcteur-${L}/grille-reformulation.md`))) remiseBad.push(`${L} : annexe A absente de la grille`);
+  if (!/« Annexe A : copies d'ancrage »/.test(rd(`remise/correcteur-${L}/consignes.md`))) remiseBad.push(`${L} : consignes sans mention de l'annexe A`);
+}
+check('E28 dossiers A et B : grille identique à la version 523f730, annexe A présente, consignes qui la mentionnent', !remiseBad.length, remiseBad.join(' ; '));
 
 console.log(failed ? `\n${failed} échec(s)` : '\nTous les tests passent');
 process.exit(failed ? 1 : 0);
