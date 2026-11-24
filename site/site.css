@@ -259,3 +259,8 @@ i.ph, i.ph-fill { line-height: 1; }
 .phone img { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: 34px; }
 .phone-fig { margin: 0; display: grid; gap: 12px; justify-items: center; }
 .phone-fig figcaption { max-width: 300px; text-align: center; font-size: .82rem; color: var(--text-3); }
+/* les tableaux larges défilent dans leur cadre, jamais la page (polices de secours plus larges comprises) */
+.docs > div { min-width: 0; }
+.doc { min-width: 0; overflow-wrap: anywhere; }
+.doc table { max-width: 100%; }
+@media (max-width: 900px) { .docs { grid-template-columns: minmax(0, 1fr); } }
