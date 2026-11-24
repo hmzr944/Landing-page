@@ -4484,3 +4484,4 @@ mark.ins { background: var(--accent-soft); color: var(--accent-ink); border-radi
   .b-main .hero-row { flex-direction: column; align-items: flex-start; } .tension { grid-template-columns: 1fr; }
   .ir-chain { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 16px; } .ir-chain::before { display: none; } .diff-cols { grid-template-columns: 1fr; }
 }
+@media (max-width: 1023px) { .d2 { padding: 0 16px 24px; } .d2-head h1 { font-size: 1.7rem; } }
