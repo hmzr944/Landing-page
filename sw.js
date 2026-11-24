@@ -1,11 +1,11 @@
 /* Service worker d'Arbor : l'application fonctionne hors connexion.
    Fichiers de l'app : réseau d'abord (pour les mises à jour), cache en secours.
    Bibliothèques des CDN (polices Fontshare, icônes, pdf.js) : cache d'abord. */
-const VERSION = 'arbor-v54-arbor2';
+const VERSION = 'arbor-v55-partage';
 const SHELL = [
   './', './index.html', './styles.css', './manifest.webmanifest',
   './js/flags.js', './js/srs.js', './js/store.js', './js/db.js', './js/tutor.js', './js/org.js', './js/org-docs.js', './js/evidence.js', './js/adaptive.js', './js/org-insight.js', './js/org-learn.js', './js/org-engines.js', './js/feedback.js', './js/org-shell.js', './js/org-changes.js', './js/desk2.js', './js/textpdf.js', './js/league.js', './js/org-hub.js', './js/org-setup.js', './js/org-discover.js', './js/org-desk.js', './js/org-sandbox.js', './js/org-onboarding.js', './js/markdown.js', './js/fx.js', './js/trophies.js', './js/pousse-dex.js', './js/lesson.js', './js/pedagogie/fiche-empreinte.js', './js/pedagogie/chevauchement.js', './js/pedagogie/fiche-validateur.js', './js/pedagogie/correction.js', './js/pedagogie/parcours.js', './js/learn.js', './js/universel.js', './js/spaces.js', './js/desktop.js', './assets/fiches/demo-levier.json', './js/mastery.js', './js/insight.js', './js/explore.js', './js/dialogue.js', './js/onboarding.js', './js/journey.js', './js/welcome.js', './js/motion.js', './assets/pousse-grow.json', './js/doc-classify.js', './js/pdf-import.js', './js/ai.js', './js/course.js', './js/storm.js', './js/local-ai.js',
-  './js/mascot.js', './js/pwa.js', './js/app.js',
+  './js/mascot.js', './js/pwa.js', './js/partage.js', './js/app.js',
   './icons/icon-192.png', './icons/icon-512.png',
 ];
 const CDN = ['api.fontshare.com', 'cdn.fontshare.com', 'unpkg.com', 'cdnjs.cloudflare.com'];

@@ -50,7 +50,7 @@ jobs:
       matrix:
         include:
           - groupe: student
-            suites: welcome onboarding student-path home-adaptive learning-flow foundations explore motion responsive fiche jeu-de-mesure parcours learn spaces universel
+            suites: welcome onboarding student-path home-adaptive learning-flow foundations explore motion responsive fiche jeu-de-mesure parcours learn spaces universel partage site
           - groupe: import
             suites: pdf-structure pdf-mixed data-safety engines corpus-metier benchmark
           - groupe: business

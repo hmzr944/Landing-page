@@ -4581,3 +4581,8 @@ mark.ins { background: var(--accent-soft); color: var(--accent-ink); border-radi
 .tm-prev p, .tm-prev ol, .tm-prev ul { margin: 0; font-size: .9rem; }
 .tm-prev ol, .tm-prev ul { padding-left: 18px; }
 .tr-review { display: flex; gap: 8px; flex-wrap: wrap; } .tr-review .input { flex: 1; min-width: 180px; }
+
+/* Partage d'un parcours (js/partage.js) */
+.sh-tree { margin: 0; padding-left: 1.3em; display: grid; gap: 6px; }
+.sh-tree small { margin-left: 8px; color: var(--text-3); }
+#shUrl { width: 100%; font-family: var(--font-mono, monospace); font-size: .8rem; }

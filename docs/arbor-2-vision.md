@@ -7,6 +7,10 @@ Il ne remplace pas le plan de transformation : il le recadre sur la vision produ
 Arbor est une **plateforme universelle d'apprentissage**. **Arbor Learning est le cœur** ; Arbor Business est un
 environnement spécialisé pour les organisations, qui n'en définit pas l'identité.
 
+**Trois expériences, un même socle** (`docs/arbor-plateformes.md`) : Desktop (l'expérience complète), Web (l'accès
+universel, sans installation), Mobile (l'apprentissage au quotidien). Exigence : **aucune fonctionnalité pédagogique
+importante n'est réservée au Desktop** ; le Desktop ajoute du confort, le Web reste un véritable produit d'apprentissage.
+
 | Pilier | Ce que c'est | Où c'est dans le code |
 |---|---|---|
 | 1. Living Learning Engine | situation, explication adaptée, pratique, diagnostic des confusions, fausses certitudes, révisions, maîtrise prouvée | `js/pedagogie/` (fiche, parcours, correction), `js/mastery.js`, `js/srs.js` (FSRS), `js/evidence.js`, `js/adaptive.js`, `js/learn.js` |
