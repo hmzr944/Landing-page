@@ -1,0 +1,458 @@
+{
+  "format": "fiche-v1",
+  "meta": {
+    "id": "essai-pythagore",
+    "notion": "Le théorème de Pythagore",
+    "version": 1,
+    "langue": "fr",
+    "statut": "brouillon",
+    "origine": "humaine",
+    "domaine": "mathématiques (notion du jeu 3a, S04 ; fiche légitime d’essai)",
+    "essai": true,
+    "avertissement": "Fiche d’essai fabriquée pour les tests de la mission 3b-0. Ce n’est pas une fiche pédagogique validée."
+  },
+  "validation": null,
+  "sources": [
+    {
+      "id": "s1",
+      "titre": "Wikipédia : Théorème de Pythagore",
+      "url": "https://fr.wikipedia.org/wiki/Th%C3%A9or%C3%A8me_de_Pythagore",
+      "licence": "CC BY-SA 4.0",
+      "extrait": "Dans un triangle rectangle, le carré de la longueur de l’hypoténuse est égal à la somme des carrés des longueurs des deux autres côtés."
+    }
+  ],
+  "prerequis": [
+    {
+      "notion": "Le carré d’un nombre",
+      "question": {
+        "id": "pp1",
+        "evalue": "restitution",
+        "q": "Combien vaut 7 au carré ?",
+        "choix": [
+          {
+            "texte": "14"
+          },
+          {
+            "texte": "77"
+          },
+          {
+            "texte": "49",
+            "juste": true
+          },
+          {
+            "texte": "21"
+          }
+        ]
+      }
+    }
+  ],
+  "situation": {
+    "texte": "Pour poser une étagère en coin, Inès veut savoir si son coin de mur est bien droit. Elle mesure 60 cm sur un mur, 80 cm sur l’autre à partir du coin, et 1 m entre ces deux marques. Son voisin, dans un coin abîmé, trouve 60 cm, 80 cm et 1,10 m.",
+    "question_ouverture": "D’après toi, lequel des deux coins est vraiment droit, et comment le sait-on ?"
+  },
+  "explication": {
+    "simple": {
+      "ancre_situation": "Inès a mesuré 60 cm, 80 cm et 1 m",
+      "texte": "Inès a mesuré 60 cm, 80 cm et 1 m. Si on multiplie chaque longueur par elle-même, on trouve 3 600, 6 400 et 10 000 : les deux premiers ensemble font exactement le troisième. Cela n’arrive que si l’angle entre les deux murs est droit. Chez le voisin, 1,10 m donne 12 100, trop grand : son coin n’est pas droit. C’est le théorème de Pythagore : dans un triangle rectangle, le carré du grand côté est égal à la somme des carrés des deux autres."
+    },
+    "standard": {
+      "ancre_situation": "les mesures d’Inès, 60 cm, 80 cm et 1 m",
+      "texte": "Reprenons les mesures d’Inès, 60 cm, 80 cm et 1 m. Les deux murs et le segment entre ses marques forment un triangle. On constate que 60² + 80² = 3 600 + 6 400 = 10 000 = 100². Le théorème de Pythagore affirme que, dans un triangle rectangle, le carré de l’hypoténuse est égal à la somme des carrés des deux autres côtés. Sa réciproque permet de vérifier qu’un angle est droit. Avec 1,10 m, l’égalité n’est pas vérifiée : le coin du voisin n’est pas droit."
+    }
+  },
+  "idee_centrale": "Dans un triangle rectangle, le carré du plus grand côté est égal à la somme des carrés des deux autres, ce qui permet aussi de vérifier un angle droit.",
+  "elements_cles": [
+    "la relation ne vaut que pour un triangle rectangle",
+    "elle permet de calculer une longueur ou de vérifier un angle droit"
+  ],
+  "representations": [
+    {
+      "id": "r1",
+      "type": "exemple",
+      "texte": "Un menuisier vérifie l’équerrage d’un cadre de porte : 90 cm sur un montant, 120 cm sur l’autre, et la diagonale doit mesurer 150 cm."
+    },
+    {
+      "id": "r2",
+      "type": "etapes",
+      "texte": "1. Repérer l’angle droit. 2. Mettre au carré les deux côtés qui le forment. 3. Additionner ces deux carrés. 4. Prendre la racine carrée pour obtenir le grand côté."
+    },
+    {
+      "id": "r3",
+      "type": "analogie",
+      "texte": "Sur chaque côté du triangle, on dessine un carré de carrelage : les carreaux des deux petits carrés suffisent exactement à paver le grand.",
+      "limite": "C’est une image de la relation entre les aires ; elle ne marche plus si l’angle n’est pas droit, et les carreaux ne tombent pas toujours juste."
+    },
+    {
+      "id": "r4",
+      "type": "contre_exemple",
+      "texte": "Un triangle de côtés 2, 3 et 4 n’est pas rectangle : 2² + 3² = 13, qui n’est pas égal à 4² = 16."
+    }
+  ],
+  "confusions": [
+    {
+      "id": "c1",
+      "libelle": "Additionner les côtés au lieu de leurs carrés",
+      "description": "Croire que le grand côté est la somme des longueurs des deux autres.",
+      "remede": "r2",
+      "controle": {
+        "id": "pc-c1",
+        "evalue": "application",
+        "q": "Une étagère triangulaire a deux bords de 9 cm et 12 cm qui se rejoignent à angle droit. Quelle longueur fait son troisième bord ?",
+        "choix": [
+          {
+            "texte": "21 cm",
+            "confusion": "c1"
+          },
+          {
+            "texte": "18 cm"
+          },
+          {
+            "texte": "108 cm"
+          },
+          {
+            "texte": "15 cm",
+            "juste": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "c2",
+      "libelle": "La relation vaut pour tous les triangles",
+      "description": "Appliquer la relation des carrés à un triangle qui n’a pas d’angle droit.",
+      "remede": "r4",
+      "controle": {
+        "id": "pc-c2",
+        "evalue": "application",
+        "q": "Un triangle a des côtés de 4 cm, 5 cm et 7 cm. Peut-on dire qu’il est rectangle ?",
+        "choix": [
+          {
+            "texte": "Non : 4² + 5² = 41, et non 49",
+            "juste": true
+          },
+          {
+            "texte": "Oui, tout triangle vérifie cette relation",
+            "confusion": "c2"
+          },
+          {
+            "texte": "Oui, car 4 + 5 dépasse 7"
+          },
+          {
+            "texte": "Non, car 7 est un nombre impair"
+          }
+        ]
+      }
+    }
+  ],
+  "questions": {
+    "comprehension": [
+      {
+        "id": "pq1",
+        "evalue": "compréhension",
+        "q": "Pourquoi les mesures d’Inès prouvent-elles que son coin est droit ?",
+        "choix": [
+          {
+            "texte": "Les trois mesures sont toutes des nombres ronds"
+          },
+          {
+            "texte": "Les carrés des petits côtés font ensemble le carré du grand",
+            "juste": true
+          },
+          {
+            "texte": "Le grand côté est la somme des deux autres",
+            "confusion": "c1"
+          },
+          {
+            "texte": "Les deux murs ont exactement la même hauteur"
+          }
+        ]
+      },
+      {
+        "id": "pq2",
+        "evalue": "compréhension",
+        "q": "Pourquoi faut-il repérer l’angle droit avant tout calcul ?",
+        "choix": [
+          {
+            "texte": "Le calcul change selon la taille de l’angle"
+          },
+          {
+            "texte": "Il sert de quatrième côté dans le calcul"
+          },
+          {
+            "texte": "Le grand côté cherché est toujours en face de lui",
+            "juste": true
+          },
+          {
+            "texte": "Sans lui, n’importe quel triangle convient",
+            "confusion": "c2"
+          }
+        ]
+      },
+      {
+        "id": "pq3",
+        "evalue": "restitution",
+        "q": "Le carré d’un nombre, c’est…",
+        "choix": [
+          {
+            "texte": "ce nombre multiplié par deux"
+          },
+          {
+            "texte": "la moitié de ce nombre"
+          },
+          {
+            "texte": "ce nombre augmenté de quatre unités"
+          },
+          {
+            "texte": "ce nombre multiplié par lui-même",
+            "juste": true
+          }
+        ]
+      }
+    ],
+    "comprehension_reserve": [
+      {
+        "id": "pq4",
+        "evalue": "compréhension",
+        "q": "Pourquoi le coin du voisin, avec 1,10 m, n’est-il pas droit ?",
+        "choix": [
+          {
+            "texte": "12 100 n’est pas égal à 3 600 + 6 400",
+            "juste": true
+          },
+          {
+            "texte": "1,10 m est trop grand pour un mur"
+          },
+          {
+            "texte": "Ses côtés ne sont pas des nombres entiers"
+          },
+          {
+            "texte": "La somme 60 + 80 ne fait pas 110",
+            "confusion": "c1"
+          }
+        ]
+      },
+      {
+        "id": "pq5",
+        "evalue": "compréhension",
+        "q": "Pourquoi la diagonale d’un rectangle se calcule-t-elle avec cette relation ?",
+        "choix": [
+          {
+            "texte": "Elle vaut toujours le double de la largeur"
+          },
+          {
+            "texte": "Elle coupe le rectangle en deux triangles rectangles",
+            "juste": true
+          },
+          {
+            "texte": "Elle est parallèle aux grands côtés"
+          },
+          {
+            "texte": "Tous les rectangles ont la même diagonale"
+          }
+        ]
+      }
+    ],
+    "application": [
+      {
+        "id": "pq6",
+        "evalue": "application",
+        "q": "Une rampe monte de 1,2 m sur une distance au sol de 5 m. Quelle longueur de rampe faut-il, environ ?",
+        "choix": [
+          {
+            "texte": "Environ 6,2 m",
+            "confusion": "c1"
+          },
+          {
+            "texte": "Environ 3,8 m"
+          },
+          {
+            "texte": "Environ 5,14 m",
+            "juste": true
+          },
+          {
+            "texte": "Environ 26,44 m"
+          }
+        ]
+      },
+      {
+        "id": "pq7",
+        "evalue": "application",
+        "q": "Un terrain rectangulaire mesure 20 m sur 21 m. Quelle longueur fait une allée en diagonale ?",
+        "choix": [
+          {
+            "texte": "41 m",
+            "confusion": "c1"
+          },
+          {
+            "texte": "30 m"
+          },
+          {
+            "texte": "841 m"
+          },
+          {
+            "texte": "29 m",
+            "juste": true
+          }
+        ]
+      }
+    ],
+    "application_reserve": [
+      {
+        "id": "pq8",
+        "evalue": "application",
+        "q": "Un cerf-volant est tenu par un fil tendu de 50 m ; il est à 40 m à l’horizontale de la personne. À quelle hauteur vole-t-il ?",
+        "choix": [
+          {
+            "texte": "30 m",
+            "juste": true
+          },
+          {
+            "texte": "90 m",
+            "confusion": "c1"
+          },
+          {
+            "texte": "10 m"
+          },
+          {
+            "texte": "45 m"
+          }
+        ]
+      }
+    ],
+    "transfert": [
+      {
+        "id": "pq9",
+        "evalue": "application",
+        "q": "Un drone part du toit d’un immeuble de 24 m et rejoint en ligne droite un point au sol à 7 m du pied de l’immeuble. Quelle distance parcourt-il ?",
+        "choix": [
+          {
+            "texte": "31 m",
+            "confusion": "c1"
+          },
+          {
+            "texte": "25 m",
+            "juste": true
+          },
+          {
+            "texte": "17 m"
+          },
+          {
+            "texte": "625 m"
+          }
+        ]
+      }
+    ],
+    "transfert_reserve": [
+      {
+        "id": "pq10",
+        "evalue": "application",
+        "q": "Un bateau avance de 8 km vers le sud, puis de 15 km vers l’ouest. À quelle distance est-il de son point de départ ?",
+        "choix": [
+          {
+            "texte": "23 km",
+            "confusion": "c1"
+          },
+          {
+            "texte": "7 km"
+          },
+          {
+            "texte": "17 km",
+            "juste": true
+          },
+          {
+            "texte": "289 km"
+          }
+        ]
+      }
+    ],
+    "rappel": [
+      {
+        "id": "pq11",
+        "evalue": "restitution",
+        "q": "Dans un triangle rectangle, le carré du plus grand côté est égal à…",
+        "choix": [
+          {
+            "texte": "la somme des deux autres côtés",
+            "confusion": "c1"
+          },
+          {
+            "texte": "le double du plus petit côté"
+          },
+          {
+            "texte": "le produit des deux autres côtés"
+          },
+          {
+            "texte": "la somme des carrés des deux autres",
+            "juste": true
+          }
+        ]
+      },
+      {
+        "id": "pq12",
+        "evalue": "restitution",
+        "q": "Le plus grand côté d’un triangle rectangle s’appelle…",
+        "choix": [
+          {
+            "texte": "l’hypoténuse",
+            "juste": true
+          },
+          {
+            "texte": "la médiane"
+          },
+          {
+            "texte": "la hauteur"
+          },
+          {
+            "texte": "la bissectrice"
+          }
+        ]
+      },
+      {
+        "id": "pq13",
+        "evalue": "restitution",
+        "q": "Pour vérifier qu’un angle est droit, on compare…",
+        "choix": [
+          {
+            "texte": "les trois côtés entre eux"
+          },
+          {
+            "texte": "deux carrés additionnés au troisième",
+            "juste": true
+          },
+          {
+            "texte": "les angles au périmètre"
+          },
+          {
+            "texte": "le périmètre à l’aire du triangle entier"
+          }
+        ]
+      }
+    ]
+  },
+  "glossaire": [
+    {
+      "terme": "triangle rectangle",
+      "explication": "triangle qui a un angle droit"
+    },
+    {
+      "terme": "angle droit",
+      "explication": "angle comme le coin d’une feuille"
+    },
+    {
+      "terme": "hypoténuse",
+      "explication": "côté en face de l’angle droit, le plus long"
+    },
+    {
+      "terme": "carré",
+      "explication": "nombre multiplié par lui-même"
+    },
+    {
+      "terme": "réciproque",
+      "explication": "règle inverse, qui permet de vérifier un angle droit"
+    },
+    {
+      "terme": "racine carrée",
+      "explication": "nombre qui, multiplié par lui-même, redonne le nombre de départ"
+    }
+  ]
+}
