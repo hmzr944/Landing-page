@@ -2059,6 +2059,7 @@ html.in-lesson { overflow: hidden; }
 .restore-opts small + .btn { margin-top: var(--s3); }
 
 /* ---------- Phase 2 : trois espaces, états des notions ---------- */
+:root { --st-exercised: color-mix(in oklab, var(--st-mastered) 70%, var(--st-learning)); --st-memorized: color-mix(in oklab, var(--st-mastered) 45%, var(--st-seen)); --st-applied: color-mix(in oklab, var(--st-learning) 60%, var(--st-seen)); }
 :root { --st-new: #C9CED8; --st-seen: #8FA2F5; --st-learning: #2BB3A3; --st-fragile: #E89A1E; --st-due: #E5484D; --st-mastered: #12A150; }
 :root[data-theme='dark'] { --st-new: #3A404C; --st-seen: #6E83E8; --st-learning: #34C2B1; --st-fragile: #F2B04A; --st-due: #FF6B70; --st-mastered: #3FCF7E; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme='light']) { --st-new: #3A404C; --st-seen: #6E83E8; --st-learning: #34C2B1; --st-fragile: #F2B04A; --st-due: #FF6B70; --st-mastered: #3FCF7E; } }

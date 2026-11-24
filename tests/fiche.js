@@ -61,7 +61,7 @@ const reference = (f) => { const g = clone(f); g.meta.statut = 'reference'; g.va
 
 // ── 4. Mutations : chaque règle bloquante a au moins un cas qui la déclenche (CA1, CA5 du validateur) ──
 const MUT = {
-  'V-forme-01': (f) => { f.format = 'fiche-v2'; },
+  'V-forme-01': (f) => { f.format = 'fiche-v9'; },
   'V-forme-02': (f) => { f.meta.version = 0; },
   'V-forme-03': (f) => { f.sources[0].licence = ''; },
   'V-forme-04': (f) => { f.situation.texte = 'Trop court.'; },
@@ -99,6 +99,7 @@ const MUT = {
   'V-statut-03': (f) => { f.meta.statut = 'generee_validee'; },
   'V-statut-04': (f) => { f.__catalogue = true; },
   'V-chevauchement-00': (f) => { f.__sansJeu = true; },
+  'V-ancrage-01': (f) => { f.format = 'fiche-v2'; f.meta.origine = 'serveur'; f.explication.simple.sources = ['s1']; f.explication.standard.sources = []; },
   'V-chevauchement-01': (f) => { f.questions.comprehension_reserve[0].q = 'Pourquoi un fichier envoyé sur Internet est-il découpé en paquets ?'; },
 };
 const appliquer = (regle) => {
@@ -203,6 +204,34 @@ const r = rng(20261124), pick = (l) => l[Math.floor(r() * l.length)];
   const faux = V.biaisCatalogue([1, 2, 3, 4].map(() => { const f = clone(BASE); V.toutesQuestions(f).forEach(({ q }) => { q.choix.find((c) => c.juste).texte += ' (version longue de la bonne réponse)'; }); return f; }));
   console.log(`– information : biais de longueur des 4 fiches d’essai : bonne réponse la plus longue ${b.long}/${b.n}, la plus courte ${b.court}/${b.n}, rapport ${b.ratio.toFixed(2)}`);
   check('F28 biais de longueur d’un catalogue : un catalogue où la bonne réponse est toujours la plus longue est refusé (seuils J16 à J19)', faux.conforme === false && b.n === 4 * 15);
+}
+
+// ── 6 bis. Format v2 (Arbor 2) : minimums, items non QCM, ancrage ──
+const enV2 = (f0) => {
+  const f = clone(f0); f.format = 'fiche-v2'; f.meta.origine = 'serveur'; f.meta.statut = 'generee_validee';
+  ['simple', 'standard'].forEach((n) => { f.explication[n].sources = [f.sources[0].id]; });
+  f.questions.comprehension = f.questions.comprehension.slice(0, 2);
+  f.questions.application.push({ id: 'v2-courte', type: 'courte', evalue: 'application', q: 'Avec une barre plus longue, l’effort à fournir devient-il plus petit ou plus grand ?', attendus: ['plus petit', 'plus faible'] });
+  f.questions.application_reserve = [{ id: 'v2-ordre', type: 'ordre', evalue: 'application', q: 'Remets dans l’ordre les gestes pour soulever la caisse avec la barre.', etapes: ['Glisser la barre sous la caisse', 'Placer une cale près de la caisse', 'Appuyer au bout de la barre'] }];
+  f.questions.transfert_reserve = [{ id: 'v2-libre', type: 'libre', evalue: 'application', q: 'Explique avec tes mots comment un casse-noix permet d’ouvrir une noix sans grand effort.', grille: ['Nomme le point fixe (la charnière)', 'Relie la longueur des branches à l’effort réduit'], reference: 'La charnière sert de point fixe ; en appuyant loin d’elle, au bout des branches, on exerce une grande force sur la noix placée près de la charnière.' }];
+  return f;
+};
+{
+  const f = enV2(BASE), r = V.valider(f, OPTS);
+  check('F29 v2 : une fiche générée avec réponse courte, mise en ordre et explication libre, ancrée dans ses sources, est utilisable', r.utilisable, regles(r).join(', ') + ' ' + r.bloquants.map((b) => b.message).join(' | '));
+  const cas = {
+    'type non QCM refusé en v1': (g) => { g.format = 'fiche-v1'; },
+    'explication libre interdite en rappel': (g) => { g.questions.rappel[0] = { ...g.questions.transfert_reserve[0], id: 'x1' }; },
+    'mise en ordre à 2 étapes': (g) => { g.questions.application_reserve[0].etapes.pop(); },
+    'réponse courte sans réponse admise': (g) => { g.questions.application[2].attendus = []; },
+    'contrôle d’une confusion non QCM': (g) => { const c = g.confusions[0].controle; c.type = 'courte'; c.attendus = ['x']; },
+    'minimum de rappel non atteint': (g) => { g.questions.rappel = g.questions.rappel.slice(0, 1); },
+    'nombre d’une explication absent des sources': (g) => { g.explication.simple.texte += ' Avec une barre de 37 mètres, c’est encore plus facile.'; },
+  };
+  const rates2 = Object.entries(cas).filter(([, m]) => { const g = enV2(BASE); m(g); return V.valider(g, OPTS).utilisable; }).map(([k]) => k);
+  check('F30 v2 : 7 fiches mal formées sont refusées (type en v1, place des items, étapes, réponses admises, contrôle, minimum, ancrage)', !rates2.length, rates2.join(', '));
+  const vide = enV2(BASE); vide.questions.comprehension_reserve = []; 
+  check('F31 v2 : une réserve de compréhension vide est refusée (minimum 1), une réserve d’application vide est permise', !V.valider(vide, OPTS).utilisable && (() => { const g = enV2(BASE); g.questions.application_reserve = []; return V.valider(g, OPTS).utilisable; })());
 }
 
 // ── 7. Les garde-fous de périmètre de la mission 3b-0 (F29 à F31 : modules non chargés, application identique à

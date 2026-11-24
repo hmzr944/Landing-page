@@ -11,8 +11,24 @@
     fragile: { label: 'Fragile', short: 'Fragile', icon: 'warning-circle', c: 'var(--st-fragile)' },
     due: { label: 'À réviser', short: 'À réviser', icon: 'clock-counter-clockwise', c: 'var(--st-due)' },
     mastered: { label: 'Maîtrisée', short: 'Maîtrisée', icon: 'seal-check', c: 'var(--st-mastered)' },
+    // Arbor 2 (décisions Q3 et Q7) : la mémoire seule ne suffit plus pour « maîtrisée »
+    exercised: { label: 'Mémorisée et exercée', short: 'Exercée', icon: 'barbell', c: 'var(--st-exercised)' },
+    memorized: { label: 'Mémorisée, pas encore appliquée', short: 'Mémorisée', icon: 'brain', c: 'var(--st-memorized)' },
+    applied: { label: 'Appliquée, à ancrer en mémoire', short: 'Appliquée', icon: 'hand-pointing', c: 'var(--st-applied)' },
   };
-  const ORDER = ['mastered', 'learning', 'due', 'fragile', 'seen', 'new'];
+  const ORDER = ['mastered', 'exercised', 'memorized', 'applied', 'learning', 'due', 'fragile', 'seen', 'new'];
+  const v2 = () => !(window.Flags && !window.Flags.on('arbor2'));
+  /* Pratique d'une notion (Arbor 2), tirée du journal : jours de réussite en application et en transfert, et parmi eux
+     ceux d'une réponse construite (niveau 4 : réponse courte, mise en ordre ou explication jugée, pas un QCM, Q2). */
+  const pratique = (n) => { const ev = n.ev || {}; return { app: ev.app || [], app4: ev.app4 || [], tr: ev.tr || [], tr4: ev.tr4 || [] }; };
+  /* Maîtrisée : mémoire prouvée + application ET transfert réussis par des réponses construites, sur au moins 2 jours.
+     Mémorisée et exercée (Q7) : mémoire prouvée + au moins 2 applications et 1 transfert réussis, sur 3 jours distincts. */
+  function etatPratique(n) {
+    const p = pratique(n);
+    if (p.app4.length && p.tr4.length && new Set([...p.app4, ...p.tr4]).size >= 2) return 'mastered';
+    if (p.app.length >= 2 && p.tr.length >= 1 && new Set([...p.app, ...p.tr]).size >= 3) return 'exercised';
+    return 'memorized';
+  }
   const DAY = 86400000;
 
   const lessonOf = (n) => !!(n && ((n.module && (n.module.lessonDone || n.module.learned)) || n.lessonDone));
@@ -40,7 +56,13 @@
     switch (state) {
       case 'new': return 'Pas encore vue.';
       case 'seen': return 'Leçon faite, mais pas encore retrouvée de mémoire en révision.';
-      case 'mastered': return ev ? `${recalls}, mémoire estimée stable ${Math.round(c.s)} jours.` : `Révisée ${c.reps} fois avec succès, mémoire estimée stable ${Math.round(c.s)} jours.`;
+      case 'mastered': {
+        const mem = ev ? `${recalls}, mémoire estimée stable ${Math.round(c.s)} jours` : `Révisée ${c.reps} fois avec succès, mémoire estimée stable ${Math.round(c.s)} jours`;
+        return v2() ? `${mem} ; appliquée et transférée par des réponses construites.` : `${mem}.`;
+      }
+      case 'exercised': { const p = pratique(n); return `${recalls} ; ${p.app.length} application${p.app.length > 1 ? 's' : ''} et ${p.tr.length} transfert${p.tr.length > 1 ? 's' : ''} réussis. Pour « maîtrisée » : réussir l’application et le transfert par une réponse construite, pas un choix.`; }
+      case 'memorized': return `${recalls} : la mémoire tient. Arbor 2 demande aussi de l’appliquer : fais le parcours de la notion (application, puis transfert).`;
+      case 'applied': { const p = pratique(n); return `Appliquée avec succès ${p.app.length} fois ; reste à la retrouver de mémoire dans le temps (2 rappels justes espacés d’au moins 7 jours).`; }
       case 'due': return `Révision prévue : la mémoire estimée est à ${mem} %.`;
       case 'fragile': {
         if (openMisconception(n)) return `Confusion repérée : ${n.ev.mis[n.ev.mis.length - 1].label}.`;
@@ -59,13 +81,13 @@
   /* État d'une notion. discovered : une leçon couvrant la notion (elle-même ou un parent) est faite */
   function stateOf(n, discovered, now = Date.now()) {
     const c = n.srs;
-    if (!c || c.last == null) return discovered || lessonOf(n) ? 'seen' : 'new';
+    if (!c || c.last == null) return v2() && pratique(n).app.length ? 'applied' : discovered || lessonOf(n) ? 'seen' : 'new';
     const r = SRS.retrievability(c, now);
     const recentIllusion = c.illusions && c.illusionAt && now - c.illusionAt < 30 * DAY;
-    if (c.s >= 21 && r >= 0.85 && (c.lastG == null || c.lastG >= 3) && !SRS.isDue(c, now) && proven(n)) return 'mastered';
+    if (c.s >= 21 && r >= 0.85 && (c.lastG == null || c.lastG >= 3) && !SRS.isDue(c, now) && proven(n)) return v2() ? etatPratique(n) : 'mastered';
     if (SRS.isDue(c, now)) return 'due';
     if (openMisconception(n) || ((c.lapses || 0) >= 2 && c.s < 21) || recentIllusion || r < 0.7 || c.lastG === 1) return 'fragile';
-    return 'learning';
+    return v2() && pratique(n).app.length ? 'applied' : 'learning';
   }
 
   /* Toutes les notions d'un sujet, avec leur état (la racine ne compte pas si elle a des enfants) */
@@ -155,5 +177,5 @@
     return !!(openMisconception(n) || ((c.lapses || 0) >= 2 && c.s < 21) || recentIllusion);
   }
 
-  window.Mastery = { STATES, ORDER, stateOf, reasonOf, proven, notions, counts, summary, nextLesson, plan, forecast, lessonOf, struggling };
+  window.Mastery = { STATES, ORDER, etatPratique, stateOf, reasonOf, proven, notions, counts, summary, nextLesson, plan, forecast, lessonOf, struggling };
 })();

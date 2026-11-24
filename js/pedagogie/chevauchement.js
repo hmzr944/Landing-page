@@ -76,7 +76,10 @@
     const push = (chemin, nature, texte, opts = {}) => { if (String(texte || '').trim()) out.push({ chemin, nature, vocab, ...prepare(texte), ...opts }); };
     const question = (chemin, q) => {
       if (!q) return;
-      const choix = (q.choix || []).map((c) => (typeof c === 'string' ? c : c && c.texte) || '');
+      // v2 : réponses admises d'une réponse courte et étapes d'une mise en ordre comparées comme des choix ; la réponse
+      // de référence d'une explication libre comme un énoncé
+      const choix = [...(q.choix || []).map((c) => (typeof c === 'string' ? c : c && c.texte) || ''), ...(q.attendus || []), ...(q.etapes || [])];
+      if (q.reference) push(`${chemin}.reference`, 'enonce', q.reference);
       push(`${chemin}.q`, 'enonce', q.q, { scenario: true });
       push(`${chemin}`, 'question_complete', [q.q, ...choix].join(' '));
       choix.forEach((c, j) => push(`${chemin}.choix[${j}]`, 'choix', c, { court: mots(c).length < 4 }));

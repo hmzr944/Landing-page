@@ -1,4 +1,4 @@
-# Fiche pédagogique : format v1 (mission 3b-0)
+# Fiche pédagogique : formats v1 (mission 3b-0) et v2 (Arbor 2)
 
 **Mise en œuvre :**
 
@@ -102,6 +102,7 @@ Une fiche est **utilisable** seulement si aucune règle bloquante n'échoue **et
 | V-statut-02 | `reference` : origine humaine, validation complète, version validée = version de la fiche, **empreinte validée = empreinte actuelle** |
 | V-statut-03 | `generee_validee` : origine serveur ou IA locale, avec des sources |
 | V-statut-04 | en mode catalogue : une fiche d'essai (`meta.essai`) n'est jamais utilisable |
+| V-ancrage-01 | v2, fiche générée : chaque niveau d'explication cite au moins une source de la fiche (`explication.<niveau>.sources`), et chacun de ses nombres figure dans un extrait de source |
 | V-chevauchement-00 | jeu 3a fourni, à l'empreinte `3abd95eb…2443257` (version `523f730`) ; sinon le contrôle n'est pas vérifiable et la fiche n'est pas utilisable |
 | V-chevauchement-01 | aucun chevauchement avec le jeu 3a (NC1 à NC5, § 4) |
 
@@ -171,3 +172,34 @@ reste indispensable.
   - `reference` → `brouillon` ;
   - `generee_validee` → `brouillon` ou `rejetee` ;
   - `rejetee` : état final.
+
+## 6. Format v2 (Arbor 2)
+
+La v2 garde tout la v1 et change quatre points. Une fiche v1 reste valide ; `format: "fiche-v2"` active les règles v2.
+
+1. **Minimums au lieu de nombres exacts** (8 au plus par ensemble) :
+
+   | Ensemble | Minimum |
+   |---|---|
+   | `comprehension` | 2 |
+   | `comprehension_reserve` | 1 |
+   | `application` | 1 |
+   | `application_reserve` | 0 |
+   | `transfert` | 1 |
+   | `transfert_reserve` | 0 |
+   | `rappel` | 2 |
+
+   Une réserve vide est permise : le moteur s'arrête alors, il n'invente pas de question.
+2. **Items autres que le QCM** (`type`, `choix` par défaut) :
+   - `courte` : réponse courte, `attendus` (réponses admises ; la correction ignore casse, accents et ponctuation, et
+     exige les mêmes nombres) ;
+   - `ordre` : mise en ordre, `etapes` dans le bon ordre (au moins 3) ;
+   - `libre` : explication libre, `grille` (au moins 2 critères) et `reference`. Notée **seulement avec un compte**, par
+     le serveur ; sans compte, elle n'est jamais une preuve (décision Q6).
+
+   Le contrôle d'une confusion reste un QCM. Ni `libre` ni `ordre` dans le rappel ou les prérequis.
+3. **Objectif et éléments** : `objectif` (phrase), `elements` (identifiants d'éléments de savoir), `prerequis[].fiche`
+   (identifiant d'une autre fiche). Facultatifs.
+4. **Ancrage** : `explication.simple.sources` et `explication.standard.sources` (identifiants de sources). Contrôlé par
+   V-ancrage-01 pour une fiche générée.
+   - **Limite :** ce contrôle est lexical. Il repère une affirmation chiffrée sans source, pas une paraphrase fausse.

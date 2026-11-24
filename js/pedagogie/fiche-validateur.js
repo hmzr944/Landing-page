@@ -1,33 +1,38 @@
-/* Fiche pédagogique (mission 3b-0) : validateur du format v1 (docs/pedagogie/fiche-v1.md).
+/* Fiche pédagogique : validateur des formats v1 (mission 3b-0) et v2 (Arbor 2), spécification docs/pedagogie/fiche-v1.md.
+   v2 = v1 plus : des minimums au lieu de nombres exacts, des items autres que le QCM (réponse courte, mise en ordre,
+   explication libre notée sur une grille), un objectif, et l'ancrage des explications dans les sources (V-ancrage-01).
    Dit si une fiche est utilisable comme parcours complet, et sinon pourquoi, règle par règle.
    - Déterministe, sans réseau, sans IA ; ne modifie jamais la fiche reçue.
    - Une fiche est utilisable si : aucun contrôle bloquant n'échoue ET son statut est « reference » ou « generee_validee ».
    - Garantit la structure, l'ordre, la cohérence et le non-chevauchement mesurable ; PAS la justesse pédagogique.
-   Module sans interface ; il n'est chargé par aucune page de l'application. */
+   Module sans interface, partagé par le navigateur (Student, Business) et les tests. */
 (function (root) {
   const req = (n, g) => (typeof module !== 'undefined' && module.exports ? require(n) : root[g]);
   const E = req('./fiche-empreinte.js', 'FicheEmpreinte');
   const C = req('./chevauchement.js', 'FicheChevauchement');
 
-  const FORMAT = 'fiche-v1';
+  const FORMAT = 'fiche-v1', FORMATS = ['fiche-v1', 'fiche-v2'];
+  const TYPES_ITEM = ['choix', 'courte', 'ordre', 'libre'];
   const ORIGINES = ['humaine', 'serveur', 'ia_locale'];
   const EVALUE = ['application', 'compréhension', 'restitution'];
   const TYPES_REP = ['exemple', 'etapes', 'analogie', 'contre_exemple', 'schema'];
   // Ensembles de questions et nombre exact attendu (« reserve » : questions de remédiation, jamais inventées par le moteur)
   const ENSEMBLES = { comprehension: 3, comprehension_reserve: 2, application: 2, application_reserve: 1, transfert: 1, transfert_reserve: 1, rappel: 3 };
+  // v2 : nombres minimums (au plus 8 par ensemble). Une réserve vide est permise : le moteur s'arrête alors, il n'invente rien.
+  const ENSEMBLES_V2 = { comprehension: 2, comprehension_reserve: 1, application: 1, application_reserve: 0, transfert: 1, transfert_reserve: 0, rappel: 2 };
   const DEF_FORTE = /\b(on appelle|se definit|designe|definition)\b/;
 
   /* Toutes les règles, avec leur identifiant et leur caractère bloquant : la spécification en est le reflet exact */
   const REGLES = {
-    'V-forme-01': 'format égal à « fiche-v1 »',
+    'V-forme-01': 'format égal à « fiche-v1 » ou « fiche-v2 »',
     'V-forme-02': 'bloc meta complet (id, notion, version, langue, statut, origine)',
     'V-forme-03': 'sources présentes et complètes (obligatoires sauf fiche d’origine humaine)',
     'V-forme-04': 'situation : texte d’au moins 80 caractères et question d’ouverture',
     'V-forme-05': 'explication : niveaux « simple » et « standard », chacun avec un texte d’au moins 120 caractères et un ancrage',
     'V-forme-06': 'idée centrale et exactement 2 éléments clés',
     'V-forme-07': 'glossaire : 5 à 10 termes distincts, chacun expliqué',
-    'V-forme-08': 'ensembles de questions présents, avec le nombre exact attendu (réserve comprise)',
-    'V-forme-09': 'chaque question : identifiant, classement, énoncé d’au moins 10 caractères, 4 choix distincts, une seule bonne réponse',
+    'V-forme-08': 'ensembles de questions présents, avec le nombre exact attendu en v1 (réserve comprise), et entre le minimum et 8 en v2',
+    'V-forme-09': 'chaque question : identifiant, classement, énoncé d’au moins 10 caractères ; QCM : 4 choix distincts, une seule bonne réponse ; v2 : réponse courte (réponses admises), mise en ordre (au moins 3 étapes), explication libre (grille d’au moins 2 critères et réponse de référence), chacune à sa place',
     'V-forme-10': 'prérequis : 0 à 3, chacun avec sa notion et une question valide',
     'V-forme-11': 'identifiants uniques (questions, représentations, confusions)',
     'V-ordre-01': 'la situation ne nomme pas la notion',
@@ -56,6 +61,7 @@
     'V-statut-02': 'une fiche « reference » est d’origine humaine et porte une validation dont l’empreinte est celle de son contenu actuel',
     'V-statut-03': 'une fiche « generee_validee » est générée (serveur ou IA locale) et a des sources',
     'V-statut-04': 'catalogue : une fiche d’essai n’est jamais utilisable',
+    'V-ancrage-01': 'v2, fiche générée : chaque niveau d’explication cite au moins une source de la fiche, et chacun de ses nombres figure dans un extrait de source',
     'V-chevauchement-00': 'jeu de mesure 3a fourni et à l’empreinte attendue (sinon le non-chevauchement n’est pas vérifiable)',
     'V-chevauchement-01': 'aucun chevauchement avec le jeu 3a (règles NC1 à NC5)',
   };
@@ -77,11 +83,22 @@
     ((f && f.prerequis) || []).forEach((p, i) => p && p.question && out.push({ q: p.question, chemin: `prerequis[${i}].question`, ens: 'prerequis' }));
     return out;
   }
-  function questionValide(q) {
+  /* Une question. v2 : type « choix » (par défaut), « courte », « ordre » ou « libre » ; place = ensemble où elle se trouve.
+     Contrôle, prérequis et rappel restent corrigeables par le code (QCM ou réponse courte) ; le contrôle d'une confusion
+     est toujours un QCM (ses mauvais choix portent la confusion). */
+  function questionValide(q, v2 = false, place = '') {
     if (!q || typeof q !== 'object') return 'question absente';
     if (!str(q.id)) return 'identifiant absent';
     if (!EVALUE.includes(q.evalue)) return `classement « ${q.evalue} » inconnu`;
     if (!str(q.q, 10)) return 'énoncé absent ou trop court';
+    const type = q.type === undefined ? 'choix' : q.type;
+    if (!TYPES_ITEM.includes(type) || (!v2 && type !== 'choix')) return `type « ${type} » non permis${v2 ? '' : ' en v1'}`;
+    if (type === 'libre' && ['rappel', 'controle', 'prerequis'].includes(place)) return 'une explication libre n’est pas permise ici';
+    if (type !== 'choix' && place === 'controle') return 'le contrôle d’une confusion est un QCM';
+    if (type === 'ordre' && ['rappel', 'prerequis'].includes(place)) return 'une mise en ordre n’est pas permise ici';
+    if (type === 'courte') return Array.isArray(q.attendus) && q.attendus.length >= 1 && q.attendus.every((a) => str(a)) ? null : 'réponse courte sans réponse admise';
+    if (type === 'ordre') return Array.isArray(q.etapes) && q.etapes.length >= 3 && q.etapes.every((e) => str(e, 3)) && new Set(q.etapes.map(norm)).size === q.etapes.length ? null : 'mise en ordre : au moins 3 étapes distinctes';
+    if (type === 'libre') return Array.isArray(q.grille) && q.grille.length >= 2 && q.grille.every((c) => str(c, 10)) && str(q.reference, 40) ? null : 'explication libre : grille d’au moins 2 critères et réponse de référence';
     if (!Array.isArray(q.choix) || q.choix.length !== 4) return 'il faut exactement 4 choix';
     const t = q.choix.map(choixTexte);
     if (t.some((x) => !str(x))) return 'choix vide';
@@ -103,7 +120,8 @@
     const meta = f.meta || {};
 
     // ── Forme ──
-    if (f.format !== FORMAT) ko('V-forme-01', 'format');
+    if (!FORMATS.includes(f.format)) ko('V-forme-01', 'format');
+    const v2 = f.format === 'fiche-v2';
     if (!str(meta.id) || !/^[a-z0-9][a-z0-9-]*$/.test(meta.id) || !str(meta.notion, 2) || !(Number.isInteger(meta.version) && meta.version >= 1) || meta.langue !== 'fr'
       || !str(meta.statut) || !ORIGINES.includes(meta.origine)) ko('V-forme-02', 'meta');
     const sources = Array.isArray(f.sources) ? f.sources : null;
@@ -116,11 +134,14 @@
     const glo = Array.isArray(f.glossaire) ? f.glossaire : [];
     if (glo.length < 5 || glo.length > 10 || glo.some((g) => !g || !str(g.terme) || !str(g.explication, 10)) || new Set(glo.map((g) => norm(g && g.terme))).size !== glo.length) ko('V-forme-07', 'glossaire');
     const Q = f.questions || {};
-    Object.entries(ENSEMBLES).forEach(([ens, n]) => { if (!Array.isArray(Q[ens]) || Q[ens].length !== n) ko('V-forme-08', `questions.${ens}`, `${REGLES['V-forme-08']} : « ${ens} » doit en compter ${n}`); });
+    Object.entries(v2 ? ENSEMBLES_V2 : ENSEMBLES).forEach(([ens, n]) => {
+      const ok = Array.isArray(Q[ens]) && (v2 ? Q[ens].length >= n && Q[ens].length <= 8 : Q[ens].length === n);
+      if (!ok) ko('V-forme-08', `questions.${ens}`, `${REGLES['V-forme-08']} : « ${ens} » doit en compter ${v2 ? `au moins ${n} (8 au plus)` : n}`);
+    });
     const tq = toutesQuestions(f);
-    tq.filter((x) => x.ens !== 'prerequis').forEach(({ q, chemin }) => { const e = questionValide(q); if (e) ko('V-forme-09', chemin, `${REGLES['V-forme-09']} : ${e}`); });
+    tq.filter((x) => x.ens !== 'prerequis').forEach(({ q, chemin, ens }) => { const e = questionValide(q, v2, ens); if (e) ko('V-forme-09', chemin, `${REGLES['V-forme-09']} : ${e}`); });
     const pre = f.prerequis === undefined ? [] : f.prerequis;
-    if (!Array.isArray(pre) || pre.length > 3 || pre.some((p) => !p || !str(p.notion) || questionValide(p.question))) ko('V-forme-10', 'prerequis');
+    if (!Array.isArray(pre) || pre.length > 3 || pre.some((p) => !p || !str(p.notion) || questionValide(p.question, v2, 'prerequis'))) ko('V-forme-10', 'prerequis');
     const reps = Array.isArray(f.representations) ? f.representations : [];
     const confs = Array.isArray(f.confusions) ? f.confusions : [];
     const ids = [...tq.map((x) => x.q && x.q.id), ...reps.map((r) => r && r.id), ...confs.map((c) => c && c.id)].filter(Boolean);
@@ -145,7 +166,7 @@
     confs.forEach((c, i) => {
       if (!c) return;
       if (c.remede && !repIds.has(c.remede)) ko('V-confusions-02', `confusions[${i}].remede`);
-      if (c.controle && (questionValide(c.controle) || !c.controle.choix.some((x) => x && !x.juste && x.confusion === c.id))) ko('V-confusions-03', `confusions[${i}].controle`);
+      if (c.controle && (questionValide(c.controle, v2, 'controle') || !c.controle.choix.some((x) => x && !x.juste && x.confusion === c.id))) ko('V-confusions-03', `confusions[${i}].controle`);
     });
     tq.forEach(({ q, chemin }) => (q && Array.isArray(q.choix) ? q.choix : []).forEach((x, j) => {
       if (x && x.confusion !== undefined && (x.juste || !confIds.has(x.confusion))) ko('V-confusions-04', `${chemin}.choix[${j}]`);
@@ -202,6 +223,20 @@
     if (statut === 'generee_validee' && (meta.origine === 'humaine' || !sources || !sources.length)) ko('V-statut-03', 'meta.statut');
     if (opts.catalogue && meta.essai === true) ko('V-statut-04', 'meta.essai');
 
+    // ── Ancrage dans les sources (v2, fiche générée) : contrôle lexical, il repère une affirmation chiffrée sans source,
+    //    pas une paraphrase fausse ──
+    if (v2 && meta.origine !== 'humaine') {
+      const srcIds = new Set((sources || []).map((s) => s && s.id).filter(Boolean));
+      const extraits = (sources || []).map((s) => (s && s.extrait) || '').join(' ');
+      const nombresSrc = new Set(C.nombres(extraits));
+      ['simple', 'standard'].forEach((niv) => {
+        const x = ex[niv] || {};
+        const cite = Array.isArray(x.sources) && x.sources.length && x.sources.every((id) => srcIds.has(id));
+        const orphelins = C.nombres(x.texte || '').filter((n) => !nombresSrc.has(n));
+        if (!cite || orphelins.length) ko('V-ancrage-01', `explication.${niv}`, `${REGLES['V-ancrage-01']}${orphelins.length ? ` : ${orphelins.join(', ')} sans source` : ''}`);
+      });
+    }
+
     // ── Non-chevauchement avec le jeu 3a ──
     const ch = C.controler(f, opts.jeu, { shaJeu: opts.shaJeu, elementsJeu: opts.elementsJeu });
     if (!ch.verifiable) ko('V-chevauchement-00', 'jeu-3a', `${REGLES['V-chevauchement-00']} : ${ch.raison}`);
@@ -223,7 +258,7 @@
      seule fiche ne permet pas ces bornes statistiques : elles s'appliquent à l'ensemble des fiches de référence). */
   function biaisCatalogue(fiches) {
     let n = 0, long = 0, court = 0, ratio = 0;
-    for (const f of fiches) for (const { q } of toutesQuestions(f).filter((x) => x.ens !== 'prerequis')) {
+    for (const f of fiches) for (const { q } of toutesQuestions(f).filter((x) => x.ens !== 'prerequis' && x.q && Array.isArray(x.q.choix))) {
       const L = q.choix.map((c) => String(choixTexte(c)).length), k = q.choix.findIndex((c) => c.juste), d = L.filter((_, j) => j !== k);
       n++; if (L[k] > Math.max(...d)) long++; if (L[k] < Math.min(...d)) court++; ratio += L[k] / (d.reduce((s, v) => s + v, 0) / d.length);
     }
@@ -231,6 +266,6 @@
     return { n, long, court, ratio: r, conforme: !!n && long >= 0.1 * n && long <= 0.35 * n && court >= 0.1 * n && court <= 0.35 * n && r >= 0.85 && r <= 1.15 };
   }
 
-  const api = { FORMAT, ENSEMBLES, REGLES, AVERTISSEMENTS, valider, biaisCatalogue, toutesQuestions };
+  const api = { FORMAT, FORMATS, TYPES_ITEM, ENSEMBLES, ENSEMBLES_V2, REGLES, AVERTISSEMENTS, valider, biaisCatalogue, toutesQuestions };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.FicheValidateur = api;
 })(typeof window !== 'undefined' ? window : globalThis);

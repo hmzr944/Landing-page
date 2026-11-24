@@ -23,7 +23,9 @@ function sample() {
   const m1 = { id: 'modaaaaaa01', title: 'Réseaux', notes: '', explain: '', keyPoints: [], exercises: [], srs: null, status: 'todo', collapsed: false,
     module: { pretest: '', learned: true, generated: true, sources: [], date: '2026-01-01', lessonDone: { at: now - 2 * D, good: 4, asked: 5 } },
     children: [
-      leaf('nmastered01', 'Adressage IP', { s: 40, d: 4, last: now - 3 * D, due: now + 30 * D, reps: 6, lapses: 0, lastG: 3 }),
+      // Arbor 2 : mémoire prouvée + application et transfert réussis par des réponses construites, sur 2 jours
+      { ...leaf('nmastered01', 'Adressage IP', { s: 40, d: 4, last: now - 3 * D, due: now + 30 * D, reps: 6, lapses: 0, lastG: 3 }), ev: { n: 4, ok: 4, miss: 0, last: now - 3 * D, recall: ['2026-01-01', '2026-01-15'], app: ['2026-01-02'], app4: ['2026-01-02'], tr: ['2026-01-16'], tr4: ['2026-01-16'] } },
+      leaf('nmemorise1', 'Classe d’adresse', { s: 40, d: 4, last: now - 3 * D, due: now + 30 * D, reps: 6, lapses: 0, lastG: 3 }),
       leaf('ndue0000001', 'Masque de sous-réseau', { s: 3, d: 6, last: now - 5 * D, due: now - D, reps: 2, lapses: 0, lastG: 3 }),
       leaf('nfragile001', 'Routage statique', { s: 4, d: 7, last: now - D, due: now + 3 * D, reps: 4, lapses: 2, lastG: 3 }),
       leaf('nlearning01', 'Passerelle', { s: 8, d: 5, last: now - D, due: now + 6 * D, reps: 3, lapses: 0, lastG: 3 }),
@@ -53,13 +55,14 @@ function sample() {
     const st = JSON.parse(localStorage.getItem('arbor:v1'));
     return Object.fromEntries(Mastery.notions(st.subjects[0]).map((x) => [x.n.id, x.state]));
   });
-  check('A1 révisée 3 semaines et juste : maîtrisée', states.nmastered01 === 'mastered');
+  check('A1 mémoire prouvée, appliquée et transférée par des réponses construites : maîtrisée', states.nmastered01 === 'mastered');
+  check('A1b Arbor 2 (Q3) : mémoire prouvée par les rappels seuls : « mémorisée, pas encore appliquée »', states.nmemorise1 === 'memorized');
   check('A2 révision échue : à réviser', states.ndue0000001 === 'due');
   check('A3 oubliée 2 fois : fragile', states.nfragile001 === 'fragile');
   check('A4 révisée récemment : en apprentissage', states.nlearning01 === 'learning');
   check('A5 leçon faite, jamais rappelée : découverte (pas maîtrisée)', states.nseen000001 === 'seen');
   check('A6 jamais vue : non étudiée', states.nnew0000001 === 'new');
-  check('A7 les modules ne comptent pas comme des notions', !('modaaaaaa01' in states) && Object.keys(states).length === 8);
+  check('A7 les modules ne comptent pas comme des notions', !('modaaaaaa01' in states) && Object.keys(states).length === 9);
 
   /* B. Aujourd'hui : le plan et le bouton unique */
   const plan = await page.textContent('.b-hero');
@@ -90,7 +93,7 @@ function sample() {
   check('C1 Mes cours liste le sujet avec sa barre d’états', /TSSR/.test(await page.textContent('#app')) && !!(await page.$('.courses-page .state-bar')));
   await page.click('.bottom-nav a[href="#/progression"]'); await settle(900);
   const prog = await page.textContent('#app');
-  check('C2 Ma progression compte 1 notion maîtrisée sur 8', /1\s*notion maîtrisée\s*sur 8/.test(prog.replace(/\s+/g, ' ')), prog.replace(/\s+/g, ' ').slice(0, 80));
+  check('C2 Ma progression compte 1 notion maîtrisée sur 9', /1\s*notion maîtrisée\s*sur 9/.test(prog.replace(/\s+/g, ' ')), prog.replace(/\s+/g, ' ').slice(0, 80));
   check('C3 « À retravailler » garde la notion fragile ; l’échue, révisée, en sort', /Routage statique/.test(prog) && !/Masque de sous-réseau[^]*À réviser/.test(prog.split('Les plus solides')[0]));
   check('C4 l’examen et ce qu’il reste à voir sont affichés', /dans 30 jours/.test(prog));
   check('C5 la navigation marque l’espace courant', (await page.getAttribute('.bottom-nav a[href="#/progression"]', 'aria-current')) === 'page');

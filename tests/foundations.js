@@ -50,11 +50,11 @@ function sample() {
   const a1 = await stateOf('fnip0000001');
   check('A1 mémoire stable mais un seul rappel juste : pas encore maîtrisée', a1.state === 'learning' && /deuxième/.test(a1.why), JSON.stringify(a1));
   const a2 = await stateOf('fnmask00001');
-  check('A2 deux rappels justes à 10 jours d’écart : maîtrisée, avec sa raison', a2.state === 'mastered' && /2 rappels justes/.test(a2.why), JSON.stringify(a2));
+  check('A2 deux rappels justes à 10 jours d’écart : mémoire prouvée ; Arbor 2 (Q3) : « mémorisée, pas encore appliquée », avec sa raison', a2.state === 'memorized' && /2 rappels justes/.test(a2.why) && /appliquer/.test(a2.why), JSON.stringify(a2));
   const a3 = await stateOf('fnroute0001');
   check('A3 une confusion repérée après le dernier succès : fragile, et la confusion est nommée', a3.state === 'fragile' && /masque et passerelle/.test(a3.why), JSON.stringify(a3));
   const a4 = await stateOf('fnlegacy001');
-  check('A4 données d’avant le journal : l’historique FSRS suffit (pas de régression)', a4.state === 'mastered');
+  check('A4 données d’avant le journal : l’historique FSRS suffit pour la mémoire (« mémorisée » en Arbor 2)', a4.state === 'memorized');
 
   /* B. Journal d'observations, depuis une vraie révision */
   await page.goto(`${URL0}#/s/fnsubj00001/fnfresh0001/revision`); await settle(900);
