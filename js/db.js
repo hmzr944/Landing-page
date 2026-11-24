@@ -80,6 +80,14 @@
       const k = dayKey(ev.last);
       if (!ev.recall.includes(k)) ev.recall = [...ev.recall, k].slice(-10);
     }
+    // Arbor 2 : réussites du parcours de fiche, un jour par entrée (application, transfert ; niveau 4 = réponse construite)
+    if (o.activity === 'fiche' && o.outcome === 'juste' && (o.contexte === 'application' || o.contexte === 'transfert')) {
+      const k = dayKey(ev.last), cle = o.contexte === 'application' ? 'app' : 'tr';
+      const add = (champ) => { if (!(ev[champ] || []).includes(k)) ev[champ] = [...(ev[champ] || []), k].slice(-10); };
+      add(cle);
+      if (Number(o.niveau) >= 4) add(`${cle}4`);
+    }
+    if (o.confusion) ev.mis = [...(ev.mis || []), { label: String(o.confusionLabel || o.confusion).slice(0, 120), at: ev.last }].slice(-5);
     if (o.misconception) ev.mis = [...(ev.mis || []), { label: String(o.misconception).slice(0, 120), at: ev.last }].slice(-5);
     node.ev = ev;
     return ev;

@@ -20,7 +20,7 @@ const server = http.createServer((req, res) => {
 });
 const ORG = M.ORG;
 const PAGES = [
-  ['ana', 'cockpit', ''], ['ana', 'equipe', '/equipe'], ['ana', 'savoir', '/savoir'], ['ana', 'developper', '/developper'],
+  ['ana', 'cockpit', ''], ['ana', 'impact', '/savoir/impact'], ['ana', 'studio', '/studio'], ['ana', 'angles', '/angles'], ['ana', 'preuves', '/preuves'], ['ana', 'equipe', '/equipe'], ['ana', 'savoir', '/savoir'], ['ana', 'developper', '/developper'],
   ['ana', 'entrainer', '/developper/entrainer'], ['ana', 'apprendre', '/apprendre'], ['ana', 'parametres', '/parametres'],
   ['bob', 'membre-accueil', ''], ['bob', 'canopee', '/canopee'],
 ];

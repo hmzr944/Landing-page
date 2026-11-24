@@ -59,3 +59,21 @@ node tests/corpus-metier.js          # manifeste cohérent + lecture réelle des
 ```
 Pour modifier un document, éditer `contenu.js`, régénérer, puis relancer le test. Le test vérifie notamment que
 chaque changement décrit existe bien dans le texte, et que chaque règle est retrouvée mot pour mot après lecture.
+
+## Décisions sur le corrigé (datées)
+- **2026-11-22, R1 (décision du responsable produit).** « Allumer l'éclairage et démarrer les caisses » devient
+  « Démarrer les caisses, puis allumer l'éclairage ». Ce passage était un piège « reformulation » ; il devient le
+  changement R1.c5 (« modifie ») : « et » ne fixait pas d'ordre, « puis » en impose un. Le corrigé compte désormais
+  **10 changements et 3 pièges** (seuils 10/10 et 0/3). Les campagnes des missions 2 et 2b restent calculées avec le
+  corrigé figé `corpus-reference-2026-11-16.json`, pour ne pas réécrire leur historique.
+
+## Contrôle hors corpus (mission 2c)
+`hors-corpus/` contient une procédure jamais vue par le banc, P1 « Retrait des commandes en magasin » (v1 et v2). Elle a
+été écrite et son corrigé figé le 2026-11-22, **avant** toute modification du code de comparaison. Elle couvre :
+- une vraie nouveauté ;
+- une formulation déjà présente en v1 mais au sens opérationnel nouveau (même phrase, nouvelle section) ;
+- une connaissance identique ;
+- une phrase dont le changement de section change la portée ;
+- un changement d'ordre, une modification, une suppression et 3 pièges.
+
+Elle est mesurée et rapportée à part : ce n'est ni un seuil, ni une donnée de réglage.

@@ -52,7 +52,8 @@ const srcText = (d) => norm(d.sections.flatMap((s) => [s.h, ...(s.ol || s.ul || 
     for (const c of v2.changements) {
       const avant = c.avant ? norm(c.avant) : null, apres = c.apres ? norm(c.apres) : null;
       const okText = (c.type !== 'ajoute' ? a.includes(avant) && !b.includes(avant) : true) && (c.type !== 'supprime' ? b.includes(apres) && !a.includes(apres) : true);
-      const okRule = c.type === 'ajoute' ? ids2.has(c.regle) && !ids1.has(c.regle) : c.type === 'supprime' ? ids1.has(c.regle) && !ids2.has(c.regle) : ids1.has(c.regle) && ids2.has(c.regle);
+      // un changement sans règle d'extraction (changement d'ordre de R1, décision du 2026-11-22) se vérifie par son seul texte
+      const okRule = !c.regle ? !!(c.avant && c.apres) : c.type === 'ajoute' ? ids2.has(c.regle) && !ids1.has(c.regle) : c.type === 'supprime' ? ids1.has(c.regle) && !ids2.has(c.regle) : ids1.has(c.regle) && ids2.has(c.regle);
       check(`A8 ${c.id} (${c.type}) : le texte et la règle concernée changent bien entre ${v2.remplace} et ${v2.id}`, okText && okRule);
     }
     for (const n of v2.non_changements) {
@@ -83,6 +84,14 @@ const srcText = (d) => norm(d.sections.flatMap((s) => [s.h, ...(s.ol || s.ul || 
       for (let i = 1; i <= pdf.numPages; i++) naive.push((await (await pdf.getPage(i)).getTextContent()).items.map((x) => x.str).join(' '));
       try { const x = await OrgDocs.readPages(new File([bin], name, { type: 'application/pdf' })); return { text: x.pages.map((p) => p.text).join(' '), naive: naive.join(' '), count: x.count, aside: x.aside, unreadable: x.unreadable }; } catch (e) { return { error: e.message }; }
     }, { b64: fs.readFileSync(file).toString('base64'), name: path.basename(file) });
+    // Contrôle hors corpus (mission 2c) : ses deux PDF doivent être lisibles, règles retrouvées mot pour mot
+    const hors = JSON.parse(fs.readFileSync(path.join(DIR, 'hors-corpus', 'corpus.json'), 'utf8'));
+    for (const d of hors.documents) {
+      const r = await read(path.join(DIR, 'hors-corpus', d.fichier));
+      const t = norm(r.text || '');
+      const missing = d.regles_attendues.filter((x) => !t.includes(norm(x.texte)));
+      check(`B hors corpus ${d.id} lu : ${d.regles_attendues.length - missing.length}/${d.regles_attendues.length} règles retrouvées mot pour mot`, !r.error && !missing.length, r.error || missing.map((x) => x.id).join(', '));
+    }
     for (const [serie, dir] of [['sans ligatures', DIR], ['avec ligatures', path.join(DIR, 'ligatures')]]) {
       let naiveMissing = 0;
       for (const d of docs) {

@@ -36,6 +36,11 @@ const fresh = () => ({
   retention: 365,
   revals: [{ id: 'rv1', user_id: 'u-bob', skill_id: 'sk1', knowledge_id: 'k-retour', new_knowledge_id: null, change_id: 'ch1', change_item_id: 'it1', reason: 'La règle « Délai de retour » a changé : maintenant « 14 jours ».', status: 'requires_revalidation', created_at: iso(0) }],
   feedback: [], no010: false, feedbackFail: false,
+  // Transmission (012) : une validée (partagée), une soumise par bob, à relire
+  transmissions: [
+    { id: 'tr1', org_id: null, author: 'u-chloe', title: 'Ranger les batteries', situation: 'Livraison de batteries en fin de journée.', steps: ['Vérifier l’étiquette', 'Ranger dans l’armoire ignifugée'], pitfalls: [], tips: ['Toujours fermer l’armoire'], status: 'validee', reviewed_by: 'u-paul', reviewed_at: iso(2), review_note: null, created_at: iso(3) },
+    { id: 'tr2', org_id: null, author: 'u-bob', title: 'Choisir la taille d’un vélo', situation: 'Un client hésite entre deux tailles.', steps: ['Mesurer l’entrejambe', 'Lire le tableau', 'Faire essayer'], pitfalls: ['Se fier à la taille seule'], tips: [], status: 'soumise', reviewed_by: null, reviewed_at: null, review_note: null, created_at: iso(0) },
+  ],
   // Arbor League (011) : réponses simulées des fonctions de la base (la logique réelle est testée par tests/db-rls.js, section L)
   no011: false,
   awards: [{ user_id: 'u-bob', trophy: 'premiere_pousse', knowledge_id: 'k-autonomie', evidence_id: 1, at: iso(3) }, { user_id: 'u-chloe', trophy: 'resilience', knowledge_id: 'k-batterie', evidence_id: 5, at: iso(1) }],
@@ -79,6 +84,8 @@ function rpc(me, name, b) {
   if (name === 'publish_scenario_version') { const v = db.versions.find((x) => x.id === b.p_version); v.status = 'valide'; const s = db.scenarios.find((x) => x.id === v.scenario_id); s.status = 'publie'; return null; }
   if (name === 'decide_change_item') { const it = db.items.find((x) => x.id === b.p_item); if (it.sensitive && !lead) return [403, { message: 'manager requis' }]; it.decision = b.p_decision; it.decided_at = new Date().toISOString(); return null; }
   if (name === 'policy_change_impact') return { knowledge: 1, skills: [{ id: 'sk1', name: 'Conseiller un vélo' }], scenarios: [{ id: 'sc1', title: 'Retour sans ticket' }], people: ['u-bob', 'u-chloe'] };
+  if (name === 'submit_transmission') { const t = { id: `tr${db.transmissions.length + 1}`, author: me.id, title: b.p_title, situation: b.p_situation, steps: b.p_steps, pitfalls: b.p_pitfalls || [], tips: b.p_tips || [], status: 'soumise', reviewed_by: null, reviewed_at: null, review_note: null, created_at: new Date().toISOString() }; db.transmissions.unshift(t); return t.id; }
+  if (name === 'review_transmission') { const t = db.transmissions.find((x) => x.id === b.p_id); if (!['admin', 'manager', 'expert'].includes(me.role)) return [403, { message: 'accès refusé' }]; if (t.author === me.id) return [400, { message: 'relecture par une autre personne que l’auteur' }]; if (t.status !== 'soumise') return [400, { message: 'déjà relue' }]; Object.assign(t, { status: b.p_decision, reviewed_by: me.id, reviewed_at: new Date().toISOString(), review_note: b.p_note || null }); return null; }
   if (name === 'assign_learning_actions') { if (!lead) return [403, { message: 'accès refusé' }]; return b.p_users.length; }
   if (name === 'set_action_status') { const a = db.actions.find((x) => x.id === b.p_id); a.status = b.p_status; return null; }
   if (name === 'set_edge_status') { db.edges.find((x) => x.id === b.p_id).status = b.p_status; return null; }
@@ -145,7 +152,7 @@ function handle(r) {
   if (p === '/rest/v1/knowledge_edges') return ok(db.edges.filter((e) => lead || e.status === 'valide'));
   if (p === '/rest/v1/sources') return ok([{ id: 'src1', title: 'Procédure retours', current_version: 2 }]);
   if (p === '/rest/v1/source_versions') return ok([{ id: 'v1', version: 1, page_count: 3 }, { id: 'v2', version: 2, page_count: 3 }]);
-  if (p === '/rest/v1/policy_changes') return ok(lead || me.role === 'expert' ? [{ id: 'ch1', status: 'ouvert', to_version_id: 'v2', created_at: iso(0), summary: { modifie: 1, supprime: 0, nouveau: 1, reformule: 0, inchange: 1, analysed: true } }] : []);
+  if (p === '/rest/v1/policy_changes') return ok(lead || me.role === 'expert' ? [{ id: 'ch1', source_id: 'src1', status: 'ouvert', to_version_id: 'v2', created_at: iso(0), summary: { modifie: 1, supprime: 0, nouveau: 1, reformule: 0, inchange: 1, analysed: true } }] : []);
   if (p === '/rest/v1/policy_change_items') return ok(db.items);
   if (p === '/rest/v1/invitations') return ok(r.method() === 'GET' ? [{ id: 'inv1', email: 'zoe@magasin.fr', role: 'member', expires_at: new Date(Date.now() + 6e8).toISOString(), created_at: iso(0) }].filter(() => u.searchParams.get('email')) : null);
   // Retours (migration 010) : écriture par la personne elle-même ; lecture par l'auteur et les responsables de l'organisation
@@ -162,6 +169,7 @@ function handle(r) {
   }
   if (p === '/rest/v1/league_mentorships') return db.no011 ? ok({ code: 'PGRST205', message: "Could not find the table 'public.league_mentorships'" }, 404) : ok(db.mentorships);
   if (p === '/rest/v1/source_versions' && eq('source_id')) return ok([{ id: 'v1', version: 1, page_count: 3 }, { id: 'v2', version: 2, page_count: 3 }].filter((v) => !u.searchParams.get('version') || `eq.${v.version}` === u.searchParams.get('version')));
+  if (p === '/rest/v1/transmissions') return ok(db.transmissions.filter((t) => t.status === 'validee' || t.author === me.id || ['admin', 'manager', 'expert'].includes(me.role)));
   if (p === '/rest/v1/skill_revalidations') return db.no008 ? ok(MISSING, 404) : ok(db.revals.filter((r) => lead || r.user_id === me.id));
   if (p === '/rest/v1/out_of_scope_knowledge') return db.no008 ? ok(MISSING, 404) : ok(db.oos.filter((r) => ['admin', 'manager', 'expert'].includes(me.role) || r.user_id === me.id));
   if (p === '/rest/v1/organizations') return ok([{ retention_days: db.retention }]);

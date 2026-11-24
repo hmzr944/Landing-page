@@ -540,6 +540,32 @@ check('R6 le rôle anonyme n’a accès à aucune table Business', !psql('set ro
   check('L26 effacement de mes données : mes trophées et mon rang disparaissent, pas ceux des autres', awards(noe) === '0' && rank(noe) === '1' && Number(awards(mia)) > 0);
 }
 
+// ---------- Transmission & Knowledge Sharing (012) : soumise, relue par un responsable, jamais publiée seule ----------
+{
+  const m12 = psql(file('supabase/migrations/012_transmission.sql'));
+  check('TR0 la migration 012 s’applique et peut être rejouée', m12.ok && psql(file('supabase/migrations/012_transmission.sql')).ok, m12.err.slice(0, 300));
+  const P = (n, email) => ({ id: `00000000-0000-0000-0000-0000000000${n}`, email });
+  const ana = P(30, 'ana@atelier.fr'), tom = P(31, 'tom@atelier.fr'), eva = P(32, 'eva@atelier.fr'), out = P(33, 'out@ailleurs.fr');
+  psql(`insert into auth.users values ${[ana, tom, eva, out].map((u) => `('${u.id}', '${u.email}')`).join(',')};`);
+  const orgT = as(ana, `select public.create_organization('Atelier', 'retail');`).out;
+  [[tom, 'member'], [eva, 'expert']].forEach(([u, r]) => { const t = as(ana, `select public.create_invitation('${orgT}', '${u.email}', '${r}');`).out; as(u, `select public.accept_invitation('${t}');`); });
+  as(out, `select public.create_organization('Ailleurs', 'retail');`);
+  const sub = (u, title) => as(u, `select public.submit_transmission('${orgT}', '${title}', 'Un client hésite entre deux tailles de vélo.', '["Mesurer l’entrejambe", "Lire le tableau du fabricant", "Faire essayer"]'::jsonb, '["Se fier à la taille seule"]'::jsonb, '[]'::jsonb);`);
+  const t1 = sub(tom, 'Choisir la taille d’un vélo');
+  check('TR1 un membre soumet une transmission : elle est « soumise », à son nom', t1.ok && asService(`select status || '|' || author from public.transmissions where id = '${t1.out}';`).out === `soumise|${tom.id}`, t1.err);
+  check('TR2 écrire directement dans la table est impossible (statut et auteur imposés par la fonction)', !as(tom, `insert into public.transmissions (org_id, author, title, situation, steps, status) values ('${orgT}', '${tom.id}', 'Pirate', 'Une situation inventée', '["a","b"]', 'validee');`).ok);
+  check('TR3 moins de deux étapes : refusé', !sub(tom, 'X').ok || !as(tom, `select public.submit_transmission('${orgT}', 'Une étape', 'Une situation de test', '["une seule"]'::jsonb);`).ok);
+  check('TR4 un autre membre ne voit pas une transmission non validée ; l’autre organisation ne voit rien', as(out, 'select count(*) from public.transmissions;').out === '0');
+  check('TR5 l’auteur ne valide pas sa propre transmission ; un membre non responsable non plus', !as(tom, `select public.review_transmission('${t1.out}', 'validee');`).ok);
+  check('TR6 un rejet doit être motivé', /explique/.test(as(eva, `select public.review_transmission('${t1.out}', 'rejetee', '');`).err));
+  check('TR7 une experte valide : statut, relectrice et date conservés, décision au journal d’audit', as(eva, `select public.review_transmission('${t1.out}', 'validee', 'Conforme au tableau Alto');`).ok
+    && asService(`select status || '|' || reviewed_by || '|' || (reviewed_at is not null) from public.transmissions where id = '${t1.out}';`).out === `validee|${eva.id}|true`
+    && asService(`select count(*) from public.audit_logs where action = 'transmission.validee' and target = '${t1.out}';`).out === '1');
+  check('TR8 une seule décision : on ne revalide ni ne rejette une transmission déjà relue', /déjà relue/.test(as(ana, `select public.review_transmission('${t1.out}', 'rejetee', 'Changement d’avis');`).err));
+  check('TR9 validée : visible des membres, et plus supprimable par son auteur', as(ana, `select count(*) from public.transmissions where status = 'validee';`).out === '1' && as(tom, `delete from public.transmissions where id = '${t1.out}';`).ok && asService(`select count(*) from public.transmissions where id = '${t1.out}';`).out === '1');
+  check('TR10 rien n’entre dans le référentiel des documents (knowledge_nodes inchangé)', asService(`select count(*) from public.knowledge_nodes where org_id = '${orgT}';`).out === '0');
+}
+
 // ---------- Tables du tuteur (001, 002) toujours protégées ----------
 check('T1 le journal des appels accepte les nouvelles tâches de génération', psql(`insert into public.ai_calls (user_id, mode, model) values ('${bob.id}', 'enrichir', 'm');`).ok);
 check('T2 un utilisateur ne lit pas les compteurs des autres', as(carla, 'select count(*) from public.ai_calls;').out === '0' && as(bob, 'select count(*) from public.ai_calls;').out === '2');

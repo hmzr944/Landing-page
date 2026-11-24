@@ -73,6 +73,8 @@ Passages mesurés : 3. Modèle(s) : openai/gpt-oss-120b. Attentes dues à la lim
 | Changements avec le bon type | 8/9 | 6/9 | 5/9 | 6.3 (70 %) | 5 à 8 |
 | Fausses alertes sur les pièges (4) | 0/4 | 1/4 | 0/4 | 0.3 (8 %) | 0 à 1 |
 | Autres fausses alertes (règles inchangées signalées) | 0 | 0 | 0 | 0.0 | 0 à 0 |
+| Nouveautés signalées par la comparaison | 15 | 5 | 6 | 8.7 | 5 à 15 |
+| dont non fondées (texte déjà présent en v1) | 14/15 | 4/5 | 6/6 | 8.0 (92 %) | 4 à 14 |
 
 ### Détail par document (règles retrouvées, par passage)
 

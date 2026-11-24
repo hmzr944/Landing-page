@@ -50,7 +50,8 @@
     if (section === 'accueil' && lead(o)) return ['invite', 'user-plus', 'Inviter'];
     if (section === 'equipe' && lead(o)) return ['invite', 'user-plus', 'Ajouter un collaborateur'];
     if (section === 'savoir' && content(o) && window.OrgDocs) return ['doc', 'file-plus', 'Nouveau document'];
-    if (section === 'developper' && lead(o) && window.OrgEngines) return ['scenario', 'plus', 'Nouveau scénario'];
+    if ((section === 'developper' || section === 'studio') && lead(o) && window.OrgEngines) return ['scenario', 'plus', 'Nouveau scénario'];
+    if (section === 'preuves' && lead(o)) return ['export', 'download-simple', 'Exporter les preuves'];
     return null;
   }
   function top(o, section, tab, sub, groups) {
@@ -88,7 +89,8 @@
     if (!org) return;
     if (kind === 'invite') return reach(`#/org/${org.id}/equipe`, '#ivEmail');
     if (kind === 'doc') return reach(`#/org/${org.id}/savoir`, '#dfTitle, #dfFile');
-    if (kind === 'scenario') return reach(`#/org/${org.id}/developper/entrainer`, '#scKind');
+    if (kind === 'scenario') return reach(window.Desk2 && lead(org) ? `#/org/${org.id}/studio` : `#/org/${org.id}/developper/entrainer`, '#scKind');
+    if (kind === 'export') { const b = document.querySelector('#evCsv'); if (b) b.click(); }
   }
 
   /* ---------- Menus (espace, profil) ---------- */

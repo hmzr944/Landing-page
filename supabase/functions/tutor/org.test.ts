@@ -209,7 +209,8 @@ function engineDb(roles: Record<string, string> = { "u-bob": "member", "u-eve": 
     setProvenance: async (rows: any[]) => { store.provenance.push(...rows); },
     audit: async (...a: any[]) => { store.audit.push(a); },
     insertOutOfScope: async (rows: any[]) => { store.oos.push(...rows); },
-    docFile: async () => ({ sha256: store.fileSha, pages: ["Son autonomie annoncée est de 90 km en mode éco. Le cadre en aluminium pèse 19 kg désormais.", "Le client dispose de 14 jours pour un retour avec le ticket de caisse. Tout retour doit être saisi dans le registre."] }),
+    // v1 réaliste (mission 2c : la comparaison relit aussi l'ancienne version) : textes des connaissances v1, sans le registre
+    docFile: async (p: string) => p === "p/v1.pdf" ? ({ sha256: "sha-v1", pages: ["Son autonomie annoncée est de 90 km en mode éco. Le cadre en aluminium pèse 21 kg.", "Ne jamais recharger une batterie endommagée. Le client dispose de 30 jours pour un retour avec le ticket de caisse."] }) : ({ sha256: store.fileSha, pages: ["Son autonomie annoncée est de 90 km en mode éco. Le cadre en aluminium pèse 19 kg désormais.", "Le client dispose de 14 jours pour un retour avec le ticket de caisse. Tout retour doit être saisi dans le registre."] }),
     insertPolicyChange: async (row: any) => { const id = crypto.randomUUID(); store.changes.push({ ...row, id }); return id; },
     insertChangeItems: async (rows: any[]) => { store.items.push(...rows); },
     invitationById: async (id: string) => store.invites[id] ?? null,
@@ -247,6 +248,7 @@ Deno.test("scénario : conçu à partir des connaissances validées, brouillon n
   assertEquals(v.spec.events.map((x: any) => x.turn), [2]);
   assertEquals(v.spec.rubric.map((x: any) => x.id), ["procedure_appliquee", "calme"]);
   assertEquals(v.knowledge_ids, ["k-retour"]);
+  assertEquals(v.spec.tension, 1); // Scenario Studio : tension standard par défaut
   assertEquals((await call(d, { task: "scenario_start", org: ORG, version: c.data.version })).status, 403); // brouillon
   v.status = "valide";
   const st = await call(d, { task: "scenario_start", org: ORG, version: c.data.version });
@@ -363,4 +365,11 @@ Deno.test("verdicts : une pratique de terrain plausible mais absente des fiches 
   const fin = await call(d, { task: "mystere_fin", org: ORG, session: st.data.id });
   assertEquals(fin.data.debrief.outOfScope.map((x: any) => x.text), ["on peut aussi passer par la borne"]);
   assertEquals(fin.data.debrief.incorrect.length + fin.data.debrief.correct.length, 0);
+});
+
+Deno.test("Scenario Studio : trois niveaux de tension, le cas limite escalade sans inventer de règle", async () => {
+  const { TENSION_RULES } = await import("./engines.ts");
+  assertEquals(TENSION_RULES.length, 3);
+  assert(/escalader/.test(TENSION_RULES[2]) && /sans inventer de règle/.test(TENSION_RULES[2]));
+  assert(/objections/.test(TENSION_RULES[1]) && /temps/.test(TENSION_RULES[1]));
 });

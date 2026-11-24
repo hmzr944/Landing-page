@@ -1,0 +1,437 @@
+{
+  "format": "fiche-v1",
+  "meta": {
+    "id": "essai-chaine-du-froid",
+    "notion": "La chaîne du froid",
+    "version": 1,
+    "langue": "fr",
+    "statut": "brouillon",
+    "origine": "humaine",
+    "domaine": "hygiène (notion du jeu 3a, S20 ; fiche légitime d’essai)",
+    "essai": true,
+    "avertissement": "Fiche d’essai fabriquée pour les tests de la mission 3b-0. Ce n’est pas une fiche pédagogique validée."
+  },
+  "validation": null,
+  "sources": [
+    {
+      "id": "s1",
+      "titre": "Wikipédia : Chaîne du froid",
+      "url": "https://fr.wikipedia.org/wiki/Cha%C3%AEne_du_froid",
+      "licence": "CC BY-SA 4.0",
+      "extrait": "La chaîne du froid consiste à maintenir un produit à une température basse et constante, de sa production jusqu’à sa consommation."
+    }
+  ],
+  "prerequis": [],
+  "situation": {
+    "texte": "Dans une cantine, les yaourts du déjeuner sont sortis de la chambre froide à 8 h et attendent sur un chariot, près d’une fenêtre ensoleillée, jusqu’au service de midi. Ils ont l’air normaux, sans odeur ni couleur suspecte.",
+    "question_ouverture": "Ces yaourts te semblent-ils sans danger pour les élèves ? Pourquoi ?"
+  },
+  "explication": {
+    "simple": {
+      "ancre_situation": "Les yaourts sont restés quatre heures près de la fenêtre",
+      "texte": "Les yaourts sont restés quatre heures près de la fenêtre : ils se sont réchauffés. Or une température basse ne tue pas les bactéries, elle les ralentit. Dès que la température remonte, celles qui étaient présentes recommencent à se multiplier, même si l’aspect et l’odeur ne changent pas encore. C’est pour cela qu’une denrée périssable doit rester au frais sans interruption, de l’usine jusqu’au repas : on parle de chaîne du froid."
+    },
+    "standard": {
+      "ancre_situation": "les yaourts ont attendu quatre heures sur le chariot",
+      "texte": "Entre 8 h et midi, les yaourts ont attendu quatre heures sur le chariot, au soleil. Leur température a dépassé celle d’une chambre froide, et les bactéries, que le froid ne faisait que ralentir, ont repris leur multiplication. L’aspect normal ne prouve rien : beaucoup de bactéries dangereuses ne changent ni l’odeur ni la couleur. La règle qui en découle, la chaîne du froid, impose une température basse et continue à chaque étape, sans rupture, du transport au service."
+    }
+  },
+  "idee_centrale": "Une denrée périssable doit rester au froid sans interruption, car le froid ralentit les bactéries sans les tuer.",
+  "elements_cles": [
+    "le froid ralentit les bactéries sans les tuer",
+    "une interruption laisse les bactéries se multiplier, même sans signe visible"
+  ],
+  "representations": [
+    {
+      "id": "r1",
+      "type": "exemple",
+      "texte": "Un vaccin transporté d’un hôpital à un autre doit rester entre 2 et 8 °C pendant tout le trajet : une seule heure au chaud peut l’abîmer, même s’il paraît intact."
+    },
+    {
+      "id": "r2",
+      "type": "etapes",
+      "texte": "1. Le produit est refroidi dès sa fabrication. 2. Il voyage dans un camion réfrigéré. 3. Il est rangé au froid au magasin. 4. Il passe au réfrigérateur à la maison. Une rupture à une seule étape suffit à le rendre risqué."
+    },
+    {
+      "id": "r3",
+      "type": "analogie",
+      "texte": "Le froid agit comme la touche pause d’une vidéo : l’histoire s’arrête, mais elle reprend dès qu’on relâche la touche.",
+      "limite": "Contrairement à une vidéo, le froid ne met pas tout à fait en pause : certaines bactéries continuent lentement, même au réfrigérateur."
+    },
+    {
+      "id": "r4",
+      "type": "contre_exemple",
+      "texte": "Une boîte de conserve fermée peut rester des mois sur une étagère : la chaleur de la stérilisation a détruit ses bactéries, elle n’a donc pas besoin de froid."
+    }
+  ],
+  "confusions": [
+    {
+      "id": "c1",
+      "libelle": "Un aliment qui a l’air normal est sans danger",
+      "description": "Croire qu’on voit ou qu’on sent toujours qu’un aliment est devenu dangereux.",
+      "remede": "r1",
+      "controle": {
+        "id": "cc-c1",
+        "evalue": "application",
+        "q": "Un fromage frais oublié une nuit sur la table du jardin a gardé son aspect et son odeur. Peut-on le servir ?",
+        "choix": [
+          {
+            "texte": "Oui, puisqu’il n’a ni odeur ni couleur suspecte",
+            "confusion": "c1"
+          },
+          {
+            "texte": "Oui, après une heure de repos au réfrigérateur",
+            "confusion": "c2"
+          },
+          {
+            "texte": "Non, car le fromage frais ne supporte jamais l’air libre"
+          },
+          {
+            "texte": "Non, des bactéries ont pu se multiplier sans rien changer",
+            "juste": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "c2",
+      "libelle": "Remettre au froid annule le réchauffement",
+      "description": "Croire que remettre un produit au froid supprime les bactéries qui se sont multipliées au chaud.",
+      "remede": "r3",
+      "controle": {
+        "id": "cc-c2",
+        "evalue": "application",
+        "q": "Une barquette de jambon passe trois heures dans une voiture chaude, puis une nuit au réfrigérateur. Est-elle redevenue sûre ?",
+        "choix": [
+          {
+            "texte": "Non, le froid ne supprime pas les bactéries déjà multipliées",
+            "juste": true
+          },
+          {
+            "texte": "Oui, la nuit au froid a tué les bactéries",
+            "confusion": "c2"
+          },
+          {
+            "texte": "Oui, si elle est bien froide au toucher",
+            "confusion": "c1"
+          },
+          {
+            "texte": "Non, car le jambon ne supporte jamais d’être mis au réfrigérateur"
+          }
+        ]
+      }
+    }
+  ],
+  "questions": {
+    "comprehension": [
+      {
+        "id": "cq1",
+        "evalue": "compréhension",
+        "q": "Pourquoi un produit laissé au chaud quelques heures peut-il devenir dangereux sans changer d’aspect ?",
+        "choix": [
+          {
+            "texte": "La chaleur rend toujours un aliment toxique en une heure"
+          },
+          {
+            "texte": "Le soleil détruit les vitamines du produit"
+          },
+          {
+            "texte": "Les bactéries se multiplient avant de modifier odeur ou couleur",
+            "juste": true
+          },
+          {
+            "texte": "L’emballage chauffé libère un poison visible"
+          }
+        ]
+      },
+      {
+        "id": "cq2",
+        "evalue": "compréhension",
+        "q": "Pourquoi exige-t-on du froid à chaque étape, et pas seulement au magasin ?",
+        "choix": [
+          {
+            "texte": "Le froid du magasin suffit pour tout le reste du trajet"
+          },
+          {
+            "texte": "Les camions sont obligés d’être froids pour rouler"
+          },
+          {
+            "texte": "Le froid du magasin tue les bactéries une fois pour toutes",
+            "confusion": "c2"
+          },
+          {
+            "texte": "Une seule rupture laisse les bactéries reprendre leur multiplication",
+            "juste": true
+          }
+        ]
+      },
+      {
+        "id": "cq3",
+        "evalue": "restitution",
+        "q": "Une rupture de la chaîne du froid, c’est…",
+        "choix": [
+          {
+            "texte": "une période où le produit n’est plus au froid",
+            "juste": true
+          },
+          {
+            "texte": "le moment précis où l’on ouvre l’emballage du produit"
+          },
+          {
+            "texte": "la date limite de consommation"
+          },
+          {
+            "texte": "le passage du congélateur au four"
+          }
+        ]
+      }
+    ],
+    "comprehension_reserve": [
+      {
+        "id": "cq4",
+        "evalue": "compréhension",
+        "q": "Pourquoi une conserve fermée n’a-t-elle pas besoin de réfrigérateur ?",
+        "choix": [
+          {
+            "texte": "Le métal de la boîte garde le froid longtemps"
+          },
+          {
+            "texte": "Ses bactéries ont été détruites par la chaleur avant fermeture",
+            "juste": true
+          },
+          {
+            "texte": "Les conserves contiennent toujours beaucoup de sel"
+          },
+          {
+            "texte": "Les bactéries ne vivent pas dans le noir"
+          }
+        ]
+      },
+      {
+        "id": "cq5",
+        "evalue": "compréhension",
+        "q": "Pourquoi un vaccin doit-il voyager dans une glacière même pour un court trajet ?",
+        "choix": [
+          {
+            "texte": "La glacière le protège surtout des chocs"
+          },
+          {
+            "texte": "Le froid rend le vaccin plus efficace que prévu"
+          },
+          {
+            "texte": "Quelques heures au chaud suffisent à l’abîmer",
+            "juste": true
+          },
+          {
+            "texte": "Il doit être congelé pour pouvoir être injecté"
+          }
+        ]
+      }
+    ],
+    "application": [
+      {
+        "id": "cq6",
+        "evalue": "application",
+        "q": "Un pharmacien reçoit des vaccins dont l’indicateur de température est passé au rouge pendant le transport. Que doit-il faire ?",
+        "choix": [
+          {
+            "texte": "Les ranger vite au réfrigérateur pour les sauver",
+            "confusion": "c2"
+          },
+          {
+            "texte": "Les utiliser, puisqu’ils semblent intacts",
+            "confusion": "c1"
+          },
+          {
+            "texte": "Les congeler pour arrêter le problème"
+          },
+          {
+            "texte": "Les mettre de côté et ne pas les utiliser",
+            "juste": true
+          }
+        ]
+      },
+      {
+        "id": "cq7",
+        "evalue": "application",
+        "q": "À une kermesse, le congélateur à glaces est privé de courant deux heures et les glaces ont ramolli. Que doit faire le responsable ?",
+        "choix": [
+          {
+            "texte": "Les jeter, car elles ont décongelé",
+            "juste": true
+          },
+          {
+            "texte": "Les recongeler dès le retour du courant",
+            "confusion": "c2"
+          },
+          {
+            "texte": "Les vendre vite, avant qu’elles fondent"
+          },
+          {
+            "texte": "Les servir si elles sentent bon",
+            "confusion": "c1"
+          }
+        ]
+      }
+    ],
+    "application_reserve": [
+      {
+        "id": "cq8",
+        "evalue": "application",
+        "q": "Après un barbecue, un plat de saucisses cuites reste quatre heures au soleil. Le soir, que conseiller ?",
+        "choix": [
+          {
+            "texte": "Le mettre au réfrigérateur, le froid réglera tout",
+            "confusion": "c2"
+          },
+          {
+            "texte": "Le jeter, il est resté trop longtemps au chaud",
+            "juste": true
+          },
+          {
+            "texte": "Le garder s’il n’a pas changé d’odeur",
+            "confusion": "c1"
+          },
+          {
+            "texte": "Le congeler pour le garder plus longtemps"
+          }
+        ]
+      }
+    ],
+    "transfert": [
+      {
+        "id": "cq9",
+        "evalue": "compréhension",
+        "q": "Pourquoi un fleuriste garde-t-il ses roses coupées dans une pièce très fraîche jusqu’à la vente ?",
+        "choix": [
+          {
+            "texte": "Le froid leur fait pousser de nouvelles fleurs plus colorées"
+          },
+          {
+            "texte": "Le froid tue les insectes pour toujours",
+            "confusion": "c2"
+          },
+          {
+            "texte": "Le froid ralentit leur flétrissement, sans l’arrêter",
+            "juste": true
+          },
+          {
+            "texte": "Le froid rend les tiges plus longues"
+          }
+        ]
+      }
+    ],
+    "transfert_reserve": [
+      {
+        "id": "cq10",
+        "evalue": "application",
+        "q": "Des échantillons de lait à analyser sont restés deux heures dans un local chaud. Les résultats seront-ils fiables ?",
+        "choix": [
+          {
+            "texte": "Oui, puisque le lait a gardé son aspect",
+            "confusion": "c1"
+          },
+          {
+            "texte": "Oui, si on les remet au froid avant l’analyse",
+            "confusion": "c2"
+          },
+          {
+            "texte": "Non, car le lait devient toujours acide en une heure"
+          },
+          {
+            "texte": "Non, des bactéries ont pu se multiplier entre-temps",
+            "juste": true
+          }
+        ]
+      }
+    ],
+    "rappel": [
+      {
+        "id": "cq11",
+        "evalue": "restitution",
+        "q": "Une denrée périssable est un produit qui…",
+        "choix": [
+          {
+            "texte": "s’abîme vite s’il n’est pas conservé au froid",
+            "juste": true
+          },
+          {
+            "texte": "ne s’abîme jamais, quelle que soit la température"
+          },
+          {
+            "texte": "se conserve des années sans précaution particulière"
+          },
+          {
+            "texte": "doit toujours être cuit avant d’être mangé"
+          }
+        ]
+      },
+      {
+        "id": "cq12",
+        "evalue": "restitution",
+        "q": "Une rupture de la chaîne du froid laisse les bactéries…",
+        "choix": [
+          {
+            "texte": "disparaître"
+          },
+          {
+            "texte": "se multiplier",
+            "juste": true
+          },
+          {
+            "texte": "se transformer en sucre"
+          },
+          {
+            "texte": "devenir visibles à l’œil nu"
+          }
+        ]
+      },
+      {
+        "id": "cq13",
+        "evalue": "restitution",
+        "q": "À la maison, la chaîne du froid continue dans…",
+        "choix": [
+          {
+            "texte": "le placard le plus frais de la cuisine"
+          },
+          {
+            "texte": "le four éteint"
+          },
+          {
+            "texte": "le réfrigérateur ou le congélateur",
+            "juste": true
+          },
+          {
+            "texte": "le lave-vaisselle"
+          }
+        ]
+      }
+    ]
+  },
+  "glossaire": [
+    {
+      "terme": "bactérie",
+      "explication": "être vivant microscopique qui peut rendre malade"
+    },
+    {
+      "terme": "température",
+      "explication": "degré de chaleur ou de froid"
+    },
+    {
+      "terme": "denrée périssable",
+      "explication": "aliment qui s’abîme vite"
+    },
+    {
+      "terme": "chambre froide",
+      "explication": "pièce réfrigérée où l’on stocke les aliments"
+    },
+    {
+      "terme": "multiplication",
+      "explication": "augmentation du nombre de bactéries"
+    },
+    {
+      "terme": "rupture",
+      "explication": "moment où le froid est interrompu"
+    }
+  ]
+}

@@ -123,7 +123,7 @@ const FRAGILE = /fausse certitude|à retravailler|erreur de|faux\b|confiance dé
     await ctx.close();
     const m = await as('eve');
     await m.page.goto(`${URL0}#/org/${ORG}`); await wait(m.page, 1500);
-    check('E3 le Cockpit fonctionne sans la League', /Cockpit/.test(await text(m.page)) && /compétences acquises/.test(await text(m.page)));
+    check('E3 le Cockpit fonctionne sans la League', /Cockpit/.test(await text(m.page)) && /compétence de poste acquise/.test(await text(m.page)));
     await go(m.page, `#/org/${ORG}/equipe`, 1500);
     check('E4 Mon équipe : les cordées attendent la migration 011, la liste et les invitations restent', /Les cordées sera disponible|migration 011/.test(await text(m.page)) && !!(await m.page.$('#ivEmail')));
     await m.ctx.close();

@@ -174,7 +174,9 @@ const COURS = `<html><body style="font-family:Arial;font-size:13px">
 
   /* E. Aucune clé d'IA ni appel direct à un fournisseur dans le code publié */
   {
-    const files = ['index.html', 'sw.js', ...fs.readdirSync(path.join(ROOT, 'js')).map((f) => `js/${f}`)];
+    // fichiers servis au navigateur, sous-dossiers de js/ compris (mission 3b-0 : js/pedagogie/)
+    const lister = (d) => fs.readdirSync(path.join(ROOT, d), { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? lister(`${d}/${e.name}`) : [`${d}/${e.name}`]));
+    const files = ['index.html', 'sw.js', ...lister('js')];
     const bad = files.filter((f) => /sk-ant-|gsk_[A-Za-z0-9]{10}|dangerouslyAllowBrowser|api\.anthropic\.com|api\.groq\.com|x-api-key/i.test(fs.readFileSync(path.join(ROOT, f), 'utf8')));
     check('E1 aucune clé, aucun appel direct à un fournisseur d’IA dans les fichiers servis au navigateur', !bad.length, bad.join(', '));
   }

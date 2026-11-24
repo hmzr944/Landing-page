@@ -4,7 +4,7 @@ Le site reste statique sur GitHub Pages et marche sans compte. Supabase sert au 
 (points clés d'un PDF, rédaction d'un cours) ; aucune clé d'IA n'est jamais dans le navigateur (voir `docs/architecture.md`, D3) :
 connexion par e-mail, quota mensuel, appel au modèle avec la clé gardée côté serveur, mesure de l'usage.
 Le modèle est open source et gratuit : `openai/gpt-oss-120b` (github.com/openai/gpt-oss, Apache 2.0), avec
-`llama-3.3-70b-versatile` (Meta) en secours, servis par l'offre gratuite de Groq. Toute API compatible OpenAI convient.
+`openai/gpt-oss-20b` en secours (l'ancien secours `llama-3.3-70b-versatile` a été retiré par Groq), servis par l'offre gratuite de Groq. Toute API compatible OpenAI convient.
 Aucun cours ni aucune réponse n'est stocké sur le serveur : seulement des compteurs (appels, jetons, coût).
 
 Projet : `https://nnqtgwgwalbbhqzceged.supabase.co` (adresse et clé publiable dans `js/tutor.js`, publiques par conception).
@@ -29,12 +29,12 @@ Projet : `https://nnqtgwgwalbbhqzceged.supabase.co` (adresse et clé publiable d
    - *Redirect URLs* : ajouter `https://hmzr944.github.io/Landing-page/`
    - Facultatif : *Authentication* → *Email Templates* → *Magic Link*, ajouter `Ton code : {{ .Token }}` pour pouvoir se connecter avec le code à 6 chiffres (utile quand le lien s'ouvre dans un autre navigateur).
 3. **Fonction** : *Edge Functions* → *Deploy a new function* → *Via Editor*, nom **`tutor`**, puis créer les fichiers
-   `index.ts`, `handler.ts`, `generate.ts`, `org.ts`, `engines.ts`, `pdftext.ts` et `model.ts` avec le contenu de `functions/tutor/` (le fichier de test n'est pas à déployer).
+   `index.ts`, `handler.ts`, `generate.ts`, `org.ts`, `engines.ts`, `decouverte.ts`, `learning.ts`, `pdftext.ts` et `model.ts` avec le contenu de `functions/tutor/` (le fichier de test n'est pas à déployer).
    Laisser *Verify JWT* activé.
    Avec la ligne de commande, c'est équivalent : `supabase functions deploy tutor --project-ref nnqtgwgwalbbhqzceged`.
 4. **Secrets** : *Edge Functions* → *Secrets*
    - `AI_API_KEY` : ta clé Groq (gratuite, sans carte bancaire : console.groq.com → *API Keys*). À saisir toi-même ici, jamais ailleurs.
-   - Facultatifs : `AI_MODEL` (par défaut `openai/gpt-oss-120b`), `AI_FALLBACK_MODEL` (par défaut `llama-3.3-70b-versatile`),
+   - Facultatifs : `AI_MODEL` (par défaut `openai/gpt-oss-120b`), `AI_FALLBACK_MODEL` (par défaut `openai/gpt-oss-20b` ; si ce secret vaut encore `llama-3.3-70b-versatile`, le supprimer ou le changer),
      `AI_BASE_URL` (par défaut `https://api.groq.com/openai/v1` ; OpenRouter, Cerebras, Ollama ou vLLM marchent aussi),
      `TUTOR_MONTHLY_LIMIT` (dialogue, 60 par défaut), `GEN_MONTHLY_LIMIT` (génération, 150 par défaut),
      `TUTOR_ORIGINS` (par défaut `https://hmzr944.github.io`).

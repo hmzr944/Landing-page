@@ -1,0 +1,435 @@
+{
+  "format": "fiche-v1",
+  "meta": {
+    "id": "essai-fermentation",
+    "notion": "La fermentation",
+    "version": 1,
+    "langue": "fr",
+    "statut": "brouillon",
+    "origine": "humaine",
+    "domaine": "sciences de la vie (hors jeu 3a)",
+    "essai": true,
+    "avertissement": "Fiche d’essai fabriquée pour les tests de la mission 3b-0. Ce n’est pas une fiche pédagogique validée."
+  },
+  "validation": null,
+  "sources": [
+    {
+      "id": "s1",
+      "titre": "Wikipédia : Fermentation",
+      "url": "https://fr.wikipedia.org/wiki/Fermentation",
+      "licence": "CC BY-SA 4.0",
+      "extrait": "La fermentation est une réaction biochimique de conversion de l’énergie chimique contenue dans une source de carbone (souvent du glucose) en une autre forme d’énergie, en l’absence d’oxygène."
+    }
+  ],
+  "prerequis": [],
+  "situation": {
+    "texte": "Léa laisse une pâte à pain dans un saladier près du radiateur. Deux heures plus tard, la pâte a doublé de volume et sent légèrement l’alcool. Dans le réfrigérateur, la même pâte a à peine bougé.",
+    "question_ouverture": "D’après toi, qu’est-ce qui a fait gonfler la pâte près du radiateur ?"
+  },
+  "explication": {
+    "simple": {
+      "ancre_situation": "La pâte de Léa a doublé près du radiateur",
+      "texte": "La pâte de Léa a doublé près du radiateur parce que de minuscules champignons, les levures, s’y sont nourris du sucre de la farine. En mangeant ce sucre sans avoir besoin d’air, ils rejettent un gaz, le dioxyde de carbone, qui forme des bulles et fait gonfler la pâte, et un peu d’éthanol, l’alcool, d’où l’odeur. C’est ce qu’on appelle la fermentation. Au froid, les levures travaillent beaucoup plus lentement : la pâte bouge à peine."
+    },
+    "standard": {
+      "ancre_situation": "la pâte posée près du radiateur a doublé de volume",
+      "texte": "Si la pâte posée près du radiateur a doublé de volume, c’est que des levures, des micro-organismes, y ont transformé une partie des sucres de la farine. Sans utiliser l’oxygène de l’air, elles tirent de l’énergie de ces sucres et rejettent du dioxyde de carbone et de l’éthanol. Ce mécanisme est la fermentation alcoolique. La chaleur accélère l’activité des levures, le froid la ralentit : c’est pourquoi la pâte du réfrigérateur a peu levé."
+    }
+  },
+  "idee_centrale": "La fermentation est la transformation de sucres par des micro-organismes, sans oxygène, qui produit notamment un gaz et parfois de l’alcool.",
+  "elements_cles": [
+    "des levures ou des bactéries transforment des sucres sans oxygène",
+    "elle produit du dioxyde de carbone, et de l’alcool ou un acide"
+  ],
+  "representations": [
+    {
+      "id": "r1",
+      "type": "exemple",
+      "texte": "Dans une bouteille de jus de raisin fermée laissée plusieurs jours au chaud, des bulles apparaissent et le goût devient piquant : les levures du raisin ont transformé son sucre en gaz et en alcool."
+    },
+    {
+      "id": "r2",
+      "type": "etapes",
+      "texte": "1. Les levures trouvent du sucre. 2. Elles le découpent sans utiliser l’oxygène de l’air. 3. Elles en tirent de l’énergie pour vivre. 4. Elles rejettent ce qui reste : du dioxyde de carbone et de l’alcool."
+    },
+    {
+      "id": "r3",
+      "type": "analogie",
+      "texte": "Les levures sont comme de minuscules ouvriers qui mangent du sucre et soufflent des bulles en travaillant.",
+      "limite": "Les levures ne choisissent rien et ne soufflent pas : le gaz est un déchet de leur digestion, produit sans intention."
+    },
+    {
+      "id": "r4",
+      "type": "contre_exemple",
+      "texte": "Une pâte faite seulement de farine et d’eau, sans levure ni levain, ne gonfle pas, même au chaud : sans micro-organismes pour transformer le sucre, il n’y a pas de gaz."
+    }
+  ],
+  "confusions": [
+    {
+      "id": "c1",
+      "libelle": "La chaleur fait gonfler la pâte toute seule",
+      "description": "Croire que c’est la chaleur elle-même qui dilate la pâte, alors qu’elle ne fait qu’accélérer le travail des levures.",
+      "remede": "r4",
+      "controle": {
+        "id": "fc-c1",
+        "evalue": "application",
+        "q": "Une pâte sans levure est posée deux heures près d’un radiateur. Que lui arrive-t-il ?",
+        "choix": [
+          {
+            "texte": "Elle double de volume grâce à la chaleur",
+            "confusion": "c1"
+          },
+          {
+            "texte": "Elle ne gonfle presque pas, faute de levures",
+            "juste": true
+          },
+          {
+            "texte": "Elle gonfle puis sent fortement l’alcool"
+          },
+          {
+            "texte": "Elle devient liquide en chauffant"
+          }
+        ]
+      }
+    },
+    {
+      "id": "c2",
+      "libelle": "Les levures ont besoin de l’air pour fermenter",
+      "description": "Croire que la fermentation demande de l’oxygène, alors qu’elle se fait justement sans lui.",
+      "remede": "r2",
+      "controle": {
+        "id": "fc-c2",
+        "evalue": "application",
+        "q": "Un jus de raisin est enfermé dans une bouteille bouchée, sans air. Peut-il fermenter ?",
+        "choix": [
+          {
+            "texte": "Non, les levures doivent respirer l’air",
+            "confusion": "c2"
+          },
+          {
+            "texte": "Non, le bouchon tue toutes les levures"
+          },
+          {
+            "texte": "Oui, la fermentation se passe sans oxygène",
+            "juste": true
+          },
+          {
+            "texte": "Oui, mais seulement au réfrigérateur"
+          }
+        ]
+      }
+    }
+  ],
+  "questions": {
+    "comprehension": [
+      {
+        "id": "fq1",
+        "evalue": "compréhension",
+        "q": "Pourquoi la pâte gonfle-t-elle quand les levures se nourrissent ?",
+        "choix": [
+          {
+            "texte": "Elles rejettent un gaz qui forme des bulles dans la pâte",
+            "juste": true
+          },
+          {
+            "texte": "La farine absorbe l’eau et se met à grossir"
+          },
+          {
+            "texte": "La chaleur de la cuisine étire la pâte",
+            "confusion": "c1"
+          },
+          {
+            "texte": "Le sel réagit avec l’eau et produit de l’air en quantité"
+          }
+        ]
+      },
+      {
+        "id": "fq2",
+        "evalue": "compréhension",
+        "q": "Pourquoi la pâte rangée au réfrigérateur lève-t-elle beaucoup moins ?",
+        "choix": [
+          {
+            "texte": "Le froid tue toutes les levures de la pâte"
+          },
+          {
+            "texte": "Le froid ralentit fortement l’activité des levures",
+            "juste": true
+          },
+          {
+            "texte": "Le réfrigérateur retire l’air dont elles ont besoin",
+            "confusion": "c2"
+          },
+          {
+            "texte": "La pâte froide devient trop lourde pour monter"
+          }
+        ]
+      },
+      {
+        "id": "fq3",
+        "evalue": "restitution",
+        "q": "Quels êtres vivants font lever la pâte à pain ?",
+        "choix": [
+          {
+            "texte": "Des bactéries de l’air ambiant"
+          },
+          {
+            "texte": "Des cellules de blé encore vivantes"
+          },
+          {
+            "texte": "Des levures",
+            "juste": true
+          },
+          {
+            "texte": "Des moisissures du sucre"
+          }
+        ]
+      }
+    ],
+    "comprehension_reserve": [
+      {
+        "id": "fq4",
+        "evalue": "compréhension",
+        "q": "Pourquoi un vin contient-il de l’alcool alors que le raisin n’en contient pas ?",
+        "choix": [
+          {
+            "texte": "Le raisin produit de l’alcool en mûrissant au soleil"
+          },
+          {
+            "texte": "L’alcool vient de l’air entré dans la cuve",
+            "confusion": "c2"
+          },
+          {
+            "texte": "On ajoute toujours de l’alcool pur au jus"
+          },
+          {
+            "texte": "Des levures ont transformé le sucre du raisin en alcool",
+            "juste": true
+          }
+        ]
+      },
+      {
+        "id": "fq5",
+        "evalue": "compréhension",
+        "q": "Pourquoi une préparation sans aucun sucre ne pourrait-elle pas fermenter ?",
+        "choix": [
+          {
+            "texte": "Les levures n’auraient rien à transformer",
+            "juste": true
+          },
+          {
+            "texte": "Elle serait trop froide pour lever correctement"
+          },
+          {
+            "texte": "Il lui manquerait l’oxygène nécessaire",
+            "confusion": "c2"
+          },
+          {
+            "texte": "Elle contiendrait trop de sel pour gonfler"
+          }
+        ]
+      }
+    ],
+    "application": [
+      {
+        "id": "fq6",
+        "evalue": "application",
+        "q": "Tu veux que ta pâte lève plus vite. Où la poser ?",
+        "choix": [
+          {
+            "texte": "Au réfrigérateur, pour garder les levures fraîches"
+          },
+          {
+            "texte": "Dans un endroit tiède, à l’abri des courants d’air",
+            "juste": true
+          },
+          {
+            "texte": "Au congélateur, pour la raffermir avant"
+          },
+          {
+            "texte": "Dans une boîte ouverte, pour qu’elle respire mieux",
+            "confusion": "c2"
+          }
+        ]
+      },
+      {
+        "id": "fq7",
+        "evalue": "application",
+        "q": "Un boulanger oublie d’ajouter la levure dans sa pâte. Que va-t-il constater ?",
+        "choix": [
+          {
+            "texte": "La pâte lèvera grâce à la chaleur du fournil",
+            "confusion": "c1"
+          },
+          {
+            "texte": "La pâte lèvera mais aura un goût sucré"
+          },
+          {
+            "texte": "La pâte ne lèvera presque pas",
+            "juste": true
+          },
+          {
+            "texte": "La pâte lèvera deux fois plus lentement"
+          }
+        ]
+      }
+    ],
+    "application_reserve": [
+      {
+        "id": "fq8",
+        "evalue": "application",
+        "q": "Pour faire du pain plus vite un jour froid, que peut faire Léa ?",
+        "choix": [
+          {
+            "texte": "Remplacer la levure par davantage de farine"
+          },
+          {
+            "texte": "Laisser le saladier ouvert pour donner de l’air",
+            "confusion": "c2"
+          },
+          {
+            "texte": "Ajouter de l’eau glacée dans la pâte"
+          },
+          {
+            "texte": "Laisser lever la pâte dans une pièce chauffée",
+            "juste": true
+          }
+        ]
+      }
+    ],
+    "transfert": [
+      {
+        "id": "fq9",
+        "evalue": "application",
+        "q": "Un yaourt maison est préparé avec du lait et un peu de yaourt, puis laissé tiède plusieurs heures. Le lait épaissit et devient acide. Que s’est-il passé ?",
+        "choix": [
+          {
+            "texte": "Des bactéries ont transformé le sucre du lait en acide",
+            "juste": true
+          },
+          {
+            "texte": "La chaleur a fait cailler le lait toute seule",
+            "confusion": "c1"
+          },
+          {
+            "texte": "L’air a fait tourner le lait",
+            "confusion": "c2"
+          },
+          {
+            "texte": "Le lait s’est évaporé et a épaissi"
+          }
+        ]
+      }
+    ],
+    "transfert_reserve": [
+      {
+        "id": "fq10",
+        "evalue": "application",
+        "q": "Du chou coupé, salé et tassé dans un pot devient acide en quelques semaines sans pourrir. Que s’est-il passé ?",
+        "choix": [
+          {
+            "texte": "Le sel a lentement cuit le chou dans le pot fermé hermétiquement"
+          },
+          {
+            "texte": "Des bactéries ont transformé les sucres du chou en acide",
+            "juste": true
+          },
+          {
+            "texte": "Le chou a séché et concentré son acidité"
+          },
+          {
+            "texte": "L’air du pot a rendu le chou acide",
+            "confusion": "c2"
+          }
+        ]
+      }
+    ],
+    "rappel": [
+      {
+        "id": "fq11",
+        "evalue": "restitution",
+        "q": "La fermentation transforme surtout…",
+        "choix": [
+          {
+            "texte": "des graisses"
+          },
+          {
+            "texte": "des minéraux du sol"
+          },
+          {
+            "texte": "des sucres",
+            "juste": true
+          },
+          {
+            "texte": "de l’eau"
+          }
+        ]
+      },
+      {
+        "id": "fq12",
+        "evalue": "restitution",
+        "q": "Le gaz qui fait lever la pâte est…",
+        "choix": [
+          {
+            "texte": "l’oxygène"
+          },
+          {
+            "texte": "le dioxyde d’azote des engrais"
+          },
+          {
+            "texte": "l’hydrogène"
+          },
+          {
+            "texte": "le dioxyde de carbone",
+            "juste": true
+          }
+        ]
+      },
+      {
+        "id": "fq13",
+        "evalue": "restitution",
+        "q": "La fermentation par les levures se fait…",
+        "choix": [
+          {
+            "texte": "sans oxygène",
+            "juste": true
+          },
+          {
+            "texte": "seulement à la lumière"
+          },
+          {
+            "texte": "uniquement au froid"
+          },
+          {
+            "texte": "avec beaucoup d’oxygène"
+          }
+        ]
+      }
+    ]
+  },
+  "glossaire": [
+    {
+      "terme": "levure",
+      "explication": "champignon microscopique qui se nourrit de sucre"
+    },
+    {
+      "terme": "dioxyde de carbone",
+      "explication": "gaz rejeté par les levures, qui forme des bulles"
+    },
+    {
+      "terme": "éthanol",
+      "explication": "l’alcool produit par les levures"
+    },
+    {
+      "terme": "micro-organisme",
+      "explication": "être vivant trop petit pour être vu à l’œil nu"
+    },
+    {
+      "terme": "oxygène",
+      "explication": "gaz de l’air que la fermentation n’utilise pas"
+    },
+    {
+      "terme": "fermentation alcoolique",
+      "explication": "fermentation qui produit de l’alcool"
+    }
+  ]
+}

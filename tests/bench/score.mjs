@@ -65,9 +65,12 @@ export function scoreExtraction(rules, items, raw, docText) {
 
 /* Comparaison de versions. knowledge = connaissances de la v1 (id, texte, regle) ; changes = éléments produits par
    compareVersions ; gold = changements et non-changements du corrigé ; v2rules = règles attendues de la v2. */
-export function scoreComparison(knowledge, changes, gold, v2rules) {
+// opts.regles2c : règles de calcul de la mission 2c (2026-11-22) ; sans elles, calcul identique aux campagnes 2 et 2b
+export function scoreComparison(knowledge, changes, gold, v2rules, opts = {}) {
   const byK = new Map(changes.filter((c) => c.knowledge_id).map((c) => [c.knowledge_id, c]));
   const kOfRule = (id) => knowledge.find((k) => k.regle === id);
+  // un changement sans règle d'extraction (changement d'ordre de R1, décision du 2026-11-22) se repère par son texte en v1
+  const kOf = (g) => (g.regle ? kOfRule(g.regle) : knowledge.find((k) => flat(k.texte) === flat(g.avant)));
   const alert = (c) => c && ['modifie', 'supprime'].includes(c.change);
   const news = changes.filter((c) => c.change === 'nouveau');
   const detections = gold.changements.map((g) => {
@@ -76,7 +79,7 @@ export function scoreComparison(knowledge, changes, gold, v2rules) {
       const hit = news.some((c) => covers(rule.texte, c.new_quote) >= MATCH);
       return { id: g.id, type: g.type, detecte: hit, type_exact: hit };
     }
-    const k = kOfRule(g.regle), c = k && byK.get(k.id);
+    const k = kOf(g), c = k && byK.get(k.id);
     return { id: g.id, type: g.type, detecte: !!alert(c), type_exact: !!c && c.change === g.type, obtenu: c ? c.change : 'absent' };
   });
   const traps = gold.non_changements.map((n, i) => {
@@ -86,14 +89,31 @@ export function scoreComparison(knowledge, changes, gold, v2rules) {
     const newOnTrap = n.type === 'reformulation' ? news.filter((c) => covers(n.apres, c.new_quote) >= MATCH) : [];
     return { piege: `${n.type} ${i + 1}`, connaissances: ks.length, fausse_alerte: alerted.length > 0 || newOnTrap.length > 0 };
   });
-  const targeted = new Set(gold.changements.map((g) => g.regle && kOfRule(g.regle)?.id).filter(Boolean));
+  const targeted = new Set(gold.changements.map((g) => g.type !== 'ajoute' && kOf(g)?.id).filter(Boolean));
   const trapK = new Set(gold.non_changements.flatMap((n) => knowledge.filter((k) => { const t = n.type === 'reformulation' ? n.avant : n.texte; return covers(t, k.texte) >= MATCH || flat(k.texte).includes(flat(t)); }).map((k) => k.id)));
   const autres = knowledge.filter((k) => !targeted.has(k.id) && !trapK.has(k.id) && alert(byK.get(k.id))).map((k) => k.regle || k.id);
-  return { detections, traps, autres_fausses_alertes: autres };
+  // Nouveauté non fondée : signalée « nouvelle » alors que son texte figurait déjà dans la v1 (fausse alerte pour le
+  // responsable, qui doit la relire pour rien). Mesure ajoutée en mission 2b, recalculée aussi pour la mission 2.
+  // Une nouveauté attendue par le corrigé n'est jamais « non fondée », même si sa phrase existait ailleurs en v1 (cas 2 du
+  // contrôle hors corpus : même formulation, sens opérationnel nouveau).
+  const attendues = gold.changements.filter((g) => g.type === 'ajoute').map((g) => (v2rules.find((r) => r.id === g.regle) || {}).texte).filter(Boolean);
+  const nonFondees = news.filter((c) => !(opts.regles2c && attendues.some((t) => covers(t, c.new_quote) >= MATCH))
+    && knowledge.some((k) => covers(c.new_quote, k.texte) >= 0.8 || covers(k.texte, c.new_quote) >= 0.8)).length;
+  return { detections, traps, autres_fausses_alertes: autres, nouveautes_non_fondees: nonFondees, nouveautes: news.length };
 }
 
 // Seuils fixés le 2026-11-18 : sur CHACUN des passages
-export const THRESHOLDS = { valeurs_exactes: 1, sensibles_min: 43, changements: 9, fausses_alertes_pieges: 0 };
+// Seuils fixés le 2026-11-18 : sur CHACUN des passages. Le nombre de changements et de pièges vient du corrigé de la
+// campagne (9 et 4 jusqu'au 2026-11-22 ; 10 et 3 ensuite, décision sur R1) : tous détectés, aucune fausse alerte.
+export const THRESHOLDS = { valeurs_exactes: 1, sensibles_min: 43, fausses_alertes_pieges: 0 };
+// Critères supplémentaires de la mission 2c (fixés le 2026-11-22, avant la campagne) : aucune nouveauté non fondée,
+// aucune invention gardée, pas de régression de l'extraction (au moins 73 règles sur 74, le pire passage de la mission 2b).
+export const CRITERES_2C = { nouveautes_non_fondees: 0, inventions_apres_filtre: 0, regles_min: 73 };
+export const criteres2c = (s) => ({
+  nouveautes: s.nouveautes_non_fondees === CRITERES_2C.nouveautes_non_fondees,
+  inventions: s.inventions_apres_filtre === CRITERES_2C.inventions_apres_filtre,
+  extraction: s.regles_trouvees >= CRITERES_2C.regles_min,
+});
 
 export function summarize(run) {
   const per = run.extraction.flatMap((d) => d.score.per);
@@ -115,11 +135,13 @@ export function summarize(run) {
     changements_type_exact: det.filter((x) => x.type_exact).length,
     fausses_alertes_pieges: traps.filter((t) => t.fausse_alerte).length, pieges_total: traps.length,
     autres_fausses_alertes: run.comparaison.reduce((a, c) => a + c.score.autres_fausses_alertes.length, 0),
+    nouveautes_non_fondees: run.comparaison.reduce((a, c) => a + (c.score.nouveautes_non_fondees || 0), 0),
+    nouveautes: run.comparaison.reduce((a, c) => a + (c.score.nouveautes || 0), 0),
   };
   s.seuils = {
     valeurs_exactes: s.valeurs_exactes === s.valeurs_total,
     sensibles: s.sensibles_trouvees >= THRESHOLDS.sensibles_min,
-    changements: s.changements_detectes === THRESHOLDS.changements && s.changements_total === THRESHOLDS.changements,
+    changements: s.changements_total > 0 && s.changements_detectes === s.changements_total,
     pieges: s.fausses_alertes_pieges === THRESHOLDS.fausses_alertes_pieges,
   };
   s.seuils_atteints = Object.values(s.seuils).every(Boolean);

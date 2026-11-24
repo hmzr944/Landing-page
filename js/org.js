@@ -55,9 +55,11 @@
   // Sur ordinateur, ce même en-tête devient une barre latérale (CSS) ; sur téléphone, des onglets défilants.
   function navOf(o) {
     const lead = can(o, 'admin', 'manager'), content = can(o, 'admin', 'manager', 'expert');
+    if (window.Desk2 && lead) return Desk2.nav();
     if (window.OrgHub && lead) return [[null, [['accueil', 'gauge', 'Cockpit'], ['equipe', 'users-three', 'Mon équipe'], ['savoir', 'books', 'Base de savoir'], ['developper', 'plant', 'Développer'], ['apprendre', 'student', 'Mon apprentissage']]]];
-    if (window.OrgHub && content) return [[null, [['accueil', 'gauge', 'Accueil'], ['savoir', 'books', 'Base de savoir'], ['apprendre', 'student', 'Mon apprentissage']]]];
-    if (window.OrgHub) return [[null, [['accueil', 'house', 'Accueil'], ...(window.League ? [['canopee', 'tree', 'Canopée']] : []), ['apprendre', 'compass', 'Explorer'], ['resultats', 'chart-line-up', 'Mon parcours']]]];
+    const tr = window.Desk2 ? [['transmission', 'hand-heart', 'Transmettre']] : [];
+    if (window.OrgHub && content) return [[null, [['accueil', 'gauge', 'Accueil'], ['savoir', 'books', 'Base de savoir'], ['apprendre', 'student', 'Mon apprentissage'], ...tr]]];
+    if (window.OrgHub) return [[null, [['accueil', 'house', 'Accueil'], ...(window.League ? [['canopee', 'tree', 'Canopée']] : []), ['apprendre', 'compass', 'Explorer'], ['resultats', 'chart-line-up', 'Mon parcours'], ...tr]]];
     // sans les écrans v2 (module absent) : navigation précédente
     const shell = !!window.OrgShell;
     const g = [];
@@ -70,12 +72,13 @@
   // Rubrique active : les anciennes adresses restent valides et allument la rubrique qui les contient
   const SECTION = { documents: 'savoir', competences: 'savoir', suivi: 'equipe', apercu: 'equipe', intelligence: 'developper', scenarios: 'developper', diagnostic: 'apprendre', mystere: 'apprendre' };
   // Dico-miroir (docs/ux-v51.md) : le nom Arbor reste, l'infobulle dit ce qu'on y fait
-  const NAV_HELP = { equipe: 'personnes, invitations, cordées', savoir: 'documents et connaissances confirmées', developper: 'diagnostiquer, entraîner, mesurer', apprendre: 'votre propre progression', canopee: 'ton rang, tes trophées et ta cordée (Arbor League)', resultats: 'tes compétences et tes preuves' };
+  const NAV_HELP = { changements: 'procédures modifiées, compétences touchées, qui revalider', equipe: 'personnes, invitations, cordées', savoir: 'documents et connaissances confirmées', developper: 'diagnostiquer, entraîner, mesurer', apprendre: 'votre propre progression', canopee: 'ton rang, tes trophées et ta cordée (Arbor League)', resultats: 'tes compétences et tes preuves' };
   function head(o, tab) {
     const origTab = tab;
     const groups = navOf(o);
     const flat = groups.flatMap(([, items]) => items.map((x) => x[0]));
-    if (window.OrgHub && !flat.includes(tab) && SECTION[tab] && flat.includes(SECTION[tab])) tab = SECTION[tab];
+    const SEC = window.Desk2 && can(o, 'admin', 'manager') ? { ...SECTION, ...Desk2.SECTION } : SECTION;
+    if (window.OrgHub && !flat.includes(tab) && SEC[tab] && flat.includes(SEC[tab])) tab = SEC[tab];
     if (window.OrgHub && tab === 'resultats' && !flat.includes('resultats')) tab = 'apprendre';
     // Ordinateur (D14) : barre latérale ancrée + barre supérieure (js/org-desk.js) ; téléphone : en-tête et onglets existants
     const desk = window.OrgDesk ? (OrgDesk.use(o, d), true) : false;
@@ -85,7 +88,7 @@
         ${desk ? `${OrgDesk.brand()}${OrgDesk.spaceBtn(o)}` : ''}
         <div class="org-id"><span class="org-badge" aria-hidden="true">${d.ic('buildings', true)}</span><div><h1>${d.esc(o.name)}</h1><p>${d.esc(o.sector || 'Espace professionnel')} · <b>${ROLES[o.role] || o.role}</b></p></div>
           ${window.OrgHub && o.role === 'admin' && window.OrgShell ? `<a class="icon-btn org-set" href="#/org/${o.id}/parametres" aria-label="Paramètres de l’organisation" ${tab === 'parametres' ? 'aria-current="page"' : ''}>${d.ic('gear-six')}</a>` : ''}</div>
-        <nav class="org-tabs" aria-label="Espace ${d.esc(o.name)}">${groups.map(([gl, items]) => `${gl ? `<span class="org-nav-g" aria-hidden="true">${gl}</span>` : ''}${items.map(([k, icn, l]) => `<a href="#/org/${o.id}${k === 'accueil' ? '' : '/' + k}" title="${(() => { const h = k === 'apprendre' && l === 'Explorer' ? 'cinq façons d’apprendre' : NAV_HELP[k]; return h ? `${l} : ${h}` : l; })()}" ${tab === k ? 'aria-current="page"' : ''}>${d.ic(icn, tab === k)}<span>${l}</span></a>`).join('')}`).join('')}</nav>
+        <nav class="org-tabs" aria-label="Espace ${d.esc(o.name)}">${groups.map(([gl, items]) => `${gl ? `<span class="org-nav-g" aria-hidden="true">${gl}</span>` : ''}${items.map(([k, icn, l]) => `<a href="#/org/${o.id}${k === 'accueil' ? '' : '/' + k}" title="${(() => { const h = k === 'apprendre' && l === 'Explorer' ? 'cinq façons d’apprendre' : (window.Desk2 && Desk2.HELP[k]) || NAV_HELP[k]; return h ? `${l} : ${h}` : l; })()}" ${tab === k ? 'aria-current="page"' : ''}>${d.ic(icn, tab === k)}<span>${l}</span></a>`).join('')}`).join('')}</nav>
         <div class="org-side-foot">${desk ? OrgDesk.foot(o) : `${window.Feedback ? `<button type="button" class="link-btn fb-link" data-org-feedback>${d.ic('chat-teardrop-text')}Donner mon avis</button>` : ''}<button type="button" class="link-btn" data-org-space>${d.ic('swap')}Changer d’espace</button>`}</div>
       </header>${desk ? OrgDesk.top(o, sectionOf, origTab, (location.hash.split('/')[4] || ''), groups) : ''}`;
   }
@@ -234,9 +237,22 @@
     }
     if (window.OrgHub) {
       const lead = can(o, 'admin', 'manager'), content = can(o, 'admin', 'manager', 'expert');
+      // Transmission : ouverte à tout membre (soumettre) ; la relecture reste aux responsables (base, migration 012)
+      if (window.Desk2 && view.tab === 'transmission') return Desk2.transmission(app, o, head(o, 'transmission'), d);
+      // Arbor Desktop 2 (responsables) : cinq espaces
+      if (window.Desk2 && lead) {
+        const imp = view.tab === 'changements' || (view.tab === 'savoir' && view.sub === 'impact');
+        if (view.tab === 'accueil') return Desk2.cockpit(app, o, head(o, 'accueil'), d);
+        if (imp && window.OrgChanges) return OrgChanges.render(app, o, `${head(o, 'savoir')}<div class="d2">${Desk2.kiHead(o, 'impact', {}, d)}</div>`, d, view.tab === 'changements' ? view.sub : (location.hash.split('/')[5] || ''));
+        if (view.tab === 'savoir') { const r = OrgHub.knowledge(app, o, `${head(o, 'savoir')}<div class="d2">${Desk2.kiHead(o, 'lib', {}, d)}</div>`, d, view.sub, true); Desk2.badges(o); return r; }
+        if (view.tab === 'studio') return Desk2.studio(app, o, head(o, 'studio'), d);
+        if (view.tab === 'angles') return Desk2.blindspots(app, o, head(o, 'angles'), d);
+        if (view.tab === 'preuves') return Desk2.evidence(app, o, head(o, 'preuves'), d, view.sub);
+      }
       if (view.tab === 'accueil' && lead) return OrgHub.cockpit(app, o, head(o, 'accueil'), d);
       if (view.tab === 'accueil' && !content && window.League) return League.home(app, o, head(o, 'accueil'), d);
       if (view.tab === 'savoir' && content) return OrgHub.knowledge(app, o, head(o, 'savoir'), d, view.sub);
+      if (view.tab === 'changements' && lead && window.OrgChanges) return OrgChanges.render(app, o, head(o, 'changements'), d, view.sub);
       if (view.tab === 'developper' && lead) return OrgHub.develop(app, o, head(o, 'developper'), d, view.sub);
       if (view.tab === 'apprendre' && content) return OrgHub.myLearning(app, o, head(o, 'apprendre'), d, view.sub);
       if (view.tab === 'canopee' && window.League) return League.canopy(app, o, head(o, 'canopee'), d);

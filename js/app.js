@@ -108,6 +108,12 @@
       const mode = ['fiche', 'carte', 'revision'].includes(parts[3]) ? parts[3] : 'fiche';
       view = { name: 'subject', id: s.id, nodeId, mode };
       if (nodeId !== s.root.id) state.lastVisit = { sid: s.id, nid: nodeId, at: Date.now(), kind: 'fiche' };
+    } else if (parts[0] === 'apprendre' && (parts[1] === 'demo' || (subjectById(parts[1]) && find(subjectById(parts[1]).root, parts[2] || '')))) {
+      view = parts[1] === 'demo' ? { name: 'learn', demo: true, key: 'demo' } : { name: 'learn', sid: parts[1], nid: parts[2], key: `${parts[1]}/${parts[2]}` };
+      if (window.Learn && (!prev || prev.key !== view.key)) Learn.reset();
+    } else if (window.Spaces && Spaces.ROUTES[parts[0]] && parts[0] !== 'memoire') {
+      // Arbor Learning 2.0 : espaces Explorer, Studio pédagogique, Pratiquer, Ma connaissance, Compagnon
+      view = { name: 'space', sp: parts[0], arg: parts[1] ? decodeURIComponent(parts.slice(1).join('/')) : '' };
     } else if (parts[0] === 'reviser') {
       view = { name: 'study' };
     } else if (parts[0] === 'methode') {
@@ -120,12 +126,16 @@
       view = { name: 'progress' };
     } else if (parts[0] === 'org' && parts[1]) {
       view = { name: 'org', id: parts[1], tab: parts[2] || 'accueil', sub: parts[3] || '' };
+    } else if (parts[0] === 'partage' && parts[1] && window.Partage) {
+      view = { name: 'share', code: parts.slice(1).join('/') };
     } else if (parts[0] === 'rejoindre') {
       view = { name: 'join', token: parts[1] || '' };
     } else {
       view = { name: 'home' };
     }
-    const navOf = { home: 'home', study: 'home', courses: 'courses', subject: 'courses', progress: 'progress', trophies: 'progress' }[view.name];
+    const navOf = view.name === 'space' ? { explorer: 'courses', studio: 'courses', pratiquer: 'home', connaissance: 'progress', compagnon: 'home' }[view.sp]
+      : { home: 'home', study: 'home', courses: 'courses', subject: 'courses', learn: 'courses', progress: 'progress', trophies: 'progress' }[view.name];
+    if (window.Spaces) Spaces.paintNav(view.name === 'space' ? view.sp : { home: 'home', study: 'pratiquer', courses: 'courses', subject: 'courses', learn: 'pratiquer', progress: 'progress', trophies: 'progress', method: 'home' }[view.name]);
     // Espace professionnel : les menus de l'espace personnel (cours, niveau, import) disparaissent, rien ne s'y mélange
     const inOrg = view.name === 'org' || view.name === 'join';
     document.documentElement.classList.toggle('in-org', inOrg);
@@ -137,9 +147,24 @@
     render(prev);
   }
   const link = (sid, nid, mode = 'fiche') => `#/s/${sid}/${nid}/${mode}`;
+  /* Arbor 2 : outils donnés à l'écran « Apprendre une notion » (js/learn.js) */
+  const learnDeps = () => ({
+    esc, ic, compte: !!(window.Tutor && Tutor.signedIn()),
+    node: (sid, nid) => { const s = subjectById(sid), r = s && find(s.root, nid); return r ? r.node : null; },
+    back: (v) => (v.demo ? '#/cours' : link(v.sid, v.nid)),
+    subject: (sid) => subjectById(sid),
+    saved: () => { touch(); save(); },
+    juger: async (fiche, item, reponse) => (await AI.juger({ q: item.q, grille: item.grille, reference: item.reference }, reponse, (fiche.confusions || []).map((c) => ({ id: c.id, libelle: c.libelle })))).jugement,
+    record: (obs) => { const s = subjectById(obs.sid), r = s && find(s.root, obs.nid), node = r && r.node; if (!node) return; Obs.summarize(node, { ...obs, at: Date.now() }); Obs.add(obs); s.updatedAt = Date.now(); save(); },
+  });
 
   /* Espaces : personnel (sur l'appareil) et professionnels (dans la base). Le module Org ne reçoit que des outils
      d'affichage, jamais l'état personnel : il ne peut pas envoyer de cours ou de révisions au serveur. */
+  /* Partage d'un parcours par lien (js/partage.js) : ajout comme nouveau sujet, sans progression */
+  const shareDeps = () => ({ esc, ic, go, openModal, closeModal, toast: (m, k) => FX.toast(m, k),
+    exporter: (s) => exportJSON(s, s.title),
+    ajouter: (p) => { const s = makeSubject(String(p.title).slice(0, 120) || 'Parcours partagé', { root: normalize(p.root), icon: p.icon }); state.subjects.unshift(s); save(); return { sid: s.id, nid: s.root.id }; },
+  });
   const orgDeps = () => ({ esc, ic, openModal, closeModal, toast: (m, k) => FX.toast(m, k), go });
   function paintSpace() {
     const b = $('#spaceBtn'); if (!b || !window.Org) return;
@@ -170,7 +195,10 @@
       else if (view.name === 'method') renderMethod();
       else if (view.name === 'trophies') renderTrophies();
       else if (view.name === 'courses') renderCourses();
-      else if (view.name === 'progress') renderProgress();
+      else if (view.name === 'progress') { renderProgress(); if (window.Spaces) { const sec = app.querySelector('section, .home'); if (sec) sec.insertAdjacentHTML('afterbegin', `<div class="dbento sp-mem">${Spaces.memoryBlock(state)}</div>`); } }
+      else if (view.name === 'learn') Learn.render(app, view, learnDeps());
+      else if (view.name === 'share') Partage.render(app, view.code, shareDeps());
+      else if (view.name === 'space') Spaces[view.sp](app, state, view.arg);
       else renderSubject(bigChange);
       updateBadges();
       if (bigChange) {
@@ -350,6 +378,7 @@
       <section class="home courses-page">
         <header class="page-head">
           <h1>Mes cours <span class="muted num">${subjects.length}</span></h1>
+          <a class="pill-btn learn-demo-link" href="#/apprendre/demo">${ic('play-circle')}<span>Découvrir le parcours Arbor 2</span></a>
           <div class="row-btns">
             <button class="btn ghost" data-act="import-pdf">${ic('file-arrow-up')}<span>Importer un PDF</span></button>
             <button class="btn" data-act="new-subject">${ic('plus')}<span class="hide-sm">Sujet</span></button>
@@ -611,6 +640,7 @@
           ${node.children.length ? ring(st.pct) : ''}
         </div>
 
+        ${node.fiche ? `<a class="learn-cta card" href="#/apprendre/${s.id}/${node.id}">${ic('path', true)}<span><small>Parcours Arbor 2</small><b>Apprendre cette notion</b><em>Situation, explication, exercices, transfert</em></span>${ic('arrow-right')}</a>` : ''}
         ${isModule(s, node) ? modulePanel(s, node) : node.children.length >= 2 ? lessonCard(s, node, false) : ''}
         ${practiceCard(s, node)}
         ${memoryLine(s, node, isRoot)}
@@ -689,6 +719,7 @@
         <footer class="fiche-foot">
           ${isRoot
             ? `<button class="btn ghost sm" data-act="edit-subject" data-id="${s.id}">${ic('pencil-simple')}Modifier le sujet</button>
+               ${window.Partage ? `<button class="btn ghost sm" data-act="share-subject">${ic('share-network')}Partager</button>` : ''}
                <button class="btn ghost sm" data-act="export-subject">${ic('download-simple')}Exporter</button>`
             : `<button class="btn ghost sm" data-act="move" data-dir="-1">${ic('arrow-up')}Monter</button>
                <button class="btn ghost sm" data-act="move" data-dir="1">${ic('arrow-down')}Descendre</button>
@@ -2638,6 +2669,11 @@
           ${Org.list().length ? `<ul class="org-list">${Org.list().map((o) => `<li><a href="#/org/${o.id}" data-close-modal>${esc(o.name)}</a><small>${Org.ROLES[o.role] || o.role}</small></li>`).join('')}</ul>` : ''}
           <div class="row-btns"><button type="button" class="btn ghost sm" id="orgCreate">${ic('plus')}Créer une organisation</button><a class="btn ghost sm" href="#/rejoindre" data-close-modal>${ic('door-open')}Rejoindre avec une invitation</a></div>
         </fieldset>` : ''}
+        ${document.documentElement.classList.contains('is-desktop-app') ? '' : `<fieldset class="field">
+          <legend>Arbor sur ordinateur</legend>
+          <p class="hint">Tout l’apprentissage fonctionne ici, sans installation. L’application Windows et macOS ajoute sa propre fenêtre, des raccourcis et des rappels de révision.</p>
+          <div class="row-btns"><a class="btn ghost sm" href="site/telecharger.html" target="_blank" rel="noopener">${ic('desktop')}Télécharger Arbor Desktop</a><a class="btn ghost sm" href="site/docs/index.html" target="_blank" rel="noopener">${ic('book-open')}Documentation</a></div>
+        </fieldset>`}
         <fieldset class="field">
           <legend>Sauvegarde</legend>
           <p class="hint">${state.stats.lastExport ? `Dernier fichier de sauvegarde : ${esc(dayLabelLong(state.stats.lastExport))}.` : 'Tes cours ne sont enregistrés que dans ce navigateur. Télécharge une sauvegarde de temps en temps.'}
@@ -3084,6 +3120,7 @@
         touch(); go(link(s.id, parent.id)); FX.toast('Partie supprimée'); break;
       }
       case 'export-subject': exportJSON(s, s.title); break;
+      case 'share-subject': Partage.open(s, shareDeps()); break;
       case 'study-start': startStudy(t.dataset.cram === '1'); break;
       case 'show-doors': { const h = document.getElementById('stDoorsT'); if (h) { h.closest('section').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); h.focus({ preventScroll: true }); } break; }
       case 'quick-start': count('quick'); buildSession({ type: 'all' }); study.queue = study.queue.slice(0, 5); study.quick = true; preparePrompt(); go('#/reviser'); break;
@@ -3299,6 +3336,13 @@
   applyTheme();
   applyCalm();
   renderXP();
+  // Arbor Learning 2.0 : barre latérale des huit espaces (ordinateur) et outils du module Spaces
+  if (window.Spaces) {
+    Spaces.use({ esc, ic, go,
+      creerSujet: (titre, profil) => { const s = makeSubject(titre.slice(0, 120), { icon: 'compass' }); s.profil = profil; s.root.title = titre.slice(0, 120); state.subjects.unshift(s); save(); return { sid: s.id, nid: s.root.id }; },
+      talk: (sid, nid) => { const sj = subjectById(sid), f = sj && find(sj.root, nid); if (f) openTalk(sj, f.node); } });
+    const box = document.getElementById('spNav'); if (box) box.innerHTML = Spaces.sideNav('home');
+  }
   route();
   renderFocusUI();
   if (focus.running && focus.mode === 'work') Mascot.setFocus(true);
@@ -3353,7 +3397,7 @@
     if (Org.pendingInvite() && !/^#\/rejoindre/.test(location.hash)) go(`#/rejoindre/${Org.pendingInvite()}`);
   }
   // Mobile : accueil et compte d'abord (une seule fois), puis l'introduction. Ordinateur : rien ne s'ouvre tout seul.
-  if (!isDesktop() && !/^#\/(rejoindre|org)/.test(location.hash) && freshStart() && !(window.Welcome && Welcome.active())) {
+  if (!isDesktop() && !/^#\/(rejoindre|org|partage)/.test(location.hash) && freshStart() && !(window.Welcome && Welcome.active())) {
     if (window.Welcome && Welcome.shouldOpen()) setTimeout(() => Welcome.open(welcomeDeps), 120);
     // connecté mais parti avant d'avoir choisi son espace : on reprend à ce choix
     else if (window.Welcome && Welcome.needsSpace() && !Welcome.active()) setTimeout(() => Welcome.space(welcomeDeps), 120);

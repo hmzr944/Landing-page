@@ -121,16 +121,27 @@ const SPEC_SCHEMA = { type: "object", additionalProperties: false,
     rubric: { type: "array", items: { type: "object", additionalProperties: false, required: ["id", "label"], properties: { id: estr, label: estr } } },
     opening: estr, knowledge: { type: "array", items: estr } } };
 
+/* Tension de la situation (Scenario Studio) : elle change la complexité réelle, pas seulement le ton */
+export const TENSION_RULES = [
+  "Tension 1 (standard) : une situation courante, une seule difficulté à la fois, une objection au plus, aucun événement de pression.",
+  "Tension 2 (sous pression) : un personnage exigeant ou pressé, 2 à 3 objections qui s'enchaînent, une contrainte de temps explicite, et au moins un événement qui ajoute de la pression (file d'attente, appel, client qui s'impatiente).",
+  "Tension 3 (cas limite) : la situation met en tension au moins deux connaissances validées (par exemple une règle de service et une règle de sécurité) ; la bonne conduite consiste à appliquer la règle prioritaire ou à escalader vers un responsable, et la grille de comportements doit l'observer. Si aucune tension réelle n'existe entre les connaissances fournies, construis le cas limite sur une information manquante qui impose d'escalader, sans inventer de règle.",
+];
 export async function scenarioDesign(ctx: OrgCtx, db: EnginesDb, org: string, role: string, b: Record<string, unknown>) {
   if (!LEAD.includes(role)) throw new OrgError(403, "accès refusé");
   const kind = SC_KINDS.includes(String(b.kind)) ? String(b.kind) : "client";
   const brief = eclip(b.brief, 400).trim();
+  // Scenario Studio (Arbor 2) : tension 1 standard, 2 sous pression, 3 cas limite ; compétence visée (nom)
+  const tension = [1, 2, 3].includes(Number(b.tension)) ? Number(b.tension) : 1;
+  const skill = eclip(b.skill, 160).trim();
   const ks = (await ctx.db.validatedKnowledge(org, 60)).slice(0, 30);
   if (ks.length < 2) throw new OrgError(400, "il faut au moins 2 connaissances validées pour concevoir un scénario");
   const out = await ask(ctx, "scenario", {
     system: `Tu conçois un scénario d'entraînement professionnel (type : ${kind}). La personne formée joue "role_label" (ex. vendeur, technicien, manager) ; l'IA joue "role_play" (le personnage ou la situation).
 Le scénario contient : un contexte, un objectif observable, un personnage (name, profile, personality), un enjeu caché ("need") que la personne doit faire émerger, 1 à 3 objections ou difficultés, des contraintes (temps, règles), 1 à 3 événements qui font évoluer la situation à un tour donné (2 à 8), une grille de 3 à 6 comportements observables (id en minuscules sans espace, label court), la première réplique ("opening").
-Tout fait (produit, règle, procédure, chiffre) doit venir des connaissances validées [k…] ; liste celles mobilisées dans "knowledge". Prénoms fictifs. Écris en français.${brief ? `\nDemande du responsable : ${brief}` : ""}`,
+Tout fait (produit, règle, procédure, chiffre) doit venir des connaissances validées [k…] ; liste celles mobilisées dans "knowledge". Prénoms fictifs. Écris en français.
+${TENSION_RULES[tension - 1]}
+N'invente jamais une règle, une exception ou un chiffre pour rendre la situation plus difficile : la difficulté vient de la situation (temps, émotion, informations manquantes, enchaînement), pas des règles.${skill ? `\nCompétence visée : ${skill}. Mobilise d'abord les connaissances qui s'y rapportent.` : ""}${brief ? `\nDemande du responsable : ${brief}` : ""}`,
     user: kRefs(ks), schema: SPEC_SCHEMA, maxTokens: 1800,
   });
   const used = [...new Set((Array.isArray(out.knowledge) ? out.knowledge : []).map((r) => kAt(ks, r)).filter(Boolean) as Knowledge[])];
@@ -144,7 +155,7 @@ Tout fait (produit, règle, procédure, chiffre) doit venir des connaissances va
     objections: (Array.isArray(out.objections) ? out.objections : []).slice(0, 3).map((o) => ({ text: eclip(o, 200), resolved: false })),
     constraints: (Array.isArray(out.constraints) ? out.constraints : []).slice(0, 4).map((c) => eclip(c, 200)),
     events: (Array.isArray(out.events) ? out.events : []).map((e) => e as { turn: number; text: string }).filter((e) => Number(e.turn) >= 2 && Number(e.turn) <= 8 && e.text).slice(0, 3).map((e) => ({ turn: Number(e.turn), text: eclip(e.text, 300) })),
-    rubric: rubric.length >= 2 ? rubric : undefined, opening: eclip(out.opening, 400) || "Bonjour…", knowledge: used.map((k) => k.id),
+    rubric: rubric.length >= 2 ? rubric : undefined, opening: eclip(out.opening, 400) || "Bonjour…", knowledge: used.map((k) => k.id), tension,
   };
   const title = eclip(out.title, 160).trim() || "Scénario";
   const sid = await need(db.createScenarioDef)({ org_id: org, title: title.length >= 2 ? title : "Scénario", kind, created_by: ctx.userId });
@@ -164,6 +175,64 @@ export async function scenarioStart(ctx: OrgCtx, db: EnginesDb, org: string, rol
   return { id, opening: spec.opening, client: { name: spec.name, style: "scenario" }, scenario: { context: spec.context, objective: spec.objective, role_label: spec.role_label, constraints: spec.constraints || [] } };
 }
 
+
+/* ---------- Mission 2c : comparer en tenant compte du contexte (section) ----------
+   Une même phrase n'a pas forcément la même portée selon la section où elle se trouve (« Remettre sans pièce
+   d'identité » sous « Commandes de moins de 50 € » n'est pas la règle qui valait pour toutes les commandes).
+   - verSections : découpe le texte relu par le serveur en sections, d'après les lignes de titre (courtes, sans
+     ponctuation finale, commençant par une majuscule, sans numéro de liste).
+   - verWhere : les titres (normalisés) des sections où une phrase figure mot pour mot.
+   - verKnownSame : une phrase est « déjà connue » seulement si CHACUNE de ses sections dans la nouvelle version la
+     contenait déjà dans l'ancienne. Même texte dans une autre section = sens opérationnel possiblement nouveau.
+   - verSameWords : même ensemble de mots porteurs de sens et de nombres, seuls l'ordre et les mots de liaison changent
+     (« ranger et nettoyer » = « nettoyer et ranger ») ; les marqueurs d'ordre (puis, ensuite, avant, après, d'abord…)
+     comptent comme du sens : « et » → « puis » n'est PAS une simple reformulation (décision du 2026-11-22). */
+export type VerSection = { heading: string; raw: string; flat: string };
+const verLine = (l: string) => l.replace(/\s+/g, " ").trim();
+const verIsHeading = (l: string) => l.length >= 3 && l.length <= 70 && /^[A-ZÀ-Ý]/.test(l) && !/[.;:!?,]$/.test(l) && !/^\d/.test(l) && l.split(" ").length <= 8;
+export function verSections(pages: string[]): VerSection[] {
+  const out: VerSection[] = [];
+  let cur: VerSection = { heading: "", raw: "", flat: "" };
+  for (const page of pages) for (const l0 of String(page).split(/\n+/)) {
+    const l = verLine(l0);
+    if (!l) continue;
+    if (verIsHeading(l)) { if (cur.raw || cur.heading) out.push(cur); cur = { heading: oneLine(l), raw: "", flat: "" }; continue; }
+    cur.raw += (cur.raw ? " " : "") + l;
+  }
+  out.push(cur);
+  return out.map((x) => ({ ...x, flat: ` ${oneLine(x.raw)} ` }));
+}
+export function verWhere(quote: string, secs: VerSection[]): string[] {
+  const q = oneLine(quote);
+  if (q.length < 4) return [];
+  return [...new Set(secs.filter((x) => x.flat.includes(` ${q} `)).map((x) => x.heading))];
+}
+export function verKnownSame(quote: string, oldSecs: VerSection[], newSecs: VerSection[]): boolean {
+  const before = new Set(verWhere(quote, oldSecs)), after = verWhere(quote, newSecs);
+  return before.size > 0 && after.length > 0 && after.every((h) => before.has(h));
+}
+const VER_STOP = new Set(["le", "la", "les", "l", "un", "une", "des", "de", "du", "d", "et", "a", "au", "aux", "en", "dans", "par", "pour", "sur", "avec", "ce", "cette", "ces", "son", "sa", "ses", "leur", "leurs", "qui", "que", "qu", "est", "sont", "se", "s", "y", "ou"]);
+const verBag = (t: string) => oneLine(t).split(" ").filter((w) => w && !VER_STOP.has(w)).sort().join(" ");
+export function verSameWords(a: string, b: string): boolean {
+  const x = verBag(a), y = verBag(b);
+  return x.length > 0 && x === y && oneLine(a) !== oneLine(b);
+}
+/* Mission 2d : changement d'ordre certain. Mêmes mots porteurs de sens une fois les marqueurs d'ordre retirés, et la
+   nouvelle phrase impose un ordre (puis, ensuite, avant, après, d'abord…) que l'ancienne n'imposait pas : c'est une
+   modification (décision du 2026-11-22), sans appel au modèle. Si les deux phrases ont déjà un marqueur d'ordre, on ne
+   conclut pas ici : le même ordre peut être dit autrement (« avant de nettoyer » = « après l'avoir débranchée »). */
+const VER_ORDER = new Set(["puis", "ensuite", "avant", "apres", "abord", "enfin", "prealablement", "seulement"]);
+const verOrderWords = (t: string) => oneLine(t).split(" ").filter((w) => VER_ORDER.has(w));
+const verBagNoOrder = (t: string) => oneLine(t).split(" ").filter((w) => w && !VER_STOP.has(w) && !VER_ORDER.has(w)).sort().join(" ");
+export function verOrderImposed(a: string, b: string): boolean {
+  const x = verBagNoOrder(a), y = verBagNoOrder(b);
+  return x.length > 0 && x === y && verOrderWords(a).length === 0 && verOrderWords(b).length > 0;
+}
+// Mission 2d : numéro de liste en tête d'une citation (« 4. Conserver… ») : retiré avant toute comparaison, car un ajout
+// en tête de liste décale les numéros sans rien changer aux étapes suivantes.
+export const verStripNum = (q: string) => String(q).replace(/^\s*\d{1,3}[.)]\s+/, "").trim();
+const verSentences = (raw: string) => raw.split(/(?<=[.!?])\s+|\s(?=\d+\.\s)/).map((x) => x.replace(/^\d+\.\s*/, "").trim()).filter((x) => x.length >= 12);
+
 /* ---------- Live Policy Watchdog : comparer deux versions d'un document ---------- */
 const CHANGE_SCHEMA = { type: "object", additionalProperties: false, required: ["items", "added"], properties: {
   items: { type: "array", items: { type: "object", additionalProperties: false, required: ["k", "change", "quote", "body", "why"], properties: { k: estr, change: { type: "string", enum: ["reformule", "modifie", "supprime"] }, quote: estr, body: estr, why: estr } } },
@@ -179,37 +248,97 @@ export async function compareVersions(ctx: OrgCtx, db: EnginesDb, org: string, r
   const pages = (await readVerified(ctx, db, to)).pages; // intégrité du fichier vérifiée avant toute comparaison
   const text = pages.join("\n");
   const pageOf = (q: string) => { const i = pages.findIndex((p) => inDoc(q, p)); return i >= 0 ? i + 1 : null; };
+  // Mission 2c : l'ancienne version est relue aussi (empreinte vérifiée), pour comparer chaque phrase dans sa section
+  let oldSecs: VerSection[] = [];
+  try { oldSecs = verSections((await readVerified(ctx, db, from)).pages); } catch (e) { if (e instanceof OrgError && e.status === 409) throw e; oldSecs = []; }
+  const newSecs = verSections(pages);
   const old = (await need(db.knowledgeOfVersion)(from.id)).filter((k) => ["valide", "a_revalider"].includes(k.status));
   const items: Record<string, unknown>[] = [];
   const rest: Knowledge[] = [];
-  old.forEach((k) => { if (inDoc(k.quote, text)) items.push({ knowledge_id: k.id, change: "inchange", sensitive: k.kind === "sensible", new_quote: k.quote, new_page: pageOf(k.quote), explanation: "Extrait retrouvé mot pour mot dans la nouvelle version." }); else rest.push(k); });
+  old.forEach((k) => {
+    if (!inDoc(k.quote, text)) { rest.push(k); return; }
+    const before = verWhere(k.quote, oldSecs), after = verWhere(k.quote, newSecs);
+    // même texte, mais plus dans aucune de ses sections d'origine : la portée a pu changer (cas « contexte »)
+    if (before.length && after.length && !before.some((h) => after.includes(h))) {
+      items.push({ knowledge_id: k.id, change: "modifie", sensitive: k.kind === "sensible", new_quote: k.quote, new_page: pageOf(k.quote),
+        explanation: `Même texte, mais dans une autre section (« ${before[0]} » → « ${after[0]} ») : la portée de la règle a changé, à vérifier.` });
+      return;
+    }
+    items.push({ knowledge_id: k.id, change: "inchange", sensitive: k.kind === "sensible", new_quote: k.quote, new_page: pageOf(k.quote), explanation: "Extrait retrouvé mot pour mot dans la nouvelle version, dans la même section." });
+  });
+  // Mission 2c : reformulation certaine sans appel au modèle (mêmes mots porteurs de sens et mêmes nombres, même section)
+  const newSentences = newSecs.flatMap((x) => verSentences(x.raw).map((t) => ({ t, h: x.heading })));
+  for (const k of [...rest]) {
+    const hs = verWhere(k.quote, oldSecs);
+    const ordered = newSentences.find((x) => verOrderImposed(k.quote, x.t) && (!hs.length || hs.includes(x.h)));
+    if (ordered) {
+      rest.splice(rest.indexOf(k), 1);
+      items.push({ knowledge_id: k.id, change: "modifie", sensitive: k.kind === "sensible", new_body: ordered.t, new_quote: ordered.t, new_page: pageOf(ordered.t),
+        explanation: "Mêmes étapes, mais la nouvelle version impose un ordre (« " + verOrderWords(ordered.t).join(", ") + " ») que l'ancienne n'imposait pas : à revalider." });
+      continue;
+    }
+    const twin = newSentences.find((x) => verSameWords(k.quote, x.t) && (!hs.length || hs.includes(x.h)));
+    if (!twin) continue;
+    rest.splice(rest.indexOf(k), 1);
+    items.push({ knowledge_id: k.id, change: "reformule", sensitive: k.kind === "sensible", new_body: k.body, new_quote: twin.t, new_page: pageOf(twin.t),
+      explanation: "Mêmes mots et mêmes nombres, seul l'ordre ou les mots de liaison changent : reformulation sans effet sur la règle." });
+  }
+  // Mission 2d : sections de la nouvelle version déjà « couvertes » par une connaissance existante pour une phrase donnée
+  // (inchangée, portée modifiée, reformulée, ordre imposé). Une nouveauté n'y est pas recréée : ce serait une double alerte.
+  const verCovered = (quote: string, onlyIn?: string) => {
+    const q = oneLine(verStripNum(quote));
+    const secs = onlyIn ? [onlyIn] : verWhere(quote, newSecs);
+    if (!secs.length) return false;
+    const covering = items.filter((i) => i.knowledge_id && i.change !== "supprime" && oneLine(verStripNum(String(i.new_quote || ""))) === q);
+    const covered = new Set(covering.flatMap((i) => verWhere(String(i.new_quote), newSecs)));
+    // une connaissance inchangée ne couvre que les sections où elle se trouvait déjà en v1
+    const keep = new Set(covering.filter((i) => i.change === "inchange").flatMap((i) => verWhere(String(i.new_quote), oldSecs)));
+    return secs.every((h) => covered.has(h) && (!covering.every((i) => i.change === "inchange") || keep.has(h)));
+  };
   let analysed = true;
   {
     try {
       const out = await ask(ctx, "comparer", {
         system: `Une procédure ou une fiche a changé. On te donne des connaissances de l'ANCIENNE version [k…] dont l'extrait n'apparaît plus tel quel, et le texte de la NOUVELLE version.
-Pour chaque [k…] : "reformule" (même sens, autres mots), "modifie" (le fond a changé : chiffre, règle, étape…), ou "supprime" (plus mentionné). "quote" = l'extrait de la nouvelle version COPIÉ MOT POUR MOT qui correspond ("" si supprimé), "body" = la connaissance à jour, "why" = ce qui a changé, en une phrase.
+Pour chaque [k…] : "reformule" (même sens, autres mots), "modifie" (le fond a changé : chiffre, règle, étape…), ou "supprime" (plus mentionné).
+L'ordre des étapes fait partie du fond : si la nouvelle version impose un ordre (« puis », « ensuite », « avant », « après », « d'abord ») que l'ancienne n'imposait pas, ou si elle inverse un ordre imposé, c'est "modifie". Si l'ordre reste le même, dit avec d'autres mots, c'est "reformule".
+Une même phrase placée dans une autre section peut changer de portée (pour qui, quand, dans quel cas) : c'est "modifie". "quote" = l'extrait de la nouvelle version COPIÉ MOT POUR MOT qui correspond ("" si supprimé), "body" = la connaissance à jour, "why" = ce qui a changé, en une phrase.
 "added" : les nouvelles règles ou informations importantes absentes de l'ancienne version (extrait mot pour mot). N'invente rien.`,
         user: `Anciennes connaissances :\n${kRefs(rest) || "(aucune)"}\n\nNouvelle version :\n"""${text.slice(0, 9000)}"""`,
-        schema: CHANGE_SCHEMA, maxTokens: 2000,
+        schema: CHANGE_SCHEMA, maxTokens: 5000, // le raisonnement de gpt-oss compte dans ces jetons : 2000 coupait la réponse
       });
       const seen = new Set<string>();
       (Array.isArray(out.items) ? out.items : []).map((x) => x as Record<string, string>).forEach((x) => {
         const k = kAt(rest, x.k); if (!k || seen.has(k.id)) return; seen.add(k.id);
-        const quote = eclip(x.quote, 1200).trim(), ok = x.change !== "supprime" && inDoc(quote, text);
+        const quote = verStripNum(eclip(x.quote, 1200)), ok = x.change !== "supprime" && inDoc(quote, text);
         const change = x.change === "supprime" ? "supprime" : x.change === "reformule" && ok ? "reformule" : "modifie";
         items.push({ knowledge_id: k.id, change, sensitive: k.kind === "sensible" || isSensitive(`${quote} ${x.body}`), new_body: change === "supprime" ? null : eclip(x.body, 6000) || null,
           new_quote: ok ? quote : null, new_page: ok ? pageOf(quote) : null, explanation: eclip(x.why, 500) + (change !== "supprime" && !ok ? " (extrait non retrouvé dans le document : à vérifier)" : "") });
       });
       rest.filter((k) => !seen.has(k.id)).forEach((k) => items.push({ knowledge_id: k.id, change: "modifie", sensitive: k.kind === "sensible", explanation: "Extrait introuvable dans la nouvelle version ; l'analyse n'a pas conclu : à revoir." }));
       (Array.isArray(out.added) ? out.added : []).slice(0, 10).map((x) => x as Record<string, string>).forEach((x) => {
-        const quote = eclip(x.quote, 1200).trim(); if (!inDoc(quote, text)) return;
+        const quote = verStripNum(eclip(x.quote, 1200)); if (!inDoc(quote, text)) return;
+        // Mission 2c : déjà connue seulement si présente, dans chacune de ses sections, dans l'ancienne version
+        if (oldSecs.length && verKnownSame(quote, oldSecs, newSecs)) return;
+        if (verCovered(quote)) return; // mission 2d : déjà signalée pour une connaissance existante (portée modifiée…)
         items.push({ knowledge_id: null, change: "nouveau", sensitive: isSensitive(`${quote} ${x.body}`), new_title: eclip(x.title, 200) || quote.slice(0, 60), new_body: eclip(x.body, 6000), new_quote: quote, new_page: pageOf(quote), explanation: "Nouvelle information de cette version." });
       });
     } catch (e) {
       if (e instanceof OrgError && e.status === 503) throw e;
       analysed = false; // sans modèle : tout ce qui n'est pas retrouvé mot pour mot reste à revoir par un humain
       rest.forEach((k) => items.push({ knowledge_id: k.id, change: "modifie", sensitive: k.kind === "sensible", explanation: "Extrait introuvable dans la nouvelle version (analyse automatique indisponible) : à revoir." }));
+    }
+  }
+  // Mission 2c : même phrase que dans la v1, mais dans une section où elle n'était pas : sens opérationnel nouveau
+  // (mission 2d : sauf si une connaissance existante couvre déjà cette phrase dans cette section, par exemple « portée modifiée »)
+  if (oldSecs.length) {
+    const seenNew = new Set(items.filter((i) => i.change === "nouveau").map((i) => oneLine(String(i.new_quote || ""))));
+    for (const x of newSentences) {
+      const before = verWhere(x.t, oldSecs);
+      if (!before.length || before.includes(x.h) || seenNew.has(oneLine(x.t)) || verCovered(x.t, x.h)) continue;
+      seenNew.add(oneLine(x.t));
+      items.push({ knowledge_id: null, change: "nouveau", sensitive: isSensitive(x.t), new_title: x.t.slice(0, 60), new_body: x.t, new_quote: x.t, new_page: pageOf(x.t),
+        explanation: `Phrase déjà présente en v1 sous « ${before[0]} », nouvelle sous « ${x.h} » : nouvelle obligation à confirmer.` });
     }
   }
   const count = (c: string) => items.filter((i) => i.change === c).length;

@@ -6,7 +6,8 @@
      consigne de la v1 (texte exact du corrigé), pour mesurer la comparaison seule, indépendamment de l'extraction.
    Seuls la base et le stockage sont simulés en mémoire. Aucune clé n'est lue ni écrite : la clé Groq est ajoutée par le
    proxy de l'environnement (variable AI_API_KEY = « proxy-injected »). Les en-têtes de limite de débit sont relevés.
-   Lancer depuis la racine :  AI_API_KEY=proxy-injected deno run -A tests/bench/run.ts 1   (1, 2 ou 3 : numéro du passage) */
+   Lancer depuis la racine :  AI_API_KEY=proxy-injected deno run -A tests/bench/run.ts 1   (1, 2 ou 3 : numéro du passage)
+   BENCH_CAMPAGNE=mission-2b : écrit dans docs/benchmark/runs-2b (la campagne de la mission 2 reste la référence « avant »). */
 import { handle, type Deps } from "../../supabase/functions/tutor/handler.ts";
 import { makeCallModel } from "../../supabase/functions/tutor/model.ts";
 import { compareVersions, type EnginesDb } from "../../supabase/functions/tutor/engines.ts";
@@ -17,14 +18,15 @@ const ROOT = new URL("../../", import.meta.url);
 const n = Number(Deno.args[0] || "1");
 const corpus = JSON.parse(await Deno.readTextFile(new URL("docs/corpus-metier/corpus.json", ROOT)));
 const passages = JSON.parse(await Deno.readTextFile(new URL("docs/benchmark/passages.json", ROOT)));
-const contenuSrc = await Deno.readTextFile(new URL("docs/corpus-metier/contenu.js", ROOT));
-const mod = { exports: {} as Record<string, unknown> };
-new Function("module", contenuSrc)(mod);
 // deno-lint-ignore no-explicit-any
-const DOCS = mod.exports.DOCS as any[];
+const load = async (f: string) => { const m = { exports: {} as Record<string, any> }; new Function("module", await Deno.readTextFile(new URL(f, ROOT)))(m); return m.exports.DOCS as any[]; };
+const DOCS = await load("docs/corpus-metier/contenu.js");
+// Contrôle hors corpus (mission 2c) : mesuré à part, jamais compté dans les seuils
+const HORS = JSON.parse(await Deno.readTextFile(new URL("docs/corpus-metier/hors-corpus/corpus.json", ROOT)));
+const HORS_DOCS = [...await load("docs/corpus-metier/hors-corpus/contenu.js"), ...await load("docs/corpus-metier/hors-corpus/contenu-p2.js")];
 
 // Configuration identique à la production (index.ts) : modèle principal, puis modèle de secours
-const MODELS = [Deno.env.get("AI_MODEL") || "openai/gpt-oss-120b", Deno.env.get("AI_FALLBACK_MODEL") || "llama-3.3-70b-versatile"];
+const MODELS = [Deno.env.get("AI_MODEL") || "openai/gpt-oss-120b", Deno.env.get("AI_FALLBACK_MODEL") || "openai/gpt-oss-20b"];
 const rate: Record<string, unknown>[] = [];
 const raws: { mode: string; model: string; text: string }[] = [];
 let rateWaits = 0;
@@ -63,8 +65,11 @@ const stored = async (fichier: string) => {
 const ORG = crypto.randomUUID();
 
 /* ---------- 1. Extraction ---------- */
+// deno-lint-ignore no-explicit-any
+async function extractAll(documents: any[], prefix = "") {
 const extraction = [];
-for (const d of corpus.documents) {
+for (const d0 of documents) {
+  const d = { ...d0, fichier: prefix + d0.fichier };
   const versionId = crypto.randomUUID();
   const deps = {
     getUser: async () => ({ id: "banc-essai" }),
@@ -97,11 +102,15 @@ for (const d of corpus.documents) {
   extraction.push({ id: d.id, appels: calls, score });
   console.log(`extraction ${d.id} : ${score.per.filter((p: { found: boolean }) => p.found).length}/${score.per.length} règles, ${items.length} gardées / ${proposees.length} proposées`);
 }
+return extraction;
+}
 
 /* ---------- 2. Comparaison de versions ---------- */
+// deno-lint-ignore no-explicit-any
+async function compareAll(documents: any[], sources: any[], prefix = "", regles2c = false) {
 const comparaison = [];
-for (const v2 of corpus.documents.filter((d: { changements?: unknown }) => d.changements)) {
-  const v1doc = DOCS.find((x) => x.id === v2.remplace);
+for (const v2 of documents.filter((d: { changements?: unknown }) => d.changements)) {
+  const v1doc = sources.find((x) => x.id === v2.remplace);
   // deno-lint-ignore no-explicit-any
   const knowledge: any[] = v1doc.sections.flatMap((s: Record<string, unknown[]>) => (s.ol || s.ul || s.p) as unknown[])
     .map((x: unknown, i: number) => {
@@ -109,8 +118,8 @@ for (const v2 of corpus.documents.filter((d: { changements?: unknown }) => d.cha
       return { id: crypto.randomUUID(), idx: i, texte: it.t, regle: it.r?.id || null, kind: it.r?.sensible ? "sensible" : "regle",
         title: it.t.split(" ").slice(0, 6).join(" "), body: it.t, quote: it.t, page: 1, status: "valide" };
     });
-  const from = { id: crypto.randomUUID(), org_id: ORG, source_id: "src-" + v2.procedure, version: 1, storage_path: v1doc.id + ".pdf", checksum: null };
-  const to = { id: crypto.randomUUID(), org_id: ORG, source_id: "src-" + v2.procedure, version: 2, storage_path: v2.fichier, checksum: null };
+  const from = { id: crypto.randomUUID(), org_id: ORG, source_id: "src-" + v2.procedure, version: 1, storage_path: prefix + v1doc.id + ".pdf", checksum: null };
+  const to = { id: crypto.randomUUID(), org_id: ORG, source_id: "src-" + v2.procedure, version: 2, storage_path: prefix + v2.fichier, checksum: null };
   const changes: Record<string, unknown>[] = [];
   const db = {
     versionInfo: async (id: string) => (id === to.id ? to : null),
@@ -128,14 +137,26 @@ for (const v2 of corpus.documents.filter((d: { changements?: unknown }) => d.cha
   const ctx = { userId: "banc-essai", db: db as any, callModel, onModel: async () => {} };
   let result: unknown = null, erreur: string | null = null;
   try { result = await compareVersions(ctx, db, ORG, "admin", { version: to.id }); } catch (e) { erreur = String((e as Error).message || e); }
-  const score = scoreComparison(knowledge, changes, v2, v2.regles_attendues);
+  const score = scoreComparison(knowledge, changes, v2, v2.regles_attendues, { regles2c });
   comparaison.push({ id: v2.id, resultat: result, erreur, brut: raws.slice(before).map((r) => ({ ...r, mode: "comparer" })),
     connaissances_v1: knowledge.map((k: { id: string; texte: string; regle: string | null }) => ({ id: k.id, texte: k.texte, regle: k.regle })), elements: changes, score });
-  console.log(`comparaison ${v2.id} : ${score.detections.filter((x: { detecte: boolean }) => x.detecte).length}/${score.detections.length} changements, ${score.traps.filter((t: { fausse_alerte: boolean }) => t.fausse_alerte).length} fausse(s) alerte(s) sur pièges${erreur ? " ; ERREUR " + erreur : ""}`);
+  console.log(`comparaison ${v2.id} : ${score.detections.filter((x: { detecte: boolean }) => x.detecte).length}/${score.detections.length} changements, ${score.traps.filter((t: { fausse_alerte: boolean }) => t.fausse_alerte).length} fausse(s) alerte(s) sur pièges, ${score.nouveautes_non_fondees} nouveauté(s) non fondée(s)${erreur ? " ; ERREUR " + erreur : ""}`);
+}
+return comparaison;
 }
 
+const CAMPAGNE = Deno.env.get("BENCH_CAMPAGNE") || "mission-2";
+const R2C = CAMPAGNE === "mission-2c";
+const extraction = await extractAll(corpus.documents);
+const comparaison = await compareAll(corpus.documents, DOCS, "", R2C);
+// Contrôle hors corpus : seulement à partir de la mission 2c
+const hors_corpus = R2C ? { extraction: await extractAll(HORS.documents, "hors-corpus/"), comparaison: await compareAll(HORS.documents, HORS_DOCS, "hors-corpus/", true) } : undefined;
+
 const run = { passage: n, date: new Date().toISOString(), modeles_configures: MODELS, modeles_utilises: [...new Set(raws.map((r) => r.model))],
-  attentes_limite_debit: rateWaits, attentes_saturation: busyWaits, limites_debit: rate, extraction, comparaison };
+  attentes_limite_debit: rateWaits, attentes_saturation: busyWaits, limites_debit: rate, extraction, comparaison, ...(hors_corpus ? { hors_corpus } : {}) };
 const synthese = summarize(run);
-await Deno.writeTextFile(new URL(`docs/benchmark/runs/passage-${n}.json`, ROOT), JSON.stringify({ ...run, synthese }, null, 2) + "\n");
+// Campagne : BENCH_CAMPAGNE=mission-2 (runs), mission-2b (runs-2b) ou mission-2c (runs-2c), pour comparer avant et après
+const OUT = { "mission-2b": "docs/benchmark/runs-2b", "mission-2c": "docs/benchmark/runs-2c" }[CAMPAGNE] || "docs/benchmark/runs";
+await Deno.mkdir(new URL(OUT + "/", ROOT), { recursive: true });
+await Deno.writeTextFile(new URL(`${OUT}/passage-${n}.json`, ROOT), JSON.stringify({ ...run, synthese }, null, 2) + "\n");
 console.log(JSON.stringify(synthese, null, 1));

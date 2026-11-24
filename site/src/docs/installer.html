@@ -1,0 +1,56 @@
+<!-- {"title": "Windows et macOS", "desc": "Installer Arbor Desktop sur Windows et macOS, passer les avertissements d’un logiciel non signé, vérifier un fichier, raccourcis, désinstaller."} -->
+<h1>Windows et macOS</h1>
+<p class="lead">Arbor Desktop est la même application qu’Arbor Web, dans sa propre fenêtre, avec des raccourcis et des rappels natifs.</p>
+
+<h2>Configuration requise</h2>
+<table>
+  <thead><tr><th>Système</th><th>Version</th><th>Fichier</th></tr></thead>
+  <tbody>
+    <tr><td>Windows</td><td>10 ou 11, 64 bits</td><td><code>Arbor_…_x64-setup.exe</code> (ou <code>.msi</code> pour un déploiement en entreprise)</td></tr>
+    <tr><td>macOS</td><td>11 Big Sur ou plus, puce Apple</td><td><code>Arbor_…_aarch64.dmg</code></td></tr>
+  </tbody>
+</table>
+<p>Sous Windows, Arbor utilise WebView2, déjà présent sur Windows 11 et sur la plupart des Windows 10 ; s’il manque, l’installateur le télécharge auprès de Microsoft.</p>
+
+<h2>Installer</h2>
+<h3>Windows</h3>
+<ol>
+  <li>Télécharge l’installateur depuis la page <a href="../telecharger.html">Télécharger</a>.</li>
+  <li>Ouvre-le. Arbor s’installe pour ton compte, sans droits d’administrateur.</li>
+  <li>Si SmartScreen affiche « Windows a protégé votre ordinateur » : <b>Informations complémentaires</b>, puis <b>Exécuter quand même</b>.</li>
+</ol>
+<h3>macOS</h3>
+<ol>
+  <li>Ouvre le <code>.dmg</code> et fais glisser Arbor dans <b>Applications</b>.</li>
+  <li>Si macOS refuse d’ouvrir l’application : <b>Réglages Système → Confidentialité et sécurité</b>, puis <b>Ouvrir quand même</b>.</li>
+</ol>
+
+<h2 id="verifier">Vérifier un fichier téléchargé</h2>
+<p>Chaque version publiée contient un fichier <code>SHA256SUMS.txt</code>. Compare l’empreinte de ton fichier avec celle qui y figure :</p>
+<ul>
+  <li>Windows (PowerShell) : <code>Get-FileHash .\Arbor_2.0.0_x64-setup.exe</code></li>
+  <li>macOS (Terminal) : <code>shasum -a 256 Arbor_2.0.0_aarch64.dmg</code></li>
+</ul>
+<p>Si les empreintes diffèrent, ne lance pas le fichier.</p>
+<div class="callout wip"><i class="ph ph-shield-warning" aria-hidden="true"></i><p><b>Pourquoi ces avertissements ?</b> Les installateurs ne sont pas encore signés par un certificat d’éditeur ni notarisés par Apple. C’est prévu ; les avertissements disparaîtront alors.</p></div>
+
+<h2>Raccourcis</h2>
+<table>
+  <thead><tr><th>Raccourci</th><th>Action</th></tr></thead>
+  <tbody>
+    <tr><td><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>1</kbd></td><td>Mon espace</td></tr>
+    <tr><td><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>2</kbd> à <kbd>8</kbd></td><td>Explorer, Mon apprentissage, Studio, Pratiquer, Ma connaissance, Compagnon, Progression</td></tr>
+    <tr><td><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>K</kbd></td><td>Compagnon Arbor</td></tr>
+  </tbody>
+</table>
+<p>Ces raccourcis fonctionnent aussi dans Arbor Web sur ordinateur, sauf quand le navigateur les réserve.</p>
+
+<h2>Mises à jour</h2>
+<p>Pour l’instant, une nouvelle version s’installe en téléchargeant le nouvel installateur : tes données sont conservées. Les mises à jour automatiques viendront avec la signature.</p>
+
+<h2>Désinstaller</h2>
+<ul>
+  <li><b>Windows :</b> Paramètres → Applications → Arbor → Désinstaller.</li>
+  <li><b>macOS :</b> glisse Arbor de Applications vers la Corbeille.</li>
+</ul>
+<p>Pense à <a href="partager.html">télécharger une sauvegarde</a> avant : ton apprentissage personnel est enregistré sur l’ordinateur.</p>

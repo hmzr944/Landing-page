@@ -104,6 +104,58 @@
           }
         ]
       ]
+    },
+    {
+      "id": "P1-v1",
+      "fichier": "hors-corpus/P1-v1.pdf",
+      "titre": "Retrait des commandes en magasin",
+      "batches": [
+        [
+          {
+            "page": 1,
+            "text": "Document fictif fabriqué pour tester Arbor. Ce n’est pas une procédure réelle. Maison Ardoise (enseigne fictive, équipement de la maison) · Commerce de détail Procédure P1 · version 1 du 2026-05-04 Retrait des commandes en magasin Objet Cette procédure décrit la remise au client d’une commande passée sur le site. Commandes payées en ligne 1. Demander le numéro de commande au client. 2. Remettre la commande sans demander de pièce d’identité. 3. Scanner le colis et le remettre au client. Commandes payées en magasin 1. Demander une pièce d’identité. 2. Encaisser le montant restant avant la remise. Délai de garde 1. Une commande non retirée est gardée 7 jours. 2. Le client est prévenu par SMS le jour de l’arrivée de la commande. 3. Un client peut demander une prolongation de 3 jours. Incident Si le colis est abîmé, le client peut refuser la commande."
+          }
+        ]
+      ]
+    },
+    {
+      "id": "P1-v2",
+      "fichier": "hors-corpus/P1-v2.pdf",
+      "titre": "Retrait des commandes en magasin",
+      "batches": [
+        [
+          {
+            "page": 1,
+            "text": "Document fictif fabriqué pour tester Arbor. Ce n’est pas une procédure réelle. Maison Ardoise (enseigne fictive, équipement de la maison) · Commerce de détail Procédure P1 · version 2 du 2026-10-12 Retrait des commandes en magasin Objet Cette procédure décrit la remise au client d’une commande passée sur le site. Incident Si le colis est abîmé, le client peut refuser la commande. Commandes payées en ligne 1. Demander le numéro de commande au client. 2. Vérifier avec le client le nom inscrit sur la commande. 3. Remettre le colis au client, puis le scanner. Commandes de moins de 50 € 1. Remettre la commande sans demander de pièce d’identité. Commandes payées en magasin 1. Demander une pièce d’identité. 2. Faire payer le solde avant de remettre la commande. Retrait par une autre personne 1. Demander une pièce d’identité. 2. Demander la confirmation écrite du client. Délai de garde 1. Une commande non retirée est gardée 10 jours. 2. Le client est prévenu par SMS le jour de l’arrivée de la commande."
+          }
+        ]
+      ]
+    },
+    {
+      "id": "P2-v1",
+      "fichier": "hors-corpus/P2-v1.pdf",
+      "titre": "Fermeture de la cuisine",
+      "batches": [
+        [
+          {
+            "page": 1,
+            "text": "Document fictif fabriqué pour tester Arbor. Ce n’est pas une procédure réelle. Brasserie du Quai (restaurant fictif, 60 couverts) · Hôtellerie-restauration Procédure P2 · version 1 du 2026-03-09 Fermeture de la cuisine Objet Cette procédure décrit la fermeture de la cuisine après le service du soir. Nettoyage 1. Débrancher la trancheuse avant de la nettoyer. 2. Laver les plans de travail avec le produit désinfectant. 3. Ranger les denrées et nettoyer les réfrigérateurs. 4. Porter des gants. Stockage 1. Filmer et étiqueter les préparations entamées. 2. Jeter les préparations de plus de 3 jours. Le week-end 1. Dégivrer le congélateur. Sécurité 1. Fermer le gaz avant de quitter la cuisine. 2. Le chef vérifie la fermeture de toutes les portes."
+          }
+        ]
+      ]
+    },
+    {
+      "id": "P2-v2",
+      "fichier": "hors-corpus/P2-v2.pdf",
+      "titre": "Fermeture de la cuisine",
+      "batches": [
+        [
+          {
+            "page": 1,
+            "text": "Document fictif fabriqué pour tester Arbor. Ce n’est pas une procédure réelle. Brasserie du Quai (restaurant fictif, 60 couverts) · Hôtellerie-restauration Procédure P2 · version 2 du 2026-10-20 Fermeture de la cuisine Objet Cette procédure décrit la fermeture de la cuisine après le service du soir. Nettoyage 1. Retirer les déchets alimentaires des bacs. 2. Nettoyer la trancheuse seulement après l’avoir débranchée. 3. Laver les plans de travail avec le produit désinfectant. 4. Nettoyer les réfrigérateurs, ensuite ranger les denrées. 5. Porter des gants. Stockage 1. Filmer et étiqueter les préparations entamées. 2. Jeter les préparations de plus de 2 jours. 3. Porter des gants. Chaque soir 1. Dégivrer le congélateur. Sécurité 1. Fermer le gaz avant de quitter la cuisine."
+          }
+        ]
+      ]
     }
   ]
 }

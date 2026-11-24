@@ -14,7 +14,8 @@
     deferred = null;
   }
 
-  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  // Application Desktop (Tauri) : les fichiers sont déjà dans l'application, pas de service worker
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http') && !window.__TAURI_INTERNALS__) {
     window.addEventListener('load', () => navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then((reg) => reg.update()).catch(() => {}));
     // nouvelle version installée : on recharge une fois pour l'utiliser tout de suite
     let reloaded = false;

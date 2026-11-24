@@ -1,0 +1,787 @@
+{
+  "nom": "Corpus métier n° 1",
+  "avertissement": "Tous les documents sont fabriqués (jeu de test). Les organisations sont fictives. Seules les règles de base « reglementaire » reprennent un texte public, vérifié à la source indiquée ; les règles « interne » sont inventées pour l’exercice.",
+  "genere_par": "docs/corpus-metier/generer.js",
+  "documents": [
+    {
+      "id": "R1-v1",
+      "fichier": "R1-v1.pdf",
+      "source_html": "sources/R1-v1.html",
+      "procedure": "R1",
+      "version": 1,
+      "date": "2026-03-03",
+      "secteur": "retail",
+      "organisation": "Maison Ardoise (enseigne fictive, équipement de la maison)",
+      "titre": "Ouverture et fermeture du magasin",
+      "nature": "synthetique",
+      "regles_attendues": [
+        {
+          "id": "R1.deux-personnes",
+          "texte": "Le magasin est ouvert par deux personnes au minimum, présentes dès 9 h 00.",
+          "base": "interne",
+          "sensible": true
+        },
+        {
+          "id": "R1.alarme-delai",
+          "texte": "Désactiver l’alarme dans les 45 secondes avec son code personnel. Le code ne se communique jamais.",
+          "base": "interne",
+          "sensible": true
+        },
+        {
+          "id": "R1.tour-securite",
+          "texte": "Faire le tour de sécurité : issues de secours dégagées et déverrouillées, extincteurs à leur place.",
+          "base": "interne",
+          "sensible": true
+        },
+        {
+          "id": "R1.fond-caisse",
+          "texte": "Compter le fond de caisse de 150 € en présence du responsable et signaler tout écart.",
+          "base": "interne",
+          "sensible": false
+        },
+        {
+          "id": "R1.annonce",
+          "texte": "Annoncer la fermeture aux clients 15 minutes avant.",
+          "base": "interne",
+          "sensible": false
+        },
+        {
+          "id": "R1.comptage-deux",
+          "texte": "Compter les caisses à deux personnes et placer l’enveloppe scellée dans le coffre.",
+          "base": "interne",
+          "sensible": true
+        },
+        {
+          "id": "R1.dimanche-seul",
+          "texte": "Le dimanche, le responsable peut fermer seul le magasin.",
+          "base": "interne",
+          "sensible": true
+        }
+      ]
+    },
+    {
+      "id": "R1-v2",
+      "fichier": "R1-v2.pdf",
+      "source_html": "sources/R1-v2.html",
+      "procedure": "R1",
+      "version": 2,
+      "date": "2026-09-02",
+      "secteur": "retail",
+      "organisation": "Maison Ardoise (enseigne fictive, équipement de la maison)",
+      "titre": "Ouverture et fermeture du magasin",
+      "nature": "synthetique",
+      "regles_attendues": [
+        {
+          "id": "R1.deux-personnes",
+          "texte": "Le magasin est ouvert par deux personnes au minimum, présentes dès 9 h 00.",
+          "base": "interne",
+          "sensible": true
+        },
+        {
+          "id": "R1.alarme-delai",
+          "texte": "Désactiver l’alarme dans les 30 secondes avec son code personnel. Le code ne se communique jamais.",
+          "base": "interne",
+          "sensible": true
+        },
+        {
+          "id": "R1.tour-securite",
+          "texte": "Faire le tour de sécurité : issues de secours dégagées et déverrouillées, extincteurs à leur place.",
+          "base": "interne",
+          "sensible": true
+        },
+        {
+          "id": "R1.defibrillateur",
+          "texte": "Vérifier que le voyant du défibrillateur est vert ; sinon prévenir le responsable avant l’ouverture.",
+          "base": "interne",
+          "sensible": true
+        },
+        {
+          "id": "R1.fond-caisse",
+          "texte": "Compter le fond de caisse de 200 € en présence du responsable et signaler tout écart.",
+          "base": "interne",
+          "sensible": false
+        },
+        {
+          "id": "R1.annonce",
+          "texte": "Annoncer la fermeture aux clients 15 minutes avant.",
+          "base": "interne",
+          "sensible": false
+        },
+        {
+          "id": "R1.comptage-deux",
+          "texte": "Compter les caisses à deux personnes et placer l’enveloppe scellée dans le coffre.",
+          "base": "interne",
+          "sensible": true
+        }
+      ],
+      "remplace": "R1-v1",
+      "changements": [
+        {
+          "id": "R1.c1",
+          "type": "modifie",
+          "regle": "R1.fond-caisse",
+          "avant": "fond de caisse de 150 €",
+          "apres": "fond de caisse de 200 €"
+        },
+        {
+          "id": "R1.c2",
+          "type": "modifie",
+          "regle": "R1.alarme-delai",
+          "avant": "dans les 45 secondes",
+          "apres": "dans les 30 secondes",
+          "sensible": true
+        },
+        {
+          "id": "R1.c3",
+          "type": "ajoute",
+          "regle": "R1.defibrillateur",
+          "apres": "Vérifier que le voyant du défibrillateur est vert",
+          "sensible": true
+        },
+        {
+          "id": "R1.c4",
+          "type": "supprime",
+          "regle": "R1.dimanche-seul",
+          "avant": "Le dimanche, le responsable peut fermer seul le magasin.",
+          "sensible": true,
+          "note": "La fermeture à deux s’applique désormais tous les jours."
+        }
+      ],
+      "non_changements": [
+        {
+          "type": "reformulation",
+          "avant": "Allumer l’éclairage et démarrer les caisses.",
+          "apres": "Démarrer les caisses, puis allumer l’éclairage.",
+          "note": "Ordre inversé sans conséquence : ne doit pas faire revalider une compétence."
+        },
+        {
+          "type": "deplacement",
+          "texte": "En cas de déclenchement de l’alarme par erreur",
+          "note": "Section « Incident » déplacée en tête, texte identique."
+        }
+      ]
+    },
+    {
+      "id": "R2-v1",
+      "fichier": "R2-v1.pdf",
+      "source_html": "sources/R2-v1.html",
+      "procedure": "R2",
+      "version": 1,
+      "date": "2026-04-14",
+      "secteur": "retail",
+      "organisation": "Maison Ardoise (enseigne fictive, équipement de la maison)",
+      "titre": "Retour d’un article par un client",
+      "nature": "synthetique",
+      "regles_attendues": [
+        {
+          "id": "R2.pas-obligation",
+          "texte": "Un magasin n’est pas obligé de reprendre ou de rembourser un article qui n’a pas de défaut : la loi ne prévoit pas de droit de changer d’avis pour un achat en magasin.",
+          "base": "reglementaire",
+          "sensible": false,
+          "source": {
+            "titre": "INC : pas de droit général au remboursement en magasin ; garantie légale de conformité",
+            "url": "https://www.inc-conso.fr/content/puis-je-exiger-le-remboursement-dun-produit-achete-dans-un-magasin",
+            "verifie": "2026-11-16"
+          }
+        },
+        {
+          "id": "R2.garantie-2-ans",
+          "texte": "Un article neuf qui présente un défaut est couvert par la garantie légale de conformité pendant 2 ans à partir de l’achat.",
+          "base": "reglementaire",
+          "sensible": false,
+          "source": {
+            "titre": "INC : garanties du vendeur (biens achetés à partir du 1er janvier 2022), 2 ans pour un bien neuf",
+            "url": "https://www.inc-conso.fr/content/garanties-du-vendeur-en-22-questions-reponses-biens-achetes-partir-du-01-01-2022",
+            "verifie": "2026-11-16"
+          }
+        },
+        {
+          "id": "R2.affiche",
+          "texte": "Une affiche « ni repris ni échangé » ne supprime jamais la garantie légale de conformité.",
+          "base": "reglementaire",
+          "sensible": false,
+          "source": {
+            "titre": "INC : pas de droit général au remboursement en magasin ; garantie légale de conformité",
+            "url": "https://www.inc-conso.fr/content/puis-je-exiger-le-remboursement-dun-produit-achete-dans-un-magasin",
+            "verifie": "2026-11-16"
+          }
+        },
+        {
+          "id": "R2.delai-30",
+          "texte": "Le retour est accepté pendant 30 jours après l’achat, sur présentation du ticket de caisse.",
+          "base": "interne",
+          "sensible": false
+        },
+        {
+          "id": "R2.choix",
+          "texte": "Le client choisit entre un avoir et un remboursement sur le moyen de paiement utilisé à l’achat.",
+          "base": "interne",
+          "sensible": false
+        },
+        {
+          "id": "R2.jamais-refuser",
+          "texte": "Ne jamais refuser la demande au motif que le délai de 30 jours est dépassé.",
+          "base": "reglementaire",
+          "sensible": true,
+          "source": {
+            "titre": "INC : garanties du vendeur (biens achetés à partir du 1er janvier 2022), 2 ans pour un bien neuf",
+            "url": "https://www.inc-conso.fr/content/garanties-du-vendeur-en-22-questions-reponses-biens-achetes-partir-du-01-01-2022",
+            "verifie": "2026-11-16"
+          }
+        },
+        {
+          "id": "R2.reparer-remplacer",
+          "texte": "Proposer d’abord la réparation ou le remplacement de l’article.",
+          "base": "reglementaire",
+          "sensible": false,
+          "source": {
+            "titre": "INC : pas de droit général au remboursement en magasin ; garantie légale de conformité",
+            "url": "https://www.inc-conso.fr/content/puis-je-exiger-le-remboursement-dun-produit-achete-dans-un-magasin",
+            "verifie": "2026-11-16"
+          }
+        },
+        {
+          "id": "R2.validation-150",
+          "texte": "Tout remboursement de plus de 150 € est validé par le responsable avant d’être effectué.",
+          "base": "interne",
+          "sensible": true
+        },
+        {
+          "id": "R2.especes-150",
+          "texte": "Un remboursement en espèces ne dépasse jamais 150 €.",
+          "base": "interne",
+          "sensible": true
+        }
+      ]
+    },
+    {
+      "id": "R3-v1",
+      "fichier": "R3-v1.pdf",
+      "source_html": "sources/R3-v1.html",
+      "procedure": "R3",
+      "version": 1,
+      "date": "2026-09-02",
+      "secteur": "retail",
+      "organisation": "Maison Ardoise (enseigne fictive, équipement de la maison)",
+      "titre": "Tenue de la caisse",
+      "nature": "synthetique",
+      "regles_attendues": [
+        {
+          "id": "R3.session",
+          "texte": "Chaque vendeur se connecte à la caisse avec son identifiant personnel et ne laisse jamais sa session ouverte.",
+          "base": "interne",
+          "sensible": true
+        },
+        {
+          "id": "R3.fond-caisse",
+          "texte": "Le fond de caisse est de 200 €.",
+          "base": "interne",
+          "sensible": false
+        },
+        {
+          "id": "R3.plafond-1000",
+          "texte": "Un client dont le domicile fiscal est en France ne peut pas payer en espèces un achat de plus de 1 000 €.",
+          "base": "reglementaire",
+          "sensible": true,
+          "source": {
+            "titre": "BOFiP : article D. 112-3 du code monétaire et financier, paiement en espèces au-delà de 1 000 €",
+            "url": "https://bofip.impots.gouv.fr/node/13824",
+            "verifie": "2026-11-16"
+          }
+        },
+        {
+          "id": "R3.50-pieces",
+          "texte": "Le vendeur n’est pas tenu d’accepter plus de 50 pièces pour un même paiement.",
+          "base": "reglementaire",
+          "sensible": false,
+          "source": {
+            "titre": "INC : les espèces (plafond de 1 000 €, 50 pièces au plus, billets présumés faux)",
+            "url": "https://www.inc-conso.fr/content/les-especes-vos-questions-nos-reponses-0",
+            "verifie": "2026-11-16"
+          }
+        },
+        {
+          "id": "R3.detecteur",
+          "texte": "Vérifier chaque billet de 50 € et plus au détecteur.",
+          "base": "interne",
+          "sensible": false
+        },
+        {
+          "id": "R3.faux-billet",
+          "texte": "Un billet présumé faux ne doit jamais être remis en circulation : il n’est pas rendu en monnaie.",
+          "base": "reglementaire",
+          "sensible": true,
+          "source": {
+            "titre": "INC : les espèces (plafond de 1 000 €, 50 pièces au plus, billets présumés faux)",
+            "url": "https://www.inc-conso.fr/content/les-especes-vos-questions-nos-reponses-0",
+            "verifie": "2026-11-16"
+          }
+        },
+        {
+          "id": "R3.faux-remise",
+          "texte": "Le responsable remet le billet à la Banque de France, à un commissariat ou à une gendarmerie.",
+          "base": "reglementaire",
+          "sensible": false,
+          "source": {
+            "titre": "INC : les espèces (plafond de 1 000 €, 50 pièces au plus, billets présumés faux)",
+            "url": "https://www.inc-conso.fr/content/les-especes-vos-questions-nos-reponses-0",
+            "verifie": "2026-11-16"
+          }
+        },
+        {
+          "id": "R3.prelevement",
+          "texte": "Quand le tiroir contient plus de 800 € en espèces, le responsable fait un prélèvement vers le coffre.",
+          "base": "interne",
+          "sensible": true
+        },
+        {
+          "id": "R3.ecart",
+          "texte": "Tout écart de plus de 10 € en fin de journée fait l’objet d’une fiche d’écart signée par le vendeur et le responsable.",
+          "base": "interne",
+          "sensible": true
+        }
+      ]
+    },
+    {
+      "id": "H1-v1",
+      "fichier": "H1-v1.pdf",
+      "source_html": "sources/H1-v1.html",
+      "procedure": "H1",
+      "version": 1,
+      "date": "2026-02-10",
+      "secteur": "hcr",
+      "organisation": "Brasserie du Quai (restaurant fictif, 60 couverts)",
+      "titre": "Réception des livraisons",
+      "nature": "synthetique",
+      "regles_attendues": [
+        {
+          "id": "H1.qui",
+          "texte": "Les livraisons sont reçues entre 7 h et 10 h par le chef ou son second.",
+          "base": "interne",
+          "sensible": true
+        },
+        {
+          "id": "H1.exception-commis",
+          "texte": "Exception : les livraisons de boissons et d’épicerie sèche peuvent être reçues par un commis.",
+          "base": "interne",
+          "sensible": false
+        },
+        {
+          "id": "H1.dlc",
+          "texte": "Contrôler la date limite de consommation : il doit rester au moins 3 jours pour les viandes et les poissons.",
+          "base": "interne",
+          "sensible": true
+        },
+        {
+          "id": "H1.sonde",
+          "texte": "Mesurer la température avec le thermomètre sonde, placé entre deux emballages, sans les percer.",
+          "base": "interne",
+          "sensible": false
+        },
+        {
+          "id": "H1.t-hachees",
+          "texte": "Viandes hachées : + 2 °C.",
+          "base": "reglementaire",
+          "sensible": true,
+          "source": {
+            "titre": "Arrêté du 21 décembre 2009, article 3 et annexe I (extrait publié par la préfecture du Calvados)",
+            "url": "https://www.calvados.gouv.fr/index.php/contenu/telechargement/18316/140968/file/temperature_de_conservation_et_service_des_aliments.pdf",
+            "verifie": "2026-11-16"
+          }
+        },
+        {
+          "id": "H1.t-peche",
+          "texte": "Produits de la pêche frais : + 2 °C.",
+          "base": "reglementaire",
+          "sensible": true,
+          "source": {
+            "titre": "Arrêté du 21 décembre 2009, article 3 et annexe I (extrait publié par la préfecture du Calvados)",
+            "url": "https://www.calvados.gouv.fr/index.php/contenu/telechargement/18316/140968/file/temperature_de_conservation_et_service_des_aliments.pdf",
+            "verifie": "2026-11-16"
+          }
+        },
+        {
+          "id": "H1.t-volaille",
+          "texte": "Viandes de volaille et préparations de viandes : + 4 °C.",
+          "base": "reglementaire",
+          "sensible": true,
+          "source": {
+            "titre": "Arrêté du 21 décembre 2009, article 3 et annexe I (extrait publié par la préfecture du Calvados)",
+            "url": "https://www.calvados.gouv.fr/index.php/contenu/telechargement/18316/140968/file/temperature_de_conservation_et_service_des_aliments.pdf",
+            "verifie": "2026-11-16"
+          }
+        },
+        {
+          "id": "H1.t-preparations",
+          "texte": "Préparations culinaires élaborées à l’avance : + 3 °C.",
+          "base": "reglementaire",
+          "sensible": true,
+          "source": {
+            "titre": "Arrêté du 21 décembre 2009, article 3 et annexe I (extrait publié par la préfecture du Calvados)",
+            "url": "https://www.calvados.gouv.fr/index.php/contenu/telechargement/18316/140968/file/temperature_de_conservation_et_service_des_aliments.pdf",
+            "verifie": "2026-11-16"
+          }
+        },
+        {
+          "id": "H1.t-glaces",
+          "texte": "Glaces et crèmes glacées : – 18 °C.",
+          "base": "reglementaire",
+          "sensible": true,
+          "source": {
+            "titre": "Arrêté du 21 décembre 2009, article 3 et annexe I (extrait publié par la préfecture du Calvados)",
+            "url": "https://www.calvados.gouv.fr/index.php/contenu/telechargement/18316/140968/file/temperature_de_conservation_et_service_des_aliments.pdf",
+            "verifie": "2026-11-16"
+          }
+        },
+        {
+          "id": "H1.refus",
+          "texte": "Si une température dépasse le maximum, refuser le produit, l’écrire sur le bon de livraison et prévenir le chef.",
+          "base": "interne",
+          "sensible": true
+        },
+        {
+          "id": "H1.rangement",
+          "texte": "Ranger les produits acceptés en chambre froide dans les 30 minutes.",
+          "base": "interne",
+          "sensible": true
+        },
+        {
+          "id": "H1.tracabilite",
+          "texte": "Conserver les étiquettes de traçabilité des viandes avec le bon de livraison.",
+          "base": "interne",
+          "sensible": false
+        }
+      ]
+    },
+    {
+      "id": "H1-v2",
+      "fichier": "H1-v2.pdf",
+      "source_html": "sources/H1-v2.html",
+      "procedure": "H1",
+      "version": 2,
+      "date": "2026-07-15",
+      "secteur": "hcr",
+      "organisation": "Brasserie du Quai (restaurant fictif, 60 couverts)",
+      "titre": "Réception des livraisons",
+      "nature": "synthetique",
+      "regles_attendues": [
+        {
+          "id": "H1.qui",
+          "texte": "Les livraisons sont reçues entre 7 h et 10 h par le chef ou son second.",
+          "base": "interne",
+          "sensible": true
+        },
+        {
+          "id": "H1.dlc",
+          "texte": "Contrôler la date limite de consommation : il doit rester au moins 4 jours pour les viandes et les poissons.",
+          "base": "interne",
+          "sensible": true
+        },
+        {
+          "id": "H1.sonde",
+          "texte": "Mesurer la température avec le thermomètre sonde, placé entre deux emballages, sans les percer.",
+          "base": "interne",
+          "sensible": false
+        },
+        {
+          "id": "H1.t-hachees",
+          "texte": "Viandes hachées : + 2 °C.",
+          "base": "reglementaire",
+          "sensible": true,
+          "source": {
+            "titre": "Arrêté du 21 décembre 2009, article 3 et annexe I (extrait publié par la préfecture du Calvados)",
+            "url": "https://www.calvados.gouv.fr/index.php/contenu/telechargement/18316/140968/file/temperature_de_conservation_et_service_des_aliments.pdf",
+            "verifie": "2026-11-16"
+          }
+        },
+        {
+          "id": "H1.t-peche",
+          "texte": "Produits de la pêche frais : + 2 °C.",
+          "base": "reglementaire",
+          "sensible": true,
+          "source": {
+            "titre": "Arrêté du 21 décembre 2009, article 3 et annexe I (extrait publié par la préfecture du Calvados)",
+            "url": "https://www.calvados.gouv.fr/index.php/contenu/telechargement/18316/140968/file/temperature_de_conservation_et_service_des_aliments.pdf",
+            "verifie": "2026-11-16"
+          }
+        },
+        {
+          "id": "H1.t-volaille",
+          "texte": "Viandes de volaille et préparations de viandes : + 4 °C.",
+          "base": "reglementaire",
+          "sensible": true,
+          "source": {
+            "titre": "Arrêté du 21 décembre 2009, article 3 et annexe I (extrait publié par la préfecture du Calvados)",
+            "url": "https://www.calvados.gouv.fr/index.php/contenu/telechargement/18316/140968/file/temperature_de_conservation_et_service_des_aliments.pdf",
+            "verifie": "2026-11-16"
+          }
+        },
+        {
+          "id": "H1.t-preparations",
+          "texte": "Préparations culinaires élaborées à l’avance : + 3 °C.",
+          "base": "reglementaire",
+          "sensible": true,
+          "source": {
+            "titre": "Arrêté du 21 décembre 2009, article 3 et annexe I (extrait publié par la préfecture du Calvados)",
+            "url": "https://www.calvados.gouv.fr/index.php/contenu/telechargement/18316/140968/file/temperature_de_conservation_et_service_des_aliments.pdf",
+            "verifie": "2026-11-16"
+          }
+        },
+        {
+          "id": "H1.t-glaces",
+          "texte": "Glaces et crèmes glacées : – 18 °C.",
+          "base": "reglementaire",
+          "sensible": true,
+          "source": {
+            "titre": "Arrêté du 21 décembre 2009, article 3 et annexe I (extrait publié par la préfecture du Calvados)",
+            "url": "https://www.calvados.gouv.fr/index.php/contenu/telechargement/18316/140968/file/temperature_de_conservation_et_service_des_aliments.pdf",
+            "verifie": "2026-11-16"
+          }
+        },
+        {
+          "id": "H1.tolerance",
+          "texte": "Pour les glaces et les produits congelés, un écart de 3 °C au plus en surface est admis pendant le déchargement, sur une courte durée.",
+          "base": "reglementaire",
+          "sensible": true,
+          "source": {
+            "titre": "Arrêté du 21 décembre 2009, article 3 et annexe I (extrait publié par la préfecture du Calvados)",
+            "url": "https://www.calvados.gouv.fr/index.php/contenu/telechargement/18316/140968/file/temperature_de_conservation_et_service_des_aliments.pdf",
+            "verifie": "2026-11-16"
+          }
+        },
+        {
+          "id": "H1.refus",
+          "texte": "Si une température dépasse le maximum, refuser le produit, l’écrire sur le bon de livraison et prévenir le chef.",
+          "base": "interne",
+          "sensible": true
+        },
+        {
+          "id": "H1.photo",
+          "texte": "Photographier le thermomètre et le bon de livraison pour chaque produit refusé, et joindre les photos au registre.",
+          "base": "interne",
+          "sensible": false
+        },
+        {
+          "id": "H1.rangement",
+          "texte": "Ranger les produits acceptés en chambre froide dans les 15 minutes.",
+          "base": "interne",
+          "sensible": true
+        },
+        {
+          "id": "H1.tracabilite",
+          "texte": "Conserver les étiquettes de traçabilité des viandes avec le bon de livraison.",
+          "base": "interne",
+          "sensible": false
+        }
+      ],
+      "remplace": "H1-v1",
+      "changements": [
+        {
+          "id": "H1.c1",
+          "type": "supprime",
+          "regle": "H1.exception-commis",
+          "avant": "peuvent être reçues par un commis",
+          "note": "Le commis ne réceptionne plus aucune livraison (changement de rôle).",
+          "sensible": true
+        },
+        {
+          "id": "H1.c2",
+          "type": "modifie",
+          "regle": "H1.dlc",
+          "avant": "au moins 3 jours",
+          "apres": "au moins 4 jours",
+          "sensible": true
+        },
+        {
+          "id": "H1.c3",
+          "type": "ajoute",
+          "regle": "H1.tolerance",
+          "apres": "un écart de 3 °C au plus en surface",
+          "sensible": true
+        },
+        {
+          "id": "H1.c4",
+          "type": "ajoute",
+          "regle": "H1.photo",
+          "apres": "Photographier le thermomètre et le bon de livraison"
+        },
+        {
+          "id": "H1.c5",
+          "type": "modifie",
+          "regle": "H1.rangement",
+          "avant": "dans les 30 minutes",
+          "apres": "dans les 15 minutes",
+          "sensible": true
+        }
+      ],
+      "non_changements": [
+        {
+          "type": "reformulation",
+          "avant": "Vérifier que les emballages ne sont pas abîmés.",
+          "apres": "Contrôler l’intégrité des emballages.",
+          "note": "Même consigne, autres mots."
+        },
+        {
+          "type": "identique",
+          "texte": "Viandes hachées : + 2 °C.",
+          "note": "Tableau des températures inchangé : aucune revalidation attendue pour ces règles."
+        }
+      ]
+    },
+    {
+      "id": "H2-v1",
+      "fichier": "H2-v1.pdf",
+      "source_html": "sources/H2-v1.html",
+      "procedure": "H2",
+      "version": 1,
+      "date": "2026-02-10",
+      "secteur": "hcr",
+      "organisation": "Brasserie du Quai (restaurant fictif, 60 couverts)",
+      "titre": "Chaîne du froid en cuisine",
+      "nature": "synthetique",
+      "regles_attendues": [
+        {
+          "id": "H2.preparations",
+          "texte": "Les préparations culinaires élaborées à l’avance sont conservées à + 3 °C au plus.",
+          "base": "reglementaire",
+          "sensible": true,
+          "source": {
+            "titre": "Arrêté du 21 décembre 2009, article 3 et annexe I (extrait publié par la préfecture du Calvados)",
+            "url": "https://www.calvados.gouv.fr/index.php/contenu/telechargement/18316/140968/file/temperature_de_conservation_et_service_des_aliments.pdf",
+            "verifie": "2026-11-16"
+          }
+        },
+        {
+          "id": "H2.releves",
+          "texte": "Relever la température de chaque réfrigérateur et de la chambre froide à l’ouverture et à la fermeture, et la noter dans le registre.",
+          "base": "interne",
+          "sensible": false
+        },
+        {
+          "id": "H2.recongeler",
+          "texte": "Un produit décongelé n’est jamais recongelé.",
+          "base": "interne",
+          "sensible": true
+        },
+        {
+          "id": "H2.refroidissement",
+          "texte": "Une préparation cuite destinée à être servie froide passe de + 63 °C à moins de + 10 °C à cœur en moins de 2 heures, en cellule de refroidissement.",
+          "base": "reglementaire",
+          "sensible": true,
+          "source": {
+            "titre": "Arrêté du 21 décembre 2009, annexe IV : refroidissement rapide (dispositions de restauration collective, reprises ici comme règle interne)",
+            "url": "https://pedagogie.ac-strasbourg.fr/fileadmin/pedagogie/ecogestionpro/filieres_et_ressources/hotellerie_restauration/PMS_-_PRP/guide_PMS/2._BONNES_PRATIQUES_DE_FABRICATION/2.12_REFROIDISSEMENT_RAPIDE.pdf",
+            "verifie": "2026-11-16"
+          }
+        },
+        {
+          "id": "H2.jeter",
+          "texte": "Si ce délai est dépassé, la préparation est jetée.",
+          "base": "reglementaire",
+          "sensible": true,
+          "source": {
+            "titre": "Arrêté du 21 décembre 2009, annexe IV : refroidissement rapide (dispositions de restauration collective, reprises ici comme règle interne)",
+            "url": "https://pedagogie.ac-strasbourg.fr/fileadmin/pedagogie/ecogestionpro/filieres_et_ressources/hotellerie_restauration/PMS_-_PRP/guide_PMS/2._BONNES_PRATIQUES_DE_FABRICATION/2.12_REFROIDISSEMENT_RAPIDE.pdf",
+            "verifie": "2026-11-16"
+          }
+        },
+        {
+          "id": "H2.maintien",
+          "texte": "Les plats servis chauds sont maintenus à + 63 °C au moins.",
+          "base": "reglementaire",
+          "sensible": true,
+          "source": {
+            "titre": "Arrêté du 21 décembre 2009, article 3 et annexe I (extrait publié par la préfecture du Calvados)",
+            "url": "https://www.calvados.gouv.fr/index.php/contenu/telechargement/18316/140968/file/temperature_de_conservation_et_service_des_aliments.pdf",
+            "verifie": "2026-11-16"
+          }
+        },
+        {
+          "id": "H2.remise",
+          "texte": "Une préparation remise en température atteint + 63 °C à cœur en moins d’une heure.",
+          "base": "interne",
+          "sensible": true
+        },
+        {
+          "id": "H2.panne",
+          "texte": "Si un réfrigérateur dépasse + 8 °C, prévenir le chef, transférer les produits dans un autre équipement et noter l’heure dans le registre.",
+          "base": "interne",
+          "sensible": true
+        }
+      ]
+    },
+    {
+      "id": "H3-v1",
+      "fichier": "H3-v1.pdf",
+      "source_html": "sources/H3-v1.html",
+      "procedure": "H3",
+      "version": 1,
+      "date": "2026-05-20",
+      "secteur": "hcr",
+      "organisation": "Brasserie du Quai (restaurant fictif, 60 couverts)",
+      "titre": "Réclamation d’un client",
+      "nature": "synthetique",
+      "regles_attendues": [
+        {
+          "id": "H3.ecouter",
+          "texte": "Écouter le client jusqu’au bout, sans l’interrompre ni contester.",
+          "base": "interne",
+          "sensible": false
+        },
+        {
+          "id": "H3.remplacer",
+          "texte": "Pour un plat non conforme (froid, mal cuit, erreur de commande), proposer de le remplacer ou de le retirer de l’addition.",
+          "base": "interne",
+          "sensible": false
+        },
+        {
+          "id": "H3.geste-30",
+          "texte": "Un geste commercial de plus de 30 € est décidé par le responsable de salle.",
+          "base": "interne",
+          "sensible": false
+        },
+        {
+          "id": "H3.14-allergenes",
+          "texte": "La carte des allergènes indique, pour chaque plat, la présence des 14 allergènes majeurs fixés par le règlement européen INCO.",
+          "base": "reglementaire",
+          "sensible": false,
+          "source": {
+            "titre": "Règlement (UE) n° 1169/2011 (INCO), annexe II : 14 substances ou produits provoquant des allergies ou intolérances",
+            "url": "https://eur-lex.europa.eu/eli/reg/2011/1169/oj",
+            "verifie": "2026-11-16"
+          }
+        },
+        {
+          "id": "H3.jamais-memoire",
+          "texte": "Si un client signale une allergie, vérifier sur la carte des allergènes et demander au chef ; ne jamais répondre de mémoire.",
+          "base": "interne",
+          "sensible": true
+        },
+        {
+          "id": "H3.appel-15",
+          "texte": "En cas de réaction allergique (gêne respiratoire, gonflement), appeler immédiatement le 15.",
+          "base": "interne",
+          "sensible": true
+        },
+        {
+          "id": "H3.conserver",
+          "texte": "Conserver le reste du plat au froid, étiqueté, et prévenir le chef.",
+          "base": "interne",
+          "sensible": true
+        },
+        {
+          "id": "H3.registre",
+          "texte": "Noter chaque réclamation dans le registre : date, table, motif, réponse apportée.",
+          "base": "interne",
+          "sensible": false
+        },
+        {
+          "id": "H3.reponse-7",
+          "texte": "Une réclamation écrite reçoit une réponse sous 7 jours.",
+          "base": "interne",
+          "sensible": false
+        }
+      ]
+    }
+  ]
+}
