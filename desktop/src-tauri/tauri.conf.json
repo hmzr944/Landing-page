@@ -29,12 +29,30 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["dmg", "app", "msi", "nsis"],
+    "targets": [
+      "dmg",
+      "app",
+      "msi",
+      "nsis"
+    ],
     "category": "Education",
     "shortDescription": "Apprendre, comprendre, pratiquer, maîtriser",
     "longDescription": "Arbor transforme des connaissances en compréhension réelle, en compétences démontrables et en maîtrise durable.",
-    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"],
-    "macOS": { "minimumSystemVersion": "11.0" },
-    "windows": { "nsis": { "installMode": "currentUser" } }
-  }
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "macOS": {
+      "minimumSystemVersion": "11.0"
+    },
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser"
+      }
+    }
+  },
+  "mainBinaryName": "Arbor"
 }

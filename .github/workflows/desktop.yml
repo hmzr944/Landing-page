@@ -1,36 +1,87 @@
-# Arbor Desktop : construit les installateurs Windows et macOS (Tauri 2). Déclenchement manuel uniquement ;
-# ne publie rien, ne signe rien : les fichiers sont joints au run comme artefacts, pour essai.
+# Arbor Desktop : construit les installateurs Windows et macOS (Tauri 2), puis les ESSAIE sur le runner :
+# installation silencieuse, lancement, processus vivant après 20 s, capture d'écran de la fenêtre.
+# Ne publie rien, ne signe rien : installateurs et captures sont joints au run comme artefacts, pour essai.
+# Déclenchement : à la main (depuis main, quand ce fichier y sera) ou à chaque envoi sur arbor-2 touchant l'application.
 name: Desktop
 on:
   workflow_dispatch:
+  push:
+    branches: [arbor-2]
+    paths: ['desktop/**', '.github/workflows/desktop.yml', 'index.html', 'js/**', 'styles.css']
 permissions:
   contents: read
+concurrency:
+  group: desktop-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   build:
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: macos-latest
-            args: --target universal-apple-darwin
           - os: windows-latest
             args: ''
+          - os: macos-latest
+            args: ''
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
       - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.os == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
       - name: Construire
         working-directory: desktop
         run: npx --yes @tauri-apps/cli@2 build ${{ matrix.args }}
+
+      - name: Essai Windows (installation silencieuse, lancement, capture)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $setup = Get-ChildItem -Recurse desktop/src-tauri/target/release/bundle/nsis/*.exe | Select-Object -First 1
+          Write-Host "Installateur : $($setup.Name) ($([math]::Round($setup.Length/1MB,1)) Mo)"
+          Start-Process $setup.FullName -ArgumentList '/S' -Wait
+          $exe = Get-ChildItem -Recurse "$env:LOCALAPPDATA\Arbor" -Filter Arbor.exe -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $exe) { $exe = Get-ChildItem -Recurse "$env:LOCALAPPDATA\Programs" -Filter Arbor.exe -ErrorAction SilentlyContinue | Select-Object -First 1 }
+          if (-not $exe) { throw "Arbor.exe introuvable après installation" }
+          Write-Host "Installé : $($exe.FullName)"
+          $p = Start-Process $exe.FullName -PassThru
+          Start-Sleep -Seconds 20
+          $p.Refresh()
+          if ($p.HasExited) { throw "Arbor s'est fermé (code $($p.ExitCode))" }
+          Write-Host "Processus vivant après 20 s ; titre de fenêtre : '$($p.MainWindowTitle)'"
+          Add-Type -AssemblyName System.Windows.Forms, System.Drawing
+          $b = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+          $bmp = New-Object System.Drawing.Bitmap $b.Width, $b.Height
+          [System.Drawing.Graphics]::FromImage($bmp).CopyFromScreen($b.Location, [System.Drawing.Point]::Empty, $b.Size)
+          New-Item -ItemType Directory -Force essai | Out-Null
+          $bmp.Save("$PWD\essai\windows-lancement.png")
+          "installateur=$($setup.Name)`ninstalle=$($exe.FullName)`ntitre=$($p.MainWindowTitle)`nvivant_20s=oui" | Out-File essai\windows-essai.txt
+          Stop-Process -Id $p.Id
+
+      - name: Essai macOS (montage du .dmg, lancement, capture)
+        if: runner.os == 'macOS'
+        run: |
+          DMG=$(ls desktop/src-tauri/target/release/bundle/dmg/*.dmg | head -1)
+          echo "Image disque : $DMG ($(du -h "$DMG" | cut -f1))"
+          hdiutil attach "$DMG" -nobrowse -mountpoint /Volumes/Arbor
+          cp -R /Volumes/Arbor/Arbor.app /Applications/
+          hdiutil detach /Volumes/Arbor
+          open /Applications/Arbor.app
+          sleep 20
+          pgrep -f Arbor.app >/dev/null || (echo "Arbor ne tourne pas" && exit 1)
+          mkdir -p essai
+          screencapture -x essai/macos-lancement.png || true
+          printf "dmg=%s\nvivant_20s=oui\n" "$(basename "$DMG")" > essai/macos-essai.txt
+          pkill -f Arbor.app || true
+
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: arbor-desktop-${{ matrix.os }}
           path: |
-            desktop/src-tauri/target/**/bundle/dmg/*.dmg
-            desktop/src-tauri/target/**/bundle/msi/*.msi
-            desktop/src-tauri/target/**/bundle/nsis/*.exe
-          if-no-files-found: error
+            desktop/src-tauri/target/release/bundle/dmg/*.dmg
+            desktop/src-tauri/target/release/bundle/msi/*.msi
+            desktop/src-tauri/target/release/bundle/nsis/*.exe
+            essai/
+          if-no-files-found: warn
