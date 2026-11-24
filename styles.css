@@ -4554,3 +4554,30 @@ mark.ins { background: var(--accent-soft); color: var(--accent-ink); border-radi
   .ktree:not(.still) .kt-leaf text { animation-name: d2-in; }
 }
 @media (max-width: 560px) { .sec-head:has(> .mini-seg) { flex-wrap: wrap; } .sec-head > .mini-seg { order: 3; flex-basis: 100%; width: max-content; max-width: 100%; margin-left: 0; } }
+
+/* =========================================================
+   Arbor Learning universel : point de départ libre, construction d'un parcours, compagnon, transmission
+   ========================================================= */
+.ex-start { display: grid; gap: 12px; grid-template-columns: 1fr; padding: 20px; border-radius: 18px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-1, none); }
+.ex-start label { display: grid; gap: 6px; font-size: .85rem; color: var(--text-2); font-weight: 500; }
+.ex-start .input { min-height: 44px; font-size: 1rem; }
+.ex-start .btn { min-height: 44px; align-self: end; }
+@media (min-width: 900px) { .ex-start { grid-template-columns: minmax(0, 2.2fr) minmax(0, 1fr) minmax(0, 1fr) auto; align-items: end; } }
+.learn-empty.build { display: grid; gap: 14px; }
+.build-form { display: grid; gap: 12px; max-width: 520px; }
+.build-form label { display: grid; gap: 6px; font-size: .88rem; color: var(--text-2); font-weight: 500; }
+.build-form .btn { justify-self: start; }
+.cp-ai { border-color: color-mix(in oklab, var(--accent) 35%, var(--line)); }
+.cp-ai blockquote cite { display: block; margin-top: 6px; font-style: normal; font-size: .82rem; }
+.cp-ex { padding: 12px 14px; border-radius: 12px; background: var(--surface-2); display: grid; gap: 6px; }
+.cp-ex p { margin: 0; } .cp-ex summary { cursor: pointer; color: var(--text-2); font-size: .88rem; }
+.cp-more { margin: 0; font-size: .88rem; color: var(--text-2); } .cp-more a { color: var(--accent-ink); }
+.tm-form { display: grid; gap: 10px; } .tm-form label { display: grid; gap: 6px; font-size: .86rem; color: var(--text-2); font-weight: 500; }
+.tr-card { display: grid; gap: 10px; padding: 14px 16px; border-radius: 14px; background: var(--surface-2); margin-bottom: 10px; }
+.tr-card header { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.tr-meta { margin: 0; font-size: .8rem; color: var(--text-3); }
+.tm-prev { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.tm-prev h3 { margin: 0 0 4px; font-size: .82rem; text-transform: uppercase; letter-spacing: .05em; color: var(--text-3); }
+.tm-prev p, .tm-prev ol, .tm-prev ul { margin: 0; font-size: .9rem; }
+.tm-prev ol, .tm-prev ul { padding-left: 18px; }
+.tr-review { display: flex; gap: 8px; flex-wrap: wrap; } .tr-review .input { flex: 1; min-width: 180px; }

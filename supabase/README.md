@@ -29,7 +29,7 @@ Projet : `https://nnqtgwgwalbbhqzceged.supabase.co` (adresse et clé publiable d
    - *Redirect URLs* : ajouter `https://hmzr944.github.io/Landing-page/`
    - Facultatif : *Authentication* → *Email Templates* → *Magic Link*, ajouter `Ton code : {{ .Token }}` pour pouvoir se connecter avec le code à 6 chiffres (utile quand le lien s'ouvre dans un autre navigateur).
 3. **Fonction** : *Edge Functions* → *Deploy a new function* → *Via Editor*, nom **`tutor`**, puis créer les fichiers
-   `index.ts`, `handler.ts`, `generate.ts`, `org.ts`, `engines.ts`, `pdftext.ts` et `model.ts` avec le contenu de `functions/tutor/` (le fichier de test n'est pas à déployer).
+   `index.ts`, `handler.ts`, `generate.ts`, `org.ts`, `engines.ts`, `decouverte.ts`, `learning.ts`, `pdftext.ts` et `model.ts` avec le contenu de `functions/tutor/` (le fichier de test n'est pas à déployer).
    Laisser *Verify JWT* activé.
    Avec la ligne de commande, c'est équivalent : `supabase functions deploy tutor --project-ref nnqtgwgwalbbhqzceged`.
 4. **Secrets** : *Edge Functions* → *Secrets*

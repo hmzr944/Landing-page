@@ -41,6 +41,13 @@
   function explorer(app, state) {
     const subs = state.subjects;
     app.innerHTML = `<div class="d2 sp">${head('Explorer', 'Que veux-tu apprendre ?', 'Les mathématiques, la programmation, une langue, une procédure, une collection : choisis un point de départ. Arbor découpe, explique à partir de situations, puis te fait pratiquer.')}
+      <form class="ex-start" id="exStart">
+        <label class="ex-q"><span>Un sujet, une question ou un objectif</span><input class="input" name="q" required maxlength="200" placeholder="Les fractions · Pourquoi le ciel est bleu ? · Apprendre les boucles en Python" autocomplete="off" /></label>
+        <label><span>Ton niveau</span><select class="input" name="niveau"><option value="debutant">Je découvre</option><option value="intermediaire">J’ai des bases</option><option value="avance">Je veux approfondir</option></select></label>
+        <label><span>Ton intention</span><select class="input" name="intention"><option value="comprendre">Comprendre vraiment</option><option value="examen">Réussir un examen</option><option value="pratique">M’en servir au travail</option><option value="curiosite">Par curiosité</option></select></label>
+        <button class="btn">${d.ic('sparkle')}Commencer</button>
+      </form>
+      <p class="b-note">${d.ic('shield-check')} Arbor part d’une source ouverte réelle (Wikipédia, citée) ou de tes documents, jamais d’une source inventée.</p>
       <div class="sp-tiles">
         ${tile('data-act="new-subject"', 'plus-circle', 'Un nouveau sujet', 'Donne un thème : Arbor prépare un cours sourcé, notion par notion')}
         ${tile('data-act="import-pdf"', 'file-arrow-up', 'Mon document', 'Un cours, un manuel, une fiche produit : étudié tel quel, avec ses pages')}
@@ -49,6 +56,22 @@
       </div>
       ${subs.length ? `<section class="b-card" style="--i:4"><header class="b-h"><h2>Tes domaines</h2></header><ul class="sp-subs">${subs.map((s) => { const c = Mastery.counts(Mastery.notions(s)); return `<li><a href="#/s/${s.id}/${s.root.id}"><span class="sp-dot" style="--c:${s.color}"></span><b>${d.esc(s.title)}</b><small class="num">${c.total} notion${c.total > 1 ? 's' : ''} · ${c.mastered + (c.exercised || 0)} maîtrisée${c.mastered + (c.exercised || 0) > 1 ? 's' : ''}</small></a></li>`; }).join('')}</ul></section>` : ''}
     </div>`;
+    bindExplorer(app);
+  }
+
+  function bindExplorer(app) {
+    const f = app.querySelector('#exStart');
+    if (!f) return;
+    f.onsubmit = (e) => {
+      e.preventDefault();
+      const q = f.elements.q.value.trim();
+      if (!q) return;
+      const question = /\?$|^(pourquoi|comment|qu['’]est|quel|quelle|est-ce)/i.test(q);
+      const objectif = /^(apprendre|savoir|maîtriser|réussir|comprendre|être capable)/i.test(q);
+      const titre = q.replace(/^(apprendre|savoir|maîtriser|comprendre)\s+(à\s+|les?\s+|la\s+|l['’]\s*)?/i, '').replace(/\?$/, '').trim() || q;
+      const r = d.creerSujet(titre.charAt(0).toUpperCase() + titre.slice(1), { niveau: f.elements.niveau.value, intention: f.elements.intention.value, ...(question ? { question: q } : {}), ...(objectif ? { objectif: q } : {}) });
+      d.go(`#/apprendre/${r.sid}/${r.nid}`);
+    };
   }
 
   /* ---------- Studio pédagogique : construire ses propres parcours ---------- */
@@ -168,9 +191,25 @@
           ${r.extrait ? `<blockquote>${d.esc(r.extrait)}</blockquote>` : ''}
           <div class="row-btns"><a class="btn sm ghost" href="#/s/${r.s.id}/${r.n.id}">${d.ic('arrow-square-out')}Ouvrir la notion</a>${r.n.fiche ? `<a class="btn sm" href="#/apprendre/${r.s.id}/${r.n.id}">${d.ic('path')}Pratiquer</a>` : ''}${signed ? `<button type="button" class="btn sm ghost" data-cp-talk="${r.s.id}|${r.n.id}">${d.ic('chats-circle')}En parler avec Pousse</button>` : ''}</div>
         </article>`).join('')}</section>` : `<section class="cp-res">${empty('magnifying-glass', 'Rien dans tes cours ne répond à cette question. Ajoute un document ou un sujet dans Explorer : le compagnon ne répond qu’à partir de sources.')}</section>`) : ''}
+      ${q && signed && res.length ? `<div class="row-btns"><button type="button" class="btn" id="cpIA">${d.ic('sparkle')}Demander une explication au compagnon</button></div><div id="cpAnswer" aria-live="polite"></div>` : ''}
       ${!signed ? `<p class="b-note">${d.ic('info')} Avec un compte gratuit, Pousse peut aussi expliquer, te mettre en situation et diagnostiquer tes confusions, toujours à partir de tes passages.</p>` : ''}
     </div>`;
     app.querySelector('#cpAsk').onsubmit = (e) => { e.preventDefault(); const v = e.target.elements.q.value.trim(); d.go(`#/compagnon/${encodeURIComponent(v)}`); };
+    const ia = app.querySelector('#cpIA');
+    if (ia) ia.onclick = async () => {
+      const box = app.querySelector('#cpAnswer'); ia.disabled = true;
+      box.innerHTML = `<p class="b-note">${d.ic('hourglass')} Le compagnon lit tes passages…</p>`;
+      try {
+        const st = state.subjects.flatMap((s) => Mastery.notions(s).map((x) => x.state));
+        const contexte = `${st.filter((x) => x === 'fragile').length} notion(s) fragile(s), ${st.filter((x) => ['mastered', 'exercised'].includes(x)).length} maîtrisée(s)`;
+        const r = await Universel.compagnon(q, res, contexte);
+        box.innerHTML = r.repond ? `<article class="cp-item cp-ai"><p class="cp-src">${d.ic('sparkle')} <b>Compagnon Arbor</b> · réponse fondée sur tes cours</p><p>${d.esc(r.reponse)}</p>
+            ${r.citations.map((c) => `<blockquote>${d.esc(c.extrait)}<cite>${c.ref ? `<a href="#/s/${c.ref.sid}/${c.ref.nid}">${d.esc(c.ref.titre)}</a>` : ''}</cite></blockquote>`).join('')}
+            ${r.exercice ? `<div class="cp-ex"><b>${d.ic('barbell')} À toi</b><p>${d.esc(r.exercice)}</p>${r.attendu ? `<details><summary>Voir la réponse attendue</summary><p>${d.esc(r.attendu)}</p></details>` : ''}</div>` : ''}
+            ${r.approfondir.length ? `<p class="cp-more">Pour approfondir : ${r.approfondir.map((x) => `<a href="#/compagnon/${encodeURIComponent(x)}">${d.esc(x)}</a>`).join(' · ')}</p>` : ''}</article>`
+          : `<article class="cp-item"><p class="cp-src">${d.ic('info')} <b>Information absente de tes sources</b></p><p>${d.esc(r.absent)}</p><a class="btn sm ghost" href="#/explorer">${d.ic('compass')}Ajouter une source dans Explorer</a></article>`;
+      } catch (x) { box.innerHTML = `<p class="b-note">${d.esc(x.message)}</p>`; ia.disabled = false; }
+    };
     app.querySelectorAll('[data-cp-talk]').forEach((b) => { b.onclick = () => { const [sid, nid] = b.dataset.cpTalk.split('|'); d.talk(sid, nid); }; });
   }
 

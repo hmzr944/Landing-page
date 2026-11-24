@@ -150,6 +150,9 @@
     esc, ic, compte: !!(window.Tutor && Tutor.signedIn()),
     node: (sid, nid) => { const s = subjectById(sid), r = s && find(s.root, nid); return r ? r.node : null; },
     back: (v) => (v.demo ? '#/cours' : link(v.sid, v.nid)),
+    subject: (sid) => subjectById(sid),
+    saved: () => { touch(); save(); },
+    juger: async (fiche, item, reponse) => (await AI.juger({ q: item.q, grille: item.grille, reference: item.reference }, reponse, (fiche.confusions || []).map((c) => ({ id: c.id, libelle: c.libelle })))).jugement,
     record: (obs) => { const s = subjectById(obs.sid), r = s && find(s.root, obs.nid), node = r && r.node; if (!node) return; Obs.summarize(node, { ...obs, at: Date.now() }); Obs.add(obs); s.updatedAt = Date.now(); save(); },
   });
 
@@ -3320,7 +3323,9 @@
   renderXP();
   // Arbor Learning 2.0 : barre latérale des huit espaces (ordinateur) et outils du module Spaces
   if (window.Spaces) {
-    Spaces.use({ esc, ic, go, talk: (sid, nid) => { const sj = subjectById(sid), f = sj && find(sj.root, nid); if (f) openTalk(sj, f.node); } });
+    Spaces.use({ esc, ic, go,
+      creerSujet: (titre, profil) => { const s = makeSubject(titre.slice(0, 120), { icon: 'compass' }); s.profil = profil; s.root.title = titre.slice(0, 120); state.subjects.unshift(s); save(); return { sid: s.id, nid: s.root.id }; },
+      talk: (sid, nid) => { const sj = subjectById(sid), f = sj && find(sj.root, nid); if (f) openTalk(sj, f.node); } });
     const box = document.getElementById('spNav'); if (box) box.innerHTML = Spaces.sideNav('home');
   }
   route();

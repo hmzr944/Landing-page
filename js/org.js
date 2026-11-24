@@ -57,8 +57,9 @@
     const lead = can(o, 'admin', 'manager'), content = can(o, 'admin', 'manager', 'expert');
     if (window.Desk2 && lead) return Desk2.nav();
     if (window.OrgHub && lead) return [[null, [['accueil', 'gauge', 'Cockpit'], ['equipe', 'users-three', 'Mon équipe'], ['savoir', 'books', 'Base de savoir'], ['developper', 'plant', 'Développer'], ['apprendre', 'student', 'Mon apprentissage']]]];
-    if (window.OrgHub && content) return [[null, [['accueil', 'gauge', 'Accueil'], ['savoir', 'books', 'Base de savoir'], ['apprendre', 'student', 'Mon apprentissage']]]];
-    if (window.OrgHub) return [[null, [['accueil', 'house', 'Accueil'], ...(window.League ? [['canopee', 'tree', 'Canopée']] : []), ['apprendre', 'compass', 'Explorer'], ['resultats', 'chart-line-up', 'Mon parcours']]]];
+    const tr = window.Desk2 ? [['transmission', 'hand-heart', 'Transmettre']] : [];
+    if (window.OrgHub && content) return [[null, [['accueil', 'gauge', 'Accueil'], ['savoir', 'books', 'Base de savoir'], ['apprendre', 'student', 'Mon apprentissage'], ...tr]]];
+    if (window.OrgHub) return [[null, [['accueil', 'house', 'Accueil'], ...(window.League ? [['canopee', 'tree', 'Canopée']] : []), ['apprendre', 'compass', 'Explorer'], ['resultats', 'chart-line-up', 'Mon parcours'], ...tr]]];
     // sans les écrans v2 (module absent) : navigation précédente
     const shell = !!window.OrgShell;
     const g = [];
@@ -236,6 +237,8 @@
     }
     if (window.OrgHub) {
       const lead = can(o, 'admin', 'manager'), content = can(o, 'admin', 'manager', 'expert');
+      // Transmission : ouverte à tout membre (soumettre) ; la relecture reste aux responsables (base, migration 012)
+      if (window.Desk2 && view.tab === 'transmission') return Desk2.transmission(app, o, head(o, 'transmission'), d);
       // Arbor Desktop 2 (responsables) : cinq espaces
       if (window.Desk2 && lead) {
         const imp = view.tab === 'changements' || (view.tab === 'savoir' && view.sub === 'impact');
@@ -245,7 +248,6 @@
         if (view.tab === 'studio') return Desk2.studio(app, o, head(o, 'studio'), d);
         if (view.tab === 'angles') return Desk2.blindspots(app, o, head(o, 'angles'), d);
         if (view.tab === 'preuves') return Desk2.evidence(app, o, head(o, 'preuves'), d, view.sub);
-        if (view.tab === 'transmission') return Desk2.transmission(app, o, head(o, 'transmission'), d);
       }
       if (view.tab === 'accueil' && lead) return OrgHub.cockpit(app, o, head(o, 'accueil'), d);
       if (view.tab === 'accueil' && !content && window.League) return League.home(app, o, head(o, 'accueil'), d);

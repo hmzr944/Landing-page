@@ -263,52 +263,67 @@
     paint();
   }
 
-  /* ---------- F. Transmission & Knowledge Sharing : un expert transmet une méthode ----------
-     Capture guidée (situation, étapes, pièges, astuces) → aperçu structuré → brouillon gardé sur cet appareil.
-     Rien ne devient une règle de l'organisation sans passer par la Base de savoir et la validation d'un responsable. */
-  const TKEY = (o) => `arbor:transmission:${o.id}`;
-  const drafts = (o) => { try { return JSON.parse(localStorage.getItem(TKEY(o)) || '[]'); } catch (e) { return []; } };
-  function transmission(app, o, head, deps) {
+  /* ---------- F. Transmission & Knowledge Sharing (migration 012) ----------
+     Tout membre transmet une méthode (situation, étapes, pièges, astuces) : elle est « soumise ». Un responsable
+     (admin, manager, experte ou expert) la relit et la valide ou la rejette avec une note ; l'auteur ne valide jamais
+     la sienne. Une transmission validée devient un savoir-faire partagé, distinct des règles des documents : rien
+     n'entre seul dans le référentiel officiel. Sans la migration 012, l'écran le dit et ne garde rien. */
+  const ST_TR = { soumise: ['À relire', 'amber'], validee: ['Validée', 'green'], rejetee: ['Rejetée', 'grey'] };
+  const lines = (v) => String(v || '').split('\n').map((x) => x.trim()).filter(Boolean).slice(0, 20);
+  async function transmission(app, o, head, deps) {
     d = deps;
-    const list = drafts(o);
-    app.innerHTML = `${head}<div class="d2">${pageHead('Transmission & Knowledge Sharing', 'Transmettre un savoir-faire', 'Une méthode, un geste, une expérience de terrain : décrivez-la comme vous l’expliqueriez à un nouveau collègue. Arbor la structure en situation, étapes, pièges et astuces.')}
+    const reviewer = ['admin', 'manager', 'expert'].includes(o.role), me = window.Tutor && Tutor.userId();
+    app.innerHTML = `${head}<div class="d2">${pageHead('Transmission & Knowledge Sharing', 'Transmettre un savoir-faire', 'Une méthode, un geste, une expérience de terrain : décrivez-la comme à un nouveau collègue. Elle est relue par un responsable avant d’être partagée.')}${skeleton(2)}</div>`;
+    let list = null, ms = [];
+    try { [list, ms] = await Promise.all([rest('/rest/v1/transmissions', `?org_id=eq.${q(o.id)}&select=*&order=created_at.desc&limit=100`), soft(rest('/rest/v1/memberships', `?org_id=eq.${q(o.id)}&select=user_id,email`), [])]); }
+    catch (e) { list = /schema cache|PGRST20[25]|404/.test(String(e && e.message)) ? null : []; }
+    const who = (u) => nom(ms.find((m) => m.user_id === u)) || 'Membre';
+    const card = (t, i) => { const [l, c] = ST_TR[t.status] || ['', '']; return `<article class="tr-card" style="--i:${i}" data-tr="${t.id}">
+        <header><b>${d.esc(t.title)}</b><span class="tag ${c}">${l}</span></header>
+        <p class="tr-meta">${d.esc(who(t.author))} · <span class="mono">${fmt(t.created_at)}</span>${t.reviewed_at ? ` · relue par ${d.esc(who(t.reviewed_by))} le <span class="mono">${fmt(t.reviewed_at)}</span>` : ''}</p>
+        <div class="tm-prev"><div><h3>Situation</h3><p>${d.esc(t.situation)}</p></div><div><h3>Étapes</h3><ol>${(t.steps || []).map((x) => `<li>${d.esc(x)}</li>`).join('')}</ol></div>
+          ${(t.pitfalls || []).length ? `<div><h3>Pièges</h3><ul>${t.pitfalls.map((x) => `<li>${d.esc(x)}</li>`).join('')}</ul></div>` : ''}${(t.tips || []).length ? `<div><h3>Astuces</h3><ul>${t.tips.map((x) => `<li>${d.esc(x)}</li>`).join('')}</ul></div>` : ''}</div>
+        ${t.review_note ? `<p class="b-note">Note de relecture : ${d.esc(t.review_note)}</p>` : ''}
+        ${reviewer && t.status === 'soumise' && t.author !== me ? `<div class="tr-review"><input class="input" placeholder="Note (obligatoire pour un rejet)" data-note="${t.id}" /><button type="button" class="btn sm" data-dec="validee" data-id="${t.id}">${d.ic('check')}Valider</button><button type="button" class="btn ghost sm" data-dec="rejetee" data-id="${t.id}">${d.ic('x')}Rejeter</button></div>` : ''}
+        ${reviewer && t.status === 'soumise' && t.author === me ? '<p class="b-note">Votre transmission sera relue par une autre personne.</p>' : ''}
+      </article>`; };
+    const aRelire = (list || []).filter((t) => t.status === 'soumise' && reviewer && t.author !== me);
+    const partages = (list || []).filter((t) => t.status === 'validee');
+    const miennes = (list || []).filter((t) => t.author === me && t.status !== 'validee');
+    app.innerHTML = `${head}<div class="d2">${pageHead('Transmission & Knowledge Sharing', 'Transmettre un savoir-faire', 'Une méthode, un geste, une expérience de terrain : décrivez-la comme à un nouveau collègue. Elle est relue par un responsable avant d’être partagée.',
+      reviewer && aRelire.length ? `<span class="d2-pill amber">${d.ic('hourglass')} ${plural(aRelire.length, 'transmission')} à relire</span>` : '')}
+      ${list === null ? `<div class="privacy" role="note">${d.ic('info', true)}<span>La transmission demande la migration 012 sur la base de l’organisation. Rien n’est enregistré tant qu’elle n’est pas appliquée.</span></div>` : ''}
       <div class="dbento">
-        <section class="b-card b-w7" style="--i:0"><header class="b-h"><h2>Nouvelle transmission</h2></header>
+        <section class="b-card b-w6" style="--i:0"><header class="b-h"><h2>Nouvelle transmission</h2></header>
           <form id="tmForm" class="tm-form">
-            <label>Titre<input class="input" name="titre" required maxlength="120" placeholder="Conseiller un client sur la taille d’un vélo" /></label>
-            <label>Dans quelle situation cela sert-il ?<textarea class="input" name="situation" rows="2" required placeholder="Un client hésite entre deux tailles…"></textarea></label>
-            <label>Les étapes, une par ligne<textarea class="input" name="etapes" rows="4" required placeholder="Demander la taille et l’entrejambe&#10;Vérifier sur le tableau du fabricant&#10;Faire essayer en ajustant la selle"></textarea></label>
+            <label>Titre<input class="input" name="titre" required minlength="3" maxlength="160" placeholder="Conseiller un client sur la taille d’un vélo" /></label>
+            <label>Dans quelle situation cela sert-il ?<textarea class="input" name="situation" rows="2" required minlength="10" placeholder="Un client hésite entre deux tailles…"></textarea></label>
+            <label>Les étapes, une par ligne<textarea class="input" name="etapes" rows="4" required></textarea></label>
             <label>Les pièges à éviter, un par ligne<textarea class="input" name="pieges" rows="2"></textarea></label>
             <label>Astuces d’expert, une par ligne<textarea class="input" name="astuces" rows="2"></textarea></label>
-            <div class="row-btns"><button class="btn">${d.ic('sparkle')}Structurer</button></div>
+            <div class="row-btns"><button class="btn" ${list === null ? 'disabled' : ''}>${d.ic('paper-plane-tilt')}Soumettre pour relecture</button></div>
+            <p class="b-note">${d.ic('shield-check')} Une transmission validée devient un savoir-faire partagé, distinct des règles officielles des documents.</p>
           </form></section>
-        <section class="b-card b-w5" style="--i:1"><header class="b-h"><h2>Brouillons <small class="num">${list.length}</small></h2></header>
-          ${list.length ? `<ul class="sp-list">${list.map((t, i) => `<li><a href="#" data-tm="${i}">${d.ic('hand-heart')}<b>${d.esc(t.titre)}</b><small>${t.etapes.length} étape${t.etapes.length > 1 ? 's' : ''} · <span class="mono">${fmt(t.at)}</span></small></a></li>`).join('')}</ul>` : empty('hand-heart', 'Aucune transmission pour l’instant.')}
-          <p class="b-note">${d.ic('shield-check')} Brouillon gardé sur cet appareil. Pour qu’il serve aux évaluations, il passe par la Base de savoir et la validation d’un responsable : c’est le socle souverain.</p></section>
-        <section class="b-card b-w12" id="tmPreview" style="--i:2" hidden></section>
+        <section class="b-card b-w6" style="--i:1"><header class="b-h"><h2>${reviewer ? 'À relire' : 'Mes transmissions'} <small class="num">${reviewer ? aRelire.length : miennes.length}</small></h2></header>
+          ${(reviewer ? aRelire : miennes).length ? (reviewer ? aRelire : miennes).map(card).join('') : empty('hand-heart', reviewer ? 'Rien à relire.' : 'Aucune transmission en cours.')}</section>
+        <section class="b-card b-w12" style="--i:2"><header class="b-h"><h2>Savoir-faire partagés <small class="num">${partages.length}</small></h2></header>
+          ${partages.length ? partages.map(card).join('') : empty('tree-evergreen', 'Aucun savoir-faire validé pour l’instant.')}</section>
       </div></div>`;
-    const preview = (t) => {
-      const box = app.querySelector('#tmPreview'); box.hidden = false;
-      box.innerHTML = `<header class="b-h"><h2>${d.esc(t.titre)}</h2><span class="d2-pill amber">${d.ic('hourglass')} À valider avant usage</span></header>
-        <ol class="d2-flow">${['Situation', 'Méthode', 'Pièges', 'Pratique'].map((s, i) => `<li style="--i:${i}"><span>${i + 1}</span>${s}</li>`).join('')}</ol>
-        <div class="tm-prev"><div><h3>Situation</h3><p>${d.esc(t.situation)}</p></div>
-          <div><h3>Étapes</h3><ol>${t.etapes.map((e) => `<li>${d.esc(e)}</li>`).join('')}</ol></div>
-          ${t.pieges.length ? `<div><h3>Pièges</h3><ul>${t.pieges.map((e) => `<li>${d.esc(e)}</li>`).join('')}</ul></div>` : ''}
-          ${t.astuces.length ? `<div><h3>Astuces</h3><ul>${t.astuces.map((e) => `<li>${d.esc(e)}</li>`).join('')}</ul></div>` : ''}</div>
-        <p class="b-note">Pratique proposée : remettre les étapes dans l’ordre, puis une mise en situation dans Scenario Studio une fois la méthode validée.</p>`;
-      box.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
-    };
-    const lines = (v) => String(v || '').split('\n').map((x) => x.trim()).filter(Boolean).slice(0, 20);
-    app.querySelector('#tmForm').onsubmit = (e) => {
+    app.querySelector('#tmForm').onsubmit = async (e) => {
       e.preventDefault();
-      const f = e.target.elements;
-      const t = { titre: f.titre.value.trim(), situation: f.situation.value.trim(), etapes: lines(f.etapes.value), pieges: lines(f.pieges.value), astuces: lines(f.astuces.value), at: new Date().toISOString() };
-      if (t.etapes.length < 2) { d.toast('Décrivez au moins deux étapes.', 'error'); return; }
-      const all = [t, ...drafts(o)].slice(0, 30);
-      try { localStorage.setItem(TKEY(o), JSON.stringify(all)); } catch (x) { /* stockage indisponible : l'aperçu reste affiché */ }
-      transmission(app, o, head, d); preview(t);
+      const f = e.target.elements, et = lines(f.etapes.value);
+      if (et.length < 2) { d.toast('Décrivez au moins deux étapes.', 'error'); return; }
+      try { await rpc('submit_transmission', { p_org: o.id, p_title: f.titre.value.trim(), p_situation: f.situation.value.trim(), p_steps: et, p_pitfalls: lines(f.pieges.value), p_tips: lines(f.astuces.value) });
+        d.toast('Transmission soumise : elle sera relue avant d’être partagée.', 'success'); transmission(app, o, head, d); }
+      catch (x) { d.toast(x.message, 'error'); }
     };
-    app.querySelectorAll('[data-tm]').forEach((a) => { a.onclick = (e) => { e.preventDefault(); preview(list[Number(a.dataset.tm)]); }; });
+    app.querySelectorAll('[data-dec]').forEach((b) => { b.onclick = async () => {
+      const note = (app.querySelector(`[data-note="${b.dataset.id}"]`) || {}).value || '';
+      if (b.dataset.dec === 'rejetee' && !note.trim()) { d.toast('Expliquez le rejet dans la note.', 'error'); return; }
+      b.disabled = true;
+      try { await rpc('review_transmission', { p_id: b.dataset.id, p_decision: b.dataset.dec, p_note: note.trim() || null }); d.toast(b.dataset.dec === 'validee' ? 'Transmission validée et partagée' : 'Transmission rejetée', 'success'); transmission(app, o, head, d); }
+      catch (x) { d.toast(x.message, 'error'); b.disabled = false; }
+    }; });
   }
 
   window.Desk2 = { transmission, nav, HELP, SECTION, SPACES, badges, cockpit, kiHead, studio, blindspots, evidence, _reset: () => { badgeCache = null; } };

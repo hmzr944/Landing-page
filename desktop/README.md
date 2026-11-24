@@ -7,6 +7,7 @@ instance, taille et position retenues, notifications natives, liens externes ouv
 ## Construire
 - Prérequis : Rust stable, Node 20 ou plus ; sous Linux, `libwebkit2gtk-4.1-dev` (développement seulement).
 - Icônes (une fois) : `npx @tauri-apps/cli@2 icon ../icons/icon-512.png` depuis `desktop/src-tauri`.
+- Préparer les fichiers : `node desktop/prepare.js` depuis la racine (copie de l'application web dans `desktop/dist`).
 - Développement : `npx @tauri-apps/cli@2 dev` depuis `desktop/`.
 - Installateurs : `npx @tauri-apps/cli@2 build` sur la plateforme visée (`.dmg` sous macOS, `.msi` et `.exe` sous Windows),
   ou le flux GitHub Actions « Desktop » (déclenchement manuel, sans publication).

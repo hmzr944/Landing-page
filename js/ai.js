@@ -61,5 +61,9 @@
 
   // Disponible quand l'étudiant est connecté et en ligne (la connexion sert aussi au quota)
   const available = () => !!(window.Tutor && Tutor.signedIn() && navigator.onLine);
-  window.AI = { available, enrich, writeCourse, writeNotion, extract, structure };
+  // Arbor Learning universel (learning.ts) : fiche pédagogique, jugement d'une explication libre, compagnon
+  const fiche = (payload, onStatus) => run(payload, onStatus);
+  const juger = (item, reponse, confusions) => run({ task: 'fiche_juger', item, reponse, confusions });
+  const compagnon = (payload) => run(payload);
+  window.AI = { available, enrich, writeCourse, writeNotion, extract, structure, fiche, juger, compagnon };
 })();

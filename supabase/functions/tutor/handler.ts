@@ -11,6 +11,7 @@
 import { cleanGen, GEN_TASKS, type GenTask, genPrompt, validateGen } from "./generate.ts";
 import { needsModel, ORG_TASKS, type OrgDb, OrgError, type OrgTask, orgTask } from "./org.ts";
 import { DECOUVERTE_TASKS, DecouverteError, type DecouverteTask, decouverteTask } from "./decouverte.ts";
+import { LEARN_TASKS, LearnError, type LearnTask, learnTask } from "./learning.ts";
 import { integrityOf, type StoredDoc, verifyPassages } from "./pdftext.ts";
 
 export type Mode = "socratique" | "enseigne" | "situation";
@@ -189,6 +190,7 @@ export async function handle(request: Request, deps: Deps): Promise<Response> {
   if (GEN_TASKS.includes((body as { task?: GenTask })?.task as GenTask)) return generate(body, user.id, m, deps, json);
   if (ORG_TASKS.includes((body as { task?: OrgTask })?.task as OrgTask)) return org(body as Record<string, unknown>, user.id, m, deps, json);
   if (DECOUVERTE_TASKS.includes((body as { task?: DecouverteTask })?.task as DecouverteTask)) return decouverte(body as Record<string, unknown>, user.id, m, deps, json);
+  if (LEARN_TASKS.includes((body as { task?: LearnTask })?.task as LearnTask)) return learning(body as Record<string, unknown>, user.id, m, deps, json);
   const v = validate(body);
   if (!v.ok) return json(400, { error: v.error });
   const req = v.req;
@@ -299,6 +301,32 @@ async function decouverte(b: Record<string, unknown>, userId: string, m: string,
     return json(200, { ...(out as Record<string, unknown>), usage: { used, limit } });
   } catch (e) {
     if (e instanceof DecouverteError) return json(e.status, { error: e.status === 503 ? "occupe" : e.message });
+    return json(500, { error: "erreur interne", detail: String((e as Error)?.message || e).slice(0, 200) });
+  }
+}
+
+/* Arbor Learning : fiche, jugement d'une explication, compagnon. Fiches au quota des générations ; jugement et
+   compagnon au quota du dialogue (ce sont des échanges avec l'apprenant). */
+async function learning(b: Record<string, unknown>, userId: string, m: string, deps: Deps, json: (s: number, d: unknown) => Response): Promise<Response> {
+  const task = b.task as LearnTask;
+  const gen = task === "fiche_rediger";
+  const kind = gen ? "generation" : "dialogue";
+  const limit = gen ? (deps.genLimit ?? 150) : deps.limit;
+  let used = await deps.usedThisMonth(userId, m, kind);
+  if (used >= limit) return json(429, { error: "quota", used, limit });
+  const price = deps.price || PRICE;
+  try {
+    const out = await learnTask(task, b, {
+      callModel: deps.callModel,
+      onModel: async (r) => {
+        used++;
+        const cost = Math.round(((r.inputTokens * price.input + r.outputTokens * price.output) / 1e6) * 1e5) / 1e5;
+        await deps.record({ userId, month: m, mode: gen ? "rediger_notion" : "socratique", model: r.model, inputTokens: r.inputTokens, outputTokens: r.outputTokens, costUsd: cost, refused: r.stop === "refusal" });
+      },
+    });
+    return json(200, { ...(out as Record<string, unknown>), usage: { used, limit } });
+  } catch (e) {
+    if (e instanceof LearnError) return json(e.status, { error: e.message });
     return json(500, { error: "erreur interne", detail: String((e as Error)?.message || e).slice(0, 200) });
   }
 }

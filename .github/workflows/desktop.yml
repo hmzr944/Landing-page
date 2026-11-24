@@ -30,6 +30,8 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
       - uses: dtolnay/rust-toolchain@stable
+      - name: Préparer les fichiers de l'application
+        run: node desktop/prepare.js
       - name: Construire
         working-directory: desktop
         run: npx --yes @tauri-apps/cli@2 build ${{ matrix.args }}

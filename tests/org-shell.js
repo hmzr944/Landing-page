@@ -50,7 +50,7 @@ const db = () => M.state.db;
     // Evidence & Governance), puis le contexte d'organisation (Mon équipe, Mon apprentissage)
     const LEAD = ['accueil', 'savoir', 'studio', 'angles', 'preuves', 'transmission', 'equipe', 'apprendre'];
     const expect = { ana: LEAD, eve: LEAD,
-      paul: ['accueil', 'savoir', 'apprendre'], bob: ['accueil', 'canopee', 'apprendre', 'resultats'] };
+      paul: ['accueil', 'savoir', 'apprendre', 'transmission'], bob: ['accueil', 'canopee', 'apprendre', 'resultats', 'transmission'] };
     for (const who of Object.keys(expect)) {
       const { ctx, page } = await as(who);
       await page.goto(`${URL0}#/org/${ORG}`); await wait(page, 1200);

@@ -42,6 +42,7 @@
       // hors jeu 3a fourni, le contrôle de chevauchement n'est pas vérifiable : on ne retient ici que la forme et l'ordre
       const bloquants = verdict ? verdict.bloquants.filter((b) => !/^V-chevauchement/.test(b.regle)) : [];
       const servable = c.fiche && !bloquants.length && (c.demo || ['reference', 'generee_validee'].includes(c.fiche.meta.statut));
+      if (!servable && !c.demo && c.node && window.Universel) return construire(app, view, d, c.node);
       if (!servable) {
         app.innerHTML = `<section class="learn learn-empty card"><h1>Pas encore de parcours pour cette notion</h1>
           <p>Arbor ne sert un parcours que depuis une fiche vérifiée : situation, explication, confusions et exercices fondés sur les sources. ${c.fiche ? 'La fiche de cette notion ne passe pas les contrôles.' : ''}</p>
@@ -52,6 +53,34 @@
       S = { key: view.key, view, fiche: c.fiche, demo: c.demo, st: Parcours.creer(c.fiche, { compte: !!d.compte }), fb: null, ordre: null, lastEns: null };
     }
     paint(app, d);
+  }
+
+  /* Construire le parcours guidé d'une notion : niveau, intention, puis fiche écrite par le serveur et contrôlée ici */
+  function construire(app, view, d, node) {
+    const s = d.subject(view.sid), prof = (s && s.profil) || {};
+    const sel = (name, opts, cur) => `<select class="input" name="${name}">${opts.map(([v, l]) => `<option value="${v}" ${v === cur ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
+    app.innerHTML = `<section class="learn learn-empty card build"><p class="learn-eyebrow">Parcours guidé</p><h1>${d.esc(node.title)}</h1>
+      <p>Arbor peut construire le parcours de cette notion : une situation concrète, une explication à ton niveau, les confusions courantes et des exercices d’application et de transfert. Tout vient de tes notes ou d’une source ouverte, citée.</p>
+      ${d.compte ? `<form class="build-form" id="buildForm">
+        <label>Ton niveau${sel('niveau', [['debutant', 'Je découvre'], ['intermediaire', 'J’ai des bases'], ['avance', 'Je veux approfondir']], prof.niveau || 'debutant')}</label>
+        <label>Ton intention${sel('intention', [['comprendre', 'Comprendre vraiment'], ['examen', 'Réussir un examen'], ['pratique', 'M’en servir au travail'], ['curiosite', 'Par curiosité']], prof.intention || 'comprendre')}</label>
+        <button class="btn">${d.ic('sparkle')}Construire le parcours</button><p class="hint" id="buildMsg" role="status"></p></form>`
+        : `<p class="muted">La construction d’un parcours demande un compte gratuit (Réglages, puis Compte). En attendant, la notion reste en <b>mode lecture</b> : fiche, révisions espacées et rappel.</p>`}
+      <a class="btn ghost" href="${d.back(view)}">${d.ic('arrow-left')} Retour</a></section>`;
+    const f = app.querySelector('#buildForm');
+    if (!f) return;
+    f.onsubmit = async (ev) => {
+      ev.preventDefault();
+      const msg = f.querySelector('#buildMsg'), btn = f.querySelector('button');
+      btn.disabled = true;
+      const profil = { niveau: f.elements.niveau.value, intention: f.elements.intention.value };
+      if (s) s.profil = { ...(s.profil || {}), ...profil };
+      try {
+        await Universel.construireFiche(s, node, { profil, onStatus: (m) => { msg.textContent = m; } });
+        d.saved();
+        S = null; render(app, view, d);
+      } catch (e) { msg.textContent = e.message; btn.disabled = false; }
+    };
   }
 
   function rail(e, d) {

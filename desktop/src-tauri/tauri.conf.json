@@ -4,8 +4,6 @@
   "version": "2.0.0",
   "identifier": "app.arbor.desktop",
   "build": {
-    "beforeBuildCommand": "node ../prepare.js",
-    "beforeDevCommand": "node ../prepare.js",
     "frontendDist": "../dist"
   },
   "app": {

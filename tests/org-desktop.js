@@ -145,7 +145,7 @@ const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m);
     const { ctx, page } = await as('bob');
     await page.goto(`${URL0}#/org/${ORG}`); await wait(page, 1400);
     const navs = await page.$$eval('.org-head .org-tabs a', (as2) => as2.map((a) => a.textContent.trim()));
-    check('F1 collaborateur : sa navigation, pas d’action de gestion ni de lien Paramètres', navs.join('|') === 'Accueil|Canopée|Explorer|Mon parcours' && !(await page.$('.desk-act')) && !(await page.$('[data-desk-set]')), navs.join('|'));
+    check('F1 collaborateur : sa navigation, pas d’action de gestion ni de lien Paramètres', navs.join('|') === 'Accueil|Canopée|Explorer|Mon parcours|Transmettre' && !(await page.$('.desk-act')) && !(await page.$('[data-desk-set]')), navs.join('|'));
     const r0 = reqs.length;
     await page.keyboard.press('Control+k'); await wait(page, 700);
     await page.fill('#cmdkQ', 'chloe'); await wait(page, 200);
