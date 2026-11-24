@@ -1,7 +1,8 @@
 # Propositions de clarification des grilles (mission 3a)
 
 **Statut :**
-- Ces propositions sont **non appliquées** et à valider une par une.
+- P7 est tranchée (voir ce point). Les 11 autres propositions restent **non appliquées**, en attente des résultats réels
+  de l'étalonnage.
 - `grille-reformulation.md` n'a pas été modifiée : le contrôle E20 vérifie qu'elle est identique à la version
   `523f730`.
 
@@ -86,6 +87,11 @@ Chaque point indique :
   - (a) Garder 0 : rien ne montre que la personne a reconnu la situation.
   - (b) Mettre 1 : la raison est là, la décision manque.
 - **Ma recommandation :** (a), parce que le transfert mesure justement l'application à un cas nouveau.
+- **Décision du 2026-11-24 : option (a) validée.** Une récitation de la définition sans application à la situation vaut
+  0 en B3. C'est déjà ce que dit le texte actuel de la grille (partie 2, « une simple récitation de la définition,
+  sans l'appliquer à la situation » vaut 0) : **aucune modification de la grille n'est nécessaire**, et la note prévue
+  pour B3-20 reste 0. Les correcteurs n'en sont pas informés à part, pour ne pas orienter l'exercice : la règle figure
+  déjà dans leur grille.
 
 ### P8. Une règle équivalente, mais sans ses conditions
 - **Cas :** B3-12, « pour les glaces on accepte jusqu'à – 15 °C ».

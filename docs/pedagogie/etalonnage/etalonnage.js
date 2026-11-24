@@ -65,21 +65,43 @@ function feuille(lettre) {
 }
 
 // ── Lecture des feuilles remplies ──
+/* Lecture d'une feuille remplie. Accepte la virgule ou le point-virgule comme séparateur (un tableur réglé en français
+   enregistre souvent avec « ; »), et retire la marque BOM qu'ajoutent certains tableurs. Les guillemets sont gérés. */
 function parseCSV(txt) {
-  const rows = [], re = /("([^"]|"")*"|[^,\n]*)(,|\n|$)/g; let row = [], m;
-  const t = txt.replace(/\r/g, '');
-  while ((m = re.exec(t)) && m[0] !== '') { let v = m[1]; if (v.startsWith('"')) v = v.slice(1, -1).replace(/""/g, '"'); row.push(v.trim()); if (m[3] !== ',') { rows.push(row); row = []; } }
-  const [head, ...data] = rows.filter((r) => r.some((v) => v !== ''));
-  return data.map((r) => Object.fromEntries(head.map((h, i) => [h, r[i] ?? ''])));
-}
-function lireFeuille(file) {
-  const txt = fs.readFileSync(file, 'utf8'), erreurs = [], notes = {};
-  for (const r of parseCSV(txt)) {
-    const champs = r.grille === 'B2' ? ['C1', 'C2', 'C3', 'C4'] : r.grille === 'B3' ? ['B3'] : ['Q1', 'Q2'];
-    const n = {};
-    for (const c of champs) { if (!/^[012]$/.test(r[c] || '')) erreurs.push(`${r.code} : ${c} vide ou hors de 0, 1, 2`); n[c] = Number(r[c]); }
-    notes[r.code] = { grille: r.grille, ...n, hesitation: (r.hesitation || '').split(/[;\s]+/).filter(Boolean), commentaire: r.commentaire || '' };
+  const t = txt.replace(/^﻿/, '').replace(/\r\n?/g, '\n');
+  const premiere = t.split('\n')[0], sep = (premiere.match(/;/g) || []).length > (premiere.match(/,/g) || []).length ? ';' : ',';
+  const rows = []; let row = [], v = '', q = false;
+  for (let i = 0; i <= t.length; i++) {
+    const ch = t[i];
+    if (q) { if (ch === '"' && t[i + 1] === '"') { v += '"'; i++; } else if (ch === '"') q = false; else if (ch === undefined) { row.push(v); rows.push(row); } else v += ch; continue; }
+    if (ch === '"' && v.trim() === '') { q = true; v = ''; } else if (ch === sep) { row.push(v.trim()); v = ''; }
+    else if (ch === '\n' || ch === undefined) { row.push(v.trim()); rows.push(row); row = []; v = ''; } else v += ch;
   }
+  const lignes = rows.filter((r) => r.some((x) => x !== ''));
+  if (!lignes.length) return { head: [], data: [], sep };
+  const [head, ...data] = lignes;
+  return { head, sep, data: data.map((r) => ({ _n: r.length, ...Object.fromEntries(head.map((h, i) => [h, r[i] ?? ''])) })) };
+}
+const CHAMPS = { B2: ['C1', 'C2', 'C3', 'C4'], B3: ['B3'], B4: ['Q1', 'Q2'] };
+/* Toute donnée invalide est signalée ; le rapport ne calcule alors aucun accord (rien n'est corrigé ni deviné). */
+function lireFeuille(file, items = ITEMS) {
+  const txt = fs.readFileSync(file, 'utf8'), erreurs = [], notes = {};
+  const map = codes(items), attendu = Object.fromEntries(items.map((it) => [map[it.id], it.grille]));
+  const { head, data } = parseCSV(txt);
+  const manquantes = COLS.filter((c) => !head.includes(c));
+  if (manquantes.length) erreurs.push(`colonnes absentes : ${manquantes.join(', ')}`);
+  for (const r of data) {
+    const ou = r.code || '(ligne sans code)';
+    if (r._n > head.length) erreurs.push(`${ou} : plus de valeurs que de colonnes (séparateur dans une cellule ? séparer les hésitations par des espaces)`);
+    if (!(r.code in attendu)) { erreurs.push(`${ou} : code inconnu`); continue; }
+    if (notes[r.code]) { erreurs.push(`${r.code} : code présent deux fois`); continue; }
+    if (r.grille !== attendu[r.code]) erreurs.push(`${r.code} : grille « ${r.grille} » au lieu de « ${attendu[r.code]} »`);
+    const g = attendu[r.code], n = {};
+    for (const c of CHAMPS[g]) { if (!/^[012]$/.test(r[c] || '')) erreurs.push(`${r.code} : ${c} vide ou différent de 0, 1, 2 (« ${r[c] || ''} »)`); n[c] = Number(r[c]); }
+    for (const c of Object.values(CHAMPS).flat().filter((c) => !CHAMPS[g].includes(c))) if (r[c]) erreurs.push(`${r.code} : ${c} rempli alors que la réponse relève de ${g}`);
+    notes[r.code] = { grille: g, ...n, hesitation: (r.hesitation || '').split(/[\s,+/]+/).filter(Boolean), commentaire: r.commentaire || '' };
+  }
+  for (const c of Object.keys(attendu)) if (!notes[c] && !erreurs.some((e) => e.startsWith(c))) erreurs.push(`${c} : absent de la feuille`);
   return { notes, erreurs, sha256: crypto.createHash('sha256').update(txt).digest('hex') };
 }
 
@@ -92,11 +114,17 @@ function kappaQ(x, y, k) {
   for (let i = 0; i < k; i++) for (let j = 0; j < k; j++) { const w = ((i - j) ** 2) / ((k - 1) ** 2); num += w * O[i][j] / n; den += w * (ra[i] * rb[j]) / (n * n); }
   return den === 0 ? null : 1 - num / den; // null : non calculable (aucune variation des notes)
 }
+/* Intervalle de confiance à 95 % du kappa, par rééchantillonnage (bootstrap percentile) : on retire au hasard, avec
+   remise, autant de réponses qu'il y en a, 2 000 fois, avec une graine fixe (le résultat est donc reproductible), et on
+   garde les quantiles 2,5 % et 97,5 % des kappas obtenus. Un tirage où toutes les notes sont identiques n'a pas de
+   kappa : il est écarté. Si plus de la moitié des tirages sont écartés, l'intervalle est déclaré non calculable. */
 function ic(x, y, k, B = 2000) {
   const r = rng(seedOf('etalonnage-3a-bootstrap')), v = [];
   for (let b = 0; b < B; b++) { const xs = [], ys = []; for (let i = 0; i < x.length; i++) { const j = Math.floor(r() * x.length); xs.push(x[j]); ys.push(y[j]); } const kk = kappaQ(xs, ys, k); if (kk !== null) v.push(kk); }
-  if (v.length < B / 2) return null; v.sort((a, b) => a - b);
-  return [v[Math.floor(0.025 * v.length)], v[Math.floor(0.975 * v.length) - 1]];
+  if (v.length < B / 2) return null;
+  v.sort((a, b) => a - b);
+  const q = (p) => v[Math.min(v.length - 1, Math.max(0, Math.round(p * (v.length - 1))))];
+  return [q(0.025), q(0.975)];
 }
 function mesure(nom, paires, k) {
   const x = paires.map((p) => p[0]), y = paires.map((p) => p[1]);
@@ -128,4 +156,4 @@ function accord(A, B, items = ITEMS) {
   return { mesures, desaccords, hesitations, prevu: { A: prevu(A), B: prevu(B) }, byCode };
 }
 
-module.exports = { ITEMS, JEU, codes, shuffle, ORDRE, copie, feuille, COLS, parseCSV, lireFeuille, kappaQ, ic, accord, decision, DECISIONS, DIR };
+module.exports = { ITEMS, JEU, codes, shuffle, ORDRE, copie, feuille, COLS, CHAMPS, parseCSV, lireFeuille, kappaQ, ic, accord, decision, DECISIONS, DIR };

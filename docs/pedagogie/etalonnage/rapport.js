@@ -4,7 +4,8 @@
    Lancer depuis la racine :  node docs/pedagogie/etalonnage/rapport.js   (--check : vérifie que le rapport est à jour) */
 const fs = require('fs'), path = require('path');
 const E = require('./etalonnage.js');
-const FA = path.join(E.DIR, 'notes', 'notes-correcteur-A.csv'), FB = path.join(E.DIR, 'notes', 'notes-correcteur-B.csv');
+const NOTES = process.env.ETALONNAGE_NOTES_DIR || path.join(E.DIR, 'notes'); // autre dossier : seulement pour les tests
+const FA = path.join(NOTES, 'notes-correcteur-A.csv'), FB = path.join(NOTES, 'notes-correcteur-B.csv');
 const fr = (x, d = 2) => x === null || x === undefined ? 'non calculable' : x.toFixed(d).replace('.', ',');
 const pct = (a, n) => n ? `${fr((100 * a) / n, 0)} %` : '–';
 const esc = (t) => String(t).replace(/\|/g, '\\|').replace(/\n/g, ' ');
@@ -17,7 +18,6 @@ function build() {
   let A, B, res, erreurs = [];
   if (mesure) {
     A = E.lireFeuille(FA); B = E.lireFeuille(FB); erreurs = [...A.erreurs.map((e) => 'A ' + e), ...B.erreurs.map((e) => 'B ' + e)];
-    for (const it of items) for (const [L, N] of [['A', A], ['B', B]]) if (!N.notes[map[it.id]]) erreurs.push(`${L} : ${map[it.id]} absent de la feuille`);
     if (!erreurs.length) res = E.accord(A.notes, B.notes);
   }
   const L = ['# Exercice d\'étalonnage des correcteurs, mission 3a : rapport', '',
@@ -81,13 +81,15 @@ function build() {
   else L.push('**Mesurés :** NON MESURÉ.', '');
   L.push('**Anticipés par le concepteur** (cas limites construits exprès, à confirmer ou infirmer par l\'exercice) :', '');
   for (const it of items.filter((i) => i.limite)) L.push(`- ${it.id} (${it.grille}, ${it.element}) : ${it.pourquoi}`);
-  const FD = path.join(E.DIR, 'notes', 'discussion.md');
+  const FD = path.join(NOTES, 'discussion.md');
   L.push('', '## 6 bis. Discussion des désaccords', '', fs.existsSync(FD) ? 'Explications écrites par les correcteurs après la remise de leurs notes (`notes/discussion.md`) ; elles ne modifient pas les notes individuelles.' : 'Pas encore de discussion : elle n\'a lieu qu\'après la remise et le gel des deux feuilles.', '');
   if (fs.existsSync(FD)) L.push(fs.readFileSync(FD, 'utf8').trim(), '');
   L.push('## 7. Propositions de clarification', '', 'Voir `propositions-clarification.md`. Elles ne modifient pas les grilles : chacune doit être validée séparément.', '');
   return L.join('\n') + '\n';
 }
+if (require.main === module) {
 const out = path.join(E.DIR, 'rapport-etalonnage.md'), txt = build();
 if (process.argv.includes('--check')) { const ok = fs.existsSync(out) && fs.readFileSync(out, 'utf8') === txt; console.log(ok ? 'rapport à jour' : 'rapport PAS à jour'); process.exit(ok ? 0 : 1); }
 fs.writeFileSync(out, txt); console.log('écrit rapport-etalonnage.md');
+}
 module.exports = { build };

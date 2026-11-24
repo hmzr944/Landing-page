@@ -36,19 +36,20 @@ check('E7 B4 : questions notées 0, 1 et 2, et les trois décisions (débloqué,
 const dir = path.join(ROOT, 'docs/pedagogie/etalonnage'), rd = (f) => fs.readFileSync(path.join(dir, f), 'utf8');
 const map = E.codes(), all = Object.values(map);
 const ordre = (txt) => [...txt.matchAll(/^## Réponse (E-\w{4})$/gm)].map((m) => m[1]);
-const oA = ordre(rd('copie-correcteur-A.md')), oB = ordre(rd('copie-correcteur-B.md'));
+const oA = ordre(rd('remise/correcteur-A/copie-correcteur-A.md')), oB = ordre(rd('remise/correcteur-B/copie-correcteur-B.md'));
 check('E8 deux copies avec les mêmes réponses, chacune une seule fois', oA.length === items.length && oB.length === items.length && [...new Set(oA)].sort().join() === [...all].sort().join() && [...new Set(oB)].sort().join() === [...all].sort().join());
 const memePlace = oA.filter((c, i) => oB[i] === c).length;
 check('E9 ordre différent pour chaque correcteur (moins de 20 % de réponses à la même place)', memePlace < 0.2 * items.length, `${memePlace} à la même place`);
 const fuite = [];
-for (const f of ['copie-correcteur-A.md', 'copie-correcteur-B.md', 'feuille-correcteur-A.csv', 'feuille-correcteur-B.csv']) {
+const REMISE = ['A', 'B'].flatMap((L) => fs.readdirSync(path.join(dir, 'remise', `correcteur-${L}`)).map((f) => `remise/correcteur-${L}/${f}`));
+for (const f of REMISE) {
   const t = rd(f);
   for (const i of items) { if (t.includes(i.pourquoi)) fuite.push(`${f} : raison du concepteur ${i.id}`); if (new RegExp(`\\b${i.id}\\b`).test(t)) fuite.push(`${f} : référence ${i.id}`); }
   for (const tp of TYPES.filter((x) => x.length > 15)) if (t.includes(tp)) fuite.push(`${f} : type « ${tp} »`);
   for (const mot of ['prevu', 'Note prévue', 'cas limite', 'Cas limite']) if (t.includes(mot)) fuite.push(`${f} : « ${mot} »`);
 }
-check('E10 les copies et les feuilles ne contiennent rien de la clé (types, notes prévues, raisons, références)', !fuite.length, fuite.slice(0, 5).join(' ; '));
-const feuilleBad = ['A', 'B'].filter((L) => { const r = E.parseCSV(rd(`feuille-correcteur-${L}.csv`)); return r.length !== items.length || r.some((x) => !all.includes(x.code) || x.C1 || x.B3 || x.Q1); });
+check('E10 les dossiers de remise ne contiennent rien de la clé (types, notes prévues, raisons, références)', !fuite.length, fuite.slice(0, 5).join(' ; '));
+const feuilleBad = ['A', 'B'].filter((L) => { const r = E.parseCSV(rd(`remise/correcteur-${L}/feuille-correcteur-${L}.csv`)).data; return r.length !== items.length || r.some((x) => !all.includes(x.code) || x.C1 || x.B3 || x.Q1); });
 check('E11 feuilles de notes vides, une ligne par réponse', !feuilleBad.length, feuilleBad.join(', '));
 
 // Calcul de l'accord
@@ -63,6 +64,14 @@ check('E13 kappa pondéré quadratique : exemple calculé à la main = 0,75', ne
   check('E13b kappa identique à une seconde méthode de calcul indépendante, sur 50 jeux de notes', ecart < 1e-9, `écart maximal ${ecart.toExponential(1)}`);
 }
 check('E14 kappa : désaccord systématique négatif ; notes sans variation : non calculable', E.kappaQ([0, 2, 0, 2], [2, 0, 2, 0], 3) < 0 && E.kappaQ([1, 1, 1], [1, 1, 1], 3) === null);
+
+// Intervalle de confiance (rééchantillonnage)
+{
+  const x = [0, 1, 2, 0, 1, 2, 2, 1, 0, 1, 2, 0], y = [0, 1, 2, 1, 1, 2, 1, 1, 0, 2, 2, 0], k = E.kappaQ(x, y, 3), i1 = E.ic(x, y, 3), i2 = E.ic(x, y, 3);
+  check('E25 IC : accord parfait → [1 ; 1]', JSON.stringify(E.ic([0, 1, 2, 1, 0, 2], [0, 1, 2, 1, 0, 2], 3)) === '[1,1]');
+  check('E26 IC : bornes ordonnées, dans [−1 ; 1], encadrant le kappa observé, et reproductibles (graine fixe)', i1 && i1[0] <= k && k <= i1[1] && i1[0] >= -1 && i1[1] <= 1 && JSON.stringify(i1) === JSON.stringify(i2), `kappa ${k.toFixed(3)}, IC ${i1 && i1.map((v) => v.toFixed(3)).join(' à ')}`);
+  check('E27 IC : notes sans aucune variation → non calculable (pas d\'intervalle inventé)', E.ic([1, 1, 1, 1], [1, 1, 1, 1], 3) === null);
+}
 
 // Bout en bout sur des feuilles de test (dossier temporaire, jamais dans le dépôt)
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'etal-'));
@@ -80,8 +89,38 @@ const r = E.accord(A.notes, B.notes);
 const des = r.desaccords.map((d) => `${d.id}:${d.champ}`).sort().join(' ');
 check('E15 désaccords retrouvés, y compris le changement de décision qu\'entraîne une note de question', des === 'B2-03:C4 B3-05:B3 B4-11:Q2 B4-11:décision', des);
 check('E16 hésitations classées en tête ; accord exact recalculé', r.hesitations[0] && ['B2-03', 'B3-05'].includes(r.hesitations[0].id) && r.mesures.find((m) => m.nom === 'B3 note sur 2').exact === n('B3') - 1);
-fs.writeFileSync(path.join(tmp, 'c.csv'), E.COLS.join(',') + '\n' + `${all[0]},B3,,,,,3,,,,\n`);
-check('E17 une note hors de 0, 1, 2 est refusée', E.lireFeuille(path.join(tmp, 'c.csv')).erreurs.length === 1);
+// Données invalides : chaque défaut est signalé, et le rapport ne calcule alors aucun accord
+const valide = fs.readFileSync(path.join(tmp, 'a.csv'), 'utf8'), lignes = valide.trimEnd().split('\n');
+const essai = (nom, txt) => { fs.writeFileSync(path.join(tmp, nom), txt); return E.lireFeuille(path.join(tmp, nom)).erreurs; };
+const remplace = (code, f) => lignes.map((l) => (l.startsWith(code + ',') ? f(l) : l)).join('\n') + '\n';
+const b2 = map['B2-01'], b3 = map['B3-01'], b4 = map['B4-01'];
+const CAS = [
+  ['note 3', remplace(b3, (l) => l.replace(/^([^,]*,B3,,,,,)2/, '$13')), `${b3} : B3`],
+  ['note 1,5 (entre guillemets)', remplace(b3, (l) => l.replace(/^([^,]*,B3,,,,,)2/, '$1"1,5"')), `${b3} : B3`],
+  ['note vide', remplace(b2, (l) => l.replace(/^([^,]*,B2,)2/, '$1')), `${b2} : C1`],
+  ['code en double', valide + lignes.find((l) => l.startsWith(b3)) + '\n', 'présent deux fois'],
+  ['code inconnu', valide + 'E-ZZZZ,B3,,,,,1,,,,\n', 'E-ZZZZ : code inconnu'],
+  ['code absent', lignes.filter((l) => !l.startsWith(b4)).join('\n') + '\n', `${b4} : absent`],
+  ['grille modifiée', remplace(b3, (l) => l.replace(',B3,', ',B2,')), 'grille « B2 »'],
+  ['note dans la colonne d\'une autre grille', remplace(b2, (l) => l.replace(/^([^,]*,B2,\d,\d,\d,\d,)/, '$11')), 'rempli alors que'],
+  ['colonne manquante', valide.replace('hesitation,', ''), 'colonnes absentes'],
+  ['hésitations séparées par une virgule non protégée', remplace(b2, (l) => l.replace(/,,"note/, ',C2,C4,"note')), 'plus de valeurs que de colonnes'],
+];
+const rates = CAS.filter(([, txt, attendu], i) => !essai(`inv${i}.csv`, txt).some((e) => e.includes(attendu))).map(([nom]) => nom);
+check(`E17 ${CAS.length} sortes de données invalides signalées (note hors de 0, 1, 2, vide, double, inconnue, absente, grille, colonnes)`, !rates.length, rates.join(', '));
+const pv = valide.replace(/^﻿?/, '﻿').split('\n').map((l) => l.replace(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/g, ';')).join('\r\n');
+const lpv = essai('pv.csv', pv);
+check('E21 feuille enregistrée par un tableur réglé en français (point-virgule, BOM, fins de ligne Windows) acceptée telle quelle', !lpv.length && Object.keys(E.lireFeuille(path.join(tmp, 'pv.csv')).notes).length === items.length, lpv.slice(0, 2).join(' ; '));
+check('E22 la feuille de test valide ne produit aucune erreur', !A.erreurs.length && !B.erreurs.length, [...A.erreurs, ...B.erreurs].slice(0, 2).join(' ; '));
+{ // rapport : refuse de calculer sur une feuille invalide, calcule sur des feuilles valides
+  const d1 = path.join(tmp, 'ok'), d2 = path.join(tmp, 'ko'); fs.mkdirSync(d1); fs.mkdirSync(d2);
+  fs.copyFileSync(path.join(tmp, 'a.csv'), path.join(d1, 'notes-correcteur-A.csv')); fs.copyFileSync(path.join(tmp, 'b.csv'), path.join(d1, 'notes-correcteur-B.csv'));
+  fs.copyFileSync(path.join(tmp, 'a.csv'), path.join(d2, 'notes-correcteur-A.csv')); fs.copyFileSync(path.join(tmp, 'inv0.csv'), path.join(d2, 'notes-correcteur-B.csv'));
+  const rap = (d) => { process.env.ETALONNAGE_NOTES_DIR = d; delete require.cache[require.resolve(path.join(dir, 'rapport.js'))]; const t = require(path.join(dir, 'rapport.js')).build(); delete process.env.ETALONNAGE_NOTES_DIR; return t; };
+  const ok = rap(d1), ko = rap(d2);
+  check('E23 rapport : feuilles valides → statut MESURÉ, accords et désaccords calculés', /\*\*MESURÉ\*\*/.test(ok) && /\| B4 décision \| 13 \|/.test(ok) && /B2-03 \| C4/.test(ok));
+  check('E24 rapport : une feuille invalide → aucun accord calculé, erreurs listées', /FEUILLES INCOMPLÈTES/.test(ko) && !/\| B4 décision \| 13 \|/.test(ko) && ko.includes(`${b3} : B3`));
+}
 fs.rmSync(tmp, { recursive: true });
 
 // Fichiers générés à jour ; grille et jeu de mesure intacts
@@ -92,6 +131,10 @@ const sha = (f) => crypto.createHash('sha256').update(fs.readFileSync(path.join(
 const GELES = { 'docs/pedagogie/grille-reformulation.md': 'ad04fb422f1773d1947389cae74f581790ec606fe1f1c8c477b06297eb99815c', 'docs/pedagogie/jeu-de-mesure.json': '3abd95ebcee3afc193d7f45905317a4c422e8be6d297142d2a58e2efd2443257', 'docs/protocole-mission-3a.md': 'ccbfb1896b084922a9180ad631a762a3515c63003e9868f6e857bb9161b6938b' };
 const modifies = Object.entries(GELES).filter(([f, h]) => sha(f) !== h).map(([f]) => f);
 check('E20 grille, jeu de mesure et protocole identiques à la version 523f730 (aucune modification automatique)', !modifies.length, modifies.join(', '));
+
+const grilleRemise = ['A', 'B'].filter((L) => sha(`docs/pedagogie/etalonnage/remise/correcteur-${L}/grille-reformulation.md`) !== GELES['docs/pedagogie/grille-reformulation.md']);
+const annexe = rd('remise/correcteur-A/grille-reformulation.md').includes("## Annexe A : copies d'ancrage") && rd('remise/correcteur-A/consignes.md').includes('Annexe A');
+check('E28 chaque dossier de remise contient la grille 523f730 à l\'identique, avec son annexe A d\'ancrage, citée dans les consignes', !grilleRemise.length && annexe, grilleRemise.join(', '));
 
 console.log(failed ? `\n${failed} échec(s)` : '\nTous les tests passent');
 process.exit(failed ? 1 : 0);

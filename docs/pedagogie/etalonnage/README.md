@@ -13,21 +13,33 @@ B2 (reformulation), B3 (transfert) et B4 (déblocage) de la même façon.
 
 | Fichier | Pour qui | Contenu |
 |---|---|---|
-| `copie-correcteur-A.md`, `copie-correcteur-B.md` | chaque correcteur, **la sienne seulement** | les 47 réponses, dans un ordre propre à chaque copie, avec le matériel de la grille (attendus du jeu de mesure) |
-| `feuille-correcteur-A.csv`, `feuille-correcteur-B.csv` | chaque correcteur, **la sienne seulement** | feuille de notes vide : une ligne par code |
+| `remise/correcteur-A/` | correcteur A, **ce dossier seulement** | `consignes.md`, `grille-reformulation.md` (copie exacte de la version 523f730), `copie-correcteur-A.md` (les 47 réponses dans son ordre), `feuille-correcteur-A.csv` (feuille vide) |
+| `remise/correcteur-B/` | correcteur B, **ce dossier seulement** | les mêmes documents pour B, avec un ordre de réponses différent |
 | `reponses-fictives.js` | coordinateur seulement | **la clé** : types de réponses, notes prévues par le concepteur, raisons, cas limites |
-| `etalonnage.js`, `generer.js`, `rapport.js` | coordinateur | génération des copies, calcul de l'accord, rapport |
+| `etalonnage.js` | coordinateur | lecture et contrôle des feuilles, kappa, intervalles de confiance, désaccords |
+| `generer.js`, `rapport.js` | coordinateur | préparation des dossiers de remise ; rapport |
 | `rapport-etalonnage.md` | coordinateur, puis vous | rapport ; « NON MESURÉ » tant que les feuilles ne sont pas rendues |
-| `propositions-clarification.md` | vous | points de grille jugés ambigus, avec une proposition pour chacun, **non appliqués** |
+| `propositions-clarification.md` | vous | P7 tranchée (sans changement de grille) ; 11 propositions en attente des résultats |
 
-**Les correcteurs ne doivent pas avoir accès à ce dossier, ni à la branche.** La clé, la raison de chaque réponse et
-le rapport y sont lisibles. Le coordinateur leur remet seulement trois documents, sous forme de fichiers ou
-imprimés :
-- `grille-reformulation.md` ;
-- leur copie ;
-- leur feuille.
+**Les correcteurs ne doivent pas avoir accès au reste du dossier, ni à la branche.** La clé, la raison de chaque
+réponse et le rapport y sont lisibles. Le coordinateur remet à chacun **uniquement son dossier `remise/correcteur-X/`**,
+sous forme de fichiers ou imprimé. Les codes des réponses (« E-7GJ9 ») ne révèlent ni la grille, ni le numéro, ni le
+type de réponse.
 
-Les codes des réponses (« E-7GJ9 ») ne révèlent ni la grille, ni le numéro, ni le type de réponse.
+## Copies d'ancrage pour l'étalonnage à blanc (annexe A)
+- **Où :** dans `grille-reformulation.md`, dernière section, **« Annexe A : copies d'ancrage (fabriquées, pas des
+  participants) »** (lignes 150 à 159 de la version `523f730`).
+- **Contenu :** 4 copies sur le sujet S20 (la chaîne du froid), avec leurs notes C1, C2, C3, C4 et leur total :
+  3, 3, 8 et 6.
+- **Remise :** cette grille, avec son annexe, est dans chaque dossier de remise, à l'identique (contrôle E28). Les
+  consignes des correcteurs disent de noter ces 4 copies en cachant les notes, puis de comparer.
+- **Limites, sans modifier la grille :**
+  - L'annexe A ne couvre que la reformulation (B2). Pour le transfert (B3) et le déblocage (B4), il n'y a pas de copies
+    d'ancrage séparées. Les exemples notés de chaque réponse (2, 1, 0 ; juste, insuffisant, faux), présents dans les
+    copies, en tiennent lieu. Les consignes le disent.
+  - Les copies d'ancrage portent sur S20, comme 3 des 14 reformulations de l'exercice (B2-01 à B2-03). B2-03 ressemble
+    à la deuxième copie d'ancrage (« le froid tue les microbes »). L'accord sur ces 3 réponses peut donc être un peu
+    meilleur que sur les autres. Le rapport donne les notes réponse par réponse, ce qui permet de le vérifier.
 
 ## Déroulement
 
@@ -40,7 +52,7 @@ Les codes des réponses (« E-7GJ9 ») ne révèlent ni la grille, ni le numéro
    - En cas de doute entre deux notes, il met la plus basse.
    - Il écrit le critère concerné dans la colonne `hesitation` (par exemple `C4`, `B3`, `Q2`, ou `C2;C4`).
    - La colonne `commentaire` est libre.
-4. **Remise et gel :** le coordinateur enregistre les deux feuilles telles quelles sous
+4. **Remise et gel :** le coordinateur enregistre les deux feuilles telles quelles, sans les ouvrir dans un tableur, sous
    `notes/notes-correcteur-A.csv` et `notes/notes-correcteur-B.csv`, puis les enregistre dans le dépôt **avant toute
    discussion**. Le rapport affiche l'empreinte SHA-256 de chaque feuille, qui prouve qu'elle n'a pas changé ensuite.
 5. **Calcul :** `node docs/pedagogie/etalonnage/rapport.js` donne :
@@ -64,15 +76,33 @@ Les codes des réponses (« E-7GJ9 ») ne révèlent ni la grille, ni le numéro
 - La « note prévue » du concepteur n'est pas une correction de référence : je ne suis pas correcteur, et j'ai écrit
   les attendus. Elle sert à discuter les désaccords, pas à départager les correcteurs.
 
+## Données invalides
+Une feuille est refusée, avec la liste de ses erreurs, et **aucun accord n'est calculé**, si :
+- une note est vide, n'est pas un entier 0, 1 ou 2 (« 3 », « 1,5 »), ou se trouve dans la colonne d'une autre grille ;
+- un code est inconnu, présent deux fois ou absent ;
+- la grille d'une ligne a été changée ;
+- une colonne manque, ou une ligne a plus de valeurs que de colonnes.
+
+**Rien n'est corrigé ni deviné.** Le correcteur reprend sa feuille et la renvoie entière. Le coordinateur note dans
+`notes/discussion.md` qu'une feuille a été renvoyée, et pourquoi.
+
+Une feuille enregistrée par un tableur réglé en français est acceptée : séparateur point-virgule, marque BOM, fins de
+ligne Windows.
+
 ## Contrôles automatiques
-`node tests/jeu-de-mesure.js` vérifie le jeu de mesure ; `node tests/etalonnage.js` vérifie l'exercice, contrôles E1
-à E20.
+`node tests/etalonnage.js` vérifie l'exercice (contrôles E1 à E28). `node tests/jeu-de-mesure.js` vérifie le jeu de
+mesure.
 - **Couverture :** tous les types de réponses demandés sont présents ; chaque critère est prévu à 0, 1 et 2 ; les trois
   décisions de déblocage sont représentées.
-- **Copies :** même contenu dans les deux, dans un ordre différent ; aucune fuite de la clé dans les copies ou les
-  feuilles.
-- **Calcul du kappa :** vérifié sur un exemple calculé à la main, puis comparé à une seconde méthode de calcul
-  indépendante sur 50 jeux de notes.
-- **Chaîne complète :** des feuilles de test, écrites dans un dossier temporaire puis supprimées, passent par le calcul
-  de bout en bout.
+- **Dossiers de remise :** mêmes réponses dans un ordre différent ; aucune fuite de la clé ; grille identique à la
+  version `523f730`, avec son annexe A.
+- **Kappa :** exemple calculé à la main (0,75) ; accord parfait (1) ; désaccord systématique (négatif) ; notes sans
+  variation (non calculable) ; comparaison avec une seconde méthode de calcul indépendante sur 50 jeux de notes.
+- **Intervalles de confiance :** [1 ; 1] pour un accord parfait ; bornes ordonnées, encadrant le kappa observé et
+  reproductibles ; non calculable quand les notes ne varient pas.
+- **Données invalides :** 10 sortes de défauts sont signalées ; une feuille de tableur français est acceptée ; le
+  rapport refuse de calculer sur une feuille invalide et calcule sur des feuilles valides.
 - **Gel :** la grille, le jeu de mesure et le protocole sont identiques à la version `523f730`.
+
+**Les feuilles utilisées par ces contrôles sont écrites dans un dossier temporaire, puis supprimées. Aucune n'est
+enregistrée dans le dossier de l'exercice.**
