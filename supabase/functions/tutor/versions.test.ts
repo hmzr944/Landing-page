@@ -1,7 +1,7 @@
 // Comparaison de versions (mission 2c) : nouveautés et portée selon la section, reformulation sans appel au modèle.
 // Exemples écrits pour ces tests, distincts du corpus du banc d'essai ; le modèle est simulé (réponse fixe).
 import { assert, assertEquals } from "jsr:@std/assert@1";
-import { compareVersions, verKnownSame, verSameWords, verSections, type EnginesDb } from "./engines.ts";
+import { compareVersions, verKnownSame, verOrderImposed, verSameWords, verStripNum, verSections, type EnginesDb } from "./engines.ts";
 
 const V1 = `Retrait des commandes
 Commandes payées en ligne
@@ -85,11 +85,18 @@ Deno.test("cas 4 : même phrase, autre section : la portée a changé, signalée
   assert(String(r.of("sans-piece")?.explanation).includes("commandes de moins de 50"));
 });
 
-Deno.test("reformulation certaine (mêmes mots, autre ordre) : reconnue sans appel au modèle ; « et » → « puis » ne l'est pas", async () => {
+Deno.test("reformulation certaine (mêmes mots, autre ordre) : reconnue sans appel au modèle ; « et » → « puis » est une modification certaine (2d)", async () => {
   const r = await compare([]);
   assertEquals(r.of("ranger")?.change, "reformule");
   assert(!r.asked.join(" ").includes("Ranger et étiqueter"), "le modèle n'est pas interrogé sur une reformulation certaine");
-  assert(r.asked.join(" ").includes("Allumer la lumière et ouvrir le local"), "l'ordre imposé par « puis » est laissé à l'analyse");
+  // mission 2d (décision du 2026-11-22 : l'ordre fait partie du fond) : un ordre nouvellement imposé est une modification,
+  // conclue sans le modèle
+  assertEquals(r.of("ordre")?.change, "modifie");
+  assert(!r.asked.join(" ").includes("Allumer la lumière et ouvrir le local"), "le modèle n'est pas interrogé sur un ordre imposé certain");
+  assert(verOrderImposed("Allumer la lumière et ouvrir le local.", "Ouvrir le local, puis allumer la lumière."));
+  assert(!verOrderImposed("Débrancher, puis nettoyer.", "Nettoyer après avoir débranché."), "deux phrases ordonnées : pas de conclusion sans le modèle");
+  assertEquals(verStripNum("4. Conserver le colis 10 jours."), "Conserver le colis 10 jours.");
+  assertEquals(verStripNum("Conserver 4. colis"), "Conserver 4. colis");
   assert(verSameWords("Ranger et étiqueter le colis.", "Étiqueter et ranger le colis."));
   assert(!verSameWords("Allumer l'éclairage et démarrer les caisses.", "Démarrer les caisses, puis allumer l'éclairage."));
   assert(!verSameWords("Garder le colis 7 jours.", "Garder le colis 10 jours."), "un nombre différent n'est jamais une reformulation");

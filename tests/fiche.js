@@ -205,29 +205,8 @@ const r = rng(20261124), pick = (l) => l[Math.floor(r() * l.length)];
   check('F28 biais de longueur d’un catalogue : un catalogue où la bonne réponse est toujours la plus longue est refusé (seuils J16 à J19)', faux.conforme === false && b.n === 4 * 15);
 }
 
-// ── 7. Non-régression : rien de ce que charge l'application n'a changé ──
-{
-  const html = rd('index.html'), sw = rd('sw.js');
-  check('F29 aucune page ni le service worker ne chargent les nouveaux modules (js/pedagogie)', !/pedagogie/.test(html) && !/pedagogie/.test(sw));
-  // Empreinte globale des fichiers de l'application (tout js/ hors js/pedagogie, index.html, sw.js, styles, manifeste, supabase/), calculée sur main (5be606a)
-  const lister = (d) => fs.readdirSync(path.join(ROOT, d), { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? lister(`${d}/${e.name}`) : [`${d}/${e.name}`]));
-  const fichiers = [...lister('js').filter((f) => !f.startsWith('js/pedagogie/')), 'index.html', 'sw.js', 'styles.css', 'manifest.webmanifest', ...lister('supabase')].sort();
-  const h = crypto.createHash('sha256'); fichiers.forEach((f) => { h.update(f + '\n'); h.update(fs.readFileSync(path.join(ROOT, f))); });
-  // Valeur calculée sur une extraction propre de main 5be606a (git archive), par cette même méthode : 71 fichiers
-  const APP_MAIN = '1e0d6350d1d43ff5815af45f5cb6d93f77f426d3faf1c6f0ca0e68c77a9b6f8e';
-  check('F30 CA10 : les fichiers de l’application (js/ hors js/pedagogie, index.html, sw.js, styles, manifeste, supabase/) sont identiques à main 5be606a', h.digest('hex') === APP_MAIN && fichiers.length === 71, `${fichiers.length} fichiers`);
-}
-{ // Périmètre de la branche par rapport à main : seulement les fichiers prévus (local ; SKIPPED si l'historique de main est absent)
-  let liste = null;
-  try { execFileSync('git', ['-C', ROOT, 'rev-parse', '--verify', '-q', '5be606a'], { stdio: 'pipe' }); liste = [...execFileSync('git', ['-C', ROOT, 'diff', '--name-only', '5be606a'], { encoding: 'utf8' }).split('\n'), ...execFileSync('git', ['-C', ROOT, 'ls-files', '--others', '--exclude-standard'], { encoding: 'utf8' }).split('\n')].map((x) => x.trim()).filter(Boolean); }
-  catch (e) { liste = null; }
-  if (!liste) console.log('– CA9 périmètre de la branche par rapport à main : SKIPPED (historique de main 5be606a absent : copie superficielle du dépôt, comme en CI ; F30 vérifie l’essentiel)');
-  else {
-    const PERMIS = [/^js\/pedagogie\//, /^tests\/fiche\.js$/, /^tests\/fixtures\/fiches\//, /^tests\/fixtures\/jeu-3a\//, /^tests\/fixtures\/chevauchements\.json$/, /^tools\/fiche-verifier\.js$/, /^docs\/pedagogie\/fiche-v1\.md$/, /^docs\/rapport-mission-3b-0\.md$/, /^\.github\/workflows\/ci\.yml$/, /^tests\/ai-server\.js$/];
-    const hors = liste.filter((f) => !PERMIS.some((p) => p.test(f)));
-    check('F31 CA9 : la branche ne modifie que les fichiers prévus par 3b-0', !hors.length, hors.join(', ') || `${liste.length} fichiers`);
-  }
-}
+// ── 7. Les garde-fous de périmètre de la mission 3b-0 (F29 à F31 : modules non chargés, application identique à
+// main 5be606a) ont été retirés à l'intégration dans arbor-2 : ces modules sont désormais branchés sur l'application.
 
 console.log(failed ? `\n${failed} échec(s)` : '\nTous les tests passent');
 process.exit(failed ? 1 : 0);
