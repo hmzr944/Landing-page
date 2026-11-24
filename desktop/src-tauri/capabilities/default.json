@@ -1,0 +1,12 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Droits de la fenêtre principale : notifications, ouverture de liens, état de la fenêtre. Rien d'autre (pas d'accès aux fichiers ni au shell).",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "notification:default",
+    "opener:default",
+    "window-state:default"
+  ]
+}

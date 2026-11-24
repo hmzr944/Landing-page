@@ -4101,7 +4101,7 @@ html.cmdk-open { overflow: hidden; }
   }
   html:not(.in-org) .topbar .brand { padding: 0 8px; }
   html:not(.in-org) .topbar-actions { flex: 1; flex-direction: column; align-items: stretch; gap: 4px; }
-  html:not(.in-org) .topbar .xp { order: 0; justify-content: flex-start; margin-bottom: 12px; border-radius: 10px; }
+  html:not(.in-org) .topbar .xp { white-space: nowrap; order: 0; justify-content: flex-start; margin-bottom: 12px; border-radius: 10px; }
   html:not(.in-org) .topbar .space-chip:not([hidden]) { order: -1; margin-bottom: 8px; }
   html:not(.in-org) .topnav { order: 1; display: flex; flex-direction: column; gap: 2px; padding: 0; background: none; border: 0; }
   html:not(.in-org) .topnav::before { display: none; }
@@ -4485,3 +4485,71 @@ mark.ins { background: var(--accent-soft); color: var(--accent-ink); border-radi
   .ir-chain { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 16px; } .ir-chain::before { display: none; } .diff-cols { grid-template-columns: 1fr; }
 }
 @media (max-width: 1023px) { .d2 { padding: 0 16px 24px; } .d2-head h1 { font-size: 1.7rem; } }
+
+/* =========================================================
+   Arbor Learning 2.0 · huit espaces (js/spaces.js) et arbre de savoir vivant
+   ========================================================= */
+.sp-side { display: none; }
+@media (min-width: 1200px) {
+  html:not(.in-org) .topbar .topnav { display: none !important; }
+  html:not(.in-org) .sp-side { display: block; order: 1; }
+  .sp-nav { display: flex; flex-direction: column; gap: 2px; }
+  .sp-nav a { display: flex; align-items: center; gap: 10px; height: 36px; padding: 0 10px; border-radius: 8px; color: var(--text-2); font-weight: 500; font-size: .93rem; text-decoration: none; position: relative; }
+  .sp-nav a i { font-size: 1.12rem; }
+  .sp-nav a:hover { background: var(--surface-2); color: var(--text); }
+  .sp-nav a[aria-current] { background: var(--accent-soft); color: var(--accent-ink); }
+  .sp-nav a[aria-current]::before { content: ''; position: absolute; left: -12px; top: 9px; bottom: 9px; width: 3px; border-radius: 3px; background: var(--accent); }
+  html:not(.in-org) #app .d2.sp { max-width: 1240px; margin: 0 auto; padding: 0 32px 48px; }
+}
+@media (max-width: 1199px) { .d2.sp { padding: 0 16px 24px; } }
+.sp-tiles { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.sp-tile { display: flex; gap: 14px; align-items: flex-start; text-align: left; padding: 18px; border-radius: 16px; border: 1px solid var(--line); background: var(--surface); color: var(--text); font: inherit; cursor: pointer; text-decoration: none; }
+.sp-tile:hover { border-color: color-mix(in oklab, var(--accent) 45%, var(--line)); }
+.sp-tile b { display: block; font-family: var(--font-display); font-size: 1.05rem; letter-spacing: -0.01em; margin-bottom: 4px; }
+.sp-tile small { color: var(--text-2); line-height: 1.45; }
+.sp-ico { flex: none; width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; font-size: 1.2rem; background: var(--accent-soft); color: var(--accent-ink); }
+.sp-subs, .sp-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.sp-subs a, .sp-list a { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 4px 12px; padding: 10px; border-radius: 10px; color: var(--text); text-decoration: none; }
+.sp-list a { grid-template-columns: auto 1fr; } .sp-list a small { grid-column: 2; color: var(--text-3); font-size: .82rem; }
+.sp-subs a:hover, .sp-list a:hover { background: var(--surface-2); }
+.sp-subs small { color: var(--text-3); }
+.sp-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--c); }
+.sp-mem { margin-bottom: 18px; }
+.mem-row { display: grid; gap: 16px; } .mem-kv { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.mem-curve { width: 100%; height: 160px; }
+@media (min-width: 1000px) { .mem-row { grid-template-columns: 340px 1fr; align-items: center; } .mem-kv { grid-template-columns: 1fr 1fr; } }
+.cp-ask { display: flex; gap: 10px; } .cp-ask .input { flex: 1; min-height: 46px; font-size: 1rem; }
+.cp-res { display: grid; gap: 10px; }
+.cp-item { display: grid; gap: 10px; padding: 18px; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); }
+.cp-src { margin: 0; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; color: var(--text-2); font-size: .88rem; }
+.cp-item blockquote { margin: 0; padding: 4px 0 4px 14px; border-left: 3px solid var(--accent); color: var(--text); line-height: 1.6; }
+
+/* Arbre de savoir : panneau profond, sève qui pousse, bourgeons colorés par l'état réel */
+.kt-card { border-radius: 20px; overflow: hidden; background: radial-gradient(120% 140% at 0% 50%, #17352A 0%, #0F241C 55%, #0B1A15 100%); color: #E7F1EA; box-shadow: 0 30px 60px -30px rgb(11 26 21 / .6); }
+.kt-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 20px 24px 0; flex-wrap: wrap; }
+.kt-head h2 { margin: 0; font-family: var(--font-display); font-size: 1.25rem; color: #F2F7F3; }
+.kt-legend { list-style: none; margin: 0; padding: 0; display: flex; gap: 14px; flex-wrap: wrap; font-size: .8rem; color: #A9C2B3; }
+.kt-legend li { display: inline-flex; align-items: center; gap: 6px; } .kt-legend i { width: 9px; height: 9px; border-radius: 50%; background: var(--sc); box-shadow: 0 0 10px var(--sc); }
+.kt-legend b { color: #F2F7F3; font-weight: 600; }
+.kt-scroll { overflow-x: auto; padding: 8px 12px 16px; }
+.ktree { display: block; width: 100%; min-width: 760px; height: auto; font-family: var(--font); }
+.kt-p { fill: none; stroke: url(#none); stroke: #C9A24A; stroke-opacity: .55; stroke-width: 1.6; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 0; }
+.kt-leafp { stroke: #5FBF8A; stroke-opacity: .4; stroke-width: 1.2; }
+.kt-n circle { fill: #10261E; stroke: #E3B65B; stroke-width: 2; }
+.kt-root circle { fill: #1C3B2E; stroke: #E3B65B; stroke-width: 2.5; filter: drop-shadow(0 0 10px rgb(227 182 91 / .55)); }
+.kt-ch circle { fill: #3A3218; stroke: #E3B65B; filter: drop-shadow(0 0 6px rgb(227 182 91 / .45)); }
+.kt-leaf circle { fill: var(--sc); stroke: none; filter: drop-shadow(0 0 6px var(--sc)); }
+.kt-leaf.st-new circle { fill: #2B4238; filter: none; stroke: #5E7A6C; stroke-width: 1.2; }
+.kt-bud { fill: #8BD17C; opacity: .9; }
+.kt-n text { fill: #E7F1EA; font-size: 13px; font-weight: 500; }
+.kt-ch text { font-family: var(--font-display); font-weight: 600; font-size: 14px; }
+.kt-n .kt-sub, .kt-more { fill: #8FB39E; font-size: 11px; font-weight: 500; font-family: var(--font); }
+.kt-root text { fill: #F6E7C1; font-family: var(--font-display); font-weight: 600; font-size: 14px; }
+.kt-link:hover text { fill: #FFFFFF; } .kt-link:focus-visible circle { stroke: #fff; stroke-width: 2; }
+@keyframes kt-grow { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes kt-pop { from { opacity: 0; transform: scale(.4); } to { opacity: 1; transform: scale(1); } }
+@media (prefers-reduced-motion: no-preference) {
+  .ktree:not(.still) .kt-p { animation: kt-grow .9s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--k) * 90ms); }
+  .ktree:not(.still) .kt-n > * { transform-box: fill-box; transform-origin: center; animation: kt-pop .5s cubic-bezier(.2, .8, .2, 1.2) both; animation-delay: calc(var(--k) * 90ms + 250ms); }
+  .ktree:not(.still) .kt-leaf text { animation-name: d2-in; }
+}

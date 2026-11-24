@@ -1,0 +1,36 @@
+# Arbor Desktop : construit les installateurs Windows et macOS (Tauri 2). Déclenchement manuel uniquement ;
+# ne publie rien, ne signe rien : les fichiers sont joints au run comme artefacts, pour essai.
+name: Desktop
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            args: --target universal-apple-darwin
+          - os: windows-latest
+            args: ''
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.os == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+      - name: Construire
+        working-directory: desktop
+        run: npx --yes @tauri-apps/cli@2 build ${{ matrix.args }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: arbor-desktop-${{ matrix.os }}
+          path: |
+            desktop/src-tauri/target/**/bundle/dmg/*.dmg
+            desktop/src-tauri/target/**/bundle/msi/*.msi
+            desktop/src-tauri/target/**/bundle/nsis/*.exe
+          if-no-files-found: error

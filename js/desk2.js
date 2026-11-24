@@ -19,11 +19,12 @@
 
   /* ---------- Navigation : cinq espaces, plus le contexte d'équipe ---------- */
   const SPACES = [
-    ['accueil', 'gauge', 'Cockpit', 'radar opérationnel : état, risques, actions'],
-    ['savoir', 'books', 'Knowledge & Impact', 'documents, versions, comparaison et impact'],
+    ['accueil', 'gauge', 'Mon environnement', 'Mon environnement professionnel : état, risques, actions'],
+    ['savoir', 'books', 'Knowledge & Impact', 'Knowledge & Impact Studio : documents, versions, comparaison et impact'],
     ['studio', 'film-script', 'Scenario Studio', 'concevoir et valider des situations'],
     ['angles', 'eye-slash', 'Blind Spots', 'erreurs, confusions, fausses certitudes'],
-    ['preuves', 'seal-check', 'Evidence & Governance', 'preuves, revalidations, audit'],
+    ['preuves', 'seal-check', 'Evidence & Mastery', 'preuves de maîtrise, revalidations, audit'],
+    ['transmission', 'hand-heart', 'Transmission', 'Transmission & Knowledge Sharing : transmettre une méthode ou un savoir-faire'],
   ];
   function nav() {
     return [[null, SPACES.map(([k, i, l]) => [k, i, l])], ['Organisation', [['equipe', 'users-three', 'Mon équipe'], ['apprendre', 'student', 'Mon apprentissage']]]];
@@ -92,7 +93,7 @@
   async function cockpit(app, o, head, deps) {
     d = deps;
     const today = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
-    app.innerHTML = `${head}<div class="d2">${pageHead(today, 'Cockpit', `Où en sont les connaissances de ${d.esc(o.name)}, et ce qui demande votre attention.`)}${skeleton()}</div>`;
+    app.innerHTML = `${head}<div class="d2">${pageHead(`Cockpit · ${today}`, 'Mon environnement professionnel', `Où en sont les connaissances de ${d.esc(o.name)}, et ce qui demande votre attention.`)}${skeleton()}</div>`;
     const x = await loadAll(o);
     const { evs, ks, ms } = x;
     const learners = learnersOf(ms, evs);
@@ -136,7 +137,7 @@
       card('b-w6', 5, 'Équipes à surveiller', teams.length ? `<ul class="b-teams">${teams.slice(0, 5).map((t) => `<li><b>${d.esc(t.u.name)}</b><span class="num">${plural(t.n, 'personne')}</span>${t.flagged ? `<em class="amber">${plural(t.flagged, 'à revalider', 'à revalider')}</em>` : '<em class="green">à jour</em>'}</li>`).join('')}</ul>` : empty('users-three', 'Aucune équipe définie : les personnes ne sont pas encore rangées par équipe ou établissement.'), more(`#/org/${o.id}/equipe`, 'Mon équipe')),
       card('b-w6', 6, 'Activité', `<div class="b-act"><b class="num">${act.total}</b><span>réponse${act.total > 1 ? 's' : ''} sur 14 jours</span></div>${act.svg}`),
     ];
-    app.innerHTML = `${head}<div class="d2">${pageHead(today, 'Cockpit', `Où en sont les connaissances de ${d.esc(o.name)}, et ce qui demande votre attention.`,
+    app.innerHTML = `${head}<div class="d2">${pageHead(`Cockpit · ${today}`, 'Mon environnement professionnel', `Où en sont les connaissances de ${d.esc(o.name)}, et ce qui demande votre attention.`,
       `<span class="d2-pill">${d.ic('database')} Données réelles · ${plural(evs.length, 'preuve')}</span>`)}
       ${window.OrgOnboarding ? OrgOnboarding.resumeBanner(o, d) : ''}
       <div class="dbento">${cards.join('')}</div></div>`;
@@ -222,7 +223,7 @@
   const EVAL = { regle: 'Règle', ia: 'IA', humain: 'Humain' };
   async function evidence(app, o, head, deps, sub) {
     d = deps;
-    app.innerHTML = `${head}<div class="d2">${pageHead('Evidence & Governance', 'Dossier de preuves', 'Chaque preuve avec sa règle, la version applicable, son contexte, son résultat et qui l’a évaluée. Les preuves ne se modifient jamais.')}${skeleton(2)}</div>`;
+    app.innerHTML = `${head}<div class="d2">${pageHead('Evidence & Mastery', 'Dossier de preuves', 'Chaque preuve avec sa règle, la version applicable, son contexte, son résultat et qui l’a évaluée. Les preuves ne se modifient jamais.')}${skeleton(2)}</div>`;
     const x = await loadAll(o);
     const kById = new Map(x.ks.map((k) => [k.id, k])), sk = new Map(x.skills.map((s) => [s.id, s])), mOf = (u) => x.ms.find((m) => m.user_id === u);
     const f = { who: '', out: '', days: '30' };
@@ -242,7 +243,7 @@
     const revRows = x.revals.slice().sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
     const paint = () => {
       const list = rows();
-      app.innerHTML = `${head}<div class="d2">${pageHead('Evidence & Governance', 'Dossier de preuves', 'Chaque preuve avec sa règle, la version applicable, son contexte, son résultat et qui l’a évaluée. Les preuves ne se modifient jamais.',
+      app.innerHTML = `${head}<div class="d2">${pageHead('Evidence & Mastery', 'Dossier de preuves', 'Chaque preuve avec sa règle, la version applicable, son contexte, son résultat et qui l’a évaluée. Les preuves ne se modifient jamais.',
         `<button type="button" class="btn ghost" id="evCsv">${d.ic('download-simple')}Exporter (CSV)</button>`)}
         <div class="privacy" role="note">${d.ic('lock-simple', true)}<span>Réservé aux managers et administrateurs de ${d.esc(o.name)}. Chaque collaborateur voit ses propres preuves. Une preuve sert à savoir quoi revoir, pas à surveiller.</span></div>
         <div class="dbento">
@@ -262,5 +263,53 @@
     paint();
   }
 
-  window.Desk2 = { nav, HELP, SECTION, SPACES, badges, cockpit, kiHead, studio, blindspots, evidence, _reset: () => { badgeCache = null; } };
+  /* ---------- F. Transmission & Knowledge Sharing : un expert transmet une méthode ----------
+     Capture guidée (situation, étapes, pièges, astuces) → aperçu structuré → brouillon gardé sur cet appareil.
+     Rien ne devient une règle de l'organisation sans passer par la Base de savoir et la validation d'un responsable. */
+  const TKEY = (o) => `arbor:transmission:${o.id}`;
+  const drafts = (o) => { try { return JSON.parse(localStorage.getItem(TKEY(o)) || '[]'); } catch (e) { return []; } };
+  function transmission(app, o, head, deps) {
+    d = deps;
+    const list = drafts(o);
+    app.innerHTML = `${head}<div class="d2">${pageHead('Transmission & Knowledge Sharing', 'Transmettre un savoir-faire', 'Une méthode, un geste, une expérience de terrain : décrivez-la comme vous l’expliqueriez à un nouveau collègue. Arbor la structure en situation, étapes, pièges et astuces.')}
+      <div class="dbento">
+        <section class="b-card b-w7" style="--i:0"><header class="b-h"><h2>Nouvelle transmission</h2></header>
+          <form id="tmForm" class="tm-form">
+            <label>Titre<input class="input" name="titre" required maxlength="120" placeholder="Conseiller un client sur la taille d’un vélo" /></label>
+            <label>Dans quelle situation cela sert-il ?<textarea class="input" name="situation" rows="2" required placeholder="Un client hésite entre deux tailles…"></textarea></label>
+            <label>Les étapes, une par ligne<textarea class="input" name="etapes" rows="4" required placeholder="Demander la taille et l’entrejambe&#10;Vérifier sur le tableau du fabricant&#10;Faire essayer en ajustant la selle"></textarea></label>
+            <label>Les pièges à éviter, un par ligne<textarea class="input" name="pieges" rows="2"></textarea></label>
+            <label>Astuces d’expert, une par ligne<textarea class="input" name="astuces" rows="2"></textarea></label>
+            <div class="row-btns"><button class="btn">${d.ic('sparkle')}Structurer</button></div>
+          </form></section>
+        <section class="b-card b-w5" style="--i:1"><header class="b-h"><h2>Brouillons <small class="num">${list.length}</small></h2></header>
+          ${list.length ? `<ul class="sp-list">${list.map((t, i) => `<li><a href="#" data-tm="${i}">${d.ic('hand-heart')}<b>${d.esc(t.titre)}</b><small>${t.etapes.length} étape${t.etapes.length > 1 ? 's' : ''} · <span class="mono">${fmt(t.at)}</span></small></a></li>`).join('')}</ul>` : empty('hand-heart', 'Aucune transmission pour l’instant.')}
+          <p class="b-note">${d.ic('shield-check')} Brouillon gardé sur cet appareil. Pour qu’il serve aux évaluations, il passe par la Base de savoir et la validation d’un responsable : c’est le socle souverain.</p></section>
+        <section class="b-card b-w12" id="tmPreview" style="--i:2" hidden></section>
+      </div></div>`;
+    const preview = (t) => {
+      const box = app.querySelector('#tmPreview'); box.hidden = false;
+      box.innerHTML = `<header class="b-h"><h2>${d.esc(t.titre)}</h2><span class="d2-pill amber">${d.ic('hourglass')} À valider avant usage</span></header>
+        <ol class="d2-flow">${['Situation', 'Méthode', 'Pièges', 'Pratique'].map((s, i) => `<li style="--i:${i}"><span>${i + 1}</span>${s}</li>`).join('')}</ol>
+        <div class="tm-prev"><div><h3>Situation</h3><p>${d.esc(t.situation)}</p></div>
+          <div><h3>Étapes</h3><ol>${t.etapes.map((e) => `<li>${d.esc(e)}</li>`).join('')}</ol></div>
+          ${t.pieges.length ? `<div><h3>Pièges</h3><ul>${t.pieges.map((e) => `<li>${d.esc(e)}</li>`).join('')}</ul></div>` : ''}
+          ${t.astuces.length ? `<div><h3>Astuces</h3><ul>${t.astuces.map((e) => `<li>${d.esc(e)}</li>`).join('')}</ul></div>` : ''}</div>
+        <p class="b-note">Pratique proposée : remettre les étapes dans l’ordre, puis une mise en situation dans Scenario Studio une fois la méthode validée.</p>`;
+      box.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+    };
+    const lines = (v) => String(v || '').split('\n').map((x) => x.trim()).filter(Boolean).slice(0, 20);
+    app.querySelector('#tmForm').onsubmit = (e) => {
+      e.preventDefault();
+      const f = e.target.elements;
+      const t = { titre: f.titre.value.trim(), situation: f.situation.value.trim(), etapes: lines(f.etapes.value), pieges: lines(f.pieges.value), astuces: lines(f.astuces.value), at: new Date().toISOString() };
+      if (t.etapes.length < 2) { d.toast('Décrivez au moins deux étapes.', 'error'); return; }
+      const all = [t, ...drafts(o)].slice(0, 30);
+      try { localStorage.setItem(TKEY(o), JSON.stringify(all)); } catch (x) { /* stockage indisponible : l'aperçu reste affiché */ }
+      transmission(app, o, head, d); preview(t);
+    };
+    app.querySelectorAll('[data-tm]').forEach((a) => { a.onclick = (e) => { e.preventDefault(); preview(list[Number(a.dataset.tm)]); }; });
+  }
+
+  window.Desk2 = { transmission, nav, HELP, SECTION, SPACES, badges, cockpit, kiHead, studio, blindspots, evidence, _reset: () => { badgeCache = null; } };
 })();

@@ -48,14 +48,14 @@ const db = () => M.state.db;
     // Navigation par intention (docs/business-v2.md, D13) : 5 rubriques au plus ; les paramètres sont une icône (administrateur)
     // Arbor Desktop 2 : cinq espaces pour les responsables (Cockpit, Knowledge & Impact, Scenario Studio, Blind Spots,
     // Evidence & Governance), puis le contexte d'organisation (Mon équipe, Mon apprentissage)
-    const LEAD = ['accueil', 'savoir', 'studio', 'angles', 'preuves', 'equipe', 'apprendre'];
+    const LEAD = ['accueil', 'savoir', 'studio', 'angles', 'preuves', 'transmission', 'equipe', 'apprendre'];
     const expect = { ana: LEAD, eve: LEAD,
       paul: ['accueil', 'savoir', 'apprendre'], bob: ['accueil', 'canopee', 'apprendre', 'resultats'] };
     for (const who of Object.keys(expect)) {
       const { ctx, page } = await as(who);
       await page.goto(`${URL0}#/org/${ORG}`); await wait(page, 1200);
       const got = await navHrefs(page);
-      check(`A1 ${M.U[who].role} : la navigation montre exactement ses rubriques (5 au plus)`, got.join() === expect[who].join() && (expect[who] === LEAD ? got.length - 2 : got.length) <= 5, got.join());
+      check(`A1 ${M.U[who].role} : la navigation montre exactement ses rubriques (6 espaces au plus)`, got.join() === expect[who].join() && (expect[who] === LEAD ? got.length - 2 : got.length) <= 6, got.join());
       check(`A1b ${M.U[who].role} : l’icône Paramètres seulement pour l’administrateur`, !!(await page.$('.org-set')) === (who === 'ana'));
       await ctx.close();
     }

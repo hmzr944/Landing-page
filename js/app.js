@@ -111,6 +111,9 @@
     } else if (parts[0] === 'apprendre' && (parts[1] === 'demo' || (subjectById(parts[1]) && find(subjectById(parts[1]).root, parts[2] || '')))) {
       view = parts[1] === 'demo' ? { name: 'learn', demo: true, key: 'demo' } : { name: 'learn', sid: parts[1], nid: parts[2], key: `${parts[1]}/${parts[2]}` };
       if (window.Learn && (!prev || prev.key !== view.key)) Learn.reset();
+    } else if (window.Spaces && Spaces.ROUTES[parts[0]] && parts[0] !== 'memoire') {
+      // Arbor Learning 2.0 : espaces Explorer, Studio pédagogique, Pratiquer, Ma connaissance, Compagnon
+      view = { name: 'space', sp: parts[0], arg: parts[1] ? decodeURIComponent(parts.slice(1).join('/')) : '' };
     } else if (parts[0] === 'reviser') {
       view = { name: 'study' };
     } else if (parts[0] === 'methode') {
@@ -128,7 +131,9 @@
     } else {
       view = { name: 'home' };
     }
-    const navOf = { home: 'home', study: 'home', courses: 'courses', subject: 'courses', learn: 'courses', progress: 'progress', trophies: 'progress' }[view.name];
+    const navOf = view.name === 'space' ? { explorer: 'courses', studio: 'courses', pratiquer: 'home', connaissance: 'progress', compagnon: 'home' }[view.sp]
+      : { home: 'home', study: 'home', courses: 'courses', subject: 'courses', learn: 'courses', progress: 'progress', trophies: 'progress' }[view.name];
+    if (window.Spaces) Spaces.paintNav(view.name === 'space' ? view.sp : { home: 'home', study: 'pratiquer', courses: 'courses', subject: 'courses', learn: 'pratiquer', progress: 'progress', trophies: 'progress', method: 'home' }[view.name]);
     // Espace professionnel : les menus de l'espace personnel (cours, niveau, import) disparaissent, rien ne s'y mélange
     const inOrg = view.name === 'org' || view.name === 'join';
     document.documentElement.classList.toggle('in-org', inOrg);
@@ -180,8 +185,9 @@
       else if (view.name === 'method') renderMethod();
       else if (view.name === 'trophies') renderTrophies();
       else if (view.name === 'courses') renderCourses();
-      else if (view.name === 'progress') renderProgress();
+      else if (view.name === 'progress') { renderProgress(); if (window.Spaces) { const sec = app.querySelector('section, .home'); if (sec) sec.insertAdjacentHTML('afterbegin', `<div class="dbento sp-mem">${Spaces.memoryBlock(state)}</div>`); } }
       else if (view.name === 'learn') Learn.render(app, view, learnDeps());
+      else if (view.name === 'space') Spaces[view.sp](app, state, view.arg);
       else renderSubject(bigChange);
       updateBadges();
       if (bigChange) {
@@ -3312,6 +3318,11 @@
   applyTheme();
   applyCalm();
   renderXP();
+  // Arbor Learning 2.0 : barre latérale des huit espaces (ordinateur) et outils du module Spaces
+  if (window.Spaces) {
+    Spaces.use({ esc, ic, go, talk: (sid, nid) => { const sj = subjectById(sid), f = sj && find(sj.root, nid); if (f) openTalk(sj, f.node); } });
+    const box = document.getElementById('spNav'); if (box) box.innerHTML = Spaces.sideNav('home');
+  }
   route();
   renderFocusUI();
   if (focus.running && focus.mode === 'work') Mascot.setFocus(true);

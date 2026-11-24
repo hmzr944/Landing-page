@@ -245,6 +245,7 @@
         if (view.tab === 'studio') return Desk2.studio(app, o, head(o, 'studio'), d);
         if (view.tab === 'angles') return Desk2.blindspots(app, o, head(o, 'angles'), d);
         if (view.tab === 'preuves') return Desk2.evidence(app, o, head(o, 'preuves'), d, view.sub);
+        if (view.tab === 'transmission') return Desk2.transmission(app, o, head(o, 'transmission'), d);
       }
       if (view.tab === 'accueil' && lead) return OrgHub.cockpit(app, o, head(o, 'accueil'), d);
       if (view.tab === 'accueil' && !content && window.League) return League.home(app, o, head(o, 'accueil'), d);
