@@ -1,4 +1,4 @@
-# Grilles de correction de la mission 3a : reformulation (B2) et déblocage (B4)
+# Grilles de correction de la mission 3a : reformulation (B2), transfert (B3) et déblocage (B4)
 
 Une même grille pour les deux correcteurs, et pour l'ancien comme pour le nouveau moteur (mission 3b). Pour chaque
 élément, l'idée centrale et les deux éléments clés attendus sont écrits dans `jeu-de-mesure.json` (champ
@@ -41,7 +41,42 @@ Règles de décision :
 - Les exemples de copies corrigées (ancrage), écrits avant la mesure, sont joints en annexe A ; les deux correcteurs
   les notent d'abord à blanc pour s'étalonner. Ces copies ne viennent pas des participants.
 
-## Partie 2 : déblocage (B4)
+## Partie 2 : transfert (B3)
+
+### Ce qu'on mesure
+La capacité à **réutiliser** ce qui vient d'être expliqué dans une situation nouvelle, absente de l'explication et des
+questions : prendre la bonne décision (ou tirer la bonne conclusion) **et** dire pourquoi.
+
+### Consigne donnée au participant
+La situation et sa question, puis : « Réponds avec tes mots, en expliquant ton raisonnement. Une ou deux phrases
+suffisent. » Réponse écrite ou orale transcrite.
+
+### Ce que le correcteur a sous les yeux, pour chaque situation
+Écrits à l'avance dans `jeu-de-mesure.md` (et `.json`, champ `transfert.criteres`), situation par situation :
+- **élément 1, la décision ou la conclusion** attendue (par exemple « je ne ferme pas seul », « 4 m », « un CDD ») ;
+- **élément 2, la raison** qui la justifie (le mécanisme du sujet, ou la règle écrite dans la procédure) ;
+- **trois exemples de réponses**, un pour chaque note (2, 1 et 0 point).
+
+### Note (0, 1 ou 2)
+| Note | Condition |
+|---|---|
+| **2** | les **deux éléments** sont présents et justes, même avec d'autres mots, et la réponse ne contient **aucune erreur de fond** |
+| **1** | **un seul** des deux éléments est juste (la bonne décision sans raison, ou une raison vague ; ou la bonne raison avec une conclusion absente ou incomplète), sans erreur de fond ; **ou** les deux éléments avec une imprécision sans contresens |
+| **0** | aucun des deux éléments ; **ou** une erreur de fond (contresens, chiffre faux, règle inventée), même à côté d'un élément juste ; **ou** une simple récitation de la définition, sans l'appliquer à la situation ; **ou** une réponse vide, ou « je ne sais pas » |
+
+Règles de décision :
+- **Calculs** (S04, S05, S17) : élément 1 = le bon résultat, élément 2 = la méthode. Un bon résultat sans méthode vaut
+  1 ; une bonne méthode avec une erreur de calcul vaut 1 si l'erreur est une étourderie visible (le raisonnement écrit
+  est juste), 0 si le raisonnement lui-même est faux.
+- **Procédures** (P-R1, P-H1, P-R3) : la raison attendue est toujours la règle **écrite dans la procédure** (phrases
+  citées sous « Appui dans la procédure »). Une raison vraie mais non écrite (« c'est plus prudent ») ne compte pas
+  comme élément 2 : la réponse vaut au plus 1. Une règle inventée (« le dimanche on peut fermer seul ») est une erreur
+  de fond : 0.
+- On ne pénalise ni l'orthographe, ni le style, ni la longueur ; on n'accorde rien pour la longueur non plus.
+- En cas d'hésitation entre deux notes, le correcteur choisit la plus basse et l'indique (« hésitation 1/2 ») ; ces
+  hésitations sont comptées dans le rapport.
+
+## Partie 3 : déblocage (B4)
 
 ### Quand
 Seulement si la personne a obtenu moins de 2 sur 3 aux questions de compréhension immédiate (B1), ou s'est déclarée
@@ -91,15 +126,17 @@ de chaque question (kappa pondéré) et sur la décision finale.
    réponse, le sujet, l'idée centrale et les éléments clés attendus.
 3. **Notes individuelles figées avant toute discussion.** Chaque correcteur remet ses notes, critère par critère ;
    elles sont enregistrées et ne sont plus modifiées. Elles servent seules au calcul de l'accord.
-4. **Accord mesuré sur ces notes individuelles.** Pour chaque critère (C1 à C4), pour le total sur 8 et pour la
-   décision de déblocage :
+4. **Accord mesuré sur ces notes individuelles.** Pour chaque critère de la reformulation (C1 à C4), pour son total
+   sur 8, pour la note du transfert (sur 2), pour la note de chaque question de déblocage et pour la décision de
+   déblocage :
    - **pourcentage d'accord exact** ;
    - **kappa de Cohen pondéré quadratique** (les notes sont ordonnées : un écart de 0 à 2 compte plus qu'un écart de
      0 à 1) ; pour le total, coefficient de corrélation intra-classe en complément.
    Ces chiffres sont publiés tels quels. Avec 5 à 8 participants (environ 25 à 40 reformulations), l'intervalle de
    confiance du kappa sera large : il est publié avec lui. Un kappa pondéré inférieur à 0,6 sur un critère signale une
    grille ambiguë ; le critère est alors rapporté comme peu fiable, sans être corrigé après coup.
-5. **Désaccords.** Un écart d'au moins 2 points sur le total, ou toute décision de déblocage différente, est relu par
+5. **Désaccords.** Un écart d'au moins 2 points sur le total de la reformulation, toute note de transfert différente,
+   ou toute décision de déblocage différente, est relu par
    les deux correcteurs ensemble, en voyant toujours la seule réponse. La note retenue est la note commune ; à défaut
    d'accord, la moyenne des deux. Les notes individuelles d'avant discussion et les notes d'après discussion sont
    toutes conservées et publiées (en agrégé).

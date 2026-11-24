@@ -102,7 +102,14 @@ function markdown(j) {
     L.push(`## ${x.id} · ${x.sujet}`, '', `*Domaine : ${x.domaine}*`, '', `**Glossaire (termes à surveiller) :** ${x.glossaire.join(', ')}`, '', '**Compréhension immédiate**', '');
     list(x.comprehension);
     L.push('', `**Situation de transfert :** ${x.transfert.situation}`, '', `> ${x.transfert.question}`, '', `*Réponse attendue :* ${x.transfert.attendu}`, '',
-      '**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*', '');
+      ...(x.transfert.source ? [`*Appui dans la procédure :* ${x.transfert.source.map((t) => `« ${t} »`).join(' ')}`, ''] : []),
+      ...(x.transfert.criteres ? ['*Notation du transfert (sur 2, `grille-reformulation.md`, partie 2) :*', '',
+        `- élément 1, la décision ou la conclusion : ${x.transfert.criteres.decision}`,
+        `- élément 2, la raison : ${x.transfert.criteres.raison}`,
+        `- 2 points, exemple : « ${x.transfert.criteres.note2} »`,
+        `- 1 point, exemple : « ${x.transfert.criteres.note1} »`,
+        `- 0 point, exemple : « ${x.transfert.criteres.note0} »`, ''] : []),
+      '**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 3)*', '');
     list(x.deblocage);
     L.push('', '**Rappel à J+2**', '');
     list(x.rappel);

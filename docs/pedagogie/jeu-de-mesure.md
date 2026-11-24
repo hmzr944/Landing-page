@@ -27,7 +27,7 @@ Une bonne réponse plus longue que les autres est un indice qui permet de réuss
 | Compréhension immédiate | 69 | 11 (15,9 %) | 18 (26,1 %) | 0,98 |
 | Rappel à J+2 | 92 | 6 (6,5 %) | 24 (26,1 %) | 0,90 |
 | Déblocage | 46 | 9 (19,6 %) | 7 (15,2 %) | 0,99 |
-| **Total** | 207 | 26 (12,6 %) | 49 (23,7 %) | 0,94 |
+| **Total** | 207 | 26 (12,6 %) | 49 (23,7 %) | 0,95 |
 
 | Élément | Compréhension immédiate (app. / comp. / rest.) | Rappel J+2 (app. / comp. / rest.) | Déblocage (app. / comp.) |
 |---|---|---|---|
@@ -85,7 +85,15 @@ Une bonne réponse plus longue que les autres est un indice qui permet de réuss
 
 *Réponse attendue :* Certains paquets ont été retardés ou perdus en route (chemin encombré) ; les suivants sont arrivés et l'appel a continué.
 
-**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
+*Notation du transfert (sur 2, `grille-reformulation.md`, partie 2) :*
+
+- élément 1, la décision ou la conclusion : des paquets ont été retardés ou perdus, puis les suivants sont arrivés
+- élément 2, la raison : les paquets voyagent séparément, par des chemins qui peuvent être encombrés
+- 2 points, exemple : « Quelques paquets sont restés bloqués sur un chemin encombré, les suivants sont arrivés par ailleurs, donc la vidéo a repris. »
+- 1 point, exemple : « Il y a eu un petit bug de connexion, puis ça a repris. »
+- 0 point, exemple : « L'ordinateur de l'autre personne s'est éteint une seconde. »
+
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 3)*
 
 1. Tu envoies une photo à un ami. Combien d'adresses de destination différentes portent ses paquets ? *(évalue : application)*
    - Aucune : c'est le routeur qui devine la destination
@@ -163,7 +171,15 @@ Une bonne réponse plus longue que les autres est un indice qui permet de réuss
 
 *Réponse attendue :* Le tableau = la mémoire vive (on travaille dessus, rapide, effacé à la fin) ; le classeur = le disque (on y range pour garder).
 
-**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
+*Notation du transfert (sur 2, `grille-reformulation.md`, partie 2) :*
+
+- élément 1, la décision ou la conclusion : tableau = mémoire vive, classeur = disque
+- élément 2, la raison : on travaille vite sur le tableau et il s'efface ; on range dans le classeur pour garder
+- 2 points, exemple : « Le tableau, c'est la mémoire vive : on écrit dessus pour travailler et on l'efface après ; le classeur, c'est le disque où on garde. »
+- 1 point, exemple : « Le tableau c'est la mémoire vive et le classeur le disque. »
+- 0 point, exemple : « Le tableau c'est l'écran et le classeur c'est Internet. »
+
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 3)*
 
 1. Une coupure de courant survient pendant que tu écris. Qu'est-ce qui sera conservé ? *(évalue : application)*
    - ✔ Ce qui était déjà enregistré sur le disque
@@ -241,7 +257,15 @@ Une bonne réponse plus longue que les autres est un indice qui permet de réuss
 
 *Réponse attendue :* La clé est le décalage de 3 ; il faut le connaître pour décaler chaque lettre dans l'autre sens.
 
-**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
+*Notation du transfert (sur 2, `grille-reformulation.md`, partie 2) :*
+
+- élément 1, la décision ou la conclusion : la clé est le décalage de 3
+- élément 2, la raison : l'autre amie doit connaître ce décalage pour reculer chaque lettre de 3 rangs
+- 2 points, exemple : « La clé c'est « décaler de 3 » ; mon amie doit le savoir pour revenir de 3 lettres en arrière (D redevient A). »
+- 1 point, exemple : « La clé c'est le chiffre 3. »
+- 0 point, exemple : « La clé c'est l'alphabet, tout le monde le connaît. »
+
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 3)*
 
 1. Tu reçois « EBUF », chiffré avec un décalage de 1. Quel était le mot ? *(évalue : application)*
    - ✔ DATE
@@ -319,7 +343,15 @@ Une bonne réponse plus longue que les autres est un indice qui permet de réuss
 
 *Réponse attendue :* 4 m : le mur et le sol font un angle droit, 5² = 3² + h², donc h² = 16 et h = 4.
 
-**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
+*Notation du transfert (sur 2, `grille-reformulation.md`, partie 2) :*
+
+- élément 1, la décision ou la conclusion : l’échelle touche le mur à 4 m de hauteur
+- élément 2, la raison : le mur et le sol font un angle droit : 5² = 3² + h², donc h² = 16
+- 2 points, exemple : « 4 m : le mur et le sol font un angle droit, donc 3² + h² = 5², h² = 25 − 9 = 16, h = 4. »
+- 1 point, exemple : « 4 m, comme le triangle 3, 4, 5, sans autre explication. »
+- 0 point, exemple : « 2 m, car 5 − 3 = 2. »
+
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 3)*
 
 1. Un écran a 30 cm de large et 40 cm de haut. Combien mesure sa diagonale ? *(évalue : application)*
    - 70 cm
@@ -397,7 +429,15 @@ Une bonne réponse plus longue que les autres est un indice qui permet de réuss
 
 *Réponse attendue :* 3/8 de litre : deux fois moins de personnes, donc la moitié de 3/4.
 
-**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
+*Notation du transfert (sur 2, `grille-reformulation.md`, partie 2) :*
+
+- élément 1, la décision ou la conclusion : 3/8 de litre
+- élément 2, la raison : deux fois moins de personnes, donc la moitié de 3/4
+- 2 points, exemple : « 3/8 de litre : on est deux fois moins, donc on prend la moitié de 3/4, ce qui fait 3/8. »
+- 1 point, exemple : « La moitié de 3/4, sans donner la quantité. »
+- 0 point, exemple : « 3/2 de litre, car on divise 3 par 2 et on garde les quarts en double. »
+
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 3)*
 
 1. Une bouteille d'1 litre est remplie aux 3/4. Combien de quarts de litre manque-t-il pour la remplir ? *(évalue : application)*
    - 4
@@ -475,7 +515,15 @@ Une bonne réponse plus longue que les autres est un indice qui permet de réuss
 
 *Réponse attendue :* Les intérêts s'ajoutent à la dette, puis portent eux-mêmes des intérêts : la base grossit chaque mois.
 
-**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
+*Notation du transfert (sur 2, `grille-reformulation.md`, partie 2) :*
+
+- élément 1, la décision ou la conclusion : la dette grossit de plus en plus vite
+- élément 2, la raison : les intérêts s'ajoutent à la dette puis portent eux-mêmes des intérêts
+- 2 points, exemple : « Chaque mois les intérêts s'ajoutent à la dette, et le mois suivant on paie des intérêts aussi sur ces intérêts, donc ça accélère. »
+- 1 point, exemple : « Parce qu'il y a des intérêts chaque mois. »
+- 0 point, exemple : « Parce que la banque augmente le taux chaque mois. »
+
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 3)*
 
 1. Tu places 200 € à 10 % par an, composés. Combien as-tu au bout d'un an, puis de deux ans ? *(évalue : application)*
    - ✔ 220 €, puis 242 €
@@ -553,7 +601,15 @@ Une bonne réponse plus longue que les autres est un indice qui permet de réuss
 
 *Réponse attendue :* Elles peuvent pousser plus vite : plus de dioxyde de carbone disponible pour fabriquer leur nourriture, tant qu'il y a lumière et eau.
 
-**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
+*Notation du transfert (sur 2, `grille-reformulation.md`, partie 2) :*
+
+- élément 1, la décision ou la conclusion : les plantes peuvent pousser plus vite
+- élément 2, la raison : plus de dioxyde de carbone disponible pour fabriquer leur nourriture, s'il y a lumière et eau
+- 2 points, exemple : « Elles poussent plus vite, car elles ont plus de dioxyde de carbone pour fabriquer leur sucre avec la lumière. »
+- 1 point, exemple : « Elles poussent mieux, l'air est meilleur pour elles. »
+- 0 point, exemple : « Elles poussent moins, car le dioxyde de carbone est un poison pour les plantes. »
+
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 3)*
 
 1. Une salade pousse sous une lampe éclairant 4 heures par jour au lieu de 12. Que prévoir ? *(évalue : application)*
    - Aucun effet, si elle est bien arrosée chaque jour
@@ -631,7 +687,15 @@ Une bonne réponse plus longue que les autres est un indice qui permet de réuss
 
 *Réponse attendue :* Son système immunitaire réagit moins ou moins vite : les microbes ne sont plus repérés et éliminés à temps.
 
-**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
+*Notation du transfert (sur 2, `grille-reformulation.md`, partie 2) :*
+
+- élément 1, la décision ou la conclusion : elle attrape plus facilement des infections
+- élément 2, la raison : son système immunitaire réagit moins ou moins vite : les microbes ne sont plus éliminés à temps
+- 2 points, exemple : « Ses défenses sont affaiblies, donc les microbes ne sont pas repérés et détruits assez vite, et une infection banale s'installe. »
+- 1 point, exemple : « Parce qu'elle est fragile. »
+- 0 point, exemple : « Parce que le traitement apporte des microbes dans le corps. »
+
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 3)*
 
 1. Un voyageur est infecté par un microbe qu'il n'a jamais rencontré et contre lequel il n'est pas vacciné. À quoi faut-il s'attendre ? *(évalue : application)*
    - Ses anticorps contre d'autres microbes le protégeront
@@ -709,7 +773,15 @@ Une bonne réponse plus longue que les autres est un indice qui permet de réuss
 
 *Réponse attendue :* L'ADN est présent dans les cellules du cheveu et il est propre à chaque personne (sauf vrais jumeaux).
 
-**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
+*Notation du transfert (sur 2, `grille-reformulation.md`, partie 2) :*
+
+- élément 1, la décision ou la conclusion : le cheveu peut désigner une personne précise
+- élément 2, la raison : le cheveu contient des cellules avec de l'ADN, propre à chaque personne (sauf vrais jumeaux)
+- 2 points, exemple : « Il y a de l'ADN dans les cellules du cheveu, et chaque personne a un ADN différent, sauf les vrais jumeaux. »
+- 1 point, exemple : « Parce que l'ADN est dans le cheveu. »
+- 0 point, exemple : « Parce que la couleur du cheveu est la même que celle du suspect. »
+
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 3)*
 
 1. Une cellule de peau et une cellule du foie d'une même personne ont-elles le même ADN ? *(évalue : application)*
    - Non, chaque organe possède son propre ADN
@@ -787,7 +859,15 @@ Une bonne réponse plus longue que les autres est un indice qui permet de réuss
 
 *Réponse attendue :* Non : aucun vaccin ne protège à 100 %, mais le corps, déjà entraîné, réagit plus vite, ce qui rend souvent la maladie moins grave.
 
-**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
+*Notation du transfert (sur 2, `grille-reformulation.md`, partie 2) :*
+
+- élément 1, la décision ou la conclusion : non, le vaccin a servi
+- élément 2, la raison : aucun vaccin ne protège à 100 %, mais le corps entraîné réagit plus vite, d'où une forme plus légère
+- 2 points, exemple : « Non : le vaccin ne protège pas toujours complètement, mais le corps, déjà entraîné, a réagi vite, donc la maladie est restée légère. »
+- 1 point, exemple : « Non, il a quand même servi un peu. »
+- 0 point, exemple : « Oui, le vaccin ne sert à rien puisqu'elle est malade. »
+
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 3)*
 
 1. Une épidémie de grippe est annoncée pour dans un mois. Quand vaut-il mieux se faire vacciner ? *(évalue : application)*
    - Au pic de l'épidémie, quand le risque est le plus fort
@@ -865,7 +945,15 @@ Une bonne réponse plus longue que les autres est un indice qui permet de réuss
 
 *Réponse attendue :* L'eau chaude s'évapore (vapeur), puis la vapeur se condense en gouttelettes sur la vitre froide.
 
-**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
+*Notation du transfert (sur 2, `grille-reformulation.md`, partie 2) :*
+
+- élément 1, la décision ou la conclusion : évaporation puis condensation
+- élément 2, la raison : l'eau chaude devient vapeur, la vapeur redevient gouttelettes sur la vitre froide
+- 2 points, exemple : « L'eau chaude de la douche s'évapore, puis la vapeur touche la vitre froide et se condense en petites gouttes. »
+- 1 point, exemple : « C'est de la condensation. »
+- 0 point, exemple : « C'est de la pluie qui tombe du plafond. »
+
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 3)*
 
 1. Une casserole d'eau bouillante a un couvercle ; des gouttes coulent sous le couvercle. Que s'est-il passé ? *(évalue : application)*
    - La vapeur a traversé le métal du couvercle et coulé
@@ -943,7 +1031,15 @@ Une bonne réponse plus longue que les autres est un indice qui permet de réuss
 
 *Réponse attendue :* La chaleur entre et reste en partie piégée ; mais dans la voiture c'est surtout l'air enfermé, alors que pour la Terre ce sont des gaz qui retiennent le rayonnement de chaleur.
 
-**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
+*Notation du transfert (sur 2, `grille-reformulation.md`, partie 2) :*
+
+- élément 1, la décision ou la conclusion : la chaleur entre et reste en partie piégée, comme sur Terre
+- élément 2, la raison : limite : dans la voiture c'est l'air enfermé, sur Terre ce sont des gaz qui retiennent la chaleur émise
+- 2 points, exemple : « Comme sur Terre, la chaleur entre et reste piégée ; mais dans la voiture c'est l'air qui ne peut pas sortir, alors que sur Terre ce sont des gaz qui retiennent la chaleur. »
+- 1 point, exemple : « C'est pareil, la chaleur reste à l'intérieur. »
+- 0 point, exemple : « La voiture produit sa propre chaleur, comme les gaz à effet de serre. »
+
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 3)*
 
 1. Une nuit nuageuse est souvent moins froide qu'une nuit sans nuages. Avec quelle idée de l'effet de serre cela s'accorde-t-il ? *(évalue : application)*
    - ✔ Les nuages retiennent une partie de la chaleur du sol
@@ -1021,7 +1117,15 @@ Une bonne réponse plus longue que les autres est un indice qui permet de réuss
 
 *Réponse attendue :* La Terre l'attire en permanence, mais il va assez vite sur le côté : il « tombe » autour de la Terre en restant en orbite.
 
-**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
+*Notation du transfert (sur 2, `grille-reformulation.md`, partie 2) :*
+
+- élément 1, la décision ou la conclusion : il reste en orbite
+- élément 2, la raison : la Terre l'attire en permanence, mais il va assez vite sur le côté : il « tombe » autour d'elle
+- 2 points, exemple : « La Terre l'attire tout le temps, mais il va si vite sur le côté qu'il tombe autour d'elle sans jamais la toucher. »
+- 1 point, exemple : « Parce qu'il est en orbite. »
+- 0 point, exemple : « Parce que dans l'espace il n'y a pas de gravité. »
+
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 3)*
 
 1. Sur une planète deux fois plus massive que la Terre, mais de même taille, un sac de 10 kg serait… *(évalue : application)*
    - de 20 kg de matière
@@ -1099,7 +1203,15 @@ Une bonne réponse plus longue que les autres est un indice qui permet de réuss
 
 *Réponse attendue :* La tension est trop faible pour la faire fonctionner normalement ; il faut une tension proche de 4,5 V (par exemple trois piles de 1,5 V en série).
 
-**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
+*Notation du transfert (sur 2, `grille-reformulation.md`, partie 2) :*
+
+- élément 1, la décision ou la conclusion : il faut une tension proche de 4,5 V (par exemple 3 piles de 1,5 V en série)
+- élément 2, la raison : la tension de 1,5 V est trop faible pour cette lampe
+- 2 points, exemple : « La pile ne donne que 1,5 V alors que la lampe en demande 4,5 : il faut trois piles de 1,5 V en série. »
+- 1 point, exemple : « Il faut une pile plus forte. »
+- 0 point, exemple : « La lampe est trop grosse, il faut une lampe de couleur différente. »
+
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 3)*
 
 1. Pour obtenir 4,5 V avec des piles de 1,5 V, combien faut-il en mettre à la suite (en série) ? *(évalue : application)*
    - 2
@@ -1177,7 +1289,15 @@ Une bonne réponse plus longue que les autres est un indice qui permet de réuss
 
 *Réponse attendue :* Pas forcément : il faut comparer au salaire de l'époque ; l'inflation fait monter les prix mais aussi, souvent, les salaires.
 
-**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
+*Notation du transfert (sur 2, `grille-reformulation.md`, partie 2) :*
+
+- élément 1, la décision ou la conclusion : pas forcément
+- élément 2, la raison : il faut comparer au salaire de l'époque : l'inflation fait monter les prix, et souvent les salaires aussi
+- 2 points, exemple : « Pas forcément : les prix ont monté, mais les salaires aussi ; il faut comparer le prix au salaire de l'époque. »
+- 1 point, exemple : « Pas forcément, c'était une autre époque. »
+- 0 point, exemple : « Oui, puisque le prix était plus bas, le pain était forcément plus accessible. »
+
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 3)*
 
 1. Tu gardes 1 000 € dans un tiroir pendant un an avec 5 % d'inflation. Que peux-tu acheter avec à la fin ? *(évalue : application)*
    - Rien : l'argent a perdu toute sa valeur
@@ -1255,7 +1375,15 @@ Une bonne réponse plus longue que les autres est un indice qui permet de réuss
 
 *Réponse attendue :* Le nombre de places est limité (offre faible) et beaucoup veulent y aller (demande forte) : le prix de revente monte.
 
-**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
+*Notation du transfert (sur 2, `grille-reformulation.md`, partie 2) :*
+
+- élément 1, la décision ou la conclusion : le prix de revente monte
+- élément 2, la raison : peu de places (offre faible) et beaucoup de personnes qui veulent y aller (demande forte)
+- 2 points, exemple : « Il y a peu de places et beaucoup de gens qui veulent venir : la demande dépasse l'offre, donc le prix monte. »
+- 1 point, exemple : « Parce que c'est un concert connu. »
+- 0 point, exemple : « Parce que l'État taxe les billets de concert. »
+
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 3)*
 
 1. Un nouveau téléphone est vendu trop cher : il en reste des milliers en stock. Que fait souvent le vendeur ? *(évalue : application)*
    - Il ne change rien et attend la demande
@@ -1333,7 +1461,15 @@ Une bonne réponse plus longue que les autres est un indice qui permet de réuss
 
 *Réponse attendue :* 1 000 € HT ; l'entreprise peut en général récupérer la TVA payée, son coût réel est donc le prix hors taxe.
 
-**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
+*Notation du transfert (sur 2, `grille-reformulation.md`, partie 2) :*
+
+- élément 1, la décision ou la conclusion : 1 000 € HT
+- élément 2, la raison : l'entreprise récupère en général la TVA : son coût réel est le prix hors taxe
+- 2 points, exemple : « 1 200 / 1,2 = 1 000 € HT ; l'entreprise récupère en général la TVA, donc ce qui lui coûte vraiment, c'est 1 000 €. »
+- 1 point, exemple : « 1 000 € HT, sans dire pourquoi ce montant compte. »
+- 0 point, exemple : « 960 € HT, car on enlève 20 % de 1 200. »
+
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 3)*
 
 1. Un livre coûte 10 € HT avec une TVA de 5,5 %. Combien paie le client ? *(évalue : application)*
    - 12 €
@@ -1411,7 +1547,15 @@ Une bonne réponse plus longue que les autres est un indice qui permet de réuss
 
 *Réponse attendue :* Un CDD (de remplacement) : le besoin est temporaire, avec une fin prévisible, le retour de la salariée.
 
-**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
+*Notation du transfert (sur 2, `grille-reformulation.md`, partie 2) :*
+
+- élément 1, la décision ou la conclusion : un CDD (de remplacement)
+- élément 2, la raison : le besoin est temporaire, avec une fin prévue : le retour de la salariée
+- 2 points, exemple : « Un CDD, parce que le besoin s'arrête au retour de la salariée remplacée. »
+- 1 point, exemple : « Un CDD, sans raison. »
+- 0 point, exemple : « Un CDI, parce qu'on ne connaît pas la date exacte du retour. »
+
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 3)*
 
 1. Une boulangerie embauche quelqu'un pour un poste permanent, sans date de fin. Quel contrat est le plus adapté ? *(évalue : application)*
    - Un CDD renouvelé chaque mois
@@ -1489,7 +1633,15 @@ Une bonne réponse plus longue que les autres est un indice qui permet de réuss
 
 *Réponse attendue :* Dire à quoi servira l'adresse et ne l'utiliser que pour ce but ; pour un autre usage (publicité par exemple), en informer les clients et respecter leur droit de refuser ; protéger les données ; répondre aux demandes d'accès ou de suppression.
 
-**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
+*Notation du transfert (sur 2, `grille-reformulation.md`, partie 2) :*
+
+- élément 1, la décision ou la conclusion : informer de l'usage et n'utiliser l'adresse que pour ce but
+- élément 2, la raison : pour un autre usage, informer et respecter le droit de refuser ; protéger ; répondre aux demandes d'accès ou de suppression
+- 2 points, exemple : « Dire aux clients à quoi sert l'adresse, ne s'en servir que pour la carte, ne pas faire de publicité sans les prévenir et sans leur laisser refuser, et la supprimer s'ils le demandent. »
+- 1 point, exemple : « Protéger les adresses e-mail. »
+- 0 point, exemple : « Rien, une adresse e-mail n'est pas une donnée personnelle. »
+
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 3)*
 
 1. Un site collecte la date de naissance pour « vérifier l'âge ». Peut-il ensuite l'utiliser librement pour autre chose ? *(évalue : application)*
    - ✔ Non : un nouvel usage doit être annoncé et justifié
@@ -1567,7 +1719,15 @@ Une bonne réponse plus longue que les autres est un indice qui permet de réuss
 
 *Réponse attendue :* Ils ont pu commencer à décongeler (rupture de la chaîne du froid), et les bactéries se multiplient : il ne faut pas les recongeler tels quels ; en cas de doute sur leur température, il faut les jeter.
 
-**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
+*Notation du transfert (sur 2, `grille-reformulation.md`, partie 2) :*
+
+- élément 1, la décision ou la conclusion : ne pas les recongeler tels quels ; en cas de doute sur leur température, les jeter
+- élément 2, la raison : rupture de la chaîne du froid : en décongelant, les bactéries se multiplient
+- 2 points, exemple : « Ils ont pu décongeler dans la chaleur, donc les bactéries se sont multipliées : je ne les recongèle pas tels quels et, si je ne sais pas à quelle température ils sont, je les jette. »
+- 1 point, exemple : « Ils risquent de s'abîmer, il faut faire attention. »
+- 0 point, exemple : « Aucun risque : je les remets au congélateur, le froid tuera les bactéries. »
+
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 3)*
 
 1. Pour un pique-nique d'été, comment transporter des salades au poulet ? *(évalue : application)*
    - Comme on veut : le poulet cuit ne craint rien
@@ -1605,11 +1765,11 @@ Une bonne réponse plus longue que les autres est un indice qui permet de réuss
    - seulement le transport, dans le camion frigorifique du livreur
    - seulement la vitrine du magasin
    - ✔ tout le trajet, de la fabrication à l'assiette
-4. Ton réfrigérateur est resté ouvert toute la nuit. Que faire du poisson frais qu'il contenait ? *(évalue : application)*
-   - Le manger cru le jour même, vite
-   - Le remettre au frais et le garder deux jours de plus
+4. Ton réfrigérateur est resté ouvert toute la nuit, environ 8 heures. Au matin, son thermomètre indique 15 °C. Que faire du poisson frais qu'il contenait ? *(évalue : application)*
    - Le recongeler aussitôt pour le sauver
-   - ✔ Le jeter s'il est resté au chaud
+   - Le garder encore deux jours au réfrigérateur
+   - Le remettre au frais : le froid tuera les bactéries
+   - ✔ Le jeter : il est resté des heures loin du froid
 
 **Reformulation, idée centrale :** Un produit périssable doit rester au froid sans interruption de sa fabrication à sa consommation, car le froid ralentit les bactéries sans les tuer.
 
@@ -1646,9 +1806,19 @@ Une bonne réponse plus longue que les autres est un indice qui permet de réuss
 
 > Que dit la procédure, et que fais-tu ?
 
-*Réponse attendue :* La fermeture se fait toujours à deux (comptage et sortie) : je ne ferme pas seul et je préviens le responsable.
+*Réponse attendue :* Je ne ferme pas seul : la procédure impose de compter les caisses à deux personnes et de sortir à deux, et elle ne prévoit aucune exception pour le dimanche.
 
-**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
+*Appui dans la procédure :* « Compter les caisses à deux personnes et placer l’enveloppe scellée dans le coffre. » « Activer l’alarme et sortir à deux. »
+
+*Notation du transfert (sur 2, `grille-reformulation.md`, partie 2) :*
+
+- élément 1, la décision ou la conclusion : je ne ferme pas seul
+- élément 2, la raison : la procédure impose de compter les caisses à deux et de sortir à deux, sans exception écrite pour le dimanche
+- 2 points, exemple : « Je refuse de fermer seul : la procédure dit de compter les caisses à deux et de sortir à deux, et elle ne prévoit pas d'exception le dimanche. »
+- 1 point, exemple : « Je ne ferme pas seul, ce n'est pas prudent. »
+- 0 point, exemple : « J'accepte : le dimanche, on peut fermer seul. »
+
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 3)*
 
 1. Pendant le tour de sécurité du matin, une issue de secours est bloquée par des cartons. Que fais-tu avant d'ouvrir ? *(évalue : application)*
    - ✔ Je la dégage et je vérifie qu'elle est déverrouillée
@@ -1733,9 +1903,19 @@ Une bonne réponse plus longue que les autres est un indice qui permet de réuss
 
 > Acceptes-tu le carton ? Justifie avec la procédure.
 
-*Réponse attendue :* Oui, si c'est bref et pendant le déchargement : un écart de 3 °C au plus en surface est admis ; je le range vite au froid.
+*Réponse attendue :* Oui : l'écart en surface est de 2 °C (de – 18 °C à – 16 °C), dans la tolérance de 3 °C au plus admise pendant le déchargement, sur une courte durée ; je range ensuite le carton en chambre froide dans les 15 minutes.
 
-**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
+*Appui dans la procédure :* « Glaces et crèmes glacées : – 18 °C. » « Pour les glaces et les produits congelés, un écart de 3 °C au plus en surface est admis pendant le déchargement, sur une courte durée. » « Ranger les produits acceptés en chambre froide dans les 15 minutes. »
+
+*Notation du transfert (sur 2, `grille-reformulation.md`, partie 2) :*
+
+- élément 1, la décision ou la conclusion : oui, j'accepte le carton
+- élément 2, la raison : l'écart en surface est de 2 °C, dans la tolérance de 3 °C au plus admise pendant le déchargement, sur une courte durée
+- 2 points, exemple : « Oui : il était à – 18 °C, il est à – 16 °C en surface pendant le déchargement, l'écart de 2 °C est dans la tolérance de 3 °C ; je le range ensuite vite en chambre froide. »
+- 1 point, exemple : « Oui, c'est presque – 18 °C. »
+- 0 point, exemple : « Non : une glace doit toujours être à – 18 °C, sans aucun écart. »
+
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 3)*
 
 1. Une livraison de préparations culinaires élaborées à l'avance arrive à + 5 °C. Que fais-tu ? *(évalue : application)*
    - Je l'accepte : les préparations sont admises jusqu'à + 6 °C
@@ -1820,9 +2000,19 @@ Une bonne réponse plus longue que les autres est un indice qui permet de réuss
 
 > Que fais-tu, et pourquoi ?
 
-*Réponse attendue :* Je reste courtois et je n'accuse pas le client ; le billet présumé faux ne doit pas être remis en circulation (il n'est jamais rendu en monnaie) ; j'appelle le responsable, qui le remet à la Banque de France, à un commissariat ou à une gendarmerie.
+*Réponse attendue :* Je reste courtois, je n'accuse pas le client et j'appelle le responsable ; je ne rends pas le billet, car un billet présumé faux ne doit jamais être remis en circulation ; le responsable le remet à la Banque de France, à un commissariat ou à une gendarmerie.
 
-**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 2)*
+*Appui dans la procédure :* « Un billet présumé faux ne doit jamais être remis en circulation : il n’est pas rendu en monnaie. » « Rester courtois, ne pas accuser le client, appeler le responsable. » « Le responsable remet le billet à la Banque de France, à un commissariat ou à une gendarmerie. »
+
+*Notation du transfert (sur 2, `grille-reformulation.md`, partie 2) :*
+
+- élément 1, la décision ou la conclusion : je ne rends pas le billet ; je reste courtois, sans accuser, et j'appelle le responsable
+- élément 2, la raison : un billet présumé faux ne doit jamais être remis en circulation ; le responsable le remet à la Banque de France, à un commissariat ou à une gendarmerie
+- 2 points, exemple : « Je reste calme et poli, je n'accuse pas le client, je ne lui rends pas le billet car un billet présumé faux ne doit pas être remis en circulation, et j'appelle le responsable qui le remettra à la Banque de France ou à la police. »
+- 1 point, exemple : « Je garde le billet et j'appelle le responsable. »
+- 0 point, exemple : « Je lui rends son billet pour éviter le conflit et je lui demande de payer autrement. »
+
+**Déblocage** *(seulement si la compréhension immédiate donne moins de 2 sur 3, ou si la personne se dit bloquée ; posé après le transfert et la seconde explication ; notation : `grille-reformulation.md`, partie 3)*
 
 1. Un client dont le domicile fiscal est à l'étranger veut payer 1 500 € en espèces. Que fais-tu ? *(évalue : application)*
    - ✔ J'appelle le responsable : son plafond est plus élevé

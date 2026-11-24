@@ -55,7 +55,14 @@
       "transfert": {
         "situation": "Pendant un appel vidéo, l'image se fige une seconde puis repart, sans que l'appel soit coupé.",
         "question": "Avec ce que tu sais des paquets, explique ce qui a pu se passer.",
-        "attendu": "Certains paquets ont été retardés ou perdus en route (chemin encombré) ; les suivants sont arrivés et l'appel a continué."
+        "attendu": "Certains paquets ont été retardés ou perdus en route (chemin encombré) ; les suivants sont arrivés et l'appel a continué.",
+        "criteres": {
+          "decision": "des paquets ont été retardés ou perdus, puis les suivants sont arrivés",
+          "raison": "les paquets voyagent séparément, par des chemins qui peuvent être encombrés",
+          "note2": "Quelques paquets sont restés bloqués sur un chemin encombré, les suivants sont arrivés par ailleurs, donc la vidéo a repris.",
+          "note1": "Il y a eu un petit bug de connexion, puis ça a repris.",
+          "note0": "L'ordinateur de l'autre personne s'est éteint une seconde."
+        }
       },
       "deblocage": [
         {
@@ -198,7 +205,14 @@
       "transfert": {
         "situation": "Tu prépares un exposé au tableau blanc pendant que tes fiches sont rangées dans un classeur.",
         "question": "Si tu compares à un ordinateur, que représentent le tableau et le classeur, et pourquoi ?",
-        "attendu": "Le tableau = la mémoire vive (on travaille dessus, rapide, effacé à la fin) ; le classeur = le disque (on y range pour garder)."
+        "attendu": "Le tableau = la mémoire vive (on travaille dessus, rapide, effacé à la fin) ; le classeur = le disque (on y range pour garder).",
+        "criteres": {
+          "decision": "tableau = mémoire vive, classeur = disque",
+          "raison": "on travaille vite sur le tableau et il s'efface ; on range dans le classeur pour garder",
+          "note2": "Le tableau, c'est la mémoire vive : on écrit dessus pour travailler et on l'efface après ; le classeur, c'est le disque où on garde.",
+          "note1": "Le tableau c'est la mémoire vive et le classeur le disque.",
+          "note0": "Le tableau c'est l'écran et le classeur c'est Internet."
+        }
       },
       "deblocage": [
         {
@@ -340,7 +354,14 @@
       "transfert": {
         "situation": "Deux amies s'écrivent en décalant chaque lettre de trois rangs dans l'alphabet (A devient D).",
         "question": "Qu'est-ce qui joue ici le rôle de la clé, et que doit savoir l'autre amie pour lire le mot ?",
-        "attendu": "La clé est le décalage de 3 ; il faut le connaître pour décaler chaque lettre dans l'autre sens."
+        "attendu": "La clé est le décalage de 3 ; il faut le connaître pour décaler chaque lettre dans l'autre sens.",
+        "criteres": {
+          "decision": "la clé est le décalage de 3",
+          "raison": "l'autre amie doit connaître ce décalage pour reculer chaque lettre de 3 rangs",
+          "note2": "La clé c'est « décaler de 3 » ; mon amie doit le savoir pour revenir de 3 lettres en arrière (D redevient A).",
+          "note1": "La clé c'est le chiffre 3.",
+          "note0": "La clé c'est l'alphabet, tout le monde le connaît."
+        }
       },
       "deblocage": [
         {
@@ -482,7 +503,14 @@
       "transfert": {
         "situation": "Une échelle de 5 m est posée contre un mur ; son pied est à 3 m du mur, sur un sol plat.",
         "question": "À quelle hauteur l'échelle touche-t-elle le mur ? Explique ton raisonnement.",
-        "attendu": "4 m : le mur et le sol font un angle droit, 5² = 3² + h², donc h² = 16 et h = 4."
+        "attendu": "4 m : le mur et le sol font un angle droit, 5² = 3² + h², donc h² = 16 et h = 4.",
+        "criteres": {
+          "decision": "l’échelle touche le mur à 4 m de hauteur",
+          "raison": "le mur et le sol font un angle droit : 5² = 3² + h², donc h² = 16",
+          "note2": "4 m : le mur et le sol font un angle droit, donc 3² + h² = 5², h² = 25 − 9 = 16, h = 4.",
+          "note1": "4 m, comme le triangle 3, 4, 5, sans autre explication.",
+          "note0": "2 m, car 5 − 3 = 2."
+        }
       },
       "deblocage": [
         {
@@ -624,7 +652,14 @@
       "transfert": {
         "situation": "Une recette pour 4 personnes demande 3/4 de litre de lait ; tu cuisines pour 2 personnes.",
         "question": "Quelle quantité de lait faut-il, et comment le sais-tu ?",
-        "attendu": "3/8 de litre : deux fois moins de personnes, donc la moitié de 3/4."
+        "attendu": "3/8 de litre : deux fois moins de personnes, donc la moitié de 3/4.",
+        "criteres": {
+          "decision": "3/8 de litre",
+          "raison": "deux fois moins de personnes, donc la moitié de 3/4",
+          "note2": "3/8 de litre : on est deux fois moins, donc on prend la moitié de 3/4, ce qui fait 3/8.",
+          "note1": "La moitié de 3/4, sans donner la quantité.",
+          "note0": "3/2 de litre, car on divise 3 par 2 et on garde les quarts en double."
+        }
       },
       "deblocage": [
         {
@@ -766,7 +801,14 @@
       "transfert": {
         "situation": "Une dette de carte de crédit non remboursée augmente chaque mois avec des intérêts sur les intérêts.",
         "question": "Pourquoi cette dette peut-elle grossir de plus en plus vite ?",
-        "attendu": "Les intérêts s'ajoutent à la dette, puis portent eux-mêmes des intérêts : la base grossit chaque mois."
+        "attendu": "Les intérêts s'ajoutent à la dette, puis portent eux-mêmes des intérêts : la base grossit chaque mois.",
+        "criteres": {
+          "decision": "la dette grossit de plus en plus vite",
+          "raison": "les intérêts s'ajoutent à la dette puis portent eux-mêmes des intérêts",
+          "note2": "Chaque mois les intérêts s'ajoutent à la dette, et le mois suivant on paie des intérêts aussi sur ces intérêts, donc ça accélère.",
+          "note1": "Parce qu'il y a des intérêts chaque mois.",
+          "note0": "Parce que la banque augmente le taux chaque mois."
+        }
       },
       "deblocage": [
         {
@@ -909,7 +951,14 @@
       "transfert": {
         "situation": "Dans une serre fermée et éclairée, on ajoute du dioxyde de carbone dans l'air.",
         "question": "Que peut-on attendre pour la croissance des plantes, et pourquoi ?",
-        "attendu": "Elles peuvent pousser plus vite : plus de dioxyde de carbone disponible pour fabriquer leur nourriture, tant qu'il y a lumière et eau."
+        "attendu": "Elles peuvent pousser plus vite : plus de dioxyde de carbone disponible pour fabriquer leur nourriture, tant qu'il y a lumière et eau.",
+        "criteres": {
+          "decision": "les plantes peuvent pousser plus vite",
+          "raison": "plus de dioxyde de carbone disponible pour fabriquer leur nourriture, s'il y a lumière et eau",
+          "note2": "Elles poussent plus vite, car elles ont plus de dioxyde de carbone pour fabriquer leur sucre avec la lumière.",
+          "note1": "Elles poussent mieux, l'air est meilleur pour elles.",
+          "note0": "Elles poussent moins, car le dioxyde de carbone est un poison pour les plantes."
+        }
       },
       "deblocage": [
         {
@@ -1051,7 +1100,14 @@
       "transfert": {
         "situation": "Une personne dont les défenses sont affaiblies par un traitement attrape facilement des infections banales.",
         "question": "Explique pourquoi, avec ce que tu sais du système immunitaire.",
-        "attendu": "Son système immunitaire réagit moins ou moins vite : les microbes ne sont plus repérés et éliminés à temps."
+        "attendu": "Son système immunitaire réagit moins ou moins vite : les microbes ne sont plus repérés et éliminés à temps.",
+        "criteres": {
+          "decision": "elle attrape plus facilement des infections",
+          "raison": "son système immunitaire réagit moins ou moins vite : les microbes ne sont plus éliminés à temps",
+          "note2": "Ses défenses sont affaiblies, donc les microbes ne sont pas repérés et détruits assez vite, et une infection banale s'installe.",
+          "note1": "Parce qu'elle est fragile.",
+          "note0": "Parce que le traitement apporte des microbes dans le corps."
+        }
       },
       "deblocage": [
         {
@@ -1193,7 +1249,14 @@
       "transfert": {
         "situation": "Sur une scène de vol, les enquêteurs retrouvent un cheveu et le comparent à l'ADN de suspects.",
         "question": "Pourquoi cette comparaison peut-elle désigner une personne ?",
-        "attendu": "L'ADN est présent dans les cellules du cheveu et il est propre à chaque personne (sauf vrais jumeaux)."
+        "attendu": "L'ADN est présent dans les cellules du cheveu et il est propre à chaque personne (sauf vrais jumeaux).",
+        "criteres": {
+          "decision": "le cheveu peut désigner une personne précise",
+          "raison": "le cheveu contient des cellules avec de l'ADN, propre à chaque personne (sauf vrais jumeaux)",
+          "note2": "Il y a de l'ADN dans les cellules du cheveu, et chaque personne a un ADN différent, sauf les vrais jumeaux.",
+          "note1": "Parce que l'ADN est dans le cheveu.",
+          "note0": "Parce que la couleur du cheveu est la même que celle du suspect."
+        }
       },
       "deblocage": [
         {
@@ -1335,7 +1398,14 @@
       "transfert": {
         "situation": "Une personne vaccinée contre une maladie l'attrape quand même, mais de façon légère.",
         "question": "Est-ce que cela veut dire que le vaccin n'a servi à rien ? Explique.",
-        "attendu": "Non : aucun vaccin ne protège à 100 %, mais le corps, déjà entraîné, réagit plus vite, ce qui rend souvent la maladie moins grave."
+        "attendu": "Non : aucun vaccin ne protège à 100 %, mais le corps, déjà entraîné, réagit plus vite, ce qui rend souvent la maladie moins grave.",
+        "criteres": {
+          "decision": "non, le vaccin a servi",
+          "raison": "aucun vaccin ne protège à 100 %, mais le corps entraîné réagit plus vite, d'où une forme plus légère",
+          "note2": "Non : le vaccin ne protège pas toujours complètement, mais le corps, déjà entraîné, a réagi vite, donc la maladie est restée légère.",
+          "note1": "Non, il a quand même servi un peu.",
+          "note0": "Oui, le vaccin ne sert à rien puisqu'elle est malade."
+        }
       },
       "deblocage": [
         {
@@ -1478,7 +1548,14 @@
       "transfert": {
         "situation": "Le matin, la vitre de la salle de bain est couverte de buée après une douche chaude.",
         "question": "Quelles étapes du cycle de l'eau retrouves-tu ici ?",
-        "attendu": "L'eau chaude s'évapore (vapeur), puis la vapeur se condense en gouttelettes sur la vitre froide."
+        "attendu": "L'eau chaude s'évapore (vapeur), puis la vapeur se condense en gouttelettes sur la vitre froide.",
+        "criteres": {
+          "decision": "évaporation puis condensation",
+          "raison": "l'eau chaude devient vapeur, la vapeur redevient gouttelettes sur la vitre froide",
+          "note2": "L'eau chaude de la douche s'évapore, puis la vapeur touche la vitre froide et se condense en petites gouttes.",
+          "note1": "C'est de la condensation.",
+          "note0": "C'est de la pluie qui tombe du plafond."
+        }
       },
       "deblocage": [
         {
@@ -1620,7 +1697,14 @@
       "transfert": {
         "situation": "Une voiture garée au soleil, vitres fermées, devient très chaude à l'intérieur.",
         "question": "En quoi cela ressemble-t-il à l'effet de serre, et quelle est la limite de la comparaison ?",
-        "attendu": "La chaleur entre et reste en partie piégée ; mais dans la voiture c'est surtout l'air enfermé, alors que pour la Terre ce sont des gaz qui retiennent le rayonnement de chaleur."
+        "attendu": "La chaleur entre et reste en partie piégée ; mais dans la voiture c'est surtout l'air enfermé, alors que pour la Terre ce sont des gaz qui retiennent le rayonnement de chaleur.",
+        "criteres": {
+          "decision": "la chaleur entre et reste en partie piégée, comme sur Terre",
+          "raison": "limite : dans la voiture c'est l'air enfermé, sur Terre ce sont des gaz qui retiennent la chaleur émise",
+          "note2": "Comme sur Terre, la chaleur entre et reste piégée ; mais dans la voiture c'est l'air qui ne peut pas sortir, alors que sur Terre ce sont des gaz qui retiennent la chaleur.",
+          "note1": "C'est pareil, la chaleur reste à l'intérieur.",
+          "note0": "La voiture produit sa propre chaleur, comme les gaz à effet de serre."
+        }
       },
       "deblocage": [
         {
@@ -1762,7 +1846,14 @@
       "transfert": {
         "situation": "Un satellite tourne autour de la Terre sans moteur allumé.",
         "question": "Pourquoi ne s'éloigne-t-il pas dans l'espace et ne tombe-t-il pas tout droit ?",
-        "attendu": "La Terre l'attire en permanence, mais il va assez vite sur le côté : il « tombe » autour de la Terre en restant en orbite."
+        "attendu": "La Terre l'attire en permanence, mais il va assez vite sur le côté : il « tombe » autour de la Terre en restant en orbite.",
+        "criteres": {
+          "decision": "il reste en orbite",
+          "raison": "la Terre l'attire en permanence, mais il va assez vite sur le côté : il « tombe » autour d'elle",
+          "note2": "La Terre l'attire tout le temps, mais il va si vite sur le côté qu'il tombe autour d'elle sans jamais la toucher.",
+          "note1": "Parce qu'il est en orbite.",
+          "note0": "Parce que dans l'espace il n'y a pas de gravité."
+        }
       },
       "deblocage": [
         {
@@ -1905,7 +1996,14 @@
       "transfert": {
         "situation": "Une pile de 1,5 V fait briller faiblement une petite lampe prévue pour 4,5 V.",
         "question": "Pourquoi la lampe brille-t-elle peu, et que faudrait-il changer ?",
-        "attendu": "La tension est trop faible pour la faire fonctionner normalement ; il faut une tension proche de 4,5 V (par exemple trois piles de 1,5 V en série)."
+        "attendu": "La tension est trop faible pour la faire fonctionner normalement ; il faut une tension proche de 4,5 V (par exemple trois piles de 1,5 V en série).",
+        "criteres": {
+          "decision": "il faut une tension proche de 4,5 V (par exemple 3 piles de 1,5 V en série)",
+          "raison": "la tension de 1,5 V est trop faible pour cette lampe",
+          "note2": "La pile ne donne que 1,5 V alors que la lampe en demande 4,5 : il faut trois piles de 1,5 V en série.",
+          "note1": "Il faut une pile plus forte.",
+          "note0": "La lampe est trop grosse, il faut une lampe de couleur différente."
+        }
       },
       "deblocage": [
         {
@@ -2047,7 +2145,14 @@
       "transfert": {
         "situation": "Ta grand-mère raconte qu'une baguette coûtait beaucoup moins cher dans sa jeunesse.",
         "question": "Est-ce que cela veut forcément dire que le pain était plus « accessible » à l'époque ? Explique.",
-        "attendu": "Pas forcément : il faut comparer au salaire de l'époque ; l'inflation fait monter les prix mais aussi, souvent, les salaires."
+        "attendu": "Pas forcément : il faut comparer au salaire de l'époque ; l'inflation fait monter les prix mais aussi, souvent, les salaires.",
+        "criteres": {
+          "decision": "pas forcément",
+          "raison": "il faut comparer au salaire de l'époque : l'inflation fait monter les prix, et souvent les salaires aussi",
+          "note2": "Pas forcément : les prix ont monté, mais les salaires aussi ; il faut comparer le prix au salaire de l'époque.",
+          "note1": "Pas forcément, c'était une autre époque.",
+          "note0": "Oui, puisque le prix était plus bas, le pain était forcément plus accessible."
+        }
       },
       "deblocage": [
         {
@@ -2189,7 +2294,14 @@
       "transfert": {
         "situation": "Les billets d'un concert très attendu sont revendus bien plus cher que leur prix initial.",
         "question": "Explique ce phénomène avec l'offre et la demande.",
-        "attendu": "Le nombre de places est limité (offre faible) et beaucoup veulent y aller (demande forte) : le prix de revente monte."
+        "attendu": "Le nombre de places est limité (offre faible) et beaucoup veulent y aller (demande forte) : le prix de revente monte.",
+        "criteres": {
+          "decision": "le prix de revente monte",
+          "raison": "peu de places (offre faible) et beaucoup de personnes qui veulent y aller (demande forte)",
+          "note2": "Il y a peu de places et beaucoup de gens qui veulent venir : la demande dépasse l'offre, donc le prix monte.",
+          "note1": "Parce que c'est un concert connu.",
+          "note0": "Parce que l'État taxe les billets de concert."
+        }
       },
       "deblocage": [
         {
@@ -2331,7 +2443,14 @@
       "transfert": {
         "situation": "Une entreprise achète un ordinateur 1 200 € TTC (TVA 20 %) pour son activité.",
         "question": "Quel est le prix hors taxe, et pourquoi l'entreprise s'intéresse-t-elle surtout à ce montant ?",
-        "attendu": "1 000 € HT ; l'entreprise peut en général récupérer la TVA payée, son coût réel est donc le prix hors taxe."
+        "attendu": "1 000 € HT ; l'entreprise peut en général récupérer la TVA payée, son coût réel est donc le prix hors taxe.",
+        "criteres": {
+          "decision": "1 000 € HT",
+          "raison": "l'entreprise récupère en général la TVA : son coût réel est le prix hors taxe",
+          "note2": "1 200 / 1,2 = 1 000 € HT ; l'entreprise récupère en général la TVA, donc ce qui lui coûte vraiment, c'est 1 000 €.",
+          "note1": "1 000 € HT, sans dire pourquoi ce montant compte.",
+          "note0": "960 € HT, car on enlève 20 % de 1 200."
+        }
       },
       "deblocage": [
         {
@@ -2474,7 +2593,14 @@
       "transfert": {
         "situation": "Une entreprise embauche une personne pour remplacer une salariée en congé maternité pendant six mois.",
         "question": "Quel type de contrat est le plus adapté, et pourquoi ?",
-        "attendu": "Un CDD (de remplacement) : le besoin est temporaire, avec une fin prévisible, le retour de la salariée."
+        "attendu": "Un CDD (de remplacement) : le besoin est temporaire, avec une fin prévisible, le retour de la salariée.",
+        "criteres": {
+          "decision": "un CDD (de remplacement)",
+          "raison": "le besoin est temporaire, avec une fin prévue : le retour de la salariée",
+          "note2": "Un CDD, parce que le besoin s'arrête au retour de la salariée remplacée.",
+          "note1": "Un CDD, sans raison.",
+          "note0": "Un CDI, parce qu'on ne connaît pas la date exacte du retour."
+        }
       },
       "deblocage": [
         {
@@ -2616,7 +2742,14 @@
       "transfert": {
         "situation": "Une boulangerie demande l'adresse e-mail de ses clients pour leur envoyer une carte de fidélité numérique.",
         "question": "Que doit-elle faire pour respecter le RGPD ?",
-        "attendu": "Dire à quoi servira l'adresse et ne l'utiliser que pour ce but ; pour un autre usage (publicité par exemple), en informer les clients et respecter leur droit de refuser ; protéger les données ; répondre aux demandes d'accès ou de suppression."
+        "attendu": "Dire à quoi servira l'adresse et ne l'utiliser que pour ce but ; pour un autre usage (publicité par exemple), en informer les clients et respecter leur droit de refuser ; protéger les données ; répondre aux demandes d'accès ou de suppression.",
+        "criteres": {
+          "decision": "informer de l'usage et n'utiliser l'adresse que pour ce but",
+          "raison": "pour un autre usage, informer et respecter le droit de refuser ; protéger ; répondre aux demandes d'accès ou de suppression",
+          "note2": "Dire aux clients à quoi sert l'adresse, ne s'en servir que pour la carte, ne pas faire de publicité sans les prévenir et sans leur laisser refuser, et la supprimer s'ils le demandent.",
+          "note1": "Protéger les adresses e-mail.",
+          "note0": "Rien, une adresse e-mail n'est pas une donnée personnelle."
+        }
       },
       "deblocage": [
         {
@@ -2758,7 +2891,14 @@
       "transfert": {
         "situation": "Après les courses, des surgelés restent deux heures dans le coffre d'une voiture en plein été.",
         "question": "Quel est le risque, et que faut-il faire ?",
-        "attendu": "Ils ont pu commencer à décongeler (rupture de la chaîne du froid), et les bactéries se multiplient : il ne faut pas les recongeler tels quels ; en cas de doute sur leur température, il faut les jeter."
+        "attendu": "Ils ont pu commencer à décongeler (rupture de la chaîne du froid), et les bactéries se multiplient : il ne faut pas les recongeler tels quels ; en cas de doute sur leur température, il faut les jeter.",
+        "criteres": {
+          "decision": "ne pas les recongeler tels quels ; en cas de doute sur leur température, les jeter",
+          "raison": "rupture de la chaîne du froid : en décongelant, les bactéries se multiplient",
+          "note2": "Ils ont pu décongeler dans la chaleur, donc les bactéries se sont multipliées : je ne les recongèle pas tels quels et, si je ne sais pas à quelle température ils sont, je les jette.",
+          "note1": "Ils risquent de s'abîmer, il faut faire attention.",
+          "note0": "Aucun risque : je les remets au congélateur, le froid tuera les bactéries."
+        }
       },
       "deblocage": [
         {
@@ -2831,12 +2971,12 @@
           "evalue": "restitution"
         },
         {
-          "q": "Ton réfrigérateur est resté ouvert toute la nuit. Que faire du poisson frais qu'il contenait ?",
+          "q": "Ton réfrigérateur est resté ouvert toute la nuit, environ 8 heures. Au matin, son thermomètre indique 15 °C. Que faire du poisson frais qu'il contenait ?",
           "choix": [
-            "Le manger cru le jour même, vite",
-            "Le remettre au frais et le garder deux jours de plus",
             "Le recongeler aussitôt pour le sauver",
-            "Le jeter s'il est resté au chaud"
+            "Le garder encore deux jours au réfrigérateur",
+            "Le remettre au frais : le froid tuera les bactéries",
+            "Le jeter : il est resté des heures loin du froid"
           ],
           "reponse": 3,
           "evalue": "application"
@@ -2909,11 +3049,18 @@
       "transfert": {
         "situation": "Un dimanche soir, ton collègue doit partir plus tôt et te propose de fermer seul.",
         "question": "Que dit la procédure, et que fais-tu ?",
-        "attendu": "La fermeture se fait toujours à deux (comptage et sortie) : je ne ferme pas seul et je préviens le responsable.",
+        "attendu": "Je ne ferme pas seul : la procédure impose de compter les caisses à deux personnes et de sortir à deux, et elle ne prévoit aucune exception pour le dimanche.",
         "source": [
           "Compter les caisses à deux personnes et placer l’enveloppe scellée dans le coffre.",
           "Activer l’alarme et sortir à deux."
-        ]
+        ],
+        "criteres": {
+          "decision": "je ne ferme pas seul",
+          "raison": "la procédure impose de compter les caisses à deux et de sortir à deux, sans exception écrite pour le dimanche",
+          "note2": "Je refuse de fermer seul : la procédure dit de compter les caisses à deux et de sortir à deux, et elle ne prévoit pas d'exception le dimanche.",
+          "note1": "Je ne ferme pas seul, ce n'est pas prudent.",
+          "note0": "J'accepte : le dimanche, on peut fermer seul."
+        }
       },
       "deblocage": [
         {
@@ -3086,11 +3233,19 @@
       "transfert": {
         "situation": "Pendant le déchargement, un carton de glaces affiche – 16 °C en surface ; il était à – 18 °C dans le camion.",
         "question": "Acceptes-tu le carton ? Justifie avec la procédure.",
-        "attendu": "Oui, si c'est bref et pendant le déchargement : un écart de 3 °C au plus en surface est admis ; je le range vite au froid.",
+        "attendu": "Oui : l'écart en surface est de 2 °C (de – 18 °C à – 16 °C), dans la tolérance de 3 °C au plus admise pendant le déchargement, sur une courte durée ; je range ensuite le carton en chambre froide dans les 15 minutes.",
         "source": [
           "Glaces et crèmes glacées : – 18 °C.",
-          "Pour les glaces et les produits congelés, un écart de 3 °C au plus en surface est admis pendant le déchargement, sur une courte durée."
-        ]
+          "Pour les glaces et les produits congelés, un écart de 3 °C au plus en surface est admis pendant le déchargement, sur une courte durée.",
+          "Ranger les produits acceptés en chambre froide dans les 15 minutes."
+        ],
+        "criteres": {
+          "decision": "oui, j'accepte le carton",
+          "raison": "l'écart en surface est de 2 °C, dans la tolérance de 3 °C au plus admise pendant le déchargement, sur une courte durée",
+          "note2": "Oui : il était à – 18 °C, il est à – 16 °C en surface pendant le déchargement, l'écart de 2 °C est dans la tolérance de 3 °C ; je le range ensuite vite en chambre froide.",
+          "note1": "Oui, c'est presque – 18 °C.",
+          "note0": "Non : une glace doit toujours être à – 18 °C, sans aucun écart."
+        }
       },
       "deblocage": [
         {
@@ -3263,12 +3418,19 @@
       "transfert": {
         "situation": "Le détecteur signale qu'un billet de 50 € est douteux ; le client s'énerve et réclame son billet.",
         "question": "Que fais-tu, et pourquoi ?",
-        "attendu": "Je reste courtois et je n'accuse pas le client ; le billet présumé faux ne doit pas être remis en circulation (il n'est jamais rendu en monnaie) ; j'appelle le responsable, qui le remet à la Banque de France, à un commissariat ou à une gendarmerie.",
+        "attendu": "Je reste courtois, je n'accuse pas le client et j'appelle le responsable ; je ne rends pas le billet, car un billet présumé faux ne doit jamais être remis en circulation ; le responsable le remet à la Banque de France, à un commissariat ou à une gendarmerie.",
         "source": [
           "Un billet présumé faux ne doit jamais être remis en circulation : il n’est pas rendu en monnaie.",
           "Rester courtois, ne pas accuser le client, appeler le responsable.",
           "Le responsable remet le billet à la Banque de France, à un commissariat ou à une gendarmerie."
-        ]
+        ],
+        "criteres": {
+          "decision": "je ne rends pas le billet ; je reste courtois, sans accuser, et j'appelle le responsable",
+          "raison": "un billet présumé faux ne doit jamais être remis en circulation ; le responsable le remet à la Banque de France, à un commissariat ou à une gendarmerie",
+          "note2": "Je reste calme et poli, je n'accuse pas le client, je ne lui rends pas le billet car un billet présumé faux ne doit pas être remis en circulation, et j'appelle le responsable qui le remettra à la Banque de France ou à la police.",
+          "note1": "Je garde le billet et j'appelle le responsable.",
+          "note0": "Je lui rends son billet pour éviter le conflit et je lui demande de payer autrement."
+        }
       },
       "deblocage": [
         {

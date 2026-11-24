@@ -108,5 +108,35 @@ check('J29 les critères de justification ne figurent que sur les questions de d
 try { execFileSync('node', [path.join(ROOT, 'docs/pedagogie/assembler.js'), '--check'], { stdio: 'pipe' }); check('J11 jeu-de-mesure.json et .md à jour avec les sources', true); }
 catch (e) { check('J11 jeu-de-mesure.json et .md à jour avec les sources', false, String(e.stdout || '').trim()); }
 
+// Transfert (B3) : critères de notation complets, et réponses chiffrées recalculées
+const trBad = j.elements.filter((x) => { const c = x.transfert.criteres || {}; const v = [c.decision, c.raison, c.note2, c.note1, c.note0]; return v.some((t) => !t || t.length < 8) || new Set(v).size !== 5; });
+check('J30 chaque transfert a ses critères : décision, raison, et un exemple à 2, 1 et 0 point, distincts', !trBad.length, trBad.map((x) => x.id).join(', '));
+const el = (id) => j.elements.find((x) => x.id === id).transfert.attendu;
+const TRANSFERTS = [
+  ['S04', `${Math.sqrt(5 ** 2 - 3 ** 2)} m`], ['S05', 3 / 4 / 2 === 3 / 8 ? '3/8 de litre' : '?'],
+  ['S17', `${(1200 / 1.2).toLocaleString('fr-FR').replace(/ /g, ' ')} € HT`],
+  ['S14', 4.5 / 1.5 === 3 ? 'La tension est trop faible' : '?'],
+  ['P-H1', (-16) - (-18) <= 3 ? 'Oui' : 'Non'],
+];
+const trCalc = TRANSFERTS.filter(([id, att]) => !el(id).startsWith(att));
+check('J31 réponses attendues des transferts chiffrés recalculées (échelle, recette, TVA, piles, tolérance des glaces)', !trCalc.length, trCalc.map(([id, a]) => `${id} attend « ${a} »`).join(' ; '));
+
+// Répartition 3a / 3b (protocole, section 4) : relue dans le protocole lui-même
+const proto = require('fs').readFileSync(path.join(ROOT, 'docs/protocole-mission-3a.md'), 'utf8');
+const moitie = (n) => (proto.match(new RegExp(`\\*\\*Moitié ${n}[^:]*:\\*\\* ([^\\n]+)\\.`)) || [, ''])[1].split(', ').filter(Boolean);
+const m1 = moitie(1), m2 = moitie(2);
+const GRAND = { S01: 'IM', S02: 'IM', S03: 'IM', S04: 'IM', S05: 'IM', S06: 'IM', S07: 'V', S08: 'V', S09: 'V', S10: 'V', S11: 'TP', S12: 'TP', S13: 'TP', S14: 'TP', S15: 'EDF', S16: 'EDF', S17: 'EDF', S18: 'EDF', S19: 'EDF', S20: 'EDF' };
+const compte = (m) => ['IM', 'V', 'TP', 'EDF'].map((g) => m.filter((x) => GRAND[x] === g).length).join('/');
+const rows = [...proto.matchAll(/^\s*\| (P\d\d) \| ([^|]+) \| ([^|]+) \|$/gm)].map(([, code, a, b]) => ({ code, a: a.match(/S\d\d/g) || [], b: b.match(/S\d\d/g) || [], pa: a.match(/P-\w\d/g) || [], pb: b.match(/P-\w\d/g) || [] }));
+const repBad = [];
+if (m1.length !== 10 || m2.length !== 10 || new Set([...m1, ...m2]).size !== 20) repBad.push('moitiés : 2 × 10 sujets distincts attendus');
+if (compte(m1) !== compte(m2)) repBad.push(`grands domaines déséquilibrés ${compte(m1)} contre ${compte(m2)}`);
+if (rows.length !== 8) repBad.push(`${rows.length} lignes d'affectation au lieu de 8`);
+for (const r of rows) {
+  if (r.a.length !== 4 || r.b.length !== 4 || r.a.some((x) => !m1.includes(x)) || r.b.some((x) => !m2.includes(x))) repBad.push(`${r.code} : sujets hors de leur moitié`);
+  if (new Set([...r.a, ...r.b]).size !== 8 || new Set([...r.pa, ...r.pb]).size !== 3) repBad.push(`${r.code} : un sujet ou une procédure vu deux fois`);
+}
+check('J32 répartition 3a / 3b : moitiés disjointes et équilibrées par grand domaine, personne ne voit deux fois un sujet ni une procédure', !repBad.length, repBad.join(' ; ') || `grands domaines ${compte(m1)} de chaque côté`);
+
 console.log(failed ? `\n${failed} échec(s)` : '\nTous les tests passent');
 process.exit(failed ? 1 : 0);
