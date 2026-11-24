@@ -1,5 +1,8 @@
 # Exercice d'étalonnage des correcteurs (mission 3a)
 
+> **Clos sans avoir été réalisé (décision du 2026-11-24).** Voir `CLOTURE.md`. Aucun accord entre correcteurs n'a été
+> mesuré.
+
 **But :** vérifier, avant toute mesure avec des participants, que deux correcteurs indépendants appliquent les grilles
 B2 (reformulation), B3 (transfert) et B4 (déblocage) de la même façon.
 
