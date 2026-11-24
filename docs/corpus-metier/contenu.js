@@ -4,7 +4,11 @@
    Les règles « interne » sont des choix inventés pour l'exercice : elles ne sont ni des obligations légales,
    ni des recommandations.
    Une règle attendue = une phrase exacte du document (r: {...}). Les changements d'une v2 sont décrits dans
-   « changements » (doivent être détectés) et « non_changements » (ne doivent pas déclencher de revalidation). */
+   « changements » (doivent être détectés) et « non_changements » (ne doivent pas déclencher de revalidation).
+   Décisions sur le corrigé (datées, jamais après le lancement d'une campagne) :
+   - 2026-11-22 : R1, « Allumer l'éclairage et démarrer les caisses » → « Démarrer les caisses, puis allumer l'éclairage »
+     passe de piège « reformulation » à changement « modifie » (ordre imposé). 10 changements, 3 pièges. Les campagnes
+     des missions 2 et 2b restent calculées avec le corrigé figé corpus-reference-2026-11-16.json. */
 
 const SOURCES = {
   temp: { titre: 'Arrêté du 21 décembre 2009, article 3 et annexe I (extrait publié par la préfecture du Calvados)', url: 'https://www.calvados.gouv.fr/index.php/contenu/telechargement/18316/140968/file/temperature_de_conservation_et_service_des_aliments.pdf', verifie: '2026-11-16' },
@@ -76,9 +80,9 @@ const DOCS = [
       { id: 'R1.c2', type: 'modifie', regle: 'R1.alarme-delai', avant: 'dans les 45 secondes', apres: 'dans les 30 secondes', sensible: true },
       { id: 'R1.c3', type: 'ajoute', regle: 'R1.defibrillateur', apres: 'Vérifier que le voyant du défibrillateur est vert', sensible: true },
       { id: 'R1.c4', type: 'supprime', regle: 'R1.dimanche-seul', avant: 'Le dimanche, le responsable peut fermer seul le magasin.', sensible: true, note: 'La fermeture à deux s’applique désormais tous les jours.' },
+      { id: 'R1.c5', type: 'modifie', avant: 'Allumer l’éclairage et démarrer les caisses.', apres: 'Démarrer les caisses, puis allumer l’éclairage.', decision: '2026-11-22', note: 'Requalifié le 2026-11-22 (décision du responsable produit) : « et » ne fixait pas d’ordre, « puis » en impose un. Changement d’ordre des étapes, à signaler. Avant cette date : piège « reformulation » (corrigé figé dans corpus-reference-2026-11-16.json).' },
     ],
     non_changements: [
-      { type: 'reformulation', avant: 'Allumer l’éclairage et démarrer les caisses.', apres: 'Démarrer les caisses, puis allumer l’éclairage.', note: 'Ordre inversé sans conséquence : ne doit pas faire revalider une compétence.' },
       { type: 'deplacement', texte: 'En cas de déclenchement de l’alarme par erreur', note: 'Section « Incident » déplacée en tête, texte identique.' },
     ],
   },

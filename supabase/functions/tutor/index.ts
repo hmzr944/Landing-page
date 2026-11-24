@@ -3,7 +3,7 @@
 //   AI_API_KEY             clé de l'API du modèle (par défaut Groq, gratuite), jamais envoyée au navigateur
 //   AI_BASE_URL            facultatif, API compatible OpenAI (par défaut https://api.groq.com/openai/v1)
 //   AI_MODEL               facultatif, modèle principal (par défaut openai/gpt-oss-120b)
-//   AI_FALLBACK_MODEL      facultatif, modèle de secours (par défaut llama-3.3-70b-versatile)
+//   AI_FALLBACK_MODEL      facultatif, modèle de secours (par défaut openai/gpt-oss-20b ; llama-3.3-70b-versatile retiré par Groq)
 //   TUTOR_MONTHLY_LIMIT    nombre d'échanges par utilisateur et par mois (par défaut 60)
 //   GEN_MONTHLY_LIMIT      générations de contenu par utilisateur et par mois (par défaut 150)
 //   ORG_MONTHLY_LIMIT      appels de l'espace professionnel par utilisateur et par mois (par défaut 400)
@@ -154,7 +154,7 @@ export const deps: Deps = {
   callModel: makeCallModel({
     baseUrl: env("AI_BASE_URL", "https://api.groq.com/openai/v1"),
     apiKey: env("AI_API_KEY") || env("GROQ_API_KEY"),
-    models: [env("AI_MODEL", "openai/gpt-oss-120b"), env("AI_FALLBACK_MODEL", "llama-3.3-70b-versatile")].filter(Boolean),
+    models: [env("AI_MODEL", "openai/gpt-oss-120b"), env("AI_FALLBACK_MODEL", "openai/gpt-oss-20b")].filter(Boolean),
   }),
 };
 

@@ -209,7 +209,8 @@ function engineDb(roles: Record<string, string> = { "u-bob": "member", "u-eve": 
     setProvenance: async (rows: any[]) => { store.provenance.push(...rows); },
     audit: async (...a: any[]) => { store.audit.push(a); },
     insertOutOfScope: async (rows: any[]) => { store.oos.push(...rows); },
-    docFile: async () => ({ sha256: store.fileSha, pages: ["Son autonomie annoncée est de 90 km en mode éco. Le cadre en aluminium pèse 19 kg désormais.", "Le client dispose de 14 jours pour un retour avec le ticket de caisse. Tout retour doit être saisi dans le registre."] }),
+    // v1 réaliste (mission 2c : la comparaison relit aussi l'ancienne version) : textes des connaissances v1, sans le registre
+    docFile: async (p: string) => p === "p/v1.pdf" ? ({ sha256: "sha-v1", pages: ["Son autonomie annoncée est de 90 km en mode éco. Le cadre en aluminium pèse 21 kg.", "Ne jamais recharger une batterie endommagée. Le client dispose de 30 jours pour un retour avec le ticket de caisse."] }) : ({ sha256: store.fileSha, pages: ["Son autonomie annoncée est de 90 km en mode éco. Le cadre en aluminium pèse 19 kg désormais.", "Le client dispose de 14 jours pour un retour avec le ticket de caisse. Tout retour doit être saisi dans le registre."] }),
     insertPolicyChange: async (row: any) => { const id = crypto.randomUUID(); store.changes.push({ ...row, id }); return id; },
     insertChangeItems: async (rows: any[]) => { store.items.push(...rows); },
     invitationById: async (id: string) => store.invites[id] ?? null,
