@@ -66,7 +66,7 @@
         <label>Ton niveau${sel('niveau', [['debutant', 'Je découvre'], ['intermediaire', 'J’ai des bases'], ['avance', 'Je veux approfondir']], prof.niveau || 'debutant')}</label>
         <label>Ton intention${sel('intention', [['comprendre', 'Comprendre vraiment'], ['examen', 'Réussir un examen'], ['pratique', 'M’en servir au travail'], ['curiosite', 'Par curiosité']], prof.intention || 'comprendre')}</label>
         <button class="btn">${d.ic('sparkle')}Construire le parcours</button><p class="hint" id="buildMsg" role="status"></p></form>`
-        : `<p class="muted">La construction d’un parcours demande un compte gratuit (Réglages, puis Compte). En attendant, la notion reste en <b>mode lecture</b> : fiche, révisions espacées et rappel.</p>`}
+        : `<p class="muted">La construction d’un parcours demande un compte (Réglages, puis Compte). En attendant, la notion reste en <b>mode lecture</b> : fiche, révisions espacées et rappel.</p>`}
       <a class="btn ghost" href="${d.back(view)}">${d.ic('arrow-left')} Retour</a></section>`;
     const f = app.querySelector('#buildForm');
     if (!f) return;

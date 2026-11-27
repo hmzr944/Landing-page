@@ -53,11 +53,11 @@ const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m);
     check('A2 barre supérieure compacte (48 à 56 px), à droite de la barre latérale ; le contenu ne passe pas dessous', top.h >= 48 && top.h <= 56 && top.left >= 248 && top.cl >= 248, JSON.stringify(top));
     check('A3 un seul sélecteur d’espace visible (la barre Student et « Changer d’espace » ont disparu)', (await page.isVisible('[data-space-menu]')) && !(await page.isVisible('#spaceBtn')) && !(await page.isVisible('.topbar')) && (await page.$$eval('[data-org-space]', (xs) => xs.filter((x) => x.offsetParent).length)) === 0);
     const navs = await page.$$eval('.org-head .org-tabs a', (as2) => as2.map((a) => a.querySelector('span').textContent.trim()));
-    check('A4 Arbor Desktop 2 : les cinq espaces puis le contexte d’organisation, chacun avec icône et libellé ; « Mon environnement » actif', navs.join('|') === 'Mon environnement|Knowledge & Impact|Scenario Studio|Blind Spots|Evidence & Mastery|Transmission|Mon équipe|Mon apprentissage' && (await page.$$('.org-head .org-tabs a i')).length === 8 && /Mon environnement/.test(await page.textContent('.org-tabs a[aria-current]')), navs.join('|'));
+    check('A4 Arbor Desktop 2 : les cinq espaces puis le contexte d’organisation, chacun avec icône et libellé ; « Vue d’ensemble » actif', navs.join('|') === 'Vue d’ensemble|Savoir de l’entreprise|Mises en situation|Points faibles|Preuves de maîtrise|Transmission|Mon équipe|Mon apprentissage' && (await page.$$('.org-head .org-tabs a i')).length === 8 && /Vue d’ensemble/.test(await page.textContent('.org-tabs a[aria-current]')), navs.join('|'));
     const crumbs = await page.$$eval('.desk-crumbs li', (ls) => ls.map((l) => l.textContent.trim()));
-    check('A5 fil d’Ariane contextuel : Arbor Business / organisation / rubrique', crumbs.join(' / ') === 'Arbor Business / Magasin de Lyon / Mon environnement', crumbs.join(' / '));
+    check('A5 fil d’Ariane contextuel : Arbor Business / organisation / rubrique', crumbs.join(' / ') === 'Arbor Business / Magasin de Lyon / Vue d’ensemble', crumbs.join(' / '));
     check('A6 pied de barre : centre d’aide, avis, paramètres, profil compact', (await page.isVisible('[data-desk-help]')) && (await page.isVisible('.org-side-foot [data-org-feedback]')) && (await page.isVisible('[data-desk-set]')) && (await page.isVisible('[data-me-menu]')));
-    check('A7 action principale contextuelle du Cockpit : « Inviter »', /Inviter/.test(await page.textContent('.desk-act')));
+    check('A7 action principale contextuelle du Cockpit : « Ajouter des personnes »', /Ajouter des personnes/.test(await page.textContent('.desk-act')));
     const bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
     // Arbor Desktop 2 : clair par défaut (blanc cassé #F6F5F1), sombre seulement si l'utilisateur le choisit
     check('A8 palette Arbor Desktop 2 appliquée (fond blanc cassé #F6F5F1)', bg === 'rgb(246, 245, 241)', bg);
@@ -65,7 +65,7 @@ const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m);
     await page.click('[data-side-toggle]'); await wait(page, 400);
     const w2 = await page.evaluate(() => Math.round(document.querySelector('#app > .org-head').getBoundingClientRect().width));
     const lblHidden = await page.evaluate(() => { const s = document.querySelector('.org-tabs a span'); return s.getBoundingClientRect().width <= 1; });
-    check('A9 repli manuel : 64 px, icônes seules, libellés en infobulle (title) et pour les lecteurs d’écran', w2 === 64 && lblHidden && /^Mon environnement/.test(await page.getAttribute('.org-tabs a', 'title')) && (await page.getAttribute('[data-side-toggle]', 'aria-pressed')) === 'true', String(w2));
+    check('A9 repli manuel : 64 px, icônes seules, libellés en infobulle (title) et pour les lecteurs d’écran', w2 === 64 && lblHidden && /^Vue d’ensemble/.test(await page.getAttribute('.org-tabs a', 'title')) && (await page.getAttribute('[data-side-toggle]', 'aria-pressed')) === 'true', String(w2));
     await page.reload(); await wait(page, 1500);
     const w3 = await page.evaluate(() => Math.round(document.querySelector('#app > .org-head').getBoundingClientRect().width));
     check('A10 la préférence de repli est mémorisée sur l’appareil', w3 === 64, String(w3));
@@ -84,7 +84,7 @@ const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m);
     await page.mouse.click(700, 400); await wait(page, 150);
     check('B4 un clic ailleurs ferme le menu', !(await page.$('.desk-menu')));
     await page.click('[data-desk-help]'); await wait(page, 400);
-    check('B5 centre d’aide : rubriques expliquées et raccourcis clavier', /Raccourcis clavier/.test(await page.textContent('#modal')) && /Base de savoir/.test(await page.textContent('#modal')));
+    check('B5 centre d’aide : rubriques expliquées et raccourcis clavier', /Raccourcis clavier/.test(await page.textContent('#modal')) && /Savoir de l’entreprise/.test(await page.textContent('#modal')));
     await page.keyboard.press('Escape'); await wait(page, 300);
 
     /* C. Recherche globale */
@@ -105,21 +105,21 @@ const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m);
     check('C7 Entrée ouvre le résultat (fiche du collaborateur) et ferme la recherche', /\/suivi\/u-chloe$/.test(page.url()) && !(await page.$('.cmdk')), page.url());
     check('C8 la recherche lit la base (membres, documents, connaissances, compétences)', ['memberships', 'sources', 'knowledge_nodes', 'skills'].every((t) => reqs.slice(r0).some((r) => r.url.includes(`/rest/v1/${t}`))));
     await page.click('[data-cmdk]'); await wait(page, 300);
-    await page.fill('#cmdkQ', 'inviter'); await wait(page, 150);
-    check('C9 les actions aussi : « Inviter un collaborateur »', /Inviter un collaborateur/.test(await page.textContent('.cmdk-list')));
+    await page.fill('#cmdkQ', 'ajouter'); await wait(page, 150);
+    check('C9 les actions aussi : « Ajouter un collaborateur »', /Ajouter un collaborateur/.test(await page.textContent('.cmdk-list')));
     await page.keyboard.press('Escape'); await wait(page, 200);
     check('C10 Échap ferme la recherche', !(await page.$('.cmdk')));
 
     /* D. Actions principales */
     await go(page, `#/org/${ORG}`);
     await page.click('.desk-act'); await wait(page, 2200);
-    check('D1 « Inviter » (Cockpit) ouvre Mon équipe et place le curseur dans l’adresse à inviter', /\/equipe$/.test(page.url()) && await page.evaluate(() => document.activeElement && document.activeElement.id === 'ivEmail'), page.url());
+    check('D1 « Ajouter des personnes » (Cockpit) ouvre Mon équipe et place le curseur dans l’adresse à inviter', /\/equipe$/.test(page.url()) && await page.evaluate(() => document.activeElement && document.activeElement.id === 'ivEmail'), page.url());
     await go(page, `#/org/${ORG}/savoir`);
     check('D2 Base de savoir : action « Nouveau document »', /Nouveau document/.test(await page.textContent('.desk-act')));
     await page.click('.desk-act'); await wait(page, 900);
     check('D2b qui place le curseur dans le formulaire d’ajout', await page.evaluate(() => ['dfTitle', 'dfFile'].includes(document.activeElement && document.activeElement.id)));
     await go(page, `#/org/${ORG}/studio`, 1600);
-    check('D3 Scenario Studio : « Nouveau scénario », la structure Situation → … → Maîtrise et les trois tensions', /Nouveau scénario/.test(await page.textContent('.desk-act')) && (await page.$$eval('.d2-flow li', (ls) => ls.length)) === 6 && (await page.$$eval('.tension .tn', (ls) => ls.length)) === 3);
+    check('D3 Mises en situation : « Nouveau scénario », les trois tensions, sans frise décorative', /Nouveau scénario/.test(await page.textContent('.desk-act')) && (await page.$$eval('.d2-flow li', (ls) => ls.length)) === 0 && (await page.$$eval('.tension .tn', (ls) => ls.length)) === 3);
     await page.click('.desk-act'); await wait(page, 2200);
     check('D3b qui place le curseur dans le formulaire de scénario', /\/studio$/.test(page.url()) && await page.evaluate(() => document.activeElement && document.activeElement.id === 'scKind'), page.url());
     await go(page, `#/org/${ORG}/parametres`);
@@ -136,7 +136,7 @@ const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m);
     check('E3 filtre « À revalider »', (await rows()).join() === 'bob@magasin.fr' && (await page.getAttribute('.seg [data-f="reval"]', 'aria-pressed')) === 'true');
     await page.fill('#tmQ', 'personne'); await wait(page, 150);
     check('E4 aucun résultat : message', await page.isVisible('#tmEmpty'));
-    check('E5 pas de bouton « Inviter » en double avec l’action de la barre supérieure', !(await page.isVisible('#hubInvite')) && /Ajouter un collaborateur/.test(await page.textContent('.desk-act')));
+    check('E5 pas de bouton « Ajouter des personnes » en double avec l’action de la barre supérieure', !(await page.isVisible('#hubInvite')) && /Ajouter un collaborateur/.test(await page.textContent('.desk-act')));
     await ctx.close();
   }
 

@@ -16,7 +16,7 @@
     ['pratiquer', '#/pratiquer', 'barbell', 'Pratiquer'],
     ['connaissance', '#/connaissance', 'tree-structure', 'Ma connaissance'],
     ['compagnon', '#/compagnon', 'chats-circle', 'Compagnon Arbor'],
-    ['progress', '#/progression', 'chart-line-up', 'Progression et mémoire'],
+    ['progress', '#/progression', 'chart-line-up', 'Progression'],
   ];
   const ROUTES = { explorer: 'explorer', studio: 'studio', pratiquer: 'pratiquer', connaissance: 'connaissance', compagnon: 'compagnon', memoire: 'progress' };
   const plural = (n, one, many = `${one}s`) => `${n} ${n > 1 ? many : one}`;
@@ -51,7 +51,7 @@
       <div class="sp-tiles">
         ${tile('data-act="new-subject"', 'plus-circle', 'Un nouveau sujet', 'Donne un thème : Arbor prépare un cours sourcé, notion par notion')}
         ${tile('data-act="import-pdf"', 'file-arrow-up', 'Mon document', 'Un cours, un manuel, une fiche produit : étudié tel quel, avec ses pages')}
-        ${tile('href="#/apprendre/demo"', 'path', 'Découvrir un parcours', 'Situation, explication, pratique, transfert : l’apprentissage Arbor en 5 minutes')}
+        ${tile('href="#/apprendre/demo"', 'path', 'Découvrir un parcours', 'Un exemple, une explication, puis la pratique : l’apprentissage Arbor en 5 minutes')}
         ${tile('data-act="door" data-entry="conversation"', 'chats-circle', 'En discutant', 'Dis ce que tu veux comprendre ; Pousse t’aide à le structurer')}
       </div>
       ${subs.length ? `<section class="b-card" style="--i:4"><header class="b-h"><h2>Tes domaines</h2></header><ul class="sp-subs">${subs.map((s) => { const c = Mastery.counts(Mastery.notions(s)); return `<li><a href="#/s/${s.id}/${s.root.id}"><span class="sp-dot" style="--c:${s.color}"></span><b>${d.esc(s.title)}</b><small class="num">${c.total} notion${c.total > 1 ? 's' : ''} · ${c.mastered + (c.exercised || 0)} maîtrisée${c.mastered + (c.exercised || 0) > 1 ? 's' : ''}</small></a></li>`; }).join('')}</ul></section>` : ''}
@@ -78,7 +78,6 @@
   function studio(app, state) {
     const withFiche = allNotions(state).filter((x) => x.n.fiche).length;
     app.innerHTML = `<div class="d2 sp">${head('Studio pédagogique', 'Construis tes parcours', 'Pars d’un plan, d’un document ou d’un programme. Arbor ne sert un parcours guidé que depuis une fiche vérifiée ; le reste reste en lecture et en révision.')}
-      <ol class="d2-flow">${['Situation', 'Compréhension', 'Explication', 'Pratique', 'Vérification', 'Maîtrise'].map((s, i) => `<li style="--i:${i}"><span>${i + 1}</span>${s}</li>`).join('')}</ol>
       <div class="sp-tiles">
         ${tile('data-act="new-subject"', 'tree-structure', 'Depuis un plan ou un programme', 'Des thèmes, un plan indenté : chaque ligne devient une partie')}
         ${tile('data-act="import-pdf"', 'file-text', 'Depuis un document', 'PDF analysé localement ; les passages hors cours restent à part')}
@@ -102,7 +101,7 @@
           ${due ? '<button type="button" class="btn" data-act="session-start">Commencer</button>' : '<button type="button" class="btn ghost" data-act="quick-start">5 minutes d’entraînement libre</button>'}`)}
         ${card('b-w7', 1, 'Notions fragiles', fragile.length ? `<ul class="sp-list">${fragile.map((x) => `<li><a href="#/s/${x.s.id}/${x.n.id}"><span class="st-dot" style="--sc:${Mastery.STATES[x.state].c}"></span><b>${d.esc(x.n.title)}</b><small>${d.esc(Mastery.reasonOf(x.n, x.state))}</small></a></li>`).join('')}</ul>` : empty('check-circle', 'Aucune notion fragile.'))}
         ${card('b-w6', 2, 'Parcours guidés', parcours.length ? `<ul class="sp-list">${parcours.map((x) => `<li><a href="#/apprendre/${x.s.id}/${x.n.id}">${d.ic('path')}<b>${d.esc(x.n.title)}</b><small>${d.esc(x.s.title)}</small></a></li>`).join('')}</ul>` : `${empty('path', 'Pas encore de parcours sur tes notions.')}<a class="b-more" href="#/apprendre/demo">Essayer la démonstration ${d.ic('arrow-right')}</a>`)}
-        ${card('b-w6', 3, 'Mises en situation avec Pousse', `<p class="b-note">${window.Tutor && Tutor.signedIn() ? 'Depuis une notion : dialogue socratique, « Enseigne-moi » ou mise en situation, toujours fondés sur tes passages.' : 'Avec un compte gratuit : Pousse te met en situation et diagnostique tes confusions, à partir de tes propres cours.'}</p>`)}
+        ${card('b-w6', 3, 'Mises en situation avec Pousse', `<p class="b-note">${window.Tutor && Tutor.signedIn() ? 'Depuis une notion : dialogue socratique, « Enseigne-moi » ou mise en situation, toujours fondés sur tes passages.' : 'Avec un compte : Pousse te met en situation et diagnostique tes confusions, à partir de tes propres cours.'}</p>`)}
       </div></div>`;
   }
 
@@ -185,14 +184,22 @@
     const res = q ? chercher(state, q) : [];
     const signed = window.Tutor && Tutor.signedIn();
     app.innerHTML = `<div class="d2 sp">${head('Compagnon Arbor', 'Pose ta question', 'Le compagnon cherche dans tes cours et tes documents, et cite ses sources. S’il ne trouve rien, il le dit : il n’invente pas.')}
-      <form class="cp-ask" id="cpAsk"><input class="input" name="q" value="${d.esc(q)}" placeholder="Par exemple : pourquoi un levier démultiplie la force ?" aria-label="Ta question" autocomplete="off" /><button class="btn">${d.ic('magnifying-glass')}Chercher</button></form>
+      <form class="cp-ask" id="cpAsk"><input class="input" name="q" value="${d.esc(q)}" placeholder="Pose une question sur tes cours…" aria-label="Ta question" autocomplete="off" /><button class="btn">${d.ic('magnifying-glass')}Chercher</button></form>
       ${q ? (res.length ? `<section class="cp-res" aria-live="polite"><p class="b-note">${plural(res.length, 'passage')} de tes cours</p>${res.map((r, i) => `<article class="cp-item" style="--i:${i}">
           <p class="cp-src">${d.ic('book-open')} ${d.esc(r.s.title)} › <b>${d.esc(r.n.title)}</b>${r.n.src && r.n.src.pages && r.n.src.pages.length ? ` <span class="mono">p. ${r.n.src.pages.join(', ')}</span>` : ''}</p>
           ${r.extrait ? `<blockquote>${d.esc(r.extrait)}</blockquote>` : ''}
           <div class="row-btns"><a class="btn sm ghost" href="#/s/${r.s.id}/${r.n.id}">${d.ic('arrow-square-out')}Ouvrir la notion</a>${r.n.fiche ? `<a class="btn sm" href="#/apprendre/${r.s.id}/${r.n.id}">${d.ic('path')}Pratiquer</a>` : ''}${signed ? `<button type="button" class="btn sm ghost" data-cp-talk="${r.s.id}|${r.n.id}">${d.ic('chats-circle')}En parler avec Pousse</button>` : ''}</div>
         </article>`).join('')}</section>` : `<section class="cp-res">${empty('magnifying-glass', 'Rien dans tes cours ne répond à cette question. Ajoute un document ou un sujet dans Explorer : le compagnon ne répond qu’à partir de sources.')}</section>`) : ''}
+      ${!q ? (() => {
+        // page vide : des questions concrètes tirées de tes propres notions (fragiles d'abord), sinon un départ
+        const ns = state.subjects.flatMap((s) => Mastery.notions(s).map((x) => ({ s, n: x.n, st: x.state }))).filter((x) => x.n && x.n.title);
+        ns.sort((a, b) => (a.st === 'fragile' ? -1 : 0) - (b.st === 'fragile' ? -1 : 0));
+        const pick = ns.slice(0, 4);
+        return pick.length ? `<section class="cp-sugg"><h2 class="cp-sugg-h">Par exemple, sur tes cours</h2><nav class="link-rows">${pick.map((x) => `<a href="#/compagnon/${encodeURIComponent(`Qu’est-ce que « ${x.n.title} » ?`)}">${d.ic(x.st === 'fragile' ? 'warning-circle' : 'chat-circle-text')}<span><b>Qu’est-ce que « ${d.esc(x.n.title)} » ?</b><small>${d.esc(x.s.title)}${x.st === 'fragile' ? ', notion fragile' : ''}</small></span>${d.ic('caret-right')}</a>`).join('')}</nav></section>`
+          : `<section class="cp-sugg">${empty('compass', 'Le compagnon répond à partir de tes cours. Commence par un sujet ou un document dans Explorer.')}<a class="btn sm" href="#/explorer">${d.ic('compass')}Aller dans Explorer</a></section>`;
+      })() : ''}
       ${q && signed && res.length ? `<div class="row-btns"><button type="button" class="btn" id="cpIA">${d.ic('sparkle')}Demander une explication au compagnon</button></div><div id="cpAnswer" aria-live="polite"></div>` : ''}
-      ${!signed ? `<p class="b-note">${d.ic('info')} Avec un compte gratuit, Pousse peut aussi expliquer, te mettre en situation et diagnostiquer tes confusions, toujours à partir de tes passages.</p>` : ''}
+      ${!signed ? `<p class="b-note">${d.ic('info')} Avec un compte, Pousse peut aussi expliquer, te mettre en situation et diagnostiquer tes confusions, toujours à partir de tes passages.</p>` : ''}
     </div>`;
     app.querySelector('#cpAsk').onsubmit = (e) => { e.preventDefault(); const v = e.target.elements.q.value.trim(); d.go(`#/compagnon/${encodeURIComponent(v)}`); };
     const ia = app.querySelector('#cpIA');

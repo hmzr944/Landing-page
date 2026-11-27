@@ -16,7 +16,7 @@ const server = http.createServer((req, res) => {
 let failed = 0;
 const check = (name, ok, extra = '') => { console.log(`${ok ? '✓' : '✗'} ${name}${extra ? ' : ' + extra : ''}`); if (!ok) failed++; };
 
-const PAGES = ['site/index.html', 'site/telecharger.html', 'site/mobile.html', ...fs.readdirSync(path.join(ROOT, 'site/docs')).filter((f) => f.endsWith('.html')).map((f) => `site/docs/${f}`)];
+const PAGES = ['site/index.html', 'site/telecharger.html', 'site/mobile.html', 'site/tarifs.html', ...fs.readdirSync(path.join(ROOT, 'site/docs')).filter((f) => f.endsWith('.html')).map((f) => `site/docs/${f}`)];
 const RELEASE = { tag_name: 'v2.0.0', published_at: '2026-11-24T10:00:00Z', html_url: 'https://github.com/hmzr944/Landing-page/releases/tag/v2.0.0', assets: [
   { name: 'Arbor_2.0.0_x64-setup.exe', size: 1991906, browser_download_url: 'https://github.com/hmzr944/Landing-page/releases/download/v2.0.0/Arbor_2.0.0_x64-setup.exe' },
   { name: 'Arbor_2.0.0_x64_en-US.msi', size: 2568192, browser_download_url: 'https://github.com/hmzr944/Landing-page/releases/download/v2.0.0/Arbor_2.0.0_x64_en-US.msi' },
@@ -26,7 +26,7 @@ const RELEASE = { tag_name: 'v2.0.0', published_at: '2026-11-24T10:00:00Z', html
 (async () => {
   try { execFileSync(process.execPath, [path.join(ROOT, 'tools/build-site.js'), '--check'], { stdio: 'pipe' }); check('W01 pages générées à jour avec leurs sources (tools/build-site.js --check)', true); }
   catch (x) { check('W01 pages générées à jour avec leurs sources (tools/build-site.js --check)', false, String(x.stdout || x.message).trim()); }
-  check('W02 18 pages : accueil, télécharger, mobile, 15 pages de documentation', PAGES.length === 18, String(PAGES.length));
+  check('W02 19 pages : accueil, télécharger, mobile, tarifs, 15 pages de documentation', PAGES.length === 19, String(PAGES.length));
 
   await new Promise((r) => server.listen(0, r));
   const BASE = `http://localhost:${server.address().port}/`;

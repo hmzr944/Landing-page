@@ -378,7 +378,7 @@
       <section class="home courses-page">
         <header class="page-head">
           <h1>Mes cours <span class="muted num">${subjects.length}</span></h1>
-          <a class="pill-btn learn-demo-link" href="#/apprendre/demo">${ic('play-circle')}<span>Découvrir le parcours Arbor 2</span></a>
+          <a class="pill-btn learn-demo-link" href="#/apprendre/demo">${ic('play-circle')}<span>Découvrir un parcours</span></a>
           <div class="row-btns">
             <button class="btn ghost" data-act="import-pdf">${ic('file-arrow-up')}<span>Importer un PDF</span></button>
             <button class="btn" data-act="new-subject">${ic('plus')}<span class="hide-sm">Sujet</span></button>
@@ -640,7 +640,7 @@
           ${node.children.length ? ring(st.pct) : ''}
         </div>
 
-        ${node.fiche ? `<a class="learn-cta card" href="#/apprendre/${s.id}/${node.id}">${ic('path', true)}<span><small>Parcours Arbor 2</small><b>Apprendre cette notion</b><em>Situation, explication, exercices, transfert</em></span>${ic('arrow-right')}</a>` : ''}
+        ${node.fiche ? `<a class="learn-cta card" href="#/apprendre/${s.id}/${node.id}">${ic('path', true)}<span><small>Parcours guidé</small><b>Apprendre cette notion</b><em>Situation, explication, exercices, transfert</em></span>${ic('arrow-right')}</a>` : ''}
         ${isModule(s, node) ? modulePanel(s, node) : node.children.length >= 2 ? lessonCard(s, node, false) : ''}
         ${practiceCard(s, node)}
         ${memoryLine(s, node, isRoot)}
@@ -2067,8 +2067,10 @@
     const steps = plan.steps;
     const mins = Math.max(2, Math.round((ov.due + Math.min(8, plan.fragile.length) + ov.newToday) * 0.4 + (plan.lesson ? Lesson.minutes(plan.lesson.n) : 0)));
     const wk = week.reduce((a, d) => a + d.reviews, 0);
+    // Arbor 3 : sans aucune donnée, pas de blocs à zéro (0 %, série à lancer, semaine vide) : l'action du jour seule
+    const fresh = !td.reviews && !streak && !wk;
     return `
-      <section class="today bento" aria-labelledby="todayTitle">
+      <section class="today bento ${fresh ? 'solo' : ''}" aria-labelledby="todayTitle">
         <div class="b-hero glass" style="--i:0">
           <div class="orb" aria-hidden="true"><i></i><i></i><i></i><b></b></div>
           <div class="hero-copy">
@@ -2078,7 +2080,7 @@
           </div>
           <a class="corner-link" href="#/methode" aria-label="Pourquoi cette méthode marche">${ic('lightbulb', true)}</a>
         </div>
-        <div class="b-goal glass" style="--i:1">
+        ${fresh ? `<p class="today-note">${ic('chart-line-up')} Ta régularité et ta série s’afficheront ici après ta première révision.</p>` : `<div class="b-goal glass" style="--i:1">
           ${ring(goalPct, 112)}
           <p class="tile-cap"><b class="num">${td.reviews}/${goal}</b> aujourd’hui</p>
         </div>
@@ -2092,7 +2094,7 @@
             ${week.map((d, i) => `<div class="day ${i === 6 ? 'is-today' : ''}" title="${d.reviews} cartes" style="--j:${i}"><span style="--h:${d.reviews ? Math.max(10, (d.reviews / max) * 100) : 5}%"></span><small>${d.label}</small></div>`).join('')}
           </div>
           <p class="tile-cap"><b class="num">${wk}</b> cette semaine${td.focusMin ? ` · ${td.focusMin} min focus` : ''}</p>
-        </div>
+        </div>`}
       </section>`;
   }
 
@@ -2653,7 +2655,7 @@
         ${installBlock()}
         <fieldset class="field">
           <legend>Compte</legend>
-          <p class="hint" id="acctState">${window.Tutor && Tutor.signedIn() ? 'Connecté. Pousse et l’analyse avancée des PDF sont disponibles.' : 'Gratuit. Le compte sert au tuteur Pousse et à l’analyse avancée des PDF ; tes cours restent sur cet appareil.'}</p>
+          <p class="hint" id="acctState">${window.Tutor && Tutor.signedIn() ? 'Connecté. Pousse et l’analyse avancée des PDF sont disponibles.' : 'Gratuit pour apprendre seul. Le compte sert au tuteur Pousse et à l’analyse avancée des PDF ; tes cours restent sur cet appareil.'}</p>
           ${window.Tutor && Tutor.signedIn() ? `<div class="row-btns"><button type="button" class="btn ghost sm" id="acctOut">${ic('sign-out')}Se déconnecter</button></div>` : window.Tutor ? `
           ${window.Welcome ? `<div class="row-btns"><button type="button" class="btn sm" id="acctPwd">${ic('sign-in')}Se connecter</button><button type="button" class="btn ghost sm" id="acctNew">${ic('user-plus')}Créer un compte</button></div>
           <p class="hint">Ou reçois un lien de connexion par e-mail, sans mot de passe :</p>` : ''}
@@ -2941,13 +2943,16 @@
     } catch (err) {
       console.error(err);
       Mascot.react('stop-reading');
-      const msg = (err && err.message) || 'Erreur inconnue.';
+      let msg = String((err && err.message) || 'Erreur inconnue.').trim();
+      msg = msg.charAt(0).toUpperCase() + msg.slice(1) + (/[.!?…]$/.test(msg) ? '' : '.');
+      const srv = err && (err.kind === 'server' || err.kind === 'offline' || /génération|serveur|tuteur/i.test(msg));
       $('#modalBody').innerHTML = `
         <div class="loading">
           <span class="tile big danger-tile">${ic('warning-circle', true)}</span>
           <h2 id="modalTitle">Import impossible</h2>
           <p class="modal-lede">${esc(msg)}</p>
-          <div class="row-btns center"><button class="btn" id="retry">${ic('arrow-counter-clockwise')}Choisir un autre fichier</button></div>
+          ${srv ? `<p class="note-line">${ic('info')} L’analyse avancée passe par le serveur d’Arbor. L’analyse rapide, elle, fonctionne sur ton appareil : choisis-la et réessaie.</p>` : ''}
+          <div class="row-btns center"><button class="btn" id="retry">${ic('arrow-counter-clockwise')}${srv ? 'Réessayer' : 'Choisir un autre fichier'}</button></div>
         </div>`;
       $('#retry').onclick = pdfModal;
     }

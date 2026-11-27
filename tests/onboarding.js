@@ -114,7 +114,7 @@ const DICTEE = 'La photosynthèse c’est quand la plante fabrique du sucre avec
     await tap(page, '[data-onb="next"]'); await tap(page, '[data-onb="next"]', 600);
     check(`A7 l'introduction mène à la carte du cours ${t}`, !(await page.isVisible('.onb')) && /carte/.test(page.url()), page.url());
     const st = await state(page);
-    check(`A8 un seul cours, la démo, et le profil enregistré ${t}`, st.subjects.length === 1 && /Passerelle/.test(JSON.stringify(st.subjects[0].root)) && st.profile && st.profile.done && st.profile.entry === 'exemple');
+    check(`A8 un seul cours, la démo, et le profil enregistré ${t}`, st.subjects.length === 1 && /Espacer les révisions/.test(JSON.stringify(st.subjects[0].root)) && st.profile && st.profile.done && st.profile.entry === 'exemple');
     await page.reload(); await page.waitForTimeout(800);
     check(`A9 l'introduction ne revient pas au rechargement ${t}`, !(await page.isVisible('.onb')));
     await ctx.close();
@@ -221,7 +221,7 @@ const DICTEE = 'La photosynthèse c’est quand la plante fabrique du sucre avec
     await page.fill('#onbDump', DICTEE);
     await tap(page, '[data-onb="organize"]', 700);
     const st = await state(page);
-    check('E10 sans compte : le texte est gardé tel quel, et l’organisation demande un compte (dit clairement)', st.subjects.some((x) => /Ce que j’ai expliqué/.test(JSON.stringify(x.root))) && /compte gratuit/.test(await page.textContent('.onb')));
+    check('E10 sans compte : le texte est gardé tel quel, et l’organisation demande un compte (dit clairement)', st.subjects.some((x) => /Ce que j’ai expliqué/.test(JSON.stringify(x.root))) && /il faut un compte|demande un compte/.test(await page.textContent('.onb')));
     await ctx.close();
   }
 

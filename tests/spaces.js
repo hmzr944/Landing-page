@@ -31,7 +31,7 @@ const check = (name, ok, extra = '') => { console.log(`${ok ? '✓' : '✗'} ${n
     await go('#/');
     if (w > 1000) {
       const labels = await page.$$eval('#spNav a', (as) => as.map((a) => a.textContent.trim()));
-      check(`S01 ${tag} barre latérale Learning : huit espaces dans l’ordre`, labels.join('|') === 'Mon espace|Explorer|Mon apprentissage|Studio pédagogique|Pratiquer|Ma connaissance|Compagnon Arbor|Progression et mémoire', labels.join('|'));
+      check(`S01 ${tag} barre latérale Learning : huit espaces dans l’ordre`, labels.join('|') === 'Mon espace|Explorer|Mon apprentissage|Studio pédagogique|Pratiquer|Ma connaissance|Compagnon Arbor|Progression', labels.join('|'));
     } else {
       check(`S01 ${tag} téléphone : la barre latérale ne s’impose pas, la barre du bas reste`, !(await page.isVisible('#spNav a')) && await page.isVisible('.bottom-nav'));
     }
@@ -41,7 +41,7 @@ const check = (name, ok, extra = '') => { console.log(`${ok ? '✓' : '✗'} ${n
     const exW = await page.$eval('#exStart', (f) => f.getBoundingClientRect().width), spW = await page.$eval('.d2.sp', (e) => e.getBoundingClientRect().width);
     check(`S02b ${tag} Explorer : le formulaire de départ occupe toute la largeur`, exW > spW * 0.9, `${Math.round(exW)} / ${Math.round(spW)} px`);
     await go('#/studio');
-    check(`S03 ${tag} Studio pédagogique : structure Situation → Maîtrise et trois points de départ`, (await page.$$('.d2-flow li')).length === 6 && (await page.$$('.sp-tile')).length === 3);
+    check(`S03 ${tag} Studio pédagogique : trois points de départ, sans frise décorative des étapes`, (await page.$$('.d2-flow li')).length === 0 && (await page.$$('.sp-tile')).length === 3);
     await go('#/pratiquer');
     check(`S04 ${tag} Pratiquer : révisions dues comptées, notions fragiles avec leur raison`, /1\s*carte à retrouver/.test(await t()) && /Routage statique/.test(await t()));
     await go('#/connaissance');

@@ -19,7 +19,7 @@
     const people = new Set(evs.map((e) => e.user_id)).size;
     const open = (revals || []).filter((r) => r.status === 'requires_revalidation');
     if (open.length) return { key: 'revalidation', icon: 'arrows-clockwise', title: 'Une procédure a changé', text: `${plural(new Set(open.map((r) => r.user_id)).size, 'personne')} doit revalider une compétence. Leurs preuves passées restent dans l’historique.`, action: ['Voir qui revalider', window.OrgChanges ? 'changements' : 'developper'] };
-    if (!evs.length) return { key: 'vide', icon: 'plant', title: 'Votre radar d’équipe se prépare', text: 'Invitez vos collaborateurs et lancez les premiers diagnostics pour découvrir les compétences de votre équipe.', action: ['Inviter mon équipe', 'equipe'] };
+    if (!evs.length) return { key: 'vide', icon: 'plant', title: 'Votre radar d’équipe se prépare', text: 'Faites entrer vos collaborateurs et lancez les premiers diagnostics pour découvrir les compétences de votre équipe.', action: ['Faire entrer mon équipe', 'equipe'] };
     const enough = radar ? radar.blind.length > 0 || (radar.limits.people >= 2 && evs.length >= 3 && !radar.insufficient) : people >= 2 && evs.length >= 3;
     if (people < 2 || evs.length < 3) return { key: 'insuffisant', icon: 'plant', title: 'Premières réponses reçues', text: 'Il faut quelques réponses de plus, d’au moins deux personnes, avant de tirer une conclusion.', action: ['Proposer un diagnostic', 'apprendre/epreuve'] };
     if (!enough) return { key: 'premiers', icon: 'sparkle', title: 'Les premiers signaux apparaissent', text: 'Rien n’est encore assez établi pour parler de point faible. Une simulation aidera à confirmer.', action: ['Lancer un entraînement', 'developper/entrainer'] };
@@ -80,7 +80,7 @@
       ...((x.oos || []).filter((r) => r.status === 'a_examiner').length ? [{ icon: 'question', t: `${plural(x.oos.filter((r) => r.status === 'a_examiner').length, 'connaissance de terrain')} hors référentiel à examiner`, href: `#/org/${o.id}/developper` }] : []),
       ...(toStrengthen[0] ? [{ icon: 'target', t: `Renforcer « ${toStrengthen[0].knowledge.title} »`, href: `#/org/${o.id}/developper/entrainer` }] : []),
       ...(!x.skills.length && ks.some((k) => k.status === 'valide') ? [{ icon: 'list-checks', t: 'Définir les compétences du poste', href: `#/org/${o.id}/competences` }] : []),
-      ...(ms.length < 2 ? [{ icon: 'user-plus', t: 'Inviter mon équipe', href: `#/org/${o.id}/equipe` }] : []),
+      ...(ms.length < 2 ? [{ icon: 'user-plus', t: 'Faire entrer mon équipe', href: `#/org/${o.id}/equipe` }] : []),
     ].slice(0, 4);
     const recentTrophies = ((x.board && x.board.members) || []).flatMap((m) => (m.trophies || []).map((t) => ({ name: m.name, trophy: t.trophy, at: t.last }))).sort((a, b) => (a.at < b.at ? 1 : -1)).slice(0, 4);
     const TN = window.League ? League.TROPHY_NAMES : {};
@@ -97,7 +97,7 @@
     const kpi = (href, icon, label, value, sub, tone = '') => `<${href ? `a href="${href}"` : 'div'} class="hub-kpi ${tone}"><span class="kpi-l">${d.ic(icon)}${label}</span><b class="num">${value}</b><small>${sub}</small></${href ? 'a' : 'div'}>`;
     app.innerHTML = `${head}${resume}
       <div class="pg ck">
-        <header class="pg-h"><div><h1>Cockpit</h1><p>Où en est ${d.esc(o.name)}, ce qu’il faut faire aujourd’hui, comment l’équipe progresse.</p></div>
+        <header class="pg-h"><div><h1>Vue d’ensemble</h1><p>Où en est ${d.esc(o.name)}, ce qu’il faut faire aujourd’hui, comment l’équipe progresse.</p></div>
           <div class="pg-meta"><span class="pg-pill">${d.ic('calendar-blank')}Au ${today} · activité sur 7 jours</span>${info('Chaque chiffre vient des preuves et des décisions enregistrées dans votre organisation. Une fragilité n’apparaît qu’à partir de 3 observations sur 2 personnes.')}</div></header>
         <section class="sec hub-cockpit">${stateCard(o, st)}
           <div class="hub-kpis">
@@ -163,7 +163,7 @@
     app.innerHTML = `${head}
       <div class="pg">
         <header class="pg-h"><div><h1>Mon équipe <small class="num">${ms.length}</small></h1><p>Les personnes, leur progression et leurs accès. Une erreur individuelle n’est jamais affichée ici.</p></div>
-          <a class="btn" href="#teamInvite" id="hubInvite">${d.ic('user-plus', true)}Inviter</a></header>
+          <a class="btn" href="#teamInvite" id="hubInvite">${d.ic('user-plus', true)}Ajouter des personnes</a></header>
         <section class="sec hub-team" aria-label="Collaborateurs">
           ${rows.length ? `<div class="tb-tools">
               <label class="tb-search">${d.ic('magnifying-glass')}<input id="tmQ" type="search" placeholder="Rechercher une personne" aria-label="Rechercher une personne" autocomplete="off" /></label>
@@ -177,7 +177,7 @@
               <thead><tr><th scope="col">Personne</th><th scope="col" class="tb-hide-s">Rang</th><th scope="col">Compétences démontrées</th><th scope="col" class="tb-hide-s">Progression</th><th scope="col">État</th><th scope="col" class="tb-num">Trophées</th><th scope="col"><span class="sr-only">Détail</span></th></tr></thead>
               <tbody>${rows.map((r) => r.html).join('')}</tbody></table></div>
             <p class="tb-empty hint" id="tmEmpty" hidden>Aucune personne ne correspond.</p>`
-          : `<div class="hub-state st-vide">${d.ic('users-three', true)}<div><b>Votre équipe vous attend</b><p>Invitez vos collaborateurs : ils rejoignent Arbor avec un simple lien.</p></div></div>`}
+          : `<div class="hub-state st-vide">${d.ic('users-three', true)}<div><b>Votre équipe vous attend</b><p>Faites entrer vos collaborateurs : ils rejoignent Arbor avec un simple lien.</p></div></div>`}
         </section>
         <div id="hubCordees"></div>
         <div id="hubLegacy"></div>
@@ -211,7 +211,7 @@
   function knowledge(app, o, head, deps, sub, bare) {
     d = deps;
     if (bare) return OrgDocs.render(app, o, sub, d, head);
-    const intro = sub ? '' : `<header class="pg-h"><div><h1>Base de savoir</h1><p>Les documents de référence de ${d.esc(o.name)} et les connaissances validées qui nourrissent le diagnostic, les simulations et les compétences.</p></div></header>`;
+    const intro = sub ? '' : `<header class="pg-h"><div><h1>Savoir de l’entreprise</h1><p>Les documents de référence de ${d.esc(o.name)} et les connaissances validées qui nourrissent le diagnostic, les simulations et les compétences.</p></div></header>`;
     return OrgDocs.render(app, o, sub, d, `${head}${intro}${pipe(o, sub ? 'k' : 'docs')}`);
   }
   const pipeHead = (o, deps, cur) => { d = deps; return pipe(o, cur); };
@@ -255,13 +255,13 @@
   function myLearning(app, o, head, deps, sub) {
     d = deps;
     if (sub) return OrgShell.learn(app, o, head, d, sub);
-    app.innerHTML = `${head}<header class="pg-h"><div><h1>Mon apprentissage</h1><p>Votre propre progression, séparée des outils de gestion de l’équipe. Cinq façons d’entrer, toutes fondées sur les connaissances validées.</p></div></header>
+    app.innerHTML = `${head}<header class="pg-h"><div><h1>Mon apprentissage</h1><p>Votre propre progression, séparée des outils de gestion de l’équipe.</p></div></header>
       <section class="sec">${OrgShell.doorsGrid(o, d)}</section>
-      <section class="org-grid">
-        <a class="org-card" href="#/org/${o.id}/resultats"><span>${d.ic('chart-line-up')}</span><div><b>Mon parcours</b><p>Mes compétences, mes preuves, la suite.</p></div></a>
-        ${window.League ? `<a class="org-card" href="#/org/${o.id}/canopee"><span>${d.ic('tree', true)}</span><div><b>Ma Canopée</b><p>Mon rang, mon arbre, mes trophées.</p></div></a>` : ''}
-        <a class="org-card" href="#/"><span>${d.ic('user-circle')}</span><div><b>Mon espace personnel</b><p>Mes cours à moi, les cinq portes d’entrée Student, sur cet appareil.</p></div></a>
-      </section>`;
+      <nav class="link-rows" aria-label="Mes résultats">
+        <a href="#/org/${o.id}/resultats">${d.ic('chart-line-up')}<span><b>Mon parcours</b><small>Mes compétences, mes preuves, la suite</small></span>${d.ic('caret-right')}</a>
+        ${window.League ? `<a href="#/org/${o.id}/canopee">${d.ic('tree')}<span><b>Ma Canopée</b><small>Mon rang, mon arbre, mes trophées</small></span>${d.ic('caret-right')}</a>` : ''}
+        <a href="#/">${d.ic('user-circle')}<span><b>Mon espace personnel</b><small>Mes cours à moi, sur cet appareil</small></span>${d.ic('caret-right')}</a>
+      </nav>`;
   }
 
   window.OrgHub = { cockpit, team, knowledge, pipeHead, develop, myLearning, dataState };

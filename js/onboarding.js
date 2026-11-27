@@ -29,35 +29,37 @@
   const readDraft = () => { try { const x = JSON.parse(localStorage.getItem(DRAFT) || 'null'); return x && Date.now() - x.at < 7 * 864e5 ? x : null; } catch (e) { return null; } };
   const clearDraft = () => { try { localStorage.removeItem(DRAFT); } catch (e) { /* rien */ } };
 
-  /* Cours de démonstration : les bases des réseaux, rédigé pour Arbor (contenu vérifiable, sans PDF) */
+  /* Cours de démonstration : « Apprendre efficacement ». Un sujet utile à tout le monde, quel que soit son domaine,
+     rédigé à partir d'études publiées (Dunlosky et al. 2013 ; Roediger et Karpicke 2006 ; Cepeda et al. 2006 ;
+     Rohrer et al. ; Sweller et al. 2003 ; voir docs/arbor-3-recherche.md). */
   const n = (title, notes, keyPoints) => ({ title, notes, keyPoints });
   const DEMO = {
-    title: 'Réseaux : les bases',
+    title: 'Apprendre efficacement',
     children: [
-      { title: 'Adressage IP', children: [
-        n('Adresse IP', "Une adresse IP identifie une interface sur un réseau. En IPv4, elle est codée sur 32 bits et s'écrit en notation décimale pointée : quatre nombres de 0 à 255, comme 192.168.1.20.\n\nElle comporte deux parties : l'identifiant du réseau et l'identifiant de la machine. Les plages 10.0.0.0/8, 172.16.0.0/12 et 192.168.0.0/16 sont réservées aux réseaux privés.",
-          ['IPv4 : 32 bits, quatre nombres de 0 à 255', 'Une partie réseau et une partie machine', 'Plages privées : 10/8, 172.16/12, 192.168/16']),
-        n('Masque de sous-réseau', "Le masque indique combien de bits de l'adresse désignent le réseau. En notation CIDR, 192.168.1.20/24 signifie que les 24 premiers bits (192.168.1) identifient le réseau ; le même masque s'écrit 255.255.255.0.\n\nUn ET logique entre l'adresse et le masque donne l'adresse du réseau. Deux machines du même réseau communiquent directement, sans routeur.",
-          ['Le masque sépare la partie réseau de la partie machine', '/24 = 255.255.255.0', 'Adresse ET masque = adresse du réseau']),
-        n('Passerelle par défaut', "La passerelle par défaut est le routeur auquel une machine envoie les paquets destinés à un autre réseau. La machine compare l'adresse de destination à son propre réseau grâce au masque : si la destination est hors du réseau local, le paquet part vers la passerelle.",
-          ['Routeur qui mène vers les autres réseaux', 'Utilisée quand la destination est hors du réseau local', 'Le masque permet de le savoir']),
+      { title: 'Retenir', children: [
+        n('Se tester plutôt que relire', "Chercher une réponse dans sa mémoire, sans regarder, renforce davantage le souvenir que relire le même texte. Dans l'expérience de Roediger et Karpicke (2006), relire donnait un meilleur résultat cinq minutes après ; quelques jours plus tard, c'était l'inverse : ceux qui s'étaient testés retenaient nettement mieux.\n\nC'est pour cela qu'Arbor te pose des questions au lieu de te faire relire.",
+          ['Récupérer en mémoire renforce le souvenir', 'Relire donne une impression de maîtrise trompeuse', 'L’avantage du test apparaît après quelques jours']),
+        n('Espacer les révisions', "Répartir les révisions dans le temps fait mieux retenir que de tout revoir d'un coup. La méta-analyse de Cepeda et ses collègues (2006), sur plus de 300 expériences, le confirme : plus on veut retenir longtemps, plus l'écart entre deux révisions doit grandir.\n\nArbor calcule pour chaque notion le moment où tu es sur le point de l'oublier.",
+          ['Plusieurs courtes séances valent mieux qu’une longue', 'L’écart grandit à mesure que la notion se consolide', 'Réviser juste avant d’oublier']),
+        n('La courbe de l’oubli', "Sans révision, on oublie vite au début, puis plus lentement. Chaque rappel réussi aplatit la courbe : la notion tient plus longtemps avant la révision suivante.",
+          ['On oublie surtout dans les premiers jours', 'Chaque rappel réussi ralentit l’oubli']),
       ] },
-      { title: 'Services et diagnostic', children: [
-        n('DHCP', "Le DHCP attribue automatiquement la configuration réseau d'une machine : adresse IP, masque, passerelle par défaut et serveurs DNS. L'adresse est prêtée pour une durée limitée, appelée bail.\n\nSans réponse d'un serveur DHCP, une machine peut s'attribuer une adresse en 169.254.x.x : c'est le signe qu'elle n'a pas obtenu de configuration.",
-          ['Donne adresse IP, masque, passerelle et DNS', 'L’adresse est prêtée : c’est le bail', '169.254.x.x : pas de réponse du DHCP']),
-        n('DNS', "Le DNS traduit un nom de domaine, comme exemple.fr, en adresse IP. La machine interroge un serveur DNS, qui répond lui-même ou interroge d'autres serveurs de la hiérarchie.\n\nUne panne DNS donne souvent l'impression qu'Internet ne marche plus alors que les adresses IP restent joignables.",
-          ['Traduit un nom en adresse IP', 'Serveurs organisés en hiérarchie', 'Panne DNS : les noms échouent, les adresses IP répondent']),
-        n('Ping et diagnostic', "La commande ping vérifie qu'une machine répond. On diagnostique du plus proche au plus lointain : sa propre interface (127.0.0.1), puis la passerelle par défaut, puis une adresse IP extérieure, puis un nom de domaine pour tester le DNS.",
-          ['Ping : la machine répond-elle ?', 'Du plus proche au plus lointain', 'Tester une IP puis un nom isole le DNS']),
+      { title: 'Comprendre', children: [
+        n('Partir d’un exemple résolu', "Quand on découvre une notion, étudier un exemple déjà résolu, étape par étape, aide plus que chercher seul : l'attention va à la méthode plutôt qu'à la recherche à tâtons (Sweller et ses collègues, 2003). Quand on a déjà des bases, l'effet s'inverse : mieux vaut s'exercer directement.",
+          ['Débutant : un exemple résolu d’abord', 'Avec des bases : s’exercer tout de suite']),
+        n('Mélanger les types d’exercices', "Alterner des exercices de types différents, plutôt que d'enchaîner dix fois le même, oblige à choisir la bonne méthode à chaque fois. Dans des classes de mathématiques, Rohrer et ses collègues ont mesuré de nets progrès au test différé.",
+          ['Alterner plutôt que répéter le même type', 'On apprend à reconnaître quelle méthode utiliser']),
+        n('Expliquer avec ses mots', "Se demander pourquoi une affirmation est vraie, ou expliquer une étape à voix haute, aide à relier la notion à ce qu'on sait déjà. Les revues de recherche jugent cette technique utile, avec des preuves moins nombreuses que pour le test et l'espacement (Dunlosky et ses collègues, 2013).",
+          ['Se demander « pourquoi ? »', 'Relier à ce qu’on sait déjà', 'Utile, mais moins prouvé que se tester']),
       ] },
     ],
   };
   const DEMO_Q = {
-    notion: 'Passerelle par défaut',
-    ask: 'Ton ordinateur a l’adresse 192.168.1.20/24. Il veut joindre 8.8.8.8. À qui envoie-t-il le paquet ?',
-    opts: ['Directement à 8.8.8.8', 'À sa passerelle par défaut', 'Au serveur DNS'],
-    right: 'À sa passerelle par défaut',
-    why: '8.8.8.8 n’est pas dans le réseau 192.168.1.0/24 : le paquet part vers la passerelle, le routeur qui mène aux autres réseaux. Le DNS, lui, traduit des noms en adresses.',
+    notion: 'Espacer les révisions',
+    ask: 'Tu as un examen dans trois semaines et trois heures à consacrer à une matière. Quelle organisation fait le mieux retenir ?',
+    opts: ['Trois heures la veille de l’examen', 'Six séances de trente minutes réparties sur les trois semaines', 'Relire le cours trois fois d’affilée'],
+    right: 'Six séances de trente minutes réparties sur les trois semaines',
+    why: 'Pour le même temps total, des séances espacées font mieux retenir qu’une séance massée (méta-analyse de Cepeda et ses collègues, 2006). Relire d’affilée donne surtout une impression de maîtrise.',
   };
 
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -98,7 +100,7 @@
     paint(`<div class="onb-q"><div class="onb-guide">${pousse(56)}<p>Tout peut devenir un point de départ.</p></div>
       <h2>Comment souhaites-tu apprendre ?</h2><p>Choisis une porte d’entrée, tu pourras utiliser les autres ensuite.</p>
       <div class="onb-entries">${ENTRIES.map(([k, icn, t, sub]) => `<button type="button" class="onb-entry" data-entry="${k}">${ic(icn, true)}<span><b>${t}</b><small>${sub}</small></span>${ic('caret-right')}</button>`).join('')}</div></div>
-      <div class="onb-foot"><button type="button" class="link-btn" data-onb="demo">Ou essaie un cours d’exemple sur les réseaux</button>
+      <div class="onb-foot"><button type="button" class="link-btn" data-onb="demo">Ou essaie un cours d’exemple : apprendre efficacement</button>
         <button type="button" class="link-btn onb-join" data-onb="join">J’ai une invitation de mon organisation</button></div>`);
     stage().querySelectorAll('[data-entry]').forEach((b) => { b.onclick = () => { profile.entry = b.dataset.entry; s2(); }; });
     $('[data-onb="demo"]').onclick = () => { profile.entry = 'exemple'; const s = d.addCourse(DEMO, profile.examDate); mark('exemple'); wow(s, true); };
@@ -127,7 +129,7 @@
     paint(`<div class="onb-q"><h2>Quelques précisions ?</h2><p>Tout est facultatif : Arbor fonctionne sans.</p>
       <div class="onb-form">
         <label for="onbSubject">Sujet ou domaine</label>
-        <input id="onbSubject" autocomplete="off" maxlength="80" placeholder="Mécanique, droit, piano, réseaux…" value="${esc(profile.subject || '')}" />
+        <input id="onbSubject" autocomplete="off" maxlength="80" placeholder="Mécanique, droit, piano, cuisine…" value="${esc(profile.subject || '')}" />
         <span class="onb-label" id="onbLvlL">Où en es-tu ?</span>
         <div class="onb-pills" role="radiogroup" aria-labelledby="onbLvlL">${LEVELS.map(([k, l]) => `<label><input type="radio" name="onbLvl" value="${k}" ${profile.level === k ? 'checked' : ''} /><span>${l}</span></label>`).join('')}</div>
         <label for="onbExam">Échéance</label>
@@ -158,7 +160,7 @@
       <h2>${talk ? 'Discuter avec Pousse' : 'Un défi pour commencer'}</h2>
       <p>${talk ? 'Pousse s’appuie sur des sources fiables et te pose des questions, au lieu de réciter.' : 'Tu réponds d’abord ; Arbor t’explique ensuite ce qu’il fallait savoir, puis tu retentes.'}</p>
       <div class="onb-form"><label for="onbTopic">Sujet</label><input id="onbTopic" autocomplete="off" maxlength="80" placeholder="La photosynthèse, le moteur à 4 temps…" value="${esc(profile.subject || '')}" autofocus /></div>
-      ${talk && !signedIn() ? `<p class="onb-note">${ic('info')}Pousse demande un compte gratuit. Sans compte, tu peux explorer le sujet et répondre à des questions.</p>` : ''}
+      ${talk && !signedIn() ? `<p class="onb-note">${ic('info')}Pousse demande un compte. Sans compte, tu peux explorer le sujet et répondre à des questions.</p>` : ''}
       <p class="onb-status" role="status"></p></div>
       <div class="onb-foot"><button class="btn big" data-onb="go">${talk ? (signedIn() ? 'Commencer la discussion' : 'Explorer le sujet') : 'Lancer le défi'}</button>
         ${talk && !signedIn() && window.Welcome ? '<button type="button" class="link-btn" data-onb="account">Créer un compte pour parler à Pousse</button>' : ''}</div>`, s3);
@@ -285,7 +287,7 @@
       // Sans compte : le texte est gardé tel quel, et on le dit
       const s = d.addCourse({ title, children: [{ title: mode === 'explication' ? 'Ce que j’ai expliqué' : 'Texte de la photo', notes: text, keyPoints: [] }] }, profile.examDate);
       paint(`<div class="onb-q"><div class="onb-guide">${pousse(56, 'smile')}<p>C’est gardé dans « ${esc(s.title)} ».</p></div>
-        <h2>Ton texte est enregistré</h2><p>Pour qu’Arbor le découpe en notions et repère ce qui est à vérifier, il faut un compte gratuit (l’analyse se fait sur le serveur d’Arbor).</p></div>
+        <h2>Ton texte est enregistré</h2><p>Pour qu’Arbor le découpe en notions et repère ce qui est à vérifier, il faut un compte (l’analyse se fait sur le serveur d’Arbor).</p></div>
         <div class="onb-foot">${window.Welcome ? '<button class="btn big" data-onb="account">Créer un compte et organiser</button>' : ''}<button type="button" class="link-btn" data-onb="open">Ouvrir mon texte</button></div>`);
       const a = $('[data-onb="account"]'); if (a) a.onclick = () => { hide(); Welcome.auth({ after: () => { show(); d.removeCourse(s); organize(text, mode); } }, 'signup'); };
       $('[data-onb="open"]').onclick = () => done(s);

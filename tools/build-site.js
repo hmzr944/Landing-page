@@ -11,6 +11,7 @@ const PAGES = [
   { id: 'index', nav: 'Découvrir' },
   { id: 'telecharger', nav: 'Télécharger' },
   { id: 'mobile', nav: 'Mobile' },
+  { id: 'tarifs', nav: 'Tarifs' },
 ];
 const DOCS = [
   ['Prise en main', [['index', 'compass', 'Vue d’ensemble'], ['demarrer', 'flag', 'Premiers pas'], ['plateformes', 'devices', 'Web, ordinateur, téléphone']]],
@@ -64,7 +65,7 @@ ${body}
   <footer class="s-foot">
     <div class="wrap">
       <div><a class="s-brand" href="${root}index.html">${LOGO}<span translate="no">Arbor</span></a><p style="margin-top:12px">Apprendre, comprendre, pratiquer, maîtriser. Un même compte sur le Web, l’ordinateur et le téléphone.</p></div>
-      <div><b>Arbor</b><a href="${app}">Arbor Web</a><a href="${root}telecharger.html">Windows et macOS</a><a href="${root}mobile.html">Téléphone</a></div>
+      <div><b>Arbor</b><a href="${app}">Arbor Web</a><a href="${root}telecharger.html">Windows et macOS</a><a href="${root}mobile.html">Téléphone</a><a href="${root}tarifs.html">Tarifs</a></div>
       <div><b>Documentation</b><a href="${root}docs/demarrer.html">Premiers pas</a><a href="${root}docs/apprendre.html">Fiches et parcours</a><a href="${root}docs/business.html">Arbor Business</a></div>
       <div><b>Confiance</b><a href="${root}docs/sources.html">Sources</a><a href="${root}docs/donnees.html">Données</a><a href="${root}docs/faq.html">Questions fréquentes</a></div>
     </div>

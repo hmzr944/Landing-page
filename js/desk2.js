@@ -1,5 +1,5 @@
 /* Arbor Desktop 2 · Intelligence & Governance (espaces des responsables).
-   Cinq espaces : Cockpit · Knowledge & Impact · Scenario Studio · Blind Spots · Evidence & Governance.
+   Espaces : Vue d’ensemble, Savoir de l’entreprise, Mises en situation, Points faibles, Preuves de maîtrise, Transmission.
    Règles :
    - toutes les données viennent de la base (mêmes requêtes et mêmes droits que les écrans existants) ; une donnée
      absente donne un état vide qui le dit, jamais un chiffre fabriqué ;
@@ -19,12 +19,12 @@
 
   /* ---------- Navigation : cinq espaces, plus le contexte d'équipe ---------- */
   const SPACES = [
-    ['accueil', 'gauge', 'Mon environnement', 'Mon environnement professionnel : état, risques, actions'],
-    ['savoir', 'books', 'Knowledge & Impact', 'Knowledge & Impact Studio : documents, versions, comparaison et impact'],
-    ['studio', 'film-script', 'Scenario Studio', 'concevoir et valider des situations'],
-    ['angles', 'eye-slash', 'Blind Spots', 'erreurs, confusions, fausses certitudes'],
-    ['preuves', 'seal-check', 'Evidence & Mastery', 'preuves de maîtrise, revalidations, audit'],
-    ['transmission', 'hand-heart', 'Transmission', 'Transmission & Knowledge Sharing : transmettre une méthode ou un savoir-faire'],
+    ['accueil', 'gauge', 'Vue d’ensemble', 'état des connaissances, risques, actions du jour'],
+    ['savoir', 'books', 'Savoir de l’entreprise', 'documents, versions, ce qui a changé et qui est concerné'],
+    ['studio', 'film-script', 'Mises en situation', 'concevoir et valider des situations d’entraînement'],
+    ['angles', 'eye-slash', 'Points faibles', 'erreurs, confusions, fausses certitudes'],
+    ['preuves', 'seal-check', 'Preuves de maîtrise', 'preuves, revalidations, journal d’audit'],
+    ['transmission', 'hand-heart', 'Transmission', 'transmettre une méthode ou un savoir-faire de terrain'],
   ];
   function nav() {
     return [[null, SPACES.map(([k, i, l]) => [k, i, l])], ['Organisation', [['equipe', 'users-three', 'Mon équipe'], ['apprendre', 'student', 'Mon apprentissage']]]];
@@ -54,7 +54,7 @@
   }
 
   /* ---------- En-tête d'espace ---------- */
-  const pageHead = (eyebrow, title, sub, right = '') => `<header class="d2-head"><div><p class="d2-eyebrow">${eyebrow}</p><h1>${title}</h1>${sub ? `<p class="d2-sub">${sub}</p>` : ''}</div>${right ? `<div class="d2-head-r">${right}</div>` : ''}</header>`;
+  const pageHead = (eyebrow, title, sub, right = '') => `<header class="d2-head"><div>${eyebrow ? `<p class="d2-eyebrow">${eyebrow}</p>` : ''}<h1>${title}</h1>${sub ? `<p class="d2-sub">${sub}</p>` : ''}</div>${right ? `<div class="d2-head-r">${right}</div>` : ''}</header>`;
   const skeleton = (n = 6) => `<div class="dbento">${Array.from({ length: n }, (_, i) => `<div class="b-card sk ${i === 0 ? 'b-w7' : i === 1 ? 'b-w5' : 'b-w4'}"><i></i><i></i><i></i></div>`).join('')}</div>`;
   const card = (cls, i, title, body, link) => `<section class="b-card ${cls}" style="--i:${i}"><header class="b-h"><h2>${title}</h2>${link || ''}</header>${body}</section>`;
   const more = (href, l = 'Ouvrir') => `<a class="b-more" href="${href}">${l}${d.ic('arrow-right')}</a>`;
@@ -93,7 +93,7 @@
   async function cockpit(app, o, head, deps) {
     d = deps;
     const today = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
-    app.innerHTML = `${head}<div class="d2">${pageHead(`Cockpit · ${today}`, 'Mon environnement professionnel', `Où en sont les connaissances de ${d.esc(o.name)}, et ce qui demande votre attention.`)}${skeleton()}</div>`;
+    app.innerHTML = `${head}<div class="d2">${pageHead('', 'Vue d’ensemble', `Où en sont les connaissances de ${d.esc(o.name)}, et ce qui demande votre attention.`)}${skeleton()}</div>`;
     const x = await loadAll(o);
     const { evs, ks, ms } = x;
     const learners = learnersOf(ms, evs);
@@ -118,9 +118,26 @@
       ...(fc.n && mx.enough ? [{ icon: 'warning-diamond', t: `Traiter ${plural(fc.n, 'fausse certitude', 'fausses certitudes')}`, href: `#/org/${o.id}/angles`, tone: 'red' }] : []),
       ...(kp ? [{ icon: 'seal-check', t: `Valider ${plural(kp, 'règle proposée', 'règles proposées')}`, href: `#/org/${o.id}/savoir`, tone: '' }] : []),
       ...(x.oos.filter((r) => r.status === 'a_examiner').length ? [{ icon: 'question', t: `Examiner ${plural(x.oos.filter((r) => r.status === 'a_examiner').length, 'affirmation hors référentiel', 'affirmations hors référentiel')}`, href: `#/org/${o.id}/savoir`, tone: '' }] : []),
-      ...(ms.length < 2 ? [{ icon: 'user-plus', t: 'Inviter mon équipe', href: `#/org/${o.id}/equipe`, tone: '' }] : []),
+      ...(ms.length < 2 ? [{ icon: 'user-plus', t: 'Faire entrer mon équipe', href: `#/org/${o.id}/equipe`, tone: '' }] : []),
     ].slice(0, 5);
 
+    // Organisation qui démarre : pas de tableau de zéros, une mise en route en quatre étapes (état vide utile)
+    if (!ks.length && !evs.length) {
+      const steps = [
+        [x.sources.length > 0, 'file-arrow-up', 'Ajouter un premier document', 'Une procédure, une fiche produit, un règlement : Arbor en extrait les règles, chacune avec sa page.', `#/org/${o.id}/savoir`, 'Ajouter un document'],
+        [kv > 0, 'seal-check', 'Valider les premières règles', 'Rien ne sert à former tant qu’une personne compétente ne l’a pas validé.', `#/org/${o.id}/savoir`, 'Voir les règles'],
+        [ms.length > 1, 'users-three', 'Faire entrer l’équipe', 'Autorisez des adresses ou un domaine, ou créez un pass d’équipe pour un briefing.', `#/org/${o.id}/equipe`, 'Ouvrir l’accès'],
+        [false, 'film-script', 'Lancer une première mise en situation', 'Un cas concret tiré des règles validées, pour voir où chacun en est.', `#/org/${o.id}/studio`, 'Créer une mise en situation'],
+      ];
+      const next = steps.findIndex(([ok]) => !ok);
+      app.innerHTML = `${head}<div class="d2 d2-start">${pageHead('', 'Mise en route', `${d.esc(o.name)} est prêt. Quatre étapes pour que l’apprentissage de l’équipe repose sur vos propres documents.`)}
+        <ol class="start-list">${steps.map(([ok, ic, t, p, href, cta], i) => `<li class="${ok ? 'done' : i === next ? 'next' : ''}">
+          <span class="start-ic" aria-hidden="true">${d.ic(ok ? 'check' : ic)}</span>
+          <div><h2>${t}</h2><p>${p}</p></div>
+          ${ok ? '<span class="start-ok">Fait</span>' : `<a class="btn ${i === next ? '' : 'ghost'} sm" href="${href}">${cta}</a>`}</li>`).join('')}</ol>
+        <p class="note-line">${d.ic('info')} Le tableau de bord apparaît dès les premières règles validées ou les premières réponses de l’équipe.</p></div>`;
+      return;
+    }
     const cards = [
       card('b-w7 b-main', 0, 'État des connaissances', `<div class="hero-row">
           <div class="hero-ring">${ring(pct, `${pct} % des compétences de poste acquises`)}<b class="num">${total ? pct : '—'}<small>${total ? '%' : ''}</small></b></div>
@@ -129,15 +146,15 @@
         info('Acquise = démontrée selon les règles de preuve d’Arbor (niveau requis, validation au poste pour le sensible). Aucune moyenne : un décompte.')),
       card('b-w5', 1, 'Actions prioritaires', acts.length ? `<ol class="b-acts">${acts.map((a) => `<li><a href="${a.href}" class="t-${a.tone}">${d.ic(a.icon)}<span>${d.esc(a.t)}</span>${d.ic('caret-right')}</a></li>`).join('')}</ol>` : empty('check-circle', 'Rien d’urgent.')),
       card('b-w4', 2, 'Procédures qui ont évolué', x.changes.length ? `<ul class="b-proc">${x.changes.slice(0, 4).map((c) => { const s = c.summary || {}; return `<li><a href="#/org/${o.id}/savoir/impact/${c.id}"><span class="bp-t"><b>${d.esc(srcTitle(c.source_id))}</b><small class="mono">${fmt(c.created_at)}</small></span>
-          <span class="bp-c">${s.modifie ? `<i class="amber">${s.modifie} mod.</i>` : ''}${s.nouveau ? `<i class="green">${s.nouveau} nouv.</i>` : ''}${s.supprime ? `<i class="red">${s.supprime} suppr.</i>` : ''}</span></a></li>`; }).join('')}</ul>` : empty('files', 'Aucune nouvelle version de document.'), more(`#/org/${o.id}/savoir/impact`, 'Diff & Impact')),
+          <span class="bp-c">${s.modifie ? `<i class="amber">${s.modifie} mod.</i>` : ''}${s.nouveau ? `<i class="green">${s.nouveau} nouv.</i>` : ''}${s.supprime ? `<i class="red">${s.supprime} suppr.</i>` : ''}</span></a></li>`; }).join('')}</ul>` : empty('files', 'Aucune nouvelle version de document.'), more(`#/org/${o.id}/savoir/impact`, 'Ce qui a changé')),
       card('b-w4 b-alert', 3, 'Fausses certitudes', mx.measured ? `<div class="b-big"><b class="num ${fc.n ? 'red' : ''}">${fc.n}</b><span>${fc.n ? `réponse${fc.n > 1 ? 's' : ''} fausse${fc.n > 1 ? 's' : ''} donnée${fc.n > 1 ? 's' : ''} avec assurance, ${plural(fc.people, 'personne')}` : 'aucune erreur donnée avec assurance'}</span></div>
           ${fc.knowledge.length ? `<p class="b-tags">${fc.knowledge.slice(0, 3).map((k) => `<span>${d.esc(k.title)}</span>`).join('')}</p>` : ''}
-          <p class="b-note">${mx.enough ? 'Base suffisante' : `Indicatif : ${plural(mx.measured, 'mesure')}, conclusion à partir de ${mx.minMeasured}`}</p>` : empty('crosshair', 'Pas encore de réponse avec confiance déclarée.'), more(`#/org/${o.id}/angles`, 'Blind Spots')),
+          <p class="b-note">${mx.enough ? 'Base suffisante' : `Indicatif : ${plural(mx.measured, 'mesure')}, conclusion à partir de ${mx.minMeasured}`}</p>` : empty('crosshair', 'Pas encore de réponse avec confiance déclarée.'), more(`#/org/${o.id}/angles`, 'Points faibles')),
       card('b-w4', 4, 'Compétences fragiles', fragile.length ? `<ul class="b-bars">${fragile.map((r) => `<li><span>${d.esc(r.s.name)}</span><i style="--w:${Math.round((r.acquired / r.total) * 100)}%"></i><small class="num">${r.acquired}/${r.total}</small></li>`).join('')}</ul>` : empty('plant', bySkill.length ? 'Aucune compétence fragile observée.' : 'Les compétences apparaîtront dès les premières observations.')),
       card('b-w6', 5, 'Équipes à surveiller', teams.length ? `<ul class="b-teams">${teams.slice(0, 5).map((t) => `<li><b>${d.esc(t.u.name)}</b><span class="num">${plural(t.n, 'personne')}</span>${t.flagged ? `<em class="amber">${plural(t.flagged, 'à revalider', 'à revalider')}</em>` : '<em class="green">à jour</em>'}</li>`).join('')}</ul>` : empty('users-three', 'Aucune équipe définie : les personnes ne sont pas encore rangées par équipe ou établissement.'), more(`#/org/${o.id}/equipe`, 'Mon équipe')),
       card('b-w6', 6, 'Activité', `<div class="b-act"><b class="num">${act.total}</b><span>réponse${act.total > 1 ? 's' : ''} sur 14 jours</span></div>${act.svg}`),
     ];
-    app.innerHTML = `${head}<div class="d2">${pageHead(`Cockpit · ${today}`, 'Mon environnement professionnel', `Où en sont les connaissances de ${d.esc(o.name)}, et ce qui demande votre attention.`,
+    app.innerHTML = `${head}<div class="d2">${pageHead('', 'Vue d’ensemble', `Où en sont les connaissances de ${d.esc(o.name)}, et ce qui demande votre attention.`,
       `<span class="d2-pill">${d.ic('database')} Données réelles · ${plural(evs.length, 'preuve')}</span>`)}
       ${window.OrgOnboarding ? OrgOnboarding.resumeBanner(o, d) : ''}
       <div class="dbento">${cards.join('')}</div></div>`;
@@ -148,10 +165,10 @@
   /* ---------- B. Knowledge & Impact : en-tête commun, pare-feu sémantique ---------- */
   function kiHead(o, cur, counts = {}, deps) {
     if (deps) d = deps;
-    return `${pageHead('Knowledge & Impact', cur === 'impact' ? 'Diff & Impact Studio' : 'Bibliothèque de procédures', cur === 'impact' ? 'Ce qui a changé entre deux versions, et jusqu’où cela se propage : règles, compétences, équipes, personnes.' : 'Les documents de référence et les règles qui en sont extraites, chacune avec sa page et son extrait exact.')}
-      <nav class="d2-seg" aria-label="Knowledge & Impact">
+    return `${pageHead('', cur === 'impact' ? 'Ce qui a changé' : 'Savoir de l’entreprise', cur === 'impact' ? 'Ce qui a changé entre deux versions, et jusqu’où cela se propage : règles, compétences, équipes, personnes.' : 'Les documents de référence et les règles qui en sont extraites, chacune avec sa page et son extrait exact.')}
+      <nav class="d2-seg" aria-label="Savoir de l’entreprise">
         <a href="#/org/${o.id}/savoir" ${cur === 'lib' ? 'aria-current="page"' : ''}>${d.ic('books')}Bibliothèque</a>
-        <a href="#/org/${o.id}/savoir/impact" ${cur === 'impact' ? 'aria-current="page"' : ''}>${d.ic('git-diff')}Diff & Impact${counts.pending ? ` <b class="nav-attn">${counts.pending}</b>` : ''}</a>
+        <a href="#/org/${o.id}/savoir/impact" ${cur === 'impact' ? 'aria-current="page"' : ''}>${d.ic('git-diff')}Ce qui a changé${counts.pending ? ` <b class="nav-attn">${counts.pending}</b>` : ''}</a>
         <a href="#/org/${o.id}/competences" ${cur === 'skills' ? 'aria-current="page"' : ''}>${d.ic('target')}Compétences</a>
       </nav>
       <div class="firewall" role="note"><span class="fw-a">${d.ic('shield-check', true)}<b>Socle souverain</b> documents internes approuvés : seules références des évaluations et des preuves</span><span class="fw-b">${d.ic('lightbulb')}<b>Éclairage pédagogique</b> explications, analogies, sources externes : jamais une règle interne sans validation</span></div>`;
@@ -165,8 +182,7 @@
   ];
   async function studio(app, o, head, deps) {
     d = deps;
-    const hd = `${head}<div class="d2">${pageHead('Scenario Studio', 'Laboratoire de situations', 'Partir d’une procédure ou d’une compétence et obtenir une mise en situation fondée sur les règles validées. Vous la relisez, la testez, puis la publiez.')}
-      <ol class="d2-flow" aria-label="Structure d’une situation">${['Situation', 'Compréhension', 'Explication', 'Pratique', 'Vérification', 'Maîtrise'].map((s, i) => `<li style="--i:${i}"><span>${i + 1}</span>${s}</li>`).join('')}</ol></div>`;
+    const hd = `${head}<div class="d2">${pageHead('', 'Mises en situation', 'Partir d’une procédure ou d’une compétence et obtenir une mise en situation fondée sur les règles validées. Vous la relisez, la testez, puis la publiez.')}</div>`;
     await OrgEngines.scenariosView(app, o, hd, d);
     const form = app.querySelector('#scForm');
     if (!form) return;
@@ -182,7 +198,7 @@
   /* ---------- D. Blind Spots : certitude × réalité ---------- */
   async function blindspots(app, o, head, deps) {
     d = deps;
-    app.innerHTML = `${head}<div class="d2">${pageHead('Blind Spots', 'Certitude et réalité', 'L’écart entre ce que chacun croit maîtriser et ce qu’il démontre. La confiance est celle déclarée en répondant, jamais déduite.')}${skeleton(3)}</div>`;
+    app.innerHTML = `${head}<div class="d2">${pageHead('', 'Points faibles', 'L’écart entre ce que chacun croit maîtriser et ce qu’il démontre. La confiance est celle déclarée en répondant, jamais déduite.')}${skeleton(3)}</div>`;
     const x = await loadAll(o);
     const mx = OrgInsight.matrix(x.evs, x.ks, {});
     const kById = new Map(x.ks.map((k) => [k.id, k]));
@@ -192,7 +208,7 @@
     fcEv.forEach((e) => { const r = byK.get(e.knowledge_id) || { k: kById.get(e.knowledge_id) || { id: e.knowledge_id, title: 'Connaissance' }, n: 0, people: new Set(), last: null }; r.n++; r.people.add(e.user_id); r.last = !r.last || e.at > r.last ? e.at : r.last; byK.set(e.knowledge_id, r); });
     const rows = [...byK.values()].map((r) => ({ ...r, people: r.people.size, fiable: r.people.size >= 2 || r.n >= 3 })).sort((a, b) => b.people - a.people || b.n - a.n);
     const Qc = (key, cls, i) => { const c = mx.cells[key]; return `<div class="q ${cls}" style="--i:${i}"><b class="num">${c.n}</b><span>${c.label}</span><small>${c.why}</small>${c.knowledge.length ? `<p class="q-k">${c.knowledge.slice(0, 3).map((k) => d.esc(k.title)).join(' · ')}</p>` : ''}</div>`; };
-    app.innerHTML = `${head}<div class="d2">${pageHead('Blind Spots', 'Certitude et réalité', 'L’écart entre ce que chacun croit maîtriser et ce qu’il démontre. La confiance est celle déclarée en répondant, jamais déduite.',
+    app.innerHTML = `${head}<div class="d2">${pageHead('', 'Points faibles', 'L’écart entre ce que chacun croit maîtriser et ce qu’il démontre. La confiance est celle déclarée en répondant, jamais déduite.',
       `<span class="d2-pill ${mx.enough ? '' : 'amber'}">${d.ic(mx.enough ? 'check' : 'info')} ${mx.enough ? `Base suffisante · ${plural(mx.measured, 'mesure')}` : `Indicatif · ${plural(mx.measured, 'mesure')} sur ${mx.minMeasured} requises`}</span>`)}
       <div class="dbento">
         <section class="b-card b-w7" style="--i:0"><header class="b-h"><h2>Matrice certitude × réalité</h2></header>
@@ -223,7 +239,7 @@
   const EVAL = { regle: 'Règle', ia: 'IA', humain: 'Humain' };
   async function evidence(app, o, head, deps, sub) {
     d = deps;
-    app.innerHTML = `${head}<div class="d2">${pageHead('Evidence & Mastery', 'Dossier de preuves', 'Chaque preuve avec sa règle, la version applicable, son contexte, son résultat et qui l’a évaluée. Les preuves ne se modifient jamais.')}${skeleton(2)}</div>`;
+    app.innerHTML = `${head}<div class="d2">${pageHead('', 'Preuves de maîtrise', 'Chaque preuve avec sa règle, la version applicable, son contexte, son résultat et qui l’a évaluée. Les preuves ne se modifient jamais.')}${skeleton(2)}</div>`;
     const x = await loadAll(o);
     const kById = new Map(x.ks.map((k) => [k.id, k])), sk = new Map(x.skills.map((s) => [s.id, s])), mOf = (u) => x.ms.find((m) => m.user_id === u);
     const f = { who: '', out: '', days: '30' };
@@ -243,7 +259,7 @@
     const revRows = x.revals.slice().sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
     const paint = () => {
       const list = rows();
-      app.innerHTML = `${head}<div class="d2">${pageHead('Evidence & Mastery', 'Dossier de preuves', 'Chaque preuve avec sa règle, la version applicable, son contexte, son résultat et qui l’a évaluée. Les preuves ne se modifient jamais.',
+      app.innerHTML = `${head}<div class="d2">${pageHead('', 'Preuves de maîtrise', 'Chaque preuve avec sa règle, la version applicable, son contexte, son résultat et qui l’a évaluée. Les preuves ne se modifient jamais.',
         `<button type="button" class="btn ghost" id="evCsv">${d.ic('download-simple')}Exporter (CSV)</button>`)}
         <div class="privacy" role="note">${d.ic('lock-simple', true)}<span>Réservé aux managers et administrateurs de ${d.esc(o.name)}. Chaque collaborateur voit ses propres preuves. Une preuve sert à savoir quoi revoir, pas à surveiller.</span></div>
         <div class="dbento">
@@ -273,7 +289,7 @@
   async function transmission(app, o, head, deps) {
     d = deps;
     const reviewer = ['admin', 'manager', 'expert'].includes(o.role), me = window.Tutor && Tutor.userId();
-    app.innerHTML = `${head}<div class="d2">${pageHead('Transmission & Knowledge Sharing', 'Transmettre un savoir-faire', 'Une méthode, un geste, une expérience de terrain : décrivez-la comme à un nouveau collègue. Elle est relue par un responsable avant d’être partagée.')}${skeleton(2)}</div>`;
+    app.innerHTML = `${head}<div class="d2">${pageHead('', 'Transmission', 'Une méthode, un geste, une expérience de terrain : décrivez-la comme à un nouveau collègue. Elle est relue par un responsable avant d’être partagée.')}${skeleton(2)}</div>`;
     let list = null, ms = [];
     try { [list, ms] = await Promise.all([rest('/rest/v1/transmissions', `?org_id=eq.${q(o.id)}&select=*&order=created_at.desc&limit=100`), soft(rest('/rest/v1/memberships', `?org_id=eq.${q(o.id)}&select=user_id,email`), [])]); }
     catch (e) { list = /schema cache|PGRST20[25]|404/.test(String(e && e.message)) ? null : []; }
@@ -290,7 +306,7 @@
     const aRelire = (list || []).filter((t) => t.status === 'soumise' && reviewer && t.author !== me);
     const partages = (list || []).filter((t) => t.status === 'validee');
     const miennes = (list || []).filter((t) => t.author === me && t.status !== 'validee');
-    app.innerHTML = `${head}<div class="d2">${pageHead('Transmission & Knowledge Sharing', 'Transmettre un savoir-faire', 'Une méthode, un geste, une expérience de terrain : décrivez-la comme à un nouveau collègue. Elle est relue par un responsable avant d’être partagée.',
+    app.innerHTML = `${head}<div class="d2">${pageHead('', 'Transmission', 'Une méthode, un geste, une expérience de terrain : décrivez-la comme à un nouveau collègue. Elle est relue par un responsable avant d’être partagée.',
       reviewer && aRelire.length ? `<span class="d2-pill amber">${d.ic('hourglass')} ${plural(aRelire.length, 'transmission')} à relire</span>` : '')}
       ${list === null ? `<div class="privacy" role="note">${d.ic('info', true)}<span>La transmission demande la migration 012 sur la base de l’organisation. Rien n’est enregistré tant qu’elle n’est pas appliquée.</span></div>` : ''}
       <div class="dbento">

@@ -154,7 +154,7 @@
   const SCREENS = {
     landing,
     signup: () => `<section class="wel-auth">
-        <h1>Crée ton compte</h1><p class="wel-lede">Gratuit. Un seul compte pour apprendre seul et pour rejoindre ton organisation.</p>
+        <h1>Crée ton compte</h1><p class="wel-lede">Un seul compte pour apprendre seul (gratuit) et pour rejoindre ton organisation.</p>
         <form class="wel-form" data-form="signup" novalidate>
           ${field('welEmail', 'E-mail', emailInput('welEmail'))}
           ${field('welPass', 'Mot de passe', passInput('welPass', 'new-password'), ruleList)}

@@ -66,7 +66,7 @@
       </div>
       <form class="obz-form" id="sxRuleForm" hidden>
         <div class="field"><label for="sxRule">Votre règle</label><textarea id="sxRule" rows="5" maxlength="4000" placeholder="Lorsqu’un client demande un remboursement, nous devons vérifier le ticket de caisse et l’état du produit avant de proposer une solution."></textarea>
-        <p class="fb-help">Elle devient un document signé de votre nom, conservé dans votre Base de savoir.</p></div>
+        <p class="fb-help">Elle devient un document signé de votre nom, conservé dans le Savoir de l’entreprise.</p></div>
         <div class="row-btns"><button class="btn">${d.ic('sparkle', true)}Analyser ma règle</button></div></form>
       ${(() => { const c = dctx(); return c.situation ? `<div class="dc-recall"><p><b>Situation testée :</b> ${d.esc(c.situation)}</p>${(c.assumptions || []).length ? `<p class="hint">Règles supposées pendant la simulation, à confirmer avec votre document ou votre règle :</p><ul class="dc-hyp">${c.assumptions.map((x) => `<li><span class="tb-tag warn">Suggérée par l’IA</span>${d.esc(String(x).replace(/^Hypothèse\s*:\s*/i, ''))}</li>`).join('')}</ul>` : ''}</div>` : ''; })()}
       <div id="sxWork" aria-live="polite"></div>`,
@@ -187,10 +187,10 @@
   /* ---------- 3. Première expérience ---------- */
   async function experience(app, o) {
     app.innerHTML = frame('experience', `<span class="obz-badge">${(window.Mascot && Mascot.mini({ size: 60, mood: 'happy' })) || d.ic('confetti', true)}</span>
-      <h1>Votre espace est prêt</h1><p class="obz-lede">Découvrez ce que vivra votre équipe, ou invitez-la tout de suite.</p>
+      <h1>Votre espace est prêt</h1><p class="obz-lede">Découvrez ce que vivra votre équipe, ou faites-la entrer tout de suite.</p>
       <div class="sx-choice">
         <a class="sx-opt" href="#/org/${o.id}/mystere">${d.ic('storefront', true)}<b>Tester mon client mystère</b><small>Une situation simulée, fondée uniquement sur vos connaissances validées.</small></a>
-        <button type="button" class="sx-opt" id="sxInv">${d.ic('user-plus', true)}<b>Inviter mon équipe</b><small>Un lien sécurisé, valable 7 jours, par personne.</small></button>
+        <button type="button" class="sx-opt" id="sxInv">${d.ic('user-plus', true)}<b>Faire entrer mon équipe</b><small>Adresses autorisées ou pass d’équipe : aucun lien à envoyer.</small></button>
       </div>
       <div id="sxInvite" hidden></div>`,
       `<span></span><a class="btn big ghost" href="#/org/${o.id}" id="sxSolo">Continuer seul${d.ic('arrow-right')}</a>`);
@@ -201,7 +201,7 @@
 
   function render(app, o, step, deps) {
     d = deps;
-    if (!window.Tutor || !Tutor.signedIn()) { app.innerHTML = `<section class="sec org-join"><h1>Créer une organisation</h1><p>Une organisation a besoin d’un compte (gratuit). Vos cours personnels restent sur cet appareil.</p><div class="row-btns"><button class="btn" id="sxLogin">${d.ic('sign-in')}Se connecter ou créer un compte</button></div></section>`; app.querySelector('#sxLogin').onclick = () => Welcome.auth({ after: () => render(app, o, step, deps) }, 'signup'); return; }
+    if (!window.Tutor || !Tutor.signedIn()) { app.innerHTML = `<section class="sec org-join"><h1>Créer une organisation</h1><p>Une organisation a besoin d’un compte Arbor. L’espace d’équipe relève de l’offre Business (<a href="site/tarifs.html" target="_blank" rel="noopener">voir les tarifs</a>). Vos cours personnels restent sur cet appareil.</p><div class="row-btns"><button class="btn" id="sxLogin">${d.ic('sign-in')}Se connecter ou créer un compte</button></div></section>`; app.querySelector('#sxLogin').onclick = () => Welcome.auth({ after: () => render(app, o, step, deps) }, 'signup'); return; }
     if (!o) return identity(app);
     if (o.role !== 'admin') { app.innerHTML = `<section class="sec"><p class="hint">La mise en route est réservée aux administrateurs.</p><div class="row-btns"><a class="btn ghost" href="#/org/${o.id}">Retour</a></div></section>`; return; }
     if (step === 'experience') return experience(app, o);

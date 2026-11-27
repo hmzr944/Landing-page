@@ -7,6 +7,8 @@
   const T = window.__TAURI__ || null;
   const isDesktop = !!(T || window.__TAURI_INTERNALS__);
   if (isDesktop) document.documentElement.classList.add('is-desktop-app');
+  // Arbor 3 : chaque surface a sa propre identité (styles.css, « Trois identités ») : application, Web, téléphone
+  else document.documentElement.classList.add('is-web');
 
   // Raccourcis (application et site, ordinateur)
   window.addEventListener('keydown', (e) => {

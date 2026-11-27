@@ -63,9 +63,9 @@
   function navOf(o) {
     const lead = can(o, 'admin', 'manager'), content = can(o, 'admin', 'manager', 'expert');
     if (window.Desk2 && lead) return Desk2.nav();
-    if (window.OrgHub && lead) return [[null, [['accueil', 'gauge', 'Cockpit'], ['equipe', 'users-three', 'Mon équipe'], ['savoir', 'books', 'Base de savoir'], ['developper', 'plant', 'Développer'], ['apprendre', 'student', 'Mon apprentissage']]]];
+    if (window.OrgHub && lead) return [[null, [['accueil', 'gauge', 'Vue d’ensemble'], ['equipe', 'users-three', 'Mon équipe'], ['savoir', 'books', 'Savoir de l’entreprise'], ['developper', 'plant', 'Développer'], ['apprendre', 'student', 'Mon apprentissage']]]];
     const tr = window.Desk2 ? [['transmission', 'hand-heart', 'Transmettre']] : [];
-    if (window.OrgHub && content) return [[null, [['accueil', 'gauge', 'Accueil'], ['savoir', 'books', 'Base de savoir'], ['apprendre', 'student', 'Mon apprentissage'], ...tr]]];
+    if (window.OrgHub && content) return [[null, [['accueil', 'gauge', 'Accueil'], ['savoir', 'books', 'Savoir de l’entreprise'], ['apprendre', 'student', 'Mon apprentissage'], ...tr]]];
     if (window.OrgHub) return [[null, [['accueil', 'house', 'Accueil'], ...(window.League ? [['canopee', 'tree', 'Canopée']] : []), ['apprendre', 'compass', 'Explorer'], ['resultats', 'chart-line-up', 'Mon parcours'], ...tr]]];
     // sans les écrans v2 (module absent) : navigation précédente
     const shell = !!window.OrgShell;

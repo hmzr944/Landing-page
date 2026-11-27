@@ -74,8 +74,9 @@ const FRAGILE = /fausse certitude|à retravailler|erreur de|faux\b|confiance dé
     const c = db().cordees[0] || {};
     check('B2 une cordée est créée avec ses membres et apparaît dans la liste', c.name === 'Équipe du matin' && c.member_ids.join() === 'u-bob,u-chloe' && /Équipe du matin/.test(await text(page)) && /2 membres/.test(await text(page)));
     // mentorat : même personne
-    await page.selectOption('#lgMMentor', 'u-bob'); await page.selectOption('#lgMMentee', 'u-bob'); await page.click('#lgMentForm .btn'); await wait(page, 500);
-    check('B3 mentorat : une personne ne peut pas s’accompagner elle-même', /deux personnes différentes/.test(await page.textContent('#lgMMsg')) && db().mentorships.length === 0);
+    await page.selectOption('#lgMMentor', 'u-bob'); await wait(page, 100);
+    const selfPick = await page.evaluate(() => ({ off: document.querySelector('#lgMMentee option[value="u-bob"]').disabled, v: document.querySelector('#lgMMentee').value }));
+    check('B3 mentorat : une personne ne peut pas s’accompagner elle-même (le choix est désactivé dans la liste)', selfPick.off && selfPick.v !== 'u-bob' && db().mentorships.length === 0, JSON.stringify(selfPick));
     // mentor sans preuve d'application
     await page.selectOption('#lgMMentor', 'u-eve'); await page.selectOption('#lgMMentee', 'u-bob'); await page.click('#lgMentForm .btn'); await wait(page, 500);
     check('B4 mentorat : le mentor doit avoir lui-même appliqué la connaissance', /doit avoir lui-même appliqué/.test(await page.textContent('#lgMMsg')) && db().mentorships.length === 0);
@@ -123,7 +124,7 @@ const FRAGILE = /fausse certitude|à retravailler|erreur de|faux\b|confiance dé
     await ctx.close();
     const m = await as('eve');
     await m.page.goto(`${URL0}#/org/${ORG}`); await wait(m.page, 1500);
-    check('E3 le Cockpit fonctionne sans la League', /Cockpit/.test(await text(m.page)) && /compétence de poste acquise/.test(await text(m.page)));
+    check('E3 le Cockpit fonctionne sans la League', /Vue d’ensemble/.test(await text(m.page)) && /compétence de poste acquise/.test(await text(m.page)));
     await go(m.page, `#/org/${ORG}/equipe`, 1500);
     check('E4 Mon équipe : les cordées attendent la migration 011, la liste et les invitations restent', /Les cordées sera disponible|migration 011/.test(await text(m.page)) && !!(await m.page.$('#ivEmail')));
     await m.ctx.close();

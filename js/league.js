@@ -154,7 +154,8 @@
       <section class="sec"><h2>${d.ic('hand-heart', true)}Mentorat</h2>
         <p class="hint">Un collaborateur qui maîtrise une connaissance en accompagne un autre. Le mentor est reconnu seulement quand la personne accompagnée applique à son tour la connaissance.</p>
         ${ments.length ? `<ul class="lg-cords">${ments.map((m) => `<li><b>${d.esc(name(m.mentor_id))} accompagne ${d.esc(name(m.mentee_id))}</b><small>${d.esc(kT(m.knowledge_id))} · ${m.status === 'reussi' ? 'réussi' : m.status === 'clos' ? 'clos' : `depuis le ${fmt(m.started_at)}`}</small></li>`).join('')}</ul>` : ''}
-        <form class="obz-form lg-form" id="lgMentForm"><div class="obz-two">
+        ${(ms || []).length < 2 || !ks.length ? `<p class="note-line">${d.ic('info')} ${(ms || []).length < 2 ? 'Le mentorat se lance quand l’équipe compte au moins deux personnes.' : 'Le mentorat porte sur une connaissance validée : validez d’abord des règles dans Savoir de l’entreprise.'}</p>` : ''}
+        <form class="obz-form lg-form" id="lgMentForm" ${(ms || []).length < 2 || !ks.length ? 'hidden' : ''}><div class="obz-two">
           <div class="field"><label for="lgMMentor">Mentor</label><select id="lgMMentor">${opts}</select></div>
           <div class="field"><label for="lgMMentee">Accompagné</label><select id="lgMMentee">${opts}</select></div></div>
           <div class="field"><label for="lgMK">Connaissance</label><select id="lgMK">${ks.map((k) => `<option value="${k.id}">${d.esc(k.title)}</option>`).join('')}</select></div>
@@ -168,6 +169,10 @@
         d.toast('Cordée créée', 'success'); cordeesBlock(box, o, d, await board(o), ms); }
       catch (x) { d.toast(x.message, 'error'); }
     };
+    // jamais la même personne des deux côtés : l'accompagné proposé par défaut est un autre membre que le mentor
+    const mSel = box.querySelector('#lgMMentor'), eSel = box.querySelector('#lgMMentee');
+    const syncMentee = () => { [...eSel.options].forEach((op) => { op.disabled = op.value === mSel.value; }); if (eSel.value === mSel.value) { const o2 = [...eSel.options].find((op) => !op.disabled); if (o2) eSel.value = o2.value; } };
+    if (mSel && eSel) { mSel.addEventListener('change', syncMentee); syncMentee(); }
     box.querySelector('#lgMentForm').onsubmit = async (e) => {
       e.preventDefault();
       const msg = box.querySelector('#lgMMsg');

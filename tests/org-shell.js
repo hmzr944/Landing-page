@@ -80,7 +80,7 @@ const db = () => M.state.db;
     await page.goto(`${URL0}#/org/${ORG}`); await wait(page, 1400);
     const t = await text(page);
     // Arbor Desktop 2 : Cockpit en Bento, chaque carte répond à une question, chiffres comptés avec leur base
-    check('B1 Cockpit : état des connaissances, procédures qui ont évolué, compétences fragiles, activité, chiffres avec leur base', /Cockpit/.test(t) && /État des connaissances/.test(t) && /compétence de poste acquise/.test(t) && /Procédures qui ont évolué/.test(t) && /Compétences fragiles/.test(t) && /réponses? sur 14 jours/.test(t) && /Données réelles/.test(t));
+    check('B1 Cockpit : état des connaissances, procédures qui ont évolué, compétences fragiles, activité, chiffres avec leur base', /Vue d’ensemble/.test(t) && /État des connaissances/.test(t) && /compétence de poste acquise/.test(t) && /Procédures qui ont évolué/.test(t) && /Compétences fragiles/.test(t) && /réponses? sur 14 jours/.test(t) && /Données réelles/.test(t));
     check('B2 double voile : aucun nom ni « fausse certitude » individuelle dans le Cockpit', !/bob@|chloe@|Fausse certitude|fausses certitudes/.test(t));
     const acts = await page.$$eval('.b-acts li', (bs) => bs.map((b) => b.textContent));
     check('B3 « Actions prioritaires » : décider d’un changement, revalidation en attente, affirmation hors référentiel', acts.some((a) => /Décider des changements/.test(a)) && acts.some((a) => /revalidation/.test(a)) && acts.some((a) => /hors référentiel/.test(a)), acts.join(' | '));

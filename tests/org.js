@@ -111,7 +111,7 @@ const personal = () => ({ subjects: [{ id: 'persosubj01', title: SECRET_TITLE, c
     check('B2 dans l’espace professionnel, les menus personnels disparaissent', await page.evaluate(() => document.documentElement.classList.contains('in-org')) && !(await page.isVisible('.bottom-nav')) && !(await page.isVisible('#xp')));
     check('B3 aucune donnée personnelle n’est affichée dans l’espace professionnel', !/Mon cours secret|confidentiel/.test(await page.textContent('#app')));
     check('B4 l’en-tête montre l’espace courant', await page.isVisible('#spaceBtn') && /Magasin de Lyon/.test(await page.textContent('#spaceName')));
-    check('B5 le Cockpit ne montre pas de faux tableau de bord : sans données, il dit quoi faire', !(await page.$('.org-card.soon')) && /Cockpit/.test(await page.textContent('#app')) && /Inviter mon équipe/.test(await page.textContent('#app')));
+    check('B5 le Cockpit ne montre pas de faux tableau de bord : sans données, il dit quoi faire', !(await page.$('.org-card.soon')) && /Mise en route/.test(await page.textContent('#app')) && /Faire entrer l’équipe/.test(await page.textContent('#app')));
     await page.click('.org-tabs a[href$="/equipe"]'); await settle(page, 800);
     await page.fill('#ivEmail', 'bob@magasin.fr'); await page.click('#ivForm .btn'); await settle(page, 600);
     inviteUrl = await page.inputValue('#oiLink').catch(() => '');

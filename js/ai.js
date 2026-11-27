@@ -23,7 +23,7 @@
   }
   function friendly(e) {
     const k = e && e.kind;
-    if (k === 'auth') return Object.assign(new Error('Connecte-toi gratuitement (Réglages, puis Compte) pour utiliser l’analyse avancée.'), { kind: k });
+    if (k === 'auth') return Object.assign(new Error('Connecte-toi (Réglages, puis Compte) pour utiliser l’analyse avancée.'), { kind: k });
     if (k === 'offline') return Object.assign(new Error('Pas de connexion : l’analyse avancée a besoin d’internet.'), { kind: k });
     if (k === 'quota') return Object.assign(new Error(`Tu as utilisé tes ${e.limit || ''} générations du mois. Elles reviennent le mois prochain.`), { kind: k });
     if (k === 'busy') return Object.assign(new Error('Le service est très demandé : réessaie dans quelques minutes.'), { kind: k });

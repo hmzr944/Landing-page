@@ -137,7 +137,7 @@
   function render(app, deps) {
     d = deps;
     if (!window.Tutor || !Tutor.signedIn()) {
-      app.innerHTML = `<section class="sec org-join"><h1>Arbor pour les équipes</h1><p>Décrivez une situation de terrain : Arbor en fait une simulation que vous jouez tout de suite. Il faut un compte (gratuit) ; vos cours personnels restent sur cet appareil.</p><div class="row-btns"><button class="btn" id="dcLogin">${d.ic('sign-in')}Se connecter ou créer un compte</button></div></section>`;
+      app.innerHTML = `<section class="sec org-join"><h1>Arbor pour les équipes</h1><p>Décrivez une situation de terrain : Arbor en fait une simulation que vous jouez tout de suite. Il faut un compte Arbor. L’espace d’équipe relève de l’offre Business (<a href="site/tarifs.html" target="_blank" rel="noopener">voir les tarifs</a>) ; vos cours personnels restent sur cet appareil.</p><div class="row-btns"><button class="btn" id="dcLogin">${d.ic('sign-in')}Se connecter ou créer un compte</button></div></section>`;
       app.querySelector('#dcLogin').onclick = () => Welcome.auth({ after: () => render(app, deps) }, 'signup');
       return;
     }

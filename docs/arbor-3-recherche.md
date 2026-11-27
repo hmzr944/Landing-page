@@ -102,3 +102,15 @@ Les liens d'invitation déjà envoyés restent acceptés jusqu'à leur expiratio
 - `ios-design` et `ui-taste` (uizze) : une couleur d'accent, une échelle de rayons, états vides utiles, contrôles natifs.
 - `web-design-guidelines` (Vercel) : formulaires, focus, listes en mode sombre, fenêtres (`overscroll-behavior`), états vides, chargements.
 - `high-end-visual-design` et `redesign-existing-projects` (taste-skill) : retravailler l'existant sans tout jeter, par l'audit.
+
+## Trois identités (retour du 27 novembre : « Arbor Web on dirait une pâle copie du Desktop »)
+
+Appui : skill `design-taste-frontend` (lecture du besoin, une seule couleur d'accent, une seule échelle de rayons, pas de décor en boucle, mouvement réduit respecté), plus les références GitHub (navigation de dépôt à onglets soulignés) et Linear ou Raycast (barre latérale graphite d'outil).
+
+| Surface | Détection | Langage |
+|---|---|---|
+| Arbor Web (navigateur, ≥ 1200 px) | `html.is-web` (js/desktop.js) | Éditorial : en-tête horizontal à onglets soulignés, trame de points, bandeaux de titre larges avec motif d'anneaux de croissance, carte du jour en bandeau |
+| Arbor Desktop (application Tauri) | `html.is-desktop-app` | Atelier : barre latérale graphite permanente, raccourcis Ctrl+1…8 affichés, en-têtes en barre d'outils collante, chiffres en mono, densité élevée |
+| Téléphone (≤ 767 px) | largeur | Tactile : grand titre, carte du jour pleine couleur, tuiles teintées, boutons de 48 px, barre d'onglets flottante |
+
+Tous les motifs sont en CSS (gradients), sans image ni animation en boucle. Le code est dans styles.css, section « ARBOR 3 · Trois identités ».

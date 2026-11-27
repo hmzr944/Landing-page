@@ -47,7 +47,7 @@
   const SUBS = { entrainer: 'Entraîner', parametres: 'Paramètres', competences: 'Compétences', suivi: 'Suivi', intelligence: 'Diagnostiquer', documents: 'Documents', scenarios: 'Scénarios', apercu: 'Aperçu collaborateur', diagnostic: 'Diagnostic', mystere: 'Client mystère', resultats: 'Mon parcours', canopee: 'Canopée', configurer: 'Configuration détaillée' };
   const DOORS = { dicter: 'Dire ce que je sais', photo: 'Photographier', conversation: 'Discuter avec Pousse', epreuve: 'Commencer par une épreuve', importer: 'Importer un document' };
   function action(o, section) {
-    if (section === 'accueil' && lead(o)) return ['invite', 'user-plus', 'Inviter'];
+    if (section === 'accueil' && lead(o)) return ['invite', 'user-plus', 'Ajouter des personnes'];
     if (section === 'equipe' && lead(o)) return ['invite', 'user-plus', 'Ajouter un collaborateur'];
     if (section === 'savoir' && content(o) && window.OrgDocs) return ['doc', 'file-plus', 'Nouveau document'];
     if ((section === 'developper' || section === 'studio') && lead(o) && window.OrgEngines) return ['scenario', 'plus', 'Nouveau scénario'];
@@ -147,7 +147,7 @@
   /* ---------- Centre d'aide : ce que fait chaque rubrique, raccourcis, confidentialité ---------- */
   function help() {
     const mac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
-    const R = [['gauge', 'Cockpit', 'Où en est l’organisation, ce qu’il faut faire aujourd’hui, comment l’équipe progresse.'], ['users-three', 'Mon équipe', 'Les personnes, leur progression, les invitations, les cordées et le mentorat.'], ['books', 'Base de savoir', 'Les documents de référence et les connaissances validées qui nourrissent tout le reste.'], ['plant', 'Développer', 'Diagnostiquer les besoins, comprendre, entraîner avec des scénarios, mesurer.'], ['student', 'Mon apprentissage', 'Votre propre progression, séparée des outils de gestion.']];
+    const R = [['gauge', 'Vue d’ensemble', 'Où en est l’organisation, ce qu’il faut faire aujourd’hui, comment l’équipe progresse.'], ['users-three', 'Mon équipe', 'Les personnes, leur progression, leurs accès, les cordées et le mentorat.'], ['books', 'Savoir de l’entreprise', 'Les documents de référence et les connaissances validées qui nourrissent tout le reste.'], ['plant', 'Développer', 'Diagnostiquer les besoins, comprendre, entraîner avec des scénarios, mesurer.'], ['student', 'Mon apprentissage', 'Votre propre progression, séparée des outils de gestion.']];
     d.openModal(`<h2 id="modalTitle">Centre d’aide</h2>
       <ul class="desk-help">${R.map(([i, t, s]) => `<li>${d.ic(i, true)}<span><b>${t}</b><small>${s}</small></span></li>`).join('')}</ul>
       <h3>Raccourcis clavier</h3>
@@ -190,7 +190,7 @@
   }
   function actions(o) {
     return [
-      ...(lead(o) ? [{ g: 'Actions', icon: 'user-plus', t: 'Inviter un collaborateur', run: () => runAction('invite') }] : []),
+      ...(lead(o) ? [{ g: 'Actions', icon: 'user-plus', t: 'Ajouter un collaborateur', run: () => runAction('invite') }] : []),
       ...(content(o) && window.OrgDocs ? [{ g: 'Actions', icon: 'file-plus', t: 'Ajouter un document', run: () => runAction('doc') }] : []),
       ...(lead(o) && window.OrgEngines ? [{ g: 'Actions', icon: 'plus', t: 'Concevoir un scénario', run: () => runAction('scenario') }] : []),
       ...(window.Feedback ? [{ g: 'Actions', icon: 'chat-teardrop-text', t: 'Donner mon avis', run: () => Feedback.open({ space: 'business', org: { id: o.id, name: o.name }, deps: d }) }] : []),

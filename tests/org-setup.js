@@ -214,7 +214,7 @@ function handle(r) {
   check('D4 l’adresse est autorisée : aucun lien à transmettre, Bob rejoindra à sa connexion', db.rules.length === 1 && db.rules[0].value === 'bob@boulangerie.fr' && !(await page.$('#oiLink')) && /bob@boulangerie\.fr/.test(await page.textContent('#sxInvite')));
   await page.click('#sxSolo'); await wait(1300);
   const t = await text();
-  check('D5 « Continuer seul » mène au Cockpit, sans bandeau de reprise', /Cockpit/.test(t) && !(await page.$('.obz-resume')));
+  check('D5 « Continuer seul » mène à la Vue d’ensemble, sans bandeau de reprise', /Vue d’ensemble/.test(t) && !(await page.$('.obz-resume')));
   check('D6 le Cockpit compte les connaissances validées par la mise en route, sans rien inventer', !/NaN|undefined/.test(t));
 
   /* E. Reprise : un administrateur qui quitte à l'étape 2 retrouve où il en était */
@@ -228,7 +228,7 @@ function handle(r) {
   const nSources = db.sources.length;
   await page.evaluate((h) => { location.hash = h; }, `#/org/${org.id}/demarrer/savoir`); await wait(800);
   await page.click('.obz-foot a:has-text("Passer")'); await wait(900);
-  check('F1 « Passer » revient au Cockpit sans rien créer', db.sources.length === nSources && /Cockpit/.test(await text()));
+  check('F1 « Passer » revient à la Vue d’ensemble sans rien créer', db.sources.length === nSources && /Vue d’ensemble/.test(await text()));
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1);
   check('F2 téléphone : aucun débordement horizontal', !overflow);
   /* G. Découverte : « Continuer sans document » va droit à la première expérience ; serveur pas à jour ; sans compte */

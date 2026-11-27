@@ -81,7 +81,7 @@ function etat(fiche) {
     check(`L09 ${tag} fiche en brouillon : jamais servie`, !(await page.$('.learn-stage')));
     if (w > 1000) {
       const box = await page.evaluate(() => { const t = document.querySelector('.topbar').getBoundingClientRect(); return { w: t.width, h: t.height }; });
-      check(`L10 ${tag} Student sur ordinateur : barre latérale à gauche (pleine hauteur)`, box.w < 260 && box.h >= 890, JSON.stringify(box));
+      check(`L10 ${tag} Arbor Web sur ordinateur : en-tête horizontal à onglets (identité Web, la barre latérale est réservée à l’application)`, box.w >= 1400 && box.h < 140, JSON.stringify(box));
     }
     const over = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     check(`L11 ${tag} aucun défilement horizontal`, over <= 0, String(over));

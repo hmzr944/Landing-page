@@ -421,7 +421,7 @@
   /* ---------- Point d'entrée ---------- */
   async function wizard(app, o, step, deps) {
     d = deps;
-    if (!window.Tutor || !Tutor.signedIn()) { app.innerHTML = `<section class="sec org-join"><h1>Créer une organisation</h1><p>Une organisation a besoin d’un compte (gratuit). Tes cours personnels restent sur cet appareil.</p><div class="row-btns"><button class="btn" id="obLogin">${d.ic('sign-in')}Se connecter ou créer un compte</button></div></section>`; app.querySelector('#obLogin').onclick = () => Welcome.auth({ after: () => wizard(app, o, step, deps) }, 'signup'); return; }
+    if (!window.Tutor || !Tutor.signedIn()) { app.innerHTML = `<section class="sec org-join"><h1>Créer une organisation</h1><p>Une organisation a besoin d’un compte Arbor. L’espace d’équipe relève de l’offre Business (<a href="site/tarifs.html" target="_blank" rel="noopener">voir les tarifs</a>). Tes cours personnels restent sur cet appareil.</p><div class="row-btns"><button class="btn" id="obLogin">${d.ic('sign-in')}Se connecter ou créer un compte</button></div></section>`; app.querySelector('#obLogin').onclick = () => Welcome.auth({ after: () => wizard(app, o, step, deps) }, 'signup'); return; }
     if (!o) return stepInfos(app, null);
     if (o.role !== 'admin') { app.innerHTML = `<section class="sec"><p class="hint">La configuration de l’organisation est réservée aux administrateurs.</p><div class="row-btns"><a class="btn ghost" href="#/org/${o.id}">Retour</a></div></section>`; return; }
     const s = step || (o.setup && o.setup.step) || 'infos';

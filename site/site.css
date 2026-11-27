@@ -336,3 +336,42 @@ i.ph, i.ph-fill { line-height: 1; }
   .btn:active { transform: none; }
 }
 @keyframes fade { from { opacity: 0; } }
+
+/* ---------- Arbor 3 : plus dense, moins de vide (retours du 27 novembre) ---------- */
+.hero { padding-top: 64px; }
+.hero h1 { font-size: clamp(2.3rem, 1.4rem + 3.4vw, 4rem); }
+.hero .lead { font-size: clamp(1.05rem, 1rem + .3vw, 1.2rem); margin-bottom: 24px; }
+.stage { margin-top: 44px; max-width: 960px; }
+.stage-floor { height: 72px; }
+.sec { padding: 80px 0; }
+.sec-h { margin-bottom: 36px; }
+.sec-h h2 { font-size: clamp(1.8rem, 1.3rem + 1.8vw, 2.7rem); }
+.sec-h p { font-size: 1.08rem; }
+.story-steps li { min-height: 46vh; }
+.story-steps h3 { font-size: clamp(1.4rem, 1.15rem + 1vw, 2rem); }
+.story-steps p { font-size: 1.05rem; }
+.story-phone { top: calc(50vh - 300px); }
+.story-phone .phone { max-width: 290px; }
+.xp-media { min-height: 340px; }
+.xp-copy h3 { font-size: 1.6rem; }
+.seg { margin-bottom: 28px; }
+.card { padding: 22px; border-radius: 20px; }
+.final h2 { font-size: clamp(2rem, 1.4rem + 2.2vw, 3.1rem); }
+@media (max-width: 640px) { .sec { padding: 56px 0; } .hero { padding-top: 40px; } }
+/* le haut des sections reste visible sous la barre */
+section[id], [data-seg-root] { scroll-margin-top: 72px; }
+
+/* Tarifs */
+.price-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; align-items: stretch; }
+.price { display: flex; flex-direction: column; gap: 6px; }
+.price h2 { font-size: 1.15rem; margin: 0; }
+.price-tag { margin: 4px 0 0; display: grid; gap: 2px; }
+.price-tag b { font-family: var(--font-display); font-size: 2rem; letter-spacing: -0.03em; }
+.price-tag span { font-size: .85rem; color: var(--ink-2); }
+.price-for { color: var(--ink-2); font-size: .93rem; }
+.price ul { margin: 6px 0 16px; padding-left: 1.1em; color: var(--ink-2); font-size: .92rem; flex: 1; }
+.price li { margin: 5px 0; }
+.price .btn { align-self: flex-start; }
+.featured-price { box-shadow: 0 0 0 2px var(--accent), var(--shadow); }
+@media (max-width: 1000px) { .price-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .price-grid { grid-template-columns: 1fr; } }
