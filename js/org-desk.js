@@ -130,7 +130,7 @@
       ...orgs.map((o) => ({ icon: 'buildings', t: o.name, s: ROLE[o.role] || o.role, current: cur === o.id, run: () => { Org.setSpace(o.id); location.hash = `#/org/${o.id}`; } })),
       '-',
       { icon: 'plus', t: 'Créer une organisation', run: () => { location.hash = '#/org/nouvelle'; } },
-      { icon: 'door-open', t: 'Rejoindre avec une invitation', run: () => { location.hash = '#/rejoindre'; } },
+      { icon: 'door-open', t: 'Rejoindre une équipe', run: () => { location.hash = '#/rejoindre'; } },
     ], 'Changer d’espace');
   }
   function meMenu(btn) {

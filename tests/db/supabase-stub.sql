@@ -14,6 +14,8 @@ grant usage on schema extensions to anon, authenticated, service_role;
 create schema if not exists auth;
 grant usage on schema auth to anon, authenticated, service_role;
 create table if not exists auth.users (id uuid primary key, email text);
+-- comme Supabase : date de vérification de l'adresse (nulle tant que l'adresse n'est pas confirmée)
+alter table auth.users add column if not exists email_confirmed_at timestamptz;
 
 create or replace function auth.jwt() returns jsonb language sql stable as $$
   select coalesce(nullif(current_setting('request.jwt.claims', true), ''), '{}')::jsonb;

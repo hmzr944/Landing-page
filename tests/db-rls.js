@@ -566,6 +566,59 @@ check('R6 le rôle anonyme n’a accès à aucune table Business', !psql('set ro
   check('TR10 rien n’entre dans le référentiel des documents (knowledge_nodes inchangé)', asService(`select count(*) from public.knowledge_nodes where org_id = '${orgT}';`).out === '0');
 }
 
+// ---------- Accès sans lien d'invitation (013) : rattachement par adresse ou domaine, pass d'équipe éphémère ----------
+{
+  const m13 = psql(file('supabase/migrations/013_access.sql'));
+  check('AC0 la migration 013 s’applique et peut être rejouée', m13.ok && psql(file('supabase/migrations/013_access.sql')).ok, m13.err.slice(0, 300));
+  const P = (n, email) => ({ id: `00000000-0000-0000-0000-0000000000${n}`, email });
+  const boss = P(40, 'boss@fournil.fr'), mgr = P(41, 'mgr@fournil.fr'), lea = P(42, 'lea@fournil.fr'), noe = P(43, 'noe@fournil.fr'), sam = P(44, 'sam@gmail.com'),
+    zoe = P(45, 'zoe@fournil.fr'), max = P(46, 'max@ailleurs.fr'), ivy = P(47, 'ivy@ailleurs.fr');
+  psql(`insert into auth.users (id, email, email_confirmed_at) values ${[boss, mgr, lea, sam, zoe, max, ivy].map((u) => `('${u.id}', '${u.email}', now())`).join(',')}, ('${noe.id}', '${noe.email}', null);`);
+  const org = as(boss, `select public.create_organization('Fournil', 'retail');`).out;
+  const site = as(boss, `select public.save_unit('${org}', 'site', 'Fournil Bastille');`);
+  const unit = site.ok ? site.out : null;
+  check('AC1 un administrateur autorise une adresse (avec un rôle) et un domaine', as(boss, `select public.add_access_rule('${org}', 'email', 'MGR@fournil.fr', 'manager');`).ok
+    && as(boss, `select public.add_access_rule('${org}', 'domain', '@Fournil.fr', 'member'${unit ? `, '${unit}'` : ''});`).ok);
+  check('AC2 un domaine de messagerie publique est refusé', /messagerie publique/.test(as(boss, `select public.add_access_rule('${org}', 'domain', 'gmail.com');`).err));
+  check('AC3 le rôle d’administrateur ne s’attribue jamais automatiquement', !as(boss, `select public.add_access_rule('${org}', 'email', 'x@fournil.fr', 'admin');`).ok);
+  const claim = (u) => as(u, 'select org_name || \'|\' || role from public.claim_memberships();');
+  check('AC4 adresse autorisée et vérifiée : rattachée à la connexion, avec le rôle prévu (règle nominative prioritaire sur le domaine)', claim(mgr).out === 'Fournil|manager');
+  check('AC5 même domaine : rattachée comme collaboratrice, sur le site prévu', claim(lea).out === 'Fournil|member' && (!unit || asService(`select unit_id from public.memberships where org_id = '${org}' and user_id = '${lea.id}';`).out === unit));
+  check('AC6 adresse non vérifiée : rien, même si le domaine est autorisé', claim(noe).out === '' && asService(`select count(*) from public.memberships where org_id = '${org}' and user_id = '${noe.id}';`).out === '0');
+  check('AC7 autre domaine : rien', claim(max).out === '');
+  check('AC8 un second appel ne rattache pas deux fois ; une personne suspendue ne revient pas par une règle',
+    claim(lea).out === '' && asService(`update public.memberships set status = 'suspended' where org_id = '${org}' and user_id = '${lea.id}'; select 1;`).ok && claim(lea).out === ''
+    && asService(`select status from public.memberships where org_id = '${org}' and user_id = '${lea.id}';`).out === 'suspended');
+  check('AC9 un collaborateur ne voit ni ne modifie les règles ; un manager ne peut pas autoriser un domaine',
+    as(lea, 'select count(*) from public.org_access_rules;').out === '0' && /domaine entier/.test(as(mgr, `select public.add_access_rule('${org}', 'domain', 'fournil-bis.fr');`).err)
+    && as(mgr, 'select count(*) from public.org_access_rules;').out === '2');
+  check('AC10 rattachements inscrits au journal d’audit', asService(`select count(*) from public.audit_logs where org_id = '${org}' and action = 'membre.rattache_auto';`).out === '2');
+
+  // Pass d'équipe
+  const mk = (u, args) => as(u, `select code || '|' || id from public.create_team_pass('${org}'${args ? `, ${args}` : ''});`);
+  const p1 = mk(mgr, `15, 2${unit ? `, '${unit}'` : ', null'}, 'Briefing du matin'`);
+  const [code, pid] = p1.out.split('|');
+  check('AC11 un manager crée un pass : code de 6 caractères sans ambiguïté (ni 0, O, 1, I)', p1.ok && /^[A-HJ-NP-Z2-9]{6}$/.test(code), p1.err || code);
+  check('AC12 un collaborateur ne peut pas créer de pass ; durée et places sont bornées', !mk(lea).ok && !mk(mgr, '90').ok && !mk(mgr, '15, 0').ok);
+  check('AC13 l’empreinte du code n’est lisible par personne, même un administrateur', !as(boss, 'select code_hash from public.team_passes;').ok && as(boss, 'select count(*) from public.team_passes;').out === '1');
+  const redeem = (u, c) => as(u, `select status || '|' || coalesce(org_name, '') || '|' || coalesce(unit_name, '') from public.redeem_team_pass('${c}');`).out;
+  check('AC14 le code saisi en minuscules avec un tiret fonctionne : la personne entre comme collaboratrice, sur le bon site', redeem(max, `${code.slice(0, 3).toLowerCase()}-${code.slice(3).toLowerCase()}`).startsWith('ok|Fournil|')
+    && asService(`select role from public.memberships where org_id = '${org}' and user_id = '${max.id}';`).out === 'member');
+  check('AC15 déjà membre : rien n’est consommé', redeem(mgr, code).startsWith('deja_membre') && asService(`select uses from public.team_passes where id = '${pid}';`).out === '1');
+  check('AC16 places épuisées : refusé', redeem(sam, code).startsWith('ok') && redeem(ivy, code).startsWith('invalide'));
+  const p2 = mk(boss, '15, 10').out.split('|');
+  as(mgr, `select public.revoke_team_pass('${p2[1]}');`);
+  check('AC17 un pass révoqué ne marche plus', redeem(zoe, p2[0]).startsWith('invalide'));
+  const p3 = mk(boss, '1, 10').out.split('|');
+  asService(`update public.team_passes set expires_at = now() - interval '1 second' where id = '${p3[1]}';`);
+  check('AC18 un pass expiré ne marche plus', redeem(zoe, p3[0]).startsWith('invalide'));
+  for (let i = 0; i < 8; i++) redeem(zoe, 'ZZZZZZ');
+  const p4 = mk(boss, '15, 10').out.split('|');
+  check('AC19 au-delà de 10 essais ratés en une heure, même un bon code est refusé (essais au hasard bloqués)', redeem(zoe, p4[0]).startsWith('trop_de_tentatives'));
+  check('AC20 une autre organisation ne voit ni pass ni règle', as(ivy, 'select count(*) from public.team_passes;').out === '0' && as(ivy, 'select count(*) from public.org_access_rules;').out === '0');
+  check('AC21 entrées par pass inscrites au journal d’audit', asService(`select count(*) from public.audit_logs where org_id = '${org}' and action = 'membre.rattache_pass';`).out === '2');
+}
+
 // ---------- Tables du tuteur (001, 002) toujours protégées ----------
 check('T1 le journal des appels accepte les nouvelles tâches de génération', psql(`insert into public.ai_calls (user_id, mode, model) values ('${bob.id}', 'enrichir', 'm');`).ok);
 check('T2 un utilisateur ne lit pas les compteurs des autres', as(carla, 'select count(*) from public.ai_calls;').out === '0' && as(bob, 'select count(*) from public.ai_calls;').out === '2');

@@ -22,6 +22,9 @@ Projet : `https://nnqtgwgwalbbhqzceged.supabase.co` (adresse et clé publiable d
    Watchdog, actions demandées, validation au poste, export et effacement des données, conservation, chemins de stockage).
    puis `migrations/009_experience.sql` (provenance vérifiée par le serveur, revalidations ciblées, connaissances hors
    référentiel). À appliquer en même temps que le redéploiement de la fonction.
+   puis `migrations/010_feedback.sql`, `migrations/011_league.sql`, `migrations/012_transmission.sql`
+   (transmissions relues avant partage), puis `migrations/013_access.sql` (Arbor 3 : adresses et domaines autorisés,
+   pass d'équipe éphémère ; remplace la création de liens d'invitation, les anciens liens restent acceptés).
    Crée `ai_usage` et `ai_calls` (RLS activé : chacun ne lit que ses lignes, personne n'écrit depuis le navigateur)
    et la fonction `ai_record_call`, réservée au serveur.
 2. **Connexion par e-mail** : *Authentication* → *URL Configuration*

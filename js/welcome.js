@@ -341,6 +341,9 @@
     if (standalone) return finish('login');
     const j = window.Journey ? await Journey.pull().catch(() => Journey.get()) : {};
     if (window.Org) await Org.refresh().catch(() => []);
+    // adresse autorisée par une organisation (013) : on y entre directement, par son accueil
+    const nj = window.Org && Org.justJoined ? Org.justJoined() : [];
+    if (nj.length === 1) return finish(`joined:${nj[0].org_id}`);
     if (j.workspace === 'student' && j.studentDone) return finish('student');
     if (j.workspace === 'business' && orgs().length === 1) return finish(`org:${orgs()[0].id}`);
     go('space', { replace: true });

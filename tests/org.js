@@ -87,7 +87,7 @@ const personal = () => ({ subjects: [{ id: 'persosubj01', title: SECRET_TITLE, c
     check('A1 sans organisation, pas de sélecteur d’espace dans l’en-tête', !(await page.isVisible('#spaceBtn')));
     check('A2 l’espace personnel s’affiche comme avant', await page.isVisible('.bottom-nav') && /Mon cours secret/.test(await page.evaluate(() => JSON.stringify(localStorage.getItem('arbor:v1')))));
     await page.click('#settingsBtn'); await settle(page, 300);
-    check('A3 les réglages proposent de créer ou rejoindre une organisation', await page.isVisible('#orgCreate') && /Rejoindre avec une invitation/.test(await page.textContent('#modalBody')));
+    check('A3 les réglages proposent de créer ou rejoindre une organisation', await page.isVisible('#orgCreate') && /Rejoindre une équipe/.test(await page.textContent('#modalBody')));
     await ctx.close();
   }
 
@@ -162,7 +162,7 @@ const personal = () => ({ subjects: [{ id: 'persosubj01', title: SECRET_TITLE, c
     const { ctx, page } = await fresh({ fresh: true });
     await page.goto(URL0); await settle(page, 1000);
     await page.click('.wel .wel-invite'); await settle(page, 700);
-    check('E0 l’accueil mène à l’écran pour rejoindre (coller le lien)', /#\/rejoindre/.test(page.url()) && await page.isVisible('#jpLink'));
+    check('E0 l’accueil mène à l’écran pour rejoindre (saisir le code d’équipe)', /#\/rejoindre/.test(page.url()) && await page.isVisible('#passCode'));
     await ctx.close();
   }
   /* E bis. Introduction (après « Essayer sans compte ») : le lien d'invitation y est aussi */
@@ -173,7 +173,7 @@ const personal = () => ({ subjects: [{ id: 'persosubj01', title: SECRET_TITLE, c
     const link = await page.$('.onb [data-onb="join"]');
     check('E1 l’introduction propose « J’ai une invitation de mon organisation »', !!link);
     if (link) { await link.click(); await settle(page, 700); }
-    check('E2 elle mène à l’écran pour rejoindre (coller le lien)', /#\/rejoindre/.test(page.url()) && await page.isVisible('#jpLink'));
+    check('E2 elle mène à l’écran pour rejoindre (saisir le code d’équipe)', /#\/rejoindre/.test(page.url()) && await page.isVisible('#passCode'));
     await ctx.close();
   }
 

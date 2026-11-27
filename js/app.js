@@ -2667,7 +2667,7 @@
           <legend>Espace professionnel</legend>
           <p class="hint">Pour se former avec son équipe, à partir des documents de l’entreprise. Ton espace personnel reste séparé, sur cet appareil.</p>
           ${Org.list().length ? `<ul class="org-list">${Org.list().map((o) => `<li><a href="#/org/${o.id}" data-close-modal>${esc(o.name)}</a><small>${Org.ROLES[o.role] || o.role}</small></li>`).join('')}</ul>` : ''}
-          <div class="row-btns"><button type="button" class="btn ghost sm" id="orgCreate">${ic('plus')}Créer une organisation</button><a class="btn ghost sm" href="#/rejoindre" data-close-modal>${ic('door-open')}Rejoindre avec une invitation</a></div>
+          <div class="row-btns"><button type="button" class="btn ghost sm" id="orgCreate">${ic('plus')}Créer une organisation</button><a class="btn ghost sm" href="#/rejoindre" data-close-modal>${ic('door-open')}Rejoindre une équipe</a></div>
         </fieldset>` : ''}
         ${document.documentElement.classList.contains('is-desktop-app') ? '' : `<fieldset class="field">
           <legend>Arbor sur ordinateur</legend>
@@ -3373,6 +3373,7 @@
       if (window.Org && window.Tutor && Tutor.signedIn()) Org.refresh().then(paintSpace).catch(() => {});
       if (how === 'join') { go(Org && Org.pendingInvite() ? `#/rejoindre/${Org.pendingInvite()}` : '#/rejoindre'); return; }
       if (how === 'create') { go('#/org/nouvelle'); return; }
+      if (String(how).startsWith('joined:')) { const id = how.slice(7); if (window.Org) Org.setSpace(id); go(`#/org/${id}/bienvenue`); return; }
       if (String(how).startsWith('org:')) { if (window.Org) Org.setSpace(how.slice(4)); go(`#/org/${how.slice(4)}`); return; }
       if (window.Org) Org.setSpace('personal');
       if (!/^#\/?$/.test(location.hash) && location.hash) go('#/'); else render(view);

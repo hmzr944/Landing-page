@@ -291,8 +291,14 @@
     app.querySelector('#obzNext').onclick = () => advance(o, 'competences');
   }
 
-  /* ---------- 6. Invitations ---------- */
+  /* ---------- 6. Faire entrer l'équipe ----------
+     Arbor 3 : adresses autorisées et pass d'équipe (js/org-access.js). Les liens d'invitation ne restent que pour une base
+     sans la migration 013 (legacyInviteBox), afin de ne casser aucun déploiement existant. */
   async function inviteBox(box, o) {
+    if (window.OrgAccess) return OrgAccess.panel(box, o, d);
+    return legacyInviteBox(box, o);
+  }
+  async function legacyInviteBox(box, o) {
     let us = [], invs = [], has007 = true;
     try { us = await units(o.id); } catch (e) { has007 = !missing(e); }
     try { invs = await Tutor.rest('/rest/v1/invitations', { method: 'GET', query: `?org_id=eq.${q(o.id)}&accepted_at=is.null${has007 ? '&revoked_at=is.null' : ''}&select=id,email,role,expires_at${has007 ? ',unit_id' : ''}&order=created_at` }); } catch (e) { invs = []; }
@@ -335,7 +341,7 @@
         err.textContent = /déjà partie/.test(x.message) ? 'Cette personne fait déjà partie de l’organisation.' : /administrateur/.test(x.message) ? 'Seul un administrateur peut inviter un administrateur.' : x.message;
       }
     };
-    box.querySelectorAll('[data-revoke]').forEach((b) => { b.onclick = async () => { try { await rpc('revoke_invitation', { p_id: b.dataset.revoke }); d.toast('Invitation annulée', 'success'); inviteBox(box, o); } catch (x) { d.toast(x.message, 'error'); } }; });
+    box.querySelectorAll('[data-revoke]').forEach((b) => { b.onclick = async () => { try { await rpc('revoke_invitation', { p_id: b.dataset.revoke }); d.toast('Invitation annulée', 'success'); legacyInviteBox(box, o); } catch (x) { d.toast(x.message, 'error'); } }; });
   }
   function stepInvites(app, o) {
     app.innerHTML = frame(o, 'invitations', `
@@ -439,5 +445,5 @@
 
   // Outils de l'app (échappement, icônes, navigation), donnés par le routeur de l'espace avant tout appel
   const use = (deps) => { d = deps; };
-  window.OrgOnboarding = { use, wizard, arrival, skillsEditor, inviteBox, resumeBanner, STEPS };
+  window.OrgOnboarding = { use, wizard, arrival, skillsEditor, inviteBox, legacyInviteBox, resumeBanner, STEPS };
 })();

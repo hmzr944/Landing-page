@@ -25,9 +25,10 @@ const SECRET = 'Mes notes secrètes de chimie';
 /* ---------- Faux Supabase avec la migration 007 ---------- */
 const b64 = (o) => Buffer.from(JSON.stringify(o)).toString('base64url');
 const jwt = (sub) => `${b64({ alg: 'HS256' })}.${b64({ sub, exp: 9999999999 })}.sig`;
-const people = { alice: { id: 'u-alice', email: 'alice@boulangerie.fr', pass: 'Pain2026x' }, bob: { id: 'u-bob', email: 'bob@boulangerie.fr', pass: 'Croissant1' }, zoe: { id: 'u-zoe', email: 'zoe@ailleurs.fr', pass: 'Ailleurs22' } };
+const people = { alice: { id: 'u-alice', email: 'alice@boulangerie.fr', pass: 'Pain2026x' }, bob: { id: 'u-bob', email: 'bob@boulangerie.fr', pass: 'Croissant1' }, zoe: { id: 'u-zoe', email: 'zoe@ailleurs.fr', pass: 'Ailleurs22' }, cam: { id: 'u-cam', email: 'cam@boulangerie.fr', pass: 'Brioche33' } };
 const tokens = Object.fromEntries(Object.values(people).map((u) => [jwt(u.id), u]));
 const db = { orgs: [], members: [], invites: [], units: [], skills: [], sk: [], su: [], knowledge: [], calls: [] };
+const access = require('./fixtures/access-mock.js')(db);
 const sent = [];
 const fault = { server: false, offline: false, delay: 0 }; // pannes simulées sur l'enregistrement de l'organisation
 const sha = (t) => crypto.createHash('sha256').update(t).digest('hex');
@@ -55,6 +56,7 @@ function handle(r) {
   if (p === '/auth/v1/user') return ok({ email: me.email });
   if (p === '/rest/v1/profiles') return ok(m === 'GET' ? [] : null);
   // ---- fonctions
+  { const a = access(p, m, body, u, { me, ok, err, isLead, isAdmin }); if (a) return a; }
   if (p === '/rest/v1/rpc/my_organizations') return ok(db.members.filter((x) => x.user === me.id).map((x) => { const o = db.orgs.find((y) => y.id === x.org); return { id: o.id, name: o.name, sector: o.sector, role: x.role, owner: o.created_by === me.id, unit: (db.units.find((y) => y.id === x.unit) || {}).name || null, onboarded: !!x.onboarded, setup: o.setup }; }));
   if (p === '/rest/v1/rpc/create_organization') { const id = crypto.randomUUID(); db.orgs.push({ id, name: body.p_name, sector: body.p_sector, size: body.p_size || null, country: body.p_country || null, language: body.p_language || 'fr', goals: [], setup: {}, created_by: me.id }); db.members.push({ org: id, user: me.id, role: 'admin', email: me.email }); db.calls.push(['create', body]); return ok(id); }
   if (p === '/rest/v1/rpc/update_organization') {
@@ -204,10 +206,10 @@ const personal = () => ({ version: 2, subjects: [{ id: 'perso1', title: SECRET, 
     // Invitations
     check('A14 étape Invitations : rôle et équipe au choix', await page.isVisible('#ivRole') && await page.isVisible('#ivUnit'));
     await page.fill('#ivEmail', 'bob@boulangerie.fr'); await page.selectOption('#ivUnit', { label: 'Vente' }); await page.click('#ivForm .btn'); await settle(page, 700);
-    inviteBob = await page.inputValue('#oiLink').catch(() => '');
-    check('A15 lien d’invitation créé avec l’équipe ; partage par la messagerie de l’administrateur', /#\/rejoindre\/[0-9a-f]{48}$/.test(inviteBob) && db.invites[0].unit === db.units.find((x) => x.name === 'Vente').id && /^mailto:bob%40boulangerie\.fr/.test(await page.getAttribute('#ivOut a[href^="mailto:"]', 'href')));
-    await page.fill('#ivEmail', 'alice@boulangerie.fr'); await page.click('#ivForm .btn'); await settle(page, 600);
-    check('A16 inviter quelqu’un qui est déjà membre : message clair', /déjà partie/.test(await page.textContent('#ivErr')));
+    check('A15 Bob est autorisé par son adresse, avec son équipe : aucun lien à envoyer', db.rules.length === 1 && db.rules[0].value === 'bob@boulangerie.fr' && db.rules[0].unit === db.units.find((x) => x.name === 'Vente').id && !(await page.$('#oiLink')));
+    await page.fill('#passLabel', 'Briefing du matin'); await page.selectOption('#passUnit', { label: 'Vente' }); await page.click('#passForm .btn'); await settle(page, 700);
+    inviteBob = (await page.textContent('.pass-code').catch(() => '')).replace(/\s/g, '');
+    check('A16 pass d’équipe : un code court de 6 caractères, son libellé, sa durée ; le code n’est montré qu’une fois', /^[A-HJ-NP-Z2-9]{6}$/.test(inviteBob) && db.passes.length === 1 && db.passes[0].label === 'Briefing du matin' && /Valable encore/.test(await page.textContent('#passOut')), inviteBob);
     await shot(page, '6-invitations');
     await page.click('#obzNext'); await settle(page, 1200);
     check('A17 fin : organisation prête, état honnête (connaissances, compétences, membres) et première simulation proposée', /est prête/.test(await page.textContent('.obz-end')) && /2 connaissances validées/.test(await page.textContent('.obz-check')) && !!(await page.$('.obz-next a[href$="/mystere"]')) && db.orgs[0].setup.done === true);
@@ -263,9 +265,9 @@ const personal = () => ({ version: 2, subjects: [{ id: 'perso1', title: SECRET, 
   /* C. Le collaborateur : aperçu de l'invitation, compte, arrivée, diagnostic */
   {
     const { ctx, page } = await fresh({ blank: true });
-    await page.goto(URL0 + inviteBob.slice(inviteBob.indexOf('#'))); await settle(page, 1000);
+    await page.goto(`${URL0}#/rejoindre/${inviteBob.toLowerCase()}`); await settle(page, 1000);
     const txt = await page.textContent('#app');
-    check('C1 avant toute connexion : organisation, rôle, équipe et adresse masquée', /Boulangerie Martin/.test(txt) && /Collaborateur/.test(txt) && /Vente/.test(txt) && /bo•••@boulangerie\.fr/.test(txt) && !(await page.isVisible('.onb')));
+    check('C1 QR scanné ou code saisi (même en minuscules) : le code s’affiche, connexion sans mot de passe à créer, pas d’accueil Student', new RegExp(`${inviteBob.slice(0, 3)} ${inviteBob.slice(3)}`).test(txt) && await page.isVisible('#jnLogin') && !(await page.isVisible('.onb')));
     await shot(page, 'c1-invitation');
     await page.click('#jnLogin'); await settle(page, 400);
     await page.fill('#welEmail', people.bob.email); await page.fill('#welPass', people.bob.pass); await page.click('.wel-submit'); await settle(page, 1600);
@@ -287,10 +289,35 @@ const personal = () => ({ version: 2, subjects: [{ id: 'perso1', title: SECRET, 
     await ctx.close();
   }
 
+  /* E. Arbor 3 : code non valable ; rattachement automatique par domaine autorisé, à la connexion */
+  {
+    const { ctx, page } = await fresh({ blank: true });
+    await page.goto(`${URL0}#/rejoindre/ZZZ-ZZZ`); await settle(page, 800);
+    await page.click('#jnLogin'); await settle(page, 400);
+    await page.fill('#welEmail', people.zoe.email); await page.fill('#welPass', people.zoe.pass); await page.click('.wel-submit'); await settle(page, 1600);
+    check('J1 code inconnu ou expiré : message clair et moyen de saisir un autre code, aucune adhésion', /plus valable/.test(await page.textContent('#app')) && await page.isVisible('a[href="#/rejoindre"]') && !db.members.some((x) => x.user === people.zoe.id && x.org === orgId));
+    await ctx.close();
+  }
+  {
+    db.rules.push({ id: crypto.randomUUID(), org: orgId, kind: 'domain', value: 'boulangerie.fr', role: 'member', unit: null });
+    const { ctx, page } = await fresh({ blank: true });
+    await page.goto(`${URL0}#/`); await settle(page, 700);
+    if (await page.isVisible('[data-onb="skip"]')) { await page.click('[data-onb="skip"]'); await settle(page, 500); }
+    await page.click('#settingsBtn'); await settle(page, 400);
+    await page.click('#acctPwd'); await settle(page, 400);
+    await page.fill('#welEmail', people.cam.email); await page.fill('#welPass', people.cam.pass); await page.click('.wel-submit'); await settle(page, 1800);
+    check('J2 domaine autorisé : à la connexion, Cam rejoint l’organisation sans lien ni code, et le voit', db.members.some((x) => x.user === people.cam.id && x.org === orgId && x.role === 'member') && /Tu as rejoint Boulangerie Martin/.test(await page.textContent('body')));
+    check('J3 l’organisation apparaît dans ses espaces', (await page.evaluate(() => JSON.parse(localStorage.getItem('arbor:orgs') || '[]').map((o) => o.name))).includes('Boulangerie Martin'));
+    await ctx.close();
+  }
+
   /* D. Liens d'invitation : utilisé, expiré, annulé, autre adresse */
   {
     const { ctx, page } = await fresh({ blank: true });
-    await page.goto(URL0 + inviteBob.slice(inviteBob.indexOf('#'))); await settle(page, 900);
+    // anciens liens d'invitation (envoyés avant Arbor 3) : toujours acceptés, avec leurs messages
+    const t1 = crypto.randomBytes(24).toString('hex');
+    db.invites.push({ id: crypto.randomUUID(), org: orgId, email: 'deja@boulangerie.fr', role: 'member', unit: null, hash: sha(t1), used: true, usedBy: 'u-x', revoked: false, expires: Date.now() + 1e8 });
+    await page.goto(`${URL0}#/rejoindre/${t1}`); await settle(page, 900);
     check('D1 lien déjà utilisé (par quelqu’un d’autre ou sans être connecté) : message dédié', /déjà utilisée/.test(await page.textContent('#app')));
     const t2 = crypto.randomBytes(24).toString('hex');
     db.invites.push({ id: crypto.randomUUID(), org: orgId, email: 'old@boulangerie.fr', role: 'member', unit: null, hash: sha(t2), used: false, revoked: false, expires: Date.now() - 1000 });

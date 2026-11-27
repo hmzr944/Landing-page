@@ -17,8 +17,15 @@
   const orgOf = (id) => list().find((o) => o.id === id) || null;
   const can = (o, ...roles) => !!o && roles.includes(o.role);
 
+  let justJoined = []; // rattachements faits à la dernière connexion (lus une fois par l'écran de connexion)
   async function refresh() {
     if (!window.Tutor || !Tutor.signedIn()) return list();
+    // Arbor 3 (013) : rattachement automatique par adresse ou domaine autorisés, à chaque connexion
+    if (window.OrgAccess) {
+      const joined = await OrgAccess.claim();
+      if (joined.length) justJoined = joined;
+      if (joined.length && window.FX) FX.toast(`Tu as rejoint ${joined.map((j) => j.org_name).join(', ')}`, 'success', 4200);
+    }
     const rows = await Tutor.rest('/rest/v1/rpc/my_organizations', { body: {} });
     const orgs = (Array.isArray(rows) ? rows : []).map((r) => ({ id: r.id, name: r.name, sector: r.sector || '', role: r.role, owner: !!r.owner, unit: r.unit || '', onboarded: r.onboarded !== false, setup: r.setup || {} }));
     put(K_ORGS, orgs);
@@ -155,6 +162,17 @@
     annulee: ['Invitation annulée', 'Ton responsable a annulé cette invitation. Demande-lui un nouveau lien si besoin.'],
   };
   async function joinView(app, token) {
+    // Arbor 3 : code de pass d'équipe (6 caractères) ou saisie du code ; les liens d'invitation (48 caractères) restent acceptés
+    if (window.OrgAccess && !tokenFrom(token) && !get(K_PENDING, '')) {
+      return OrgAccess.join(app, token, d, async (r) => {
+        await refresh();
+        setSpace(r.org_id);
+        if (window.Journey) Journey.set({ workspace: 'business', businessIntent: 'join' });
+        d.toast(r.status === 'deja_membre' ? `Tu fais déjà partie de ${r.org_name}` : `Bienvenue dans ${r.org_name}${r.unit_name ? `, ${r.unit_name}` : ''}`, 'success');
+        const o = orgOf(r.org_id);
+        d.go(o && o.onboarded === false ? `#/org/${r.org_id}/bienvenue` : `#/org/${r.org_id}`);
+      });
+    }
     const t = tokenFrom(token);
     if (t) put(K_PENDING, t);
     const pending = get(K_PENDING, '');
@@ -289,7 +307,7 @@
         <a class="space-item" href="#/" data-space="personal" ${cur === 'personal' ? 'aria-current="true"' : ''}><span>${d.ic('user-circle', true)}</span><div><b>Espace personnel</b><small>Tes cours et tes révisions, sur cet appareil</small></div></a>
         ${orgs.map((o) => `<a class="space-item" href="#/org/${o.id}" data-space="${o.id}" ${cur === o.id ? 'aria-current="true"' : ''}><span>${d.ic('buildings', true)}</span><div><b>${d.esc(o.name)}</b><small>${ROLES[o.role] || o.role}</small></div></a>`).join('')}
       </div>
-      <div class="row-btns"><button class="btn ghost" id="spCreate">${d.ic('plus')}Créer une organisation</button><a class="btn ghost" href="#/rejoindre" id="spJoin">${d.ic('door-open')}Rejoindre avec une invitation</a></div>`, (el) => {
+      <div class="row-btns"><button class="btn ghost" id="spCreate">${d.ic('plus')}Créer une organisation</button><a class="btn ghost" href="#/rejoindre" id="spJoin">${d.ic('door-open')}Rejoindre une équipe</a></div>`, (el) => {
       el.querySelectorAll('[data-space]').forEach((a) => { a.onclick = () => { setSpace(a.dataset.space); d.closeModal(); }; });
       el.querySelector('#spJoin').onclick = () => d.closeModal();
       el.querySelector('#spCreate').onclick = () => createModal(d);
@@ -306,5 +324,5 @@
   // Après le retour d'un lien de connexion, reprendre l'invitation en attente
   const pendingInvite = () => get(K_PENDING, '');
 
-  window.Org = { list, space, setSpace, refresh, create, invite, accept, members, invitations, revoke, render, openSwitcher, createModal, pendingInvite, tokenFrom, ROLES, can, homeView: (o, deps) => { d = deps; return homeView(o); } };
+  window.Org = { justJoined: () => { const j = justJoined; justJoined = []; return j; }, list, space, setSpace, refresh, create, invite, accept, members, invitations, revoke, render, openSwitcher, createModal, pendingInvite, tokenFrom, ROLES, can, homeView: (o, deps) => { d = deps; return homeView(o); } };
 })();

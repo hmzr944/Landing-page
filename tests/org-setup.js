@@ -28,7 +28,8 @@ const TOKEN = jwt(ME.id);
 const RULE = 'Lorsqu’un client demande un remboursement, vérifier le ticket de caisse et l’état du produit. Le client dispose de 30 jours pour un retour. Un avoir est proposé sous 48 heures. Ne jamais rembourser en espèces au-delà de 150 euros.';
 
 /* ---------- Faux Supabase ---------- */
-const db = { orgs: [], sources: [], versions: [], knowledge: [], uploads: [], calls: [], skills: [], links: [], invites: [], noDecouverte: false };
+const db = { orgs: [], sources: [], versions: [], knowledge: [], uploads: [], calls: [], skills: [], links: [], invites: [], noDecouverte: false, members: [], units: [] };
+const access = require('./fixtures/access-mock.js')(db);
 function handle(r) {
   const u = new URL(r.url()); const p = u.pathname; const raw = r.postData() || '';
   const ok = (data, status = 200) => ({ status, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: data === undefined ? '' : JSON.stringify(data) });
@@ -37,6 +38,7 @@ function handle(r) {
   db.calls.push({ p, method: r.method(), body });
   const eq = (k) => (u.searchParams.get(k) || '').replace(/^eq\./, '');
   const mine = (org) => db.orgs.some((o) => o.id === org);
+  { const a = access(p, r.method(), body, u, { me: ME, ok, err: (m) => ok({ message: m }, 400), isLead: mine, isAdmin: mine }); if (a) return a; }
   if (p === '/rest/v1/rpc/my_organizations') return ok(db.orgs.map((o) => ({ id: o.id, name: o.name, sector: o.sector, role: 'admin', setup: o.setup, onboarded: o.onboarded })));
   if (p === '/rest/v1/rpc/create_organization') { const id = crypto.randomUUID(); db.orgs.push({ id, name: body.p_name, sector: body.p_sector, setup: {}, onboarded: false }); return ok(id); }
   if (p === '/rest/v1/rpc/update_organization') { const o = db.orgs.find((x) => x.id === body.p_org); if (!o) return ok({ message: 'accès refusé' }, 400); o.setup = body.p_setup; return ok(null); }
@@ -207,9 +209,9 @@ function handle(r) {
   await wait(400);
   check('D2 la mise en route est marquée terminée', org.setup && org.setup.done === true && org.onboarded === true, JSON.stringify(org.setup));
   await page.click('#sxInv'); await wait(500);
-  check('D3 « Inviter mon équipe » ouvre le formulaire d’invitation sur place', await page.isVisible('#ivEmail'));
-  await page.fill('#ivEmail', 'bob@boulangerie.fr'); await page.click('#ivForm .btn'); await wait(600);
-  check('D4 l’invitation donne un lien unique', db.invites.length === 1 && /#\/rejoindre\/[0-9a-f]{48}$/.test(await page.inputValue('#oiLink').catch(() => '')));
+  check('D3 « Faire entrer mon équipe » ouvre, sur place, les adresses autorisées et le pass d’équipe', await page.isVisible('#ivEmail') && await page.isVisible('#passForm'));
+  await page.fill('#ivEmail', 'bob@boulangerie.fr'); await page.click('#ivForm .btn'); await wait(700);
+  check('D4 l’adresse est autorisée : aucun lien à transmettre, Bob rejoindra à sa connexion', db.rules.length === 1 && db.rules[0].value === 'bob@boulangerie.fr' && !(await page.$('#oiLink')) && /bob@boulangerie\.fr/.test(await page.textContent('#sxInvite')));
   await page.click('#sxSolo'); await wait(1300);
   const t = await text();
   check('D5 « Continuer seul » mène au Cockpit, sans bandeau de reprise', /Cockpit/.test(t) && !(await page.$('.obz-resume')));
