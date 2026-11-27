@@ -42,6 +42,12 @@ function jouer(fiche, reponses = {}, opts = {}) {
 }
 // T2 : « je ne sais pas » à l'ouverture → explication simple (R2)
 check('P03 R2 : « je ne sais pas » à l’ouverture donne l’explication simple', jouer(LEVIER, {}, { sait: false }).trace[1] === 'explication:simple');
+// R7 : exemple résolu pour qui découvre, omis pour qui a déjà des bases (inversion d'expertise)
+{
+  const deb = jouer(LEVIER, {}, { sait: false }).trace, base = jouer(LEVIER).trace;
+  check('P18 R7 : « je découvre » → exemple résolu pas à pas (r2, étapes) juste après l’explication, avant toute question', deb.slice(0, 4).join(' ') === 'situation explication:simple rep:r2 lq1:juste', deb.join(' '));
+  check('P19 R7 : « j’ai déjà des bases » → pas d’exemple résolu, la pratique commence tout de suite', base[2] === 'lq1:juste' && !base.includes('rep:r2'));
+}
 // T3 : erreur portant la confusion c1 sur lq1 → remède r4 puis contrôle lc-c1, puis réserve (R3)
 {
   const { trace, st } = jouer(LEVIER, { lq1: 1 });

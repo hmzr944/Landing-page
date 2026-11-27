@@ -1,5 +1,6 @@
-/* Arbor 2 · « Apprendre une notion » : l'écran du moteur de parcours (js/pedagogie/parcours.js).
-   Situation → Explication → Compréhension → Application → Transfert → Bilan. L'ordre, la remédiation et les preuves
+/* Arbor 3 · « Apprendre une notion » : l'écran du moteur de parcours (js/pedagogie/parcours.js).
+   Exemple concret → Explication → (exemple résolu si l'on découvre) → Compréhension → Application → Transfert → Bilan.
+   Rien n'est à deviner : l'apprenant déclare où il en est, puis voit un cas expliqué avant de s'exercer. L'ordre, la remédiation et les preuves
    viennent du moteur ; cet écran ne fait qu'afficher et transmettre les réponses.
    - Notion avec fiche : les réussites sont enregistrées dans le journal (activité « fiche ») et comptent pour la
      maîtrise v2 (application, transfert).
@@ -8,7 +9,7 @@
    « en relecture » n'est servie qu'en démonstration, avec son étiquette. */
 (function () {
   let S = null; // { st, fiche, ctx, demo, fb, ordre, sid, nid }
-  const ETAPES = [['situation', 'Situation'], ['explication', 'Explication'], ['comprehension', 'Compréhension'], ['application', 'Application'], ['transfert', 'Transfert'], ['bilan', 'Bilan']];
+  const ETAPES = [['situation', 'Exemple'], ['explication', 'Explication'], ['comprehension', 'Compréhension'], ['application', 'Application'], ['transfert', 'Transfert'], ['bilan', 'Bilan']];
   const ENS_LABEL = { comprehension: 'Compréhension', comprehension_reserve: 'Compréhension', controle: 'Vérifier une confusion', application: 'Application', application_reserve: 'Application', transfert: 'Transfert : autre contexte', transfert_reserve: 'Transfert : autre contexte' };
   const REP_LABEL = { exemple: 'Exemple', etapes: 'Étape par étape', analogie: 'Analogie', contre_exemple: 'Contre-exemple', schema: 'Schéma' };
   const STATUT = {
@@ -139,9 +140,11 @@
 
   function stage(e, d) {
     const f = S.fiche;
-    if (e.type === 'situation') return `<p class="learn-eyebrow">Situation</p><p class="learn-lead">${d.esc(e.texte)}</p><h2 class="learn-q">${d.esc(e.question)}</h2>
-      <p class="muted">Réfléchis un instant avant de lire l’explication.</p>
-      <div class="learn-actions"><button type="button" class="btn" data-learn="sait">J’ai une idée</button><button type="button" class="btn ghost" data-learn="sait-pas">Je ne sais pas encore</button></div>`;
+    if (e.type === 'situation') return `<p class="learn-eyebrow">Un exemple concret</p><p class="learn-lead">${d.esc(e.texte)}</p>
+      <p class="learn-goal">${d.ic('target')} Ce que cet exemple va te faire comprendre : <b>${d.esc(String(e.question || '').replace(/,?\s*(d[’']après toi|selon toi|à ton avis),?/gi, '').replace(/\s{2,}/g, ' '))}</b></p>
+      <fieldset class="learn-level"><legend>Où en es-tu sur cette notion ?</legend>
+      <div class="learn-actions"><button type="button" class="btn" data-learn="sait-pas">Je découvre</button><button type="button" class="btn ghost" data-learn="sait">J’ai déjà des bases</button></div>
+      <p class="muted small">Si tu découvres, Arbor ajoute un exemple résolu pas à pas avant les exercices.</p></fieldset>`;
     if (e.type === 'explication') return `<p class="learn-eyebrow">Explication · ${e.niveau === 'simple' ? 'simple' : 'standard'}</p>
       ${e.raison && e.raison.methode ? `<p class="learn-why">${d.ic('shuffle')} On reprend plus simplement.</p>` : ''}
       <p class="learn-text">${d.esc(e.texte)}</p>
@@ -150,8 +153,8 @@
       <div class="learn-actions"><button type="button" class="btn" data-learn="next">S’exercer ${d.ic('arrow-right')}</button></div>`;
     if (e.type === 'representation') {
       const r = e.rep || {};
-      const why = e.raison && e.raison.confusion ? `Pour défaire la confusion « ${d.esc(e.raison.confusion)} »` : 'Une autre façon de voir';
-      return `<p class="learn-eyebrow">${REP_LABEL[r.type] || 'Représentation'}</p><p class="learn-why">${d.ic('shuffle')} ${why}</p>
+      const why = e.raison && e.raison.confusion ? `Pour défaire la confusion « ${d.esc(e.raison.confusion)} »` : e.raison && e.raison.resolu ? 'Avant de t’exercer, voici le raisonnement complet sur un cas.' : 'Une autre façon de voir';
+      return `<p class="learn-eyebrow">${e.raison && e.raison.resolu ? 'Exemple résolu, pas à pas' : REP_LABEL[r.type] || 'Représentation'}</p><p class="learn-why">${d.ic('shuffle')} ${why}</p>
         <p class="learn-text">${d.esc(r.texte || '')}</p>${r.limite ? `<p class="learn-limit"><b>Limite de cette image :</b> ${d.esc(r.limite)}</p>` : ''}
         <div class="learn-actions"><button type="button" class="btn" data-learn="next">Continuer ${d.ic('arrow-right')}</button></div>`;
     }

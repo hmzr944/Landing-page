@@ -39,9 +39,11 @@ function etat(fiche) {
 
     // Démonstration
     await page.goto(URL0 + '#/apprendre/demo'); await page.waitForSelector('.learn-stage');
-    check(`L01 ${tag} démonstration : la situation vient en premier, étiquetée « fiche d’essai », rien n’est enregistré`, /situation/i.test(await eyebrow()) && /essai/i.test(await page.textContent('.learn-rail')) && /Rien n’est enregistré/.test(await page.textContent('.learn-rail')));
+    check(`L01 ${tag} démonstration : un exemple concret vient en premier (rien à deviner), étiquetée « fiche d’essai », rien n’est enregistré`, /exemple concret/i.test(await eyebrow()) && !/d’après toi/i.test(await page.textContent('.learn-stage')) && /essai/i.test(await page.textContent('.learn-rail')) && /Rien n’est enregistré/.test(await page.textContent('.learn-rail')));
     await click('[data-learn="sait-pas"]');
-    check(`L02 ${tag} « je ne sais pas encore » → explication simple`, /simple/i.test(await eyebrow()));
+    check(`L02 ${tag} « je découvre » → explication simple`, /simple/i.test(await eyebrow()));
+    await click('[data-learn="next"]');
+    check(`L02b ${tag} puis un exemple résolu pas à pas, avant toute question (R7)`, /exemple résolu/i.test(await eyebrow()) && !(await page.$('[data-learn="choix"]')));
     await click('[data-learn="next"]');
     await click('[data-learn="choix"][data-i="1"]'); // lq1 : choix porteur de la confusion c1
     check(`L03 ${tag} erreur portant une confusion : la confusion est nommée`, /confusion fréquente/.test(await page.textContent('.learn-fb')));

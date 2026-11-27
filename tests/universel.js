@@ -66,7 +66,7 @@ const ficheServeur = (passages, casse) => {
     const b = calls.find((c) => c.task === 'fiche_rediger') || {};
     check('U03 sans document : une source ouverte réelle est envoyée avec son adresse (aucune source inventée)', (b.passages || []).length > 0 && b.passages.every((p) => p.url === 'https://fr.wikipedia.org/wiki/Levier' && /CC BY-SA/.test(p.licence)), JSON.stringify((b.passages || [])[0] || {}).slice(0, 160));
     check('U04 la demande porte le niveau, l’intention et la question de départ', b.niveau === 'intermediaire' && b.intention === 'examen' && /levier/i.test(b.question || ''));
-    check('U05 fiche contrôlée par le validateur puis servie : le parcours commence par la situation', /situation/i.test(await page.textContent('.learn-stage .learn-eyebrow').catch(() => '')));
+    check('U05 fiche contrôlée par le validateur puis servie : le parcours commence par un exemple concret', /exemple concret/i.test(await page.textContent('.learn-stage .learn-eyebrow').catch(() => '')));
     await page.waitForTimeout(800);
     const st = await page.evaluate(() => { const ss = JSON.parse(localStorage.getItem('arbor:v1')).subjects; const s = ss.find((x) => x.root && x.root.fiche) || ss[0]; return [s.root.fiche ? s.root.fiche.meta.statut : null, s.root.fiche ? s.root.fiche.meta.origine : null, s.profil ? s.profil.intention : null]; });
     check('U06 la fiche est enregistrée « générée et vérifiée », d’origine serveur, avec le profil d’apprentissage', JSON.stringify(st) === JSON.stringify(['generee_validee', 'serveur', 'examen']), JSON.stringify(st));

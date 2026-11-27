@@ -1,11 +1,16 @@
-/* Moteur de parcours d'une notion (Arbor 2) : Situation → Compréhension → Explication → Pratique → Vérification.
+/* Moteur de parcours d'une notion (Arbor 3) : exemple concret → explication → exemple résolu (débutant) → pratique
+   guidée avec retour immédiat → transfert → bilan. Fondements : docs/arbor-3-recherche.md (Dunlosky 2013, Sweller 2003,
+   Kalyuga 2007, Rosenshine 2012, Hattie et Timperley 2007).
    Machine à états pure et déterministe : pas de DOM, pas de réseau, pas d'IA, pas de hasard. Les règles pédagogiques
    sont ici, dans le code, et testées (tests/parcours.js) ; elles ne dépendent d'aucune consigne donnée à un modèle.
 
    Règles :
-   R1 Ordre : situation et question d'ouverture, puis explication, puis compréhension, application, transfert, bilan.
-      Aucune définition avant la situation (la fiche est contrôlée par V-ordre-01 à 04).
-   R2 Niveau : « je ne sais pas » à l'ouverture → explication simple ; sinon standard.
+   R1 Ordre : un exemple concret (la situation, montrée comme un cas, sans rien faire deviner), puis l'explication,
+      puis compréhension, application, transfert, bilan. La fiche est contrôlée par V-ordre-01 à 04.
+   R2 Niveau déclaré, pas deviné : « je découvre » → explication simple ; « j'ai déjà des bases » → standard.
+   R7 Exemple résolu (Sweller ; inversion d'expertise, Kalyuga) : pour qui découvre, une représentation « étape par
+      étape » (sinon « exemple ») de la fiche est montrée juste après l'explication, avant toute question. Pour qui a
+      déjà des bases, elle est omise : l'exemple résolu aide le débutant et ralentit celui qui sait déjà.
    R3 Erreur qui porte une confusion connue, pas encore traitée : remède (une autre représentation), puis la question
       de contrôle de cette confusion.
    R4 Deuxième erreur sur la notion (réussites intercalées comprises), hors confusion traitée par R3 : changement de méthode, c'est-à-dire une représentation pas encore
@@ -66,6 +71,11 @@
     const ex = st.file.find((x) => x.type === 'explication' && !x.niveau);
     if (ex) ex.niveau = st.niveau;
     log(st, 'niveau', { niveau: st.niveau });
+    if (!sait) { // R7
+      const reps = st.fiche.representations || [];
+      const r = reps.find((x) => x.type === 'etapes') || reps.find((x) => x.type === 'exemple');
+      if (r && ex) { st.montrees.add(r.id); st.file.splice(st.file.indexOf(ex) + 1, 0, { type: 'representation', id: r.id, raison: { resolu: true } }); log(st, 'exemple_resolu', { representation: r.id }); }
+    }
     return avancer(st);
   }
 
